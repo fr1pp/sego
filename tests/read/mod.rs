@@ -62,6 +62,33 @@ fn range_json() {
 }
 
 #[test]
+fn a_path_starting_with_a_dash_prints_with_a_leading_slash() {
+    let mut body =
+        server::capture("read/range.json")["response"]["body"].clone();
+    body["data"]["repository"]["commit"]["node"]["path"] = "--weird.go".into();
+    let answer = || status(200, &body.to_string());
+    let text = exchange(vec![answer()], &[MUX, "/--weird.go", "213-219"]);
+    expect![[r#"
+        exit 0
+        --- stdout
+        github.com/gorilla/mux@a7962380ca08 /--weird.go 213-219 • 601 lines
+         213: }
+         214:
+         215: // Get returns a route registered with the given name.
+         216: func (r *Router) Get(name string) *Route {
+         217: 	return r.namedRoutes[name]
+         218: }
+         219:
+        [EOF]
+        --- stderr
+        [EOF]
+    "#]]
+    .assert_eq(&text.transcript());
+    let json = exchange(vec![answer()], &[MUX, "/--weird.go", "--json"]);
+    assert!(json.stdout.contains(r#""path":"--weird.go""#), "{}", json.stdout);
+}
+
+#[test]
 fn whole_file_is_capped() {
     let run =
         exchange(vec![Step::Capture("read/capped.json")], &[MUX, "mux.go"]);

@@ -7,7 +7,9 @@ use crate::diagnostic::{Diagnostic, Outcome};
 use crate::domain::File;
 use crate::escape::{command_line, content_line};
 use crate::render::json::{Partial, document};
-use crate::render::text::{Marker, address_line, hint, notice, numbered};
+use crate::render::text::{
+    Marker, address_line, hint, notice, numbered, path_word,
+};
 use crate::sourcegraph::Fetch;
 use crate::sourcegraph::blob::{self, ReadRequest};
 use crate::sourcegraph::envelope::decode;
@@ -167,7 +169,8 @@ impl Present for Read {
         let range = self.end().map(|end| {
             LineRange { start: file.start, end: Some(end) }.to_string()
         });
-        let mut words = vec![address.as_str(), file.path.as_str()];
+        let path = path_word(&file.path);
+        let mut words = vec![address.as_str(), &path];
         words.extend(range.as_deref());
         let meta = if file.binary {
             vec!["binary".to_owned(), count(file.byte_size, "byte")]

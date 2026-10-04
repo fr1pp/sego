@@ -1,5 +1,6 @@
 //! The layout primitives every command's text output is built from.
 
+use std::borrow::Cow;
 use std::fmt::Write as _;
 
 use crate::escape::{sanitise, shell_word};
@@ -18,6 +19,16 @@ pub fn address_line(words: &[&str], meta: &[String]) -> String {
     }
     line.push('\n');
     line
+}
+
+/// `path` with a leading `/` when it starts with `-`, so that pasted as an
+/// operand it doesn't read as an option; `RepoPath::parse` drops the `/`.
+pub fn path_word(path: &str) -> Cow<'_, str> {
+    if path.starts_with('-') {
+        Cow::Owned(format!("/{path}"))
+    } else {
+        Cow::Borrowed(path)
+    }
 }
 
 /// How a numbered line relates to the question: grep's `:` and `-`.
@@ -71,6 +82,21 @@ mod tests {
     use expect_test::expect;
 
     use super::*;
+    use crate::address::RepoPath;
+
+    #[test]
+    fn path_word_keeps_paths_pasteable() {
+        for (path, changed) in [
+            ("--weird.go", true),
+            ("-x/y", true),
+            ("a/-b", false),
+            ("plain", false),
+        ] {
+            let word = path_word(path);
+            assert_eq!(RepoPath::parse(&word).upstream(), path);
+            assert_eq!(word != path, changed, "{path}: {word}");
+        }
+    }
 
     #[test]
     fn address_lines_quote_words_and_join_meta() {

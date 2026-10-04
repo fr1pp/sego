@@ -213,6 +213,40 @@ fn directories_json() {
 }
 
 #[test]
+fn paths_starting_with_a_dash_print_with_a_leading_slash() {
+    let directory =
+        server::capture("search/directories.json")["response"]["body"]["data"]
+            ["search"]["results"]["results"][1]
+            .clone();
+    let answer = edited("search/content.json", |results| {
+        let hits = results["results"].as_array_mut().unwrap();
+        hits.truncate(1);
+        hits[0]["file"]["path"] = "--weird.go".into();
+        hits[0]["chunkMatches"].as_array_mut().unwrap().truncate(1);
+        hits.push(directory);
+        hits[1]["file"]["path"] = "-d/".into();
+    });
+    let run = exchange(vec![ok(&answer)], &["NewRouter"]);
+    expect![[r#"
+        exit 0
+        --- stdout
+        91 matches • 2 results
+
+        github.com/gorilla/mux@a7962380ca08
+        /--weird.go
+          13- func ExampleRoute_HeadersRegexp() {
+          14: 	r := mux.NewRouter()
+          15- 	route := r.NewRoute().HeadersRegexp("Accept", "html")
+
+        /-d/
+        [EOF]
+        --- stderr
+        [EOF]
+    "#]]
+    .assert_eq(&run.transcript());
+}
+
+#[test]
 fn commits() {
     let args = [MUX, "type:commit", "Walk", "count:3"];
     expect![[r#"

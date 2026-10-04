@@ -7,7 +7,7 @@ use crate::diagnostic::{Diagnostic, Outcome};
 use crate::domain::{Entry, EntryKind, Listing, Submodule, Tree};
 use crate::escape::shell_word;
 use crate::render::json::{Partial, document};
-use crate::render::text::{address_line, hint, notice};
+use crate::render::text::{address_line, hint, notice, path_word};
 use crate::sourcegraph::Fetch;
 use crate::sourcegraph::envelope::decode;
 use crate::sourcegraph::tree::{self, LIST_ENTRY_CAP, ListRequest};
@@ -163,19 +163,20 @@ fn target(url: &str, target: Option<&Pinned>) -> String {
 }
 
 fn entry_line(Entry { path, kind }: &Entry) -> String {
+    let path = path_word(path);
     match kind {
         EntryKind::Directory => address_line(&[&format!("{path}/")], &[]),
-        EntryKind::File => address_line(&[path], &[]),
+        EntryKind::File => address_line(&[&path], &[]),
         EntryKind::Submodule { url, target: pinned } => {
             let meta = format!("submodule {}", target(url, pinned.as_ref()));
-            address_line(&[path], &[meta])
+            address_line(&[&path], &[meta])
         }
     }
 }
 
 fn listing_text(listing: &Listing, depth: u32) -> String {
     let address = listing.at.to_string();
-    let directory = directory(&listing.path);
+    let directory = directory(&path_word(&listing.path));
     let mut words = vec![address.as_str()];
     words.extend(directory.as_deref());
     let mut text = address_line(&words, &[entries(listing.entries.len())]);
@@ -193,8 +194,8 @@ fn listing_text(listing: &Listing, depth: u32) -> String {
 
 fn submodule_text(submodule: &Submodule) -> String {
     let Submodule { at, path, url, target: pinned } = submodule;
-    let mut text =
-        address_line(&[&at.to_string(), path], &["submodule".to_owned()]);
+    let words = [&at.to_string(), &*path_word(path)];
+    let mut text = address_line(&words, &["submodule".to_owned()]);
     text.push_str(&target(url, pinned.as_ref()));
     text.push('\n');
     text

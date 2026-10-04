@@ -67,6 +67,48 @@ fn root_json() {
 }
 
 #[test]
+fn paths_starting_with_a_dash_print_with_a_leading_slash() {
+    let mut body =
+        server::capture("list/root.json")["response"]["body"].clone();
+    body["data"]["repository"]["commit"]["node"] = serde_json::json!({
+        "__typename": "GitTree",
+        "path": "--d",
+        "entries": [
+            {"isDirectory": true, "path": "--d/-x", "submodule": null},
+            {"isDirectory": false, "path": "--d/--weird.go", "submodule": null},
+            {
+                "isDirectory": false,
+                "path": "--d/-s",
+                "submodule": {
+                    "commit": "37629051518c3df9ac2c1744589362a02ecafa99",
+                    "url": "https://github.com/rust-lang/cargo.git",
+                },
+            },
+        ],
+    });
+    let answer = Step::Status {
+        status: 200,
+        headers: Vec::new(),
+        body: body.to_string(),
+    };
+    let server = server::start(vec![answer]);
+    let run = sego_at(&server).args(["list", MUX, "/--d"]).run();
+    server.finish();
+    expect![[r#"
+        exit 0
+        --- stdout
+        github.com/gorilla/mux@a7962380ca08 /--d/ • 3 entries
+        /--d/--weird.go
+        /--d/-s • submodule github.com/rust-lang/cargo@37629051518c
+        /--d/-x/
+        [EOF]
+        --- stderr
+        [EOF]
+    "#]]
+    .assert_eq(&run.transcript());
+}
+
+#[test]
 fn depth_2() {
     expect![[r#"
         exit 0

@@ -11,7 +11,9 @@ use crate::domain::{
 };
 use crate::escape::{command_line, content_line, sanitise, shell_word};
 use crate::render::json::document;
-use crate::render::text::{Marker, address_line, hint, notice, numbered};
+use crate::render::text::{
+    Marker, address_line, hint, notice, numbered, path_word,
+};
 use crate::sourcegraph::Fetch;
 use crate::sourcegraph::envelope::decode;
 use crate::sourcegraph::query::has_token;
@@ -272,7 +274,7 @@ fn symbol_entry(symbol: &Symbol) -> (u32, Marker, String) {
 fn hit_text(hit: &Hit) -> (String, String) {
     match hit {
         Hit::File(file) => {
-            let head = address_line(&[&file.path], &[]);
+            let head = address_line(&[&path_word(&file.path)], &[]);
             if file.binary {
                 return (head, "  binary file; lines not shown\n".to_owned());
             }
@@ -282,6 +284,7 @@ fn hit_text(hit: &Hit) -> (String, String) {
             (head, numbered(&lines) + &numbered(&symbols))
         }
         Hit::Directory { path, .. } => {
+            let path = path_word(path);
             (address_line(&[&format!("{path}/")], &[]), String::new())
         }
         Hit::Commit(CommitHit { at, date, author, subject, diff }) => {
