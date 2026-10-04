@@ -10,6 +10,11 @@ mod diagnostic;
     not(test),
     expect(dead_code, reason = "wired into a command in a later task")
 )]
+mod domain;
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "wired into a command in a later task")
+)]
 mod escape;
 mod output;
 mod render;
@@ -77,13 +82,17 @@ fn answer(cli: &Cli) -> Result<Box<dyn Present>, Box<dyn Diagnostic>> {
         return cmd::run(cli, &offline);
     }
     cmd::validate(cli)?;
-    let endpoint = env::var_os("SEGO_ENDPOINT")
+    let transport = Transport::new(&endpoint())?;
+    cmd::run(cli, &|plan| transport.fetch(plan))
+}
+
+/// `SEGO_ENDPOINT`, unless it is unset or empty.
+fn endpoint() -> String {
+    env::var_os("SEGO_ENDPOINT")
         .filter(|endpoint| !endpoint.is_empty())
         .map_or(DEFAULT_ENDPOINT.into(), |endpoint| {
             endpoint.to_string_lossy().into_owned()
-        });
-    let transport = Transport::new(&endpoint)?;
-    cmd::run(cli, &|plan| transport.fetch(plan))
+        })
 }
 
 /// The fetch for invocations that never reach the upstream: help, the

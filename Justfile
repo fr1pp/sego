@@ -80,3 +80,7 @@ escape-table:
     pub const UNSAFE: &[(char, char)] = &[
     {rows}];
     """)
+
+# Rebuild every capture's request from sego's own plans, send it, and rewrite the file.
+capture:
+    cargo test --bin sego capture -- --ignored --test-threads=1

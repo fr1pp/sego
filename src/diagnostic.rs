@@ -1,6 +1,8 @@
-use std::fmt::{Display, Write as _};
+use std::fmt::{self, Display, Write as _};
 
-use crate::escape::sanitise;
+use crate::address::{LineRange, Pinned};
+use crate::domain::{NotAFile, Unavailable};
+use crate::escape::{command_line, sanitise, shell_word};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Outcome {
@@ -63,6 +65,121 @@ pub fn report(diagnostic: &dyn Diagnostic) -> String {
     text
 }
 
+impl fmt::Display for Unavailable {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Unavailable::RepoNotFound { repo } => {
+                write!(f, "repository {} not found", shell_word(repo))
+            }
+            Unavailable::RevisionNotFound { repo, rev } => write!(
+                f,
+                "revision {} not found in {}",
+                shell_word(rev),
+                shell_word(repo)
+            ),
+            Unavailable::PathNotFound { at, path } => {
+                write!(f, "{} not found in {}", shell_word(path), at.word())
+            }
+            Unavailable::NotAFile { at, path, what } => {
+                let what = match what {
+                    NotAFile::Directory => "directory",
+                    NotAFile::Submodule => "submodule",
+                };
+                let (path, at) = (shell_word(path), at.word());
+                write!(f, "{path} is a {what} in {at}")
+            }
+            Unavailable::NotADirectory { at, path } => {
+                write!(f, "{} is a file in {}", shell_word(path), at.word())
+            }
+            Unavailable::TooLarge { at, path, byte_size } => write!(
+                f,
+                "{} in {} is {byte_size} bytes, over the upstream's 1.5 MiB \
+                 read cap",
+                shell_word(path),
+                at.word()
+            ),
+            Unavailable::OutOfRange { at, path, start, total_lines } => {
+                let lines = match total_lines {
+                    1 => "line",
+                    _ => "lines",
+                };
+                write!(
+                    f,
+                    "{} in {} has {total_lines} {lines}, so line {start} is \
+                     past its end",
+                    shell_word(path),
+                    at.word()
+                )
+            }
+        }
+    }
+}
+
+impl Diagnostic for Unavailable {
+    fn code(&self) -> &'static str {
+        match self {
+            Unavailable::RepoNotFound { .. } => "repo_not_found",
+            Unavailable::RevisionNotFound { .. } => "revision_not_found",
+            Unavailable::PathNotFound { .. } => "path_not_found",
+            Unavailable::NotAFile { .. } => "not_a_file",
+            Unavailable::NotADirectory { .. } => "not_a_directory",
+            Unavailable::TooLarge { .. } => "too_large",
+            Unavailable::OutOfRange { .. } => "out_of_range",
+        }
+    }
+
+    fn outcome(&self) -> Outcome {
+        Outcome::AnsweredNo
+    }
+
+    fn hints(&self) -> Vec<String> {
+        let list = ["sego", "list"];
+        let read = ["sego", "read"];
+        // `repo@short`, unquoted: `command_line` quotes its operands.
+        let pinned = |at: &Pinned| {
+            format!("{}@{}", at.repo.as_str(), at.commit.short())
+        };
+        let hint = match self {
+            Unavailable::RepoNotFound { repo } => {
+                let name = repo.rsplit('/').next().unwrap_or(repo);
+                let query = format!("type:repo {name}");
+                command_line(&["sego", "search"], &[&query])
+            }
+            Unavailable::RevisionNotFound { repo, .. } => {
+                command_line(&list, &[repo])
+            }
+            Unavailable::PathNotFound { at, path } => {
+                let at = pinned(at);
+                match path.rsplit_once('/') {
+                    Some((parent, _)) => {
+                        command_line(&list, &[&at, &format!("{parent}/")])
+                    }
+                    None => command_line(&list, &[&at]),
+                }
+            }
+            Unavailable::NotAFile { at, path, what } => {
+                let path = match what {
+                    NotAFile::Directory => format!("{path}/"),
+                    NotAFile::Submodule => path.clone(),
+                };
+                command_line(&list, &[&pinned(at), &path])
+            }
+            Unavailable::NotADirectory { at, path } => {
+                command_line(&read, &[&pinned(at), path])
+            }
+            Unavailable::TooLarge { .. } => return Vec::new(),
+            Unavailable::OutOfRange { at, path, total_lines, .. } => {
+                if *total_lines == 0 {
+                    return Vec::new();
+                }
+                let lines = LineRange { start: 1, end: Some(*total_lines) };
+                command_line(&read, &[&pinned(at), path, &lines.to_string()])
+            }
+        };
+        vec![hint]
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::fmt;
@@ -70,6 +187,7 @@ mod tests {
     use expect_test::expect;
 
     use super::*;
+    use crate::address::{CommitId, RepoName};
 
     struct Sample {
         outcome: Outcome,
@@ -168,6 +286,101 @@ mod tests {
             caused by: first\x0d\x0asecond
         "#]]
         .assert_eq(&report(&sample));
+    }
+
+    #[test]
+    fn unavailable_names_the_place_and_the_next_command() {
+        let at = || Pinned {
+            repo: RepoName::parse("github.com/gorilla/mux").unwrap(),
+            commit: CommitId(
+                "a7962380ca08b5a188038c69871b8d3fbdf31e89".into(),
+            ),
+        };
+        let path = |path: &str| path.to_owned();
+        let all = [
+            Unavailable::RepoNotFound {
+                repo: "github.com/gorilla/nope".into(),
+            },
+            Unavailable::RevisionNotFound {
+                repo: "github.com/gorilla/mux".into(),
+                rev: "it's".into(),
+            },
+            Unavailable::PathNotFound { at: at(), path: path("nope.go") },
+            Unavailable::PathNotFound { at: at(), path: path("a b/c/d.go") },
+            Unavailable::NotAFile {
+                at: at(),
+                path: path(".github"),
+                what: NotAFile::Directory,
+            },
+            Unavailable::NotAFile {
+                at: at(),
+                path: path("vendor/x"),
+                what: NotAFile::Submodule,
+            },
+            Unavailable::NotADirectory { at: at(), path: path("mux.go") },
+            Unavailable::TooLarge {
+                at: at(),
+                path: path("big.go"),
+                byte_size: 3_057_771,
+            },
+            Unavailable::OutOfRange {
+                at: at(),
+                path: path("mux.go"),
+                start: 700,
+                total_lines: 601,
+            },
+            Unavailable::OutOfRange {
+                at: at(),
+                path: path("one"),
+                start: 2,
+                total_lines: 1,
+            },
+            Unavailable::OutOfRange {
+                at: at(),
+                path: path("empty"),
+                start: 2,
+                total_lines: 0,
+            },
+        ];
+        let mut text = String::new();
+        for unavailable in &all {
+            assert_eq!(unavailable.outcome(), Outcome::AnsweredNo);
+            let _ = writeln!(text, "[{}]", unavailable.code());
+            text.push_str(&report(unavailable));
+        }
+        expect![[r#"
+            [repo_not_found]
+            repository github.com/gorilla/nope not found
+            hint: sego search 'type:repo nope'
+            [revision_not_found]
+            revision 'it'\''s' not found in github.com/gorilla/mux
+            hint: sego list github.com/gorilla/mux
+            [path_not_found]
+            nope.go not found in github.com/gorilla/mux@a7962380ca08
+            hint: sego list github.com/gorilla/mux@a7962380ca08
+            [path_not_found]
+            'a b/c/d.go' not found in github.com/gorilla/mux@a7962380ca08
+            hint: sego list github.com/gorilla/mux@a7962380ca08 'a b/c/'
+            [not_a_file]
+            .github is a directory in github.com/gorilla/mux@a7962380ca08
+            hint: sego list github.com/gorilla/mux@a7962380ca08 .github/
+            [not_a_file]
+            vendor/x is a submodule in github.com/gorilla/mux@a7962380ca08
+            hint: sego list github.com/gorilla/mux@a7962380ca08 vendor/x
+            [not_a_directory]
+            mux.go is a file in github.com/gorilla/mux@a7962380ca08
+            hint: sego read github.com/gorilla/mux@a7962380ca08 mux.go
+            [too_large]
+            big.go in github.com/gorilla/mux@a7962380ca08 is 3057771 bytes, over the upstream's 1.5 MiB read cap
+            [out_of_range]
+            mux.go in github.com/gorilla/mux@a7962380ca08 has 601 lines, so line 700 is past its end
+            hint: sego read github.com/gorilla/mux@a7962380ca08 mux.go 1-601
+            [out_of_range]
+            one in github.com/gorilla/mux@a7962380ca08 has 1 line, so line 2 is past its end
+            hint: sego read github.com/gorilla/mux@a7962380ca08 one 1
+            [out_of_range]
+            empty in github.com/gorilla/mux@a7962380ca08 has 0 lines, so line 2 is past its end
+        "#]].assert_eq(&text);
     }
 
     #[test]
