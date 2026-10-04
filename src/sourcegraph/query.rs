@@ -80,7 +80,8 @@ fn timeout_token(query: &str) -> Option<(Range<usize>, Duration)> {
 /// The byte ranges of `query`'s tokens: runs of anything but whitespace,
 /// where whitespace between quotes, as in `"a b"`, `'a b'` or
 /// `content:"a b"`, doesn't end a token. As upstream, a quote opens only at
-/// the start of a token or of a field's value, so `don't` quotes nothing.
+/// the start of a token, of a field's value or after `(`, which the
+/// upstream reads as a token of its own; so `don't` quotes nothing.
 fn tokens(query: &str) -> Vec<Range<usize>> {
     let mut tokens = Vec::new();
     let mut start = None;
@@ -100,7 +101,7 @@ fn tokens(query: &str) -> Vec<Range<usize>> {
                 tokens.push(start..i);
             }
         } else {
-            let opens = start.is_none() || previous == Some(':');
+            let opens = start.is_none() || matches!(previous, Some(':' | '('));
             start.get_or_insert(i);
             if opens && matches!(c, '"' | '\'') {
                 quote = Some(c);
@@ -245,6 +246,8 @@ mod tests {
             ("'a timeout:5s b'", default.clone()),
             ("x 'a timeout:5s b' y", default.clone()),
             ("content:'a timeout:5s b'", default.clone()),
+            ("(\"a timeout:5s b\")", default.clone()),
+            ("x ('a timeout:5s b' or y)", default.clone()),
             (r"'a \' timeout:5s' x", default.clone()),
             ("don't timeout:5s", timeout(ms(5000), typed("5s"))),
             ("a\"b timeout:5s", timeout(ms(5000), typed("5s"))),
@@ -284,6 +287,7 @@ mod tests {
         assert!(has_token(query, r#""a b""#));
         assert!(has_token(query, "'d e'"));
         assert!(has_token(query, "f:'g h'"));
+        assert!(has_token(r#"x ("a b")"#, r#"("a b")"#));
         assert!(has_token(query, "repo:x"));
         assert!(!has_token(query, "months"));
         assert!(!has_token(query, "repo"));
