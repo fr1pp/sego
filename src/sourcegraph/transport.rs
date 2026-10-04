@@ -24,10 +24,13 @@ pub struct Transport {
 impl Transport {
     pub fn new(endpoint: &str) -> Result<Transport, InvalidEndpoint> {
         let uri = endpoint.parse::<Uri>().ok();
-        let valid = uri.is_some_and(|uri| {
-            matches!(uri.scheme_str(), Some("http" | "https"))
-                && uri.host().is_some_and(|host| !host.is_empty())
-        });
+        // `Uri` drops a fragment, so it is looked for in the raw value.
+        let valid = !endpoint.contains('#')
+            && uri.is_some_and(|uri| {
+                matches!(uri.scheme_str(), Some("http" | "https"))
+                    && uri.host().is_some_and(|host| !host.is_empty())
+                    && uri.query().is_none()
+            });
         if !valid {
             return Err(InvalidEndpoint::NotHttp(endpoint.to_owned()));
         }
@@ -162,7 +165,8 @@ fn retry_delay(attempt: &Attempt) -> Option<Duration> {
 /// A `SEGO_ENDPOINT` sego can't send requests to.
 #[derive(Debug)]
 pub enum InvalidEndpoint {
-    /// Not an http or https URI with a host: the value.
+    /// Not an http or https URI with a host and no query or fragment: the
+    /// value.
     NotHttp(String),
     NotUtf8,
 }
@@ -173,7 +177,7 @@ impl fmt::Display for InvalidEndpoint {
             InvalidEndpoint::NotHttp(endpoint) => write!(
                 f,
                 "SEGO_ENDPOINT must be an http:// or https:// URL with a \
-                 host: {endpoint}"
+                 host and no query or fragment: {endpoint}"
             ),
             InvalidEndpoint::NotUtf8 => {
                 f.write_str("SEGO_ENDPOINT is not valid UTF-8")
@@ -244,10 +248,19 @@ mod tests {
 
     #[test]
     fn endpoints_need_an_http_scheme_and_a_host() {
-        for endpoint in
-            ["http://", "http://bad host", "ftp://x", "sourcegraph.com"]
-        {
-            let error = Transport::new(endpoint).err().unwrap();
+        for endpoint in [
+            "http://",
+            "http://bad host",
+            "ftp://x",
+            "sourcegraph.com",
+            "https://host?x=1",
+            "https://host/sourcegraph?x=1",
+            "https://host#x",
+            "https://host/#x",
+            "https://host?",
+            "https://host#",
+        ] {
+            let error = Transport::new(endpoint).err().expect(endpoint);
             assert_eq!(error.code(), "usage", "{endpoint}");
             assert_eq!(error.outcome(), Outcome::Invalid, "{endpoint}");
         }
@@ -275,7 +288,7 @@ mod tests {
         assert_eq!(error.code(), "usage");
         assert_eq!(error.outcome(), Outcome::Invalid);
         expect![[r#"
-            error: SEGO_ENDPOINT must be an http:// or https:// URL with a host: ftp://example.com
+            error: SEGO_ENDPOINT must be an http:// or https:// URL with a host and no query or fragment: ftp://example.com
         "#]].assert_eq(&report(&error));
     }
 }

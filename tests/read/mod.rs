@@ -498,26 +498,36 @@ fn an_answer_of_exactly_32_mib_is_accepted() {
 }
 
 #[test]
-fn an_endpoint_without_an_http_scheme_and_a_host_is_invalid() {
-    let runs = ["sourcegraph.com", "http://bad host"].map(|endpoint| {
-        sego()
-            .env("SEGO_ENDPOINT", endpoint)
-            .args(["read", MUX, "mux.go"])
-            .run()
-            .transcript()
-    });
+fn invalid_endpoints_are_usage_errors() {
+    let unreachable = server::unreachable();
+    let with_query = format!("{unreachable}?x=1");
+    let runs =
+        ["sourcegraph.com", "http://bad host", &with_query].map(|endpoint| {
+            sego()
+                .env("SEGO_ENDPOINT", endpoint)
+                .args(["read", MUX, "mux.go"])
+                .run()
+                .transcript()
+                .replace(&unreachable, "$UNREACHABLE")
+        });
     expect![[r#"
         exit 2
         --- stdout
         [EOF]
         --- stderr
-        error: SEGO_ENDPOINT must be an http:// or https:// URL with a host: sourcegraph.com
+        error: SEGO_ENDPOINT must be an http:// or https:// URL with a host and no query or fragment: sourcegraph.com
         [EOF]
         exit 2
         --- stdout
         [EOF]
         --- stderr
-        error: SEGO_ENDPOINT must be an http:// or https:// URL with a host: http://bad host
+        error: SEGO_ENDPOINT must be an http:// or https:// URL with a host and no query or fragment: http://bad host
+        [EOF]
+        exit 2
+        --- stdout
+        [EOF]
+        --- stderr
+        error: SEGO_ENDPOINT must be an http:// or https:// URL with a host and no query or fragment: $UNREACHABLE?x=1
         [EOF]
     "#]]
     .assert_eq(&runs.concat());
