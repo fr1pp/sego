@@ -81,9 +81,8 @@ Matching:
   Matching is case-insensitive unless the query says case:yes. A misspelt
   filter or an unbalanced quote becomes search text and matches nothing,
   silently. A search runs for its timeout:, up to 60s; without one, for
-  20s, or 60s with count:. A search with no results under a short timeout:
-  may have been cut short; when it ran for its whole timeout, it is
-  unanswered.
+  20s, or 60s with count:. A search with no results that ran that long, or
+  that the upstream says was cut short, is unanswered.
 
 Exit codes:
   0  answered      the results
