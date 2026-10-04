@@ -52,29 +52,35 @@ pub fn effective_timeout(query: &str) -> Timeout {
     }
 }
 
-/// `query`'s first token outside quotes that starts with `field`, such as
-/// `count:`, ignoring ASCII case.
-fn field_token(query: &str, field: &str) -> Option<Range<usize>> {
-    tokens(query).into_iter().find(|token| {
-        query[token.clone()]
+/// The byte range of the value of `query`'s first `field`, such as
+/// `count:`, ignoring ASCII case: a token outside quotes that starts with
+/// it. The `(` that open a group before it and the `)` that close one
+/// after it are not part of the token, as upstream.
+fn field_value(query: &str, field: &str) -> Option<Range<usize>> {
+    tokens(query).into_iter().find_map(|token| {
+        let text = &query[token.clone()];
+        let inner = text.trim_start_matches('(');
+        let start = token.start + text.len() - inner.len();
+        let end = token.start + text.trim_end_matches(')').len();
+        let named = inner
             .get(..field.len())
-            .is_some_and(|name| name.eq_ignore_ascii_case(field))
+            .is_some_and(|name| name.eq_ignore_ascii_case(field));
+        let value = start + field.len();
+        named.then(|| value..end.max(value))
     })
 }
 
-/// Whether `query` has a token outside quotes that starts with `field`,
-/// such as `count:`, ignoring ASCII case.
+/// Whether `query` has a `field`, such as `count:`, as `field_value` finds
+/// it.
 fn has_field(query: &str, field: &str) -> bool {
-    field_token(query, field).is_some()
+    field_value(query, field).is_some()
 }
 
-/// `query`'s first `timeout:` token outside quotes: the byte range of its
-/// value and the duration it gives. `None` if there is none or its value
-/// isn't a Go duration.
+/// `query`'s first `timeout:`, as `field_value` finds it: the byte range of
+/// its value and the duration it gives. `None` if there is none or its
+/// value isn't a Go duration.
 fn timeout_token(query: &str) -> Option<(Range<usize>, Duration)> {
-    const FIELD: &str = "timeout:";
-    let token = field_token(query, FIELD)?;
-    let value = token.start + FIELD.len()..token.end;
+    let value = field_value(query, "timeout:")?;
     let duration = go_duration(&query[value.clone()])?;
     Some((value, duration))
 }
@@ -82,14 +88,15 @@ fn timeout_token(query: &str) -> Option<(Range<usize>, Duration)> {
 /// The byte ranges of `query`'s tokens: runs of anything but whitespace,
 /// where whitespace between quotes, as in `"a b"`, `'a b'` or
 /// `content:"a b"`, doesn't end a token. As upstream, a quote opens only at
-/// the start of a token, of a field's value or after `(`, which the
-/// upstream reads as a token of its own; so `don't` quotes nothing.
+/// the start of a token, of a field's value or after the `(` that start a
+/// token, which open groups; so `don't` and `foo("a b")` quote nothing.
 fn tokens(query: &str) -> Vec<Range<usize>> {
     let mut tokens = Vec::new();
     let mut start = None;
     let mut quote = None;
     let mut escaped = false;
     let mut previous = None;
+    let mut grouping = false;
     for (i, c) in query.char_indices() {
         if let Some(delimiter) = quote {
             match c {
@@ -103,7 +110,8 @@ fn tokens(query: &str) -> Vec<Range<usize>> {
                 tokens.push(start..i);
             }
         } else {
-            let opens = start.is_none() || matches!(previous, Some(':' | '('));
+            let opens = start.is_none() || grouping || previous == Some(':');
+            grouping = (start.is_none() || grouping) && c == '(';
             start.get_or_insert(i);
             if opens && matches!(c, '"' | '\'') {
                 quote = Some(c);
@@ -252,6 +260,15 @@ mod tests {
             ("content:'a timeout:5s b'", default.clone()),
             ("(\"a timeout:5s b\")", default.clone()),
             ("x ('a timeout:5s b' or y)", default.clone()),
+            ("((\"a timeout:5s b\"))", default.clone()),
+            ("foo(\"a timeout:5s b\")", timeout(ms(5000), typed("5s"))),
+            ("x foo('a timeout:5s b')", timeout(ms(5000), typed("5s"))),
+            ("(timeout:5s x)", timeout(ms(5000), typed("5s"))),
+            ("((timeout:5s) x)", timeout(ms(5000), typed("5s"))),
+            ("(y x timeout:5s)", timeout(ms(5000), typed("5s"))),
+            ("x timeout:5s)", timeout(ms(5000), typed("5s"))),
+            ("(x (y timeout:5s))", timeout(ms(5000), typed("5s"))),
+            ("foo(timeout:5s", default.clone()),
             (r"'a \' timeout:5s' x", default.clone()),
             ("don't timeout:5s", timeout(ms(5000), typed("5s"))),
             ("a\"b timeout:5s", timeout(ms(5000), typed("5s"))),
@@ -281,6 +298,9 @@ mod tests {
             ("x \"count:5\"", timeout(s(20), Source::Default)),
             ("x xcount:5", timeout(s(20), Source::Default)),
             ("x COUNT:5", timeout(s(60), Source::Ceiling)),
+            ("(count:5 x)", timeout(s(60), Source::Ceiling)),
+            ("(x count:5)", timeout(s(60), Source::Ceiling)),
+            ("x foo(count:5", timeout(s(20), Source::Default)),
         ] {
             assert_eq!(effective_timeout(query), expected, "{query}");
         }
@@ -324,6 +344,20 @@ mod tests {
         assert_eq!(longer("x timeout:1ms").as_deref(), Some("x timeout:2ms"));
         assert_eq!(longer("x timeout:0.5s").as_deref(), Some("x timeout:1s"));
         assert_eq!(longer("x timeout:0s").as_deref(), Some("x timeout:20s"));
+        assert_eq!(
+            longer("(timeout:5s x)").as_deref(),
+            Some("(timeout:10s x)")
+        );
+        assert_eq!(
+            longer("(y timeout:5s)").as_deref(),
+            Some("(y timeout:10s)")
+        );
+        assert_eq!(longer("x timeout:5s)").as_deref(), Some("x timeout:10s)"));
+        assert_eq!(longer("(x count:5)"), None);
+        assert_eq!(
+            longer("foo(\"a timeout:5s b\")").as_deref(),
+            Some("foo(\"a timeout:10s b\")")
+        );
     }
 
     #[test]
