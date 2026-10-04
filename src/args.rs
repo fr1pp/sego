@@ -221,15 +221,15 @@ mod tests {
             let ParseError { message, command } = parse(args).unwrap_err();
             (message, command)
         });
-        let error = |message: &str, command: Option<&str>| {
+        let expected = |message: &str, command: Option<&str>| {
             (message.to_owned(), command.map(str::to_owned))
         };
         assert_eq!(
             errors,
             [
-                error("argument 1 is not valid UTF-8", None),
-                error("argument 4 is not valid UTF-8", Some("list")),
-                error("argument 2 is not valid UTF-8", Some("list")),
+                expected("argument 1 is not valid UTF-8", None),
+                expected("argument 4 is not valid UTF-8", Some("list")),
+                expected("argument 2 is not valid UTF-8", Some("list")),
             ]
         );
     }
