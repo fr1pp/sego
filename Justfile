@@ -50,8 +50,8 @@ escape-table:
             first, _, last = fields[0].partition("..")
             ignorable |= inclusive(int(first, 16), int(last or first, 16))
 
-    # The zero-width joiner and variation selectors stay, so emoji print as
-    # themselves.
+    # The zero-width joiner and variation selectors stay, so most emoji print
+    # as themselves; tag sequences such as subdivision flags are escaped.
     kept = {0x200D} | inclusive(0xFE00, 0xFE0F) | inclusive(0xE0100, 0xE01EF)
     unsafe = (
         inclusive(0x00, 0x08)
@@ -93,8 +93,7 @@ live:
     just escape-table
     git diff --exit-code -- src/escape/table.rs
 
-# Fail if a re-captured response changed in anything but server-measured times
-# and star counts.
+# Fail if a re-captured response changed beyond server times and star counts.
 drift:
     #!/usr/bin/env bash
     set -euo pipefail
