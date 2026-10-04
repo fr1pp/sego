@@ -65,7 +65,8 @@ fn quoted(s: &str) -> String {
     if !s.chars().any(escaped) {
         return format!("'{}'", s.replace('\'', r"'\''"));
     }
-    // POSIX.1-2024 `$'…'` has `\x` but not `\u`.
+    // POSIX.1-2024 `$'…'` has no `\u`, and its `\x` may swallow a following
+    // hex digit, but `\ddd` stops at three digits.
     let mut text = String::from("$'");
     for c in s.chars() {
         match c {
@@ -76,7 +77,7 @@ fn quoted(s: &str) -> String {
             '\r' => text.push_str(r"\r"),
             c if escaped(c) => {
                 for byte in c.encode_utf8(&mut [0; 4]).bytes() {
-                    let _ = write!(text, "\\x{byte:02x}");
+                    let _ = write!(text, "\\{byte:03o}");
                 }
             }
             c => text.push(c),
@@ -104,6 +105,7 @@ pub const CORPUS: &[&str] = &[
     "esc\u{1b}[0m",
     "rtl\u{202e}",
     "zw\u{200b}",
+    "zw\u{200b}7b",
     "汉语",
     "🚀",
     "-dash",
@@ -163,9 +165,9 @@ mod tests {
         assert_eq!(shell_word("src/my file.go"), "'src/my file.go'");
         assert_eq!(shell_word("it's"), r"'it'\''s'");
         assert_eq!(shell_word("a7962380~1"), "'a7962380~1'");
-        assert_eq!(shell_word("a\u{200b}b"), r"$'a\xe2\x80\x8bb'");
+        assert_eq!(shell_word("a\u{200b}b"), r"$'a\342\200\213b'");
         assert_eq!(shell_word("tab\there"), r"$'tab\there'");
-        assert_eq!(shell_word("back\\slash\u{1b}"), r"$'back\\slash\x1b'");
+        assert_eq!(shell_word("back\\slash\u{1b}"), r"$'back\\slash\033'");
     }
 
     #[test]
