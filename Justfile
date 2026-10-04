@@ -85,17 +85,20 @@ escape-table:
 capture:
     cargo test --bin sego capture -- --ignored --test-threads=1
 
-# Live tests, re-captured responses, and a drift check.
+# Live tests, re-captured responses, a drift check, and the escape table check.
 live:
     cargo test --test integration live -- --ignored
     just capture
     just drift
+    just escape-table
+    git diff --exit-code -- src/escape/table.rs
 
-# Fail if a re-captured response changed in anything but server-measured times.
+# Fail if a re-captured response changed in anything but server-measured times
+# and star counts.
 drift:
     #!/usr/bin/env bash
     set -euo pipefail
-    strip='walk(if type == "object" then del(.elapsedMilliseconds) else . end)'
+    strip='walk(if type == "object" then del(.elapsedMilliseconds, .stars) else . end)'
     status=0
     for f in $(git diff --name-only -- 'tests/*/*.json'); do
         if cmp -s <(git show "HEAD:$f" | jq -S "$strip") <(jq -S "$strip" "$f"); then
