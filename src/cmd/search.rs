@@ -270,12 +270,13 @@ fn hit_text(hit: &Hit) -> (String, String) {
             if file.binary {
                 return (head, "  binary file; lines not shown\n".to_owned());
             }
-            let entries: Vec<_> = file
+            let mut entries: Vec<_> = file
                 .lines
                 .iter()
                 .map(line_entry)
                 .chain(file.symbols.iter().map(symbol_entry))
                 .collect();
+            entries.sort_by_key(|&(n, ..)| n);
             (head, numbered(&entries))
         }
         Hit::Directory { path, .. } => {
@@ -546,7 +547,10 @@ impl<'a> SymbolJson<'a> {
 
 #[cfg(test)]
 mod tests {
+    use expect_test::expect;
+
     use super::*;
+    use crate::address::{CommitId, Pinned, RepoName};
     use crate::escape::CLIP_COLUMNS;
     use crate::sourcegraph::query::UPSTREAM_MAX_TIMEOUT;
 
@@ -563,5 +567,39 @@ mod tests {
             HELP.details.split_whitespace().collect::<Vec<_>>().join(" ");
         let longest = UPSTREAM_MAX_TIMEOUT.as_secs();
         assert!(help.contains(&format!("timeout:, up to {longest}s")));
+    }
+
+    #[test]
+    fn a_file_hit_numbers_its_lines_and_symbols_in_order() {
+        let line = |number, text: &str| Line {
+            number,
+            text: text.to_owned(),
+            spans: Vec::new(),
+        };
+        let symbol = |line, name: &str| Symbol {
+            line,
+            kind: "function",
+            name: name.to_owned(),
+            container: None,
+        };
+        let hit = Hit::File(FileHit {
+            at: Pinned {
+                repo: RepoName::parse("github.com/o/r").unwrap(),
+                commit: CommitId("0".repeat(40)),
+            },
+            path: "a.go".to_owned(),
+            path_match: false,
+            binary: false,
+            lines: vec![line(5, "five"), line(6, "six")],
+            symbols: vec![symbol(2, "two"), symbol(7, "seven")],
+        });
+        expect![[r#"
+               2: function two
+            --
+               5- five
+               6- six
+               7: function seven
+        "#]]
+        .assert_eq(&hit_text(&hit).1);
     }
 }
