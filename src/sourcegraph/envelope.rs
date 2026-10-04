@@ -90,8 +90,9 @@ impl Envelope {
     }
 
     /// The data, once the caller has taken the errors it recognises.
-    /// Pathless errors are `Schema`; any other error is `Server`; no data is
-    /// `Empty`; data that doesn't deserialise is `Field`.
+    /// Pathless errors are `Schema`, listing any located ones after them;
+    /// located errors alone are `Server`; no data is `Empty`; data that
+    /// doesn't deserialise is `Field`.
     pub fn into_data<T: DeserializeOwned>(self) -> Result<T, FetchError> {
         let Envelope { data, errors, trace } = self;
         let (pathless, located): (Vec<_>, Vec<_>) = errors
@@ -101,10 +102,9 @@ impl Envelope {
             errors.into_iter().map(|error| error.message).collect()
         };
         if !pathless.is_empty() {
-            return Err(FetchError::Schema {
-                errors: messages(pathless),
-                trace,
-            });
+            let mut errors: Vec<String> = messages(pathless);
+            errors.extend(messages(located));
+            return Err(FetchError::Schema { errors, trace });
         }
         if !located.is_empty() {
             return Err(FetchError::Server {
@@ -235,6 +235,24 @@ mod tests {
         expect![[r#"
             error: the upstream rejected sego's query
             caused by: Cannot query field
+        "#]]
+        .assert_eq(&report(&error));
+    }
+
+    #[test]
+    fn schema_mismatch_lists_located_errors_after_pathless_ones() {
+        let error = data(
+            br#"{"data":{"repository":null},"errors":[
+                {"message":"boom","path":["repository"]},
+                {"message":"Cannot query field"}
+            ]}"#,
+        )
+        .unwrap_err();
+        assert_eq!(error.code(), "schema_mismatch");
+        expect![[r#"
+            error: the upstream rejected sego's query
+            caused by: Cannot query field
+            caused by: boom
         "#]]
         .assert_eq(&report(&error));
     }
