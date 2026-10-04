@@ -177,13 +177,14 @@ pub fn answer(
         .and_then(|lines| lines.total_lines)
         .ok_or_else(|| missing("totalLines"))?;
     let start = request.start;
-    if start > total_lines {
+    // A binary file's `totalLines` counts its raw bytes' newlines, so no
+    // range applies to it. An empty file answers line 1 with no lines.
+    let lines = if binary {
+        Vec::new()
+    } else if start > total_lines.max(1) {
         return Err(
             Unavailable::OutOfRange { at, path, start, total_lines }.into()
         );
-    }
-    let lines = if binary {
-        Vec::new()
     } else {
         let content = body
             .and_then(|body| body.content)
@@ -557,6 +558,55 @@ mod tests {
                 ],
             }
         "#]].assert_debug_eq(&file);
+    }
+
+    #[test]
+    fn binary_files_answer_whatever_the_range() {
+        let request =
+            ReadRequest { start: 20, end: Some(30), ..case("binary") };
+        let capture = include_str!("../../tests/read/binary.json");
+        let file = answered(answer(&request, testing::envelope(capture)));
+        assert!(file.start > file.total_lines);
+        assert!(file.binary && file.lines.is_empty());
+    }
+
+    /// A reply for a blob with `total_lines` lines and `content`.
+    fn blob(total_lines: u32, content: &str) -> Envelope {
+        let body = serde_json::json!({"data": {"repository": {
+            "name": "github.com/gorilla/mux",
+            "commit": {
+                "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+                "node": {"__typename": "GitBlob", "path": "empty.go",
+                    "byteSize": content.len(), "binary": false,
+                    "contentType": "text/plain", "submodule": null},
+                "lines": {"totalLines": total_lines},
+                "body": {"content": content}
+            }
+        }}});
+        let reply = Reply {
+            status: 200,
+            body: body.to_string().into_bytes(),
+            trace: None,
+            location: None,
+        };
+        decode(reply).unwrap()
+    }
+
+    #[test]
+    fn an_empty_file_has_no_lines_and_no_line_2() {
+        let read = |start| ReadRequest {
+            path: RepoPath::parse("empty.go"),
+            start,
+            end: None,
+            ..case("range")
+        };
+        let file = answered(answer(&read(1), blob(0, "")));
+        assert_eq!((file.total_lines, file.lines.len()), (0, 0));
+        let result = answer(&read(2), blob(0, ""));
+        expect![[r#"
+            [out_of_range AnsweredNo]
+            empty.go in github.com/gorilla/mux@a7962380ca08 has 0 lines, so line 2 is past its end
+        "#]].assert_eq(&failure(result));
     }
 
     #[test]
