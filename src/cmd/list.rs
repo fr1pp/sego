@@ -40,6 +40,7 @@ Output:
   commit it pins, or by its URL when that names no repository:
 
     github.com/rust-lang/rust@051478957371 src/tools/ • 47 entries
+    src/tools/build-manifest/
     src/tools/build_helper/
     src/tools/bump-stage0/
     src/tools/cargo • submodule github.com/rust-lang/cargo@37629051518c
