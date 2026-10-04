@@ -46,8 +46,9 @@ Output:
 
   A file longer than 500 lines, read without <lines>, stops at line 500,
   followed by a notice: line and a hint: line with the command for the
-  rest. A binary file has its size in the address line, and no lines. A
-  line wider than 500 columns is cut, and says so; --json has it whole.
+  rest. A binary file, whatever its size and the range, has its size in
+  the address line, and no lines. A line wider than 500 columns is cut,
+  and says so; --json has it whole.
 
   With --json, one document of kind \"file\": repo, commit (40 hex digits),
   path, byte_size, total_lines, content_type, binary, start, end (null
@@ -58,8 +59,9 @@ Output:
 Exit codes:
   0  answered      the lines
   1  answered no   no such repository, revision or path; a directory or a
-                   submodule; a file over the upstream's 1.5 MiB read cap,
-                   whatever the range; a range that starts past the end
+                   submodule; a text file over the upstream's 1.5 MiB
+                   read cap, whatever the range; a range that starts past
+                   the end
   2  invalid       bad operands, such as line 0, a range that ends before
                    it starts or a revision containing \"..\"; an invalid
                    SEGO_ENDPOINT

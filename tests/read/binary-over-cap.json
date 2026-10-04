@@ -1,0 +1,48 @@
+{
+  "request": {
+    "query": "query Read(\n  $repo: String!, $rev: String!, $path: String!, $start: Int!, $end: Int\n) {\n  repository(name: $repo) {\n    name\n    commit(rev: $rev) {\n      oid\n      node: path(path: $path) {\n        __typename\n        ... on GitBlob {\n          path byteSize binary contentType submodule { url commit }\n        }\n        ... on GitTree { path }\n      }\n      lines: path(path: $path) { ... on GitBlob { totalLines } }\n      body: path(path: $path) {\n        ... on GitBlob {\n          content(startLine: $start, endLine: $end, textOnly: true)\n        }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "end": 500,
+      "path": "src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso",
+      "repo": "github.com/golang/go",
+      "rev": "go1.23.0",
+      "start": 1
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "repository": {
+          "commit": {
+            "body": null,
+            "lines": {
+              "totalLines": 3790
+            },
+            "node": {
+              "__typename": "GitBlob",
+              "binary": true,
+              "byteSize": 2555664,
+              "contentType": "application/octet-stream",
+              "path": "src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso",
+              "submodule": null
+            },
+            "oid": "6885bad7dd86880be6929c02085e5c7a67ff2887"
+          },
+          "name": "github.com/golang/go"
+        }
+      },
+      "errors": [
+        {
+          "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
+          "path": [
+            "repository",
+            "commit",
+            "body",
+            "content"
+          ]
+        }
+      ]
+    }
+  }
+}

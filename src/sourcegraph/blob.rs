@@ -170,7 +170,9 @@ pub fn answer(
             submodule: None,
         }) => (path, byte_size, binary, content_type),
     };
-    if too_large {
+    // A binary file answers with its metadata alone, so the read cap,
+    // which only withholds the content, doesn't stop it.
+    if too_large && !binary {
         return Err(Unavailable::TooLarge { at, path, byte_size }.into());
     }
     let total_lines = lines
@@ -273,6 +275,16 @@ mod tests {
                 read(
                     "github.com/golang/go@go1.23.0",
                     "src/archive/zip/testdata/gophercolor16x16.png",
+                    1,
+                    500,
+                ),
+            ),
+            (
+                "binary-over-cap",
+                read(
+                    "github.com/golang/go@go1.23.0",
+                    "src/crypto/internal/boring/syso/\
+                     goboringcrypto_linux_amd64.syso",
                     1,
                     500,
                 ),
@@ -528,6 +540,33 @@ mod tests {
             }
         "#]]
         .assert_debug_eq(&file);
+    }
+
+    #[test]
+    fn binary_over_cap() {
+        let file = answered(read(
+            "binary-over-cap",
+            include_str!("../../tests/read/binary-over-cap.json"),
+        ));
+        expect![[r#"
+            File {
+                at: Pinned {
+                    repo: RepoName(
+                        "github.com/golang/go",
+                    ),
+                    commit: CommitId(
+                        "6885bad7dd86880be6929c02085e5c7a67ff2887",
+                    ),
+                },
+                path: "src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso",
+                byte_size: 2555664,
+                total_lines: 3790,
+                content_type: "application/octet-stream",
+                binary: true,
+                start: 1,
+                lines: [],
+            }
+        "#]].assert_debug_eq(&file);
     }
 
     #[test]
