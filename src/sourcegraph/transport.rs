@@ -24,7 +24,7 @@ impl Transport {
         if !endpoint.starts_with("http://")
             && !endpoint.starts_with("https://")
         {
-            return Err(InvalidEndpoint(endpoint.to_owned()));
+            return Err(InvalidEndpoint::Scheme(endpoint.to_owned()));
         }
         let agent = Agent::config_builder()
             .http_status_as_error(false)
@@ -131,16 +131,26 @@ fn retry_delay(attempt: &Attempt) -> Option<Duration> {
     delay.filter(|delay| *delay <= RETRY_BUDGET)
 }
 
+/// A `SEGO_ENDPOINT` sego can't send requests to.
 #[derive(Debug)]
-pub struct InvalidEndpoint(String);
+pub enum InvalidEndpoint {
+    /// Without `http://` or `https://`: the value.
+    Scheme(String),
+    NotUtf8,
+}
 
 impl fmt::Display for InvalidEndpoint {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "SEGO_ENDPOINT must start with http:// or https://: {}",
-            self.0
-        )
+        match self {
+            InvalidEndpoint::Scheme(endpoint) => write!(
+                f,
+                "SEGO_ENDPOINT must start with http:// or https://: \
+                 {endpoint}"
+            ),
+            InvalidEndpoint::NotUtf8 => {
+                f.write_str("SEGO_ENDPOINT is not valid UTF-8")
+            }
+        }
     }
 }
 

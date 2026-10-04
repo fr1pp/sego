@@ -304,7 +304,7 @@ mod tests {
     use crate::render;
     use crate::sourcegraph::FetchError;
     use crate::sourcegraph::search::SearchProblem;
-    use crate::sourcegraph::transport::Transport;
+    use crate::sourcegraph::transport::{InvalidEndpoint, Transport};
     use crate::sourcegraph::vocabulary::ALERT_BAD_QUERY;
 
     /// Spec §3.4: the exit code of each diagnostic code sego has.
@@ -758,6 +758,7 @@ mod tests {
         all.extend(fetch_errors().into_iter().map(Box::from));
         all.extend(unavailable().into_iter().map(Box::from));
         all.extend(search_problems().into_iter().map(Box::from));
+        all.push(Box::new(InvalidEndpoint::NotUtf8));
         for &word in CORPUS {
             let endpoint = Transport::new(word).err().unwrap();
             all.push(Box::new(endpoint));

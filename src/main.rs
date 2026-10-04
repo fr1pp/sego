@@ -17,7 +17,7 @@ use args::Cli;
 use cmd::{Present, UsageError};
 use diagnostic::{Diagnostic, report};
 use output::{Output, to_stderr};
-use sourcegraph::transport::Transport;
+use sourcegraph::transport::{InvalidEndpoint, Transport};
 use sourcegraph::{FetchError, Plan, Reply};
 
 const DEFAULT_ENDPOINT: &str = "https://sourcegraph.com";
@@ -67,17 +67,18 @@ fn answer(cli: &Cli) -> Result<Box<dyn Present>, Box<dyn Diagnostic>> {
         return cmd::run(cli, &offline);
     }
     cmd::validate(cli)?;
-    let transport = Transport::new(&endpoint())?;
+    let transport = Transport::new(&endpoint()?)?;
     cmd::run(cli, &|plan| transport.fetch(plan))
 }
 
-/// `SEGO_ENDPOINT`, unless it is unset or empty.
-fn endpoint() -> String {
-    env::var_os("SEGO_ENDPOINT")
-        .filter(|endpoint| !endpoint.is_empty())
-        .map_or(DEFAULT_ENDPOINT.into(), |endpoint| {
-            endpoint.to_string_lossy().into_owned()
-        })
+/// `SEGO_ENDPOINT`, or `DEFAULT_ENDPOINT` when it is unset or empty.
+fn endpoint() -> Result<String, InvalidEndpoint> {
+    match env::var_os("SEGO_ENDPOINT").filter(|value| !value.is_empty()) {
+        None => Ok(DEFAULT_ENDPOINT.to_owned()),
+        Some(value) => {
+            value.into_string().map_err(|_| InvalidEndpoint::NotUtf8)
+        }
+    }
 }
 
 /// The fetch for invocations that never reach the upstream: help, the

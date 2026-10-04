@@ -35,8 +35,9 @@ pub fn envelope(capture: &str) -> Envelope {
 /// Sends `plan` to the real endpoint and rewrites
 /// `tests/<dir>/<case>.json` with the request and the reply.
 pub fn capture(dir: &str, case: &str, plan: &Plan) {
-    let transport =
-        Transport::new(&crate::endpoint()).expect("a valid SEGO_ENDPOINT");
+    let transport = crate::endpoint()
+        .and_then(|endpoint| Transport::new(&endpoint))
+        .expect("a valid SEGO_ENDPOINT");
     let reply = transport.fetch(plan).expect("the upstream answers");
     let body = serde_json::from_slice(&reply.body).unwrap_or_else(|error| {
         panic!("{case}: the reply ({}) isn't JSON: {error}", reply.status)

@@ -447,6 +447,27 @@ fn an_endpoint_without_a_scheme_is_invalid() {
     "#]].assert_eq(&run.transcript());
 }
 
+#[cfg(unix)]
+#[test]
+fn a_non_utf8_endpoint_is_invalid() {
+    use std::ffi::OsString;
+    use std::os::unix::ffi::OsStringExt;
+
+    let run = sego()
+        .env("SEGO_ENDPOINT", OsString::from_vec(b"http://\xff".to_vec()))
+        .args(["read", MUX, "mux.go"])
+        .run();
+    expect![[r#"
+        exit 2
+        --- stdout
+        [EOF]
+        --- stderr
+        error: SEGO_ENDPOINT is not valid UTF-8
+        [EOF]
+    "#]]
+    .assert_eq(&run.transcript());
+}
+
 #[test]
 fn a_trailing_slash_endpoint_works() {
     let server = server::start(vec![Step::Capture("read/range.json")]);
