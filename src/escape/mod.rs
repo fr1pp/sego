@@ -86,7 +86,8 @@ pub fn content_line(raw: &str, focus: Option<usize>) -> String {
 /// `s` as one POSIX shell word that delivers its exact bytes: bare when
 /// that is safe, `'…'` when it has no control or unsafe character, and
 /// `$'…'` otherwise. A leading `-` is quoted, so a bare word never reads as
-/// an option.
+/// an option, and so is a leading `=`, which zsh expands to a command's
+/// path.
 pub fn shell_word(s: &str) -> Cow<'_, str> {
     if s.starts_with('-') { Cow::Owned(quoted(s)) } else { word(s) }
 }
@@ -94,7 +95,7 @@ pub fn shell_word(s: &str) -> Cow<'_, str> {
 /// `head`, the program and its options, which must already be shell words,
 /// then each operand as a shell word. If any operand starts with `--`, a
 /// `--` goes before the operands, and after it a leading `-` needs no
-/// quoting.
+/// quoting; a leading `=` still does.
 pub fn command_line(head: &[&str], operands: &[&str]) -> String {
     let dashes = operands.iter().any(|operand| operand.starts_with("--"));
     let mut line = head.join(" ");
@@ -111,7 +112,7 @@ pub fn command_line(head: &[&str], operands: &[&str]) -> String {
 
 fn word(s: &str) -> Cow<'_, str> {
     let bare = |c: char| c.is_ascii_alphanumeric() || "@%+=:,./_-".contains(c);
-    if !s.is_empty() && s.chars().all(bare) {
+    if !s.is_empty() && !s.starts_with('=') && s.chars().all(bare) {
         Cow::Borrowed(s)
     } else {
         Cow::Owned(quoted(s))
@@ -168,6 +169,7 @@ pub const CORPUS: &[&str] = &[
     "🚀",
     "-dash",
     "--long",
+    "=foo",
 ];
 
 #[cfg(test)]
@@ -272,6 +274,8 @@ mod tests {
         assert_eq!(shell_word("a\u{200b}b"), r"$'a\342\200\213b'");
         assert_eq!(shell_word("tab\there"), r"$'tab\there'");
         assert_eq!(shell_word("back\\slash\u{1b}"), r"$'back\\slash\033'");
+        assert_eq!(shell_word("=foo"), "'=foo'");
+        assert_eq!(shell_word("a=b"), "a=b");
     }
 
     #[test]
@@ -279,6 +283,10 @@ mod tests {
         assert_eq!(
             command_line(&["sego", "read"], &["r", "--x"]),
             "sego read -- r --x"
+        );
+        assert_eq!(
+            command_line(&["sego", "read"], &["r", "--x", "=y"]),
+            "sego read -- r --x '=y'"
         );
     }
 
