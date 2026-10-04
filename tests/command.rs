@@ -1,4 +1,5 @@
 use std::ffi::{OsStr, OsString};
+use std::io;
 use std::process::{self, Output, Stdio};
 
 /// Asserts `command.run().transcript()` against an inline snapshot:
@@ -45,14 +46,12 @@ impl Command {
     }
 
     pub fn run_with_closed_stdout(&self) -> Run {
-        let mut child = self
-            .command()
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .unwrap_or_else(|error| self.cannot_run(&error));
-        drop(child.stdout.take());
-        collect(child.wait_with_output().expect("wait for the child"))
+        // Dropping the reader only after spawning would race the child's
+        // first write into the pipe buffer.
+        let (reader, writer) = io::pipe().expect("create a pipe");
+        drop(reader);
+        let output = self.command().stdout(writer).output();
+        collect(output.unwrap_or_else(|error| self.cannot_run(&error)))
     }
 
     fn command(&self) -> process::Command {
@@ -64,7 +63,7 @@ impl Command {
         command
     }
 
-    fn cannot_run(&self, error: &std::io::Error) -> ! {
+    fn cannot_run(&self, error: &io::Error) -> ! {
         panic!("cannot run {}: {error}", self.program)
     }
 }
