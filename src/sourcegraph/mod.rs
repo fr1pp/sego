@@ -3,10 +3,6 @@ pub mod envelope;
 #[cfg(test)]
 pub mod testing;
 pub mod transport;
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "list answers from it in a later task")
-)]
 pub mod tree;
 
 use std::fmt;

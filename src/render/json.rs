@@ -42,6 +42,14 @@ pub fn document(kind: &str, body: &impl Serialize) -> String {
     String::from_utf8(bytes).expect("serde_json writes UTF-8")
 }
 
+/// What a partial answer leaves out, and the commands that continue or
+/// narrow it.
+#[derive(Serialize)]
+pub struct Partial {
+    pub reason: String,
+    pub hints: Vec<String>,
+}
+
 /// The `unavailable` document for an *answered no*, `error` for the rest.
 pub fn diagnostic(d: &dyn Diagnostic) -> String {
     let kind = match d.outcome() {

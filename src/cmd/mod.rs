@@ -1,3 +1,4 @@
+pub mod list;
 pub mod read;
 
 use crate::args::{Cli, UsageError, did_you_mean};
@@ -132,6 +133,7 @@ fn not_implemented(command: &str) -> Box<dyn Diagnostic> {
 /// A command's help.
 fn help(command: &str) -> Result<&'static str, Box<dyn Diagnostic>> {
     match command {
+        "list" => Ok(list::HELP),
         "read" => Ok(read::HELP),
         command => Err(not_implemented(command)),
     }
@@ -145,6 +147,10 @@ pub fn needs_upstream(cli: &Cli) -> bool {
 /// Checks the invocation as far as possible without fetching anything.
 pub fn validate(cli: &Cli) -> Result<(), Box<dyn Diagnostic>> {
     match action(cli)? {
+        Action::Run("list") => {
+            list::request(cli)?;
+            Ok(())
+        }
         Action::Run("read") => {
             read::request(cli)?;
             Ok(())
@@ -162,6 +168,7 @@ pub fn run(
         Action::Help(None) => Ok(Box::new(Plain(HELP))),
         Action::Help(Some(command)) => Ok(Box::new(Plain(help(command)?))),
         Action::Version => Ok(Box::new(Plain(VERSION))),
+        Action::Run("list") => list::run(cli, fetch),
         Action::Run("read") => read::run(cli, fetch),
         Action::Run(command) => Err(not_implemented(command)),
     }

@@ -17,10 +17,6 @@ pub struct File {
 /// entries from anywhere in it: the upstream cuts it at its limit after
 /// sending every directory before any file.
 #[derive(Debug)]
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "list answers with it in a later task")
-)]
 pub struct Listing {
     pub at: Pinned,
     pub path: String,
@@ -30,20 +26,12 @@ pub struct Listing {
 
 /// A path in a listing, from the repository's root.
 #[derive(Debug)]
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "list answers with it in a later task")
-)]
 pub struct Entry {
     pub path: String,
     pub kind: EntryKind,
 }
 
 #[derive(Debug)]
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "list answers with it in a later task")
-)]
 pub enum EntryKind {
     Directory,
     File,
@@ -58,10 +46,6 @@ pub enum EntryKind {
 /// A submodule asked for as a directory: its URL as `.gitmodules` gives it,
 /// and the repository and commit it pins, if the URL names a repository.
 #[derive(Debug)]
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "list answers with it in a later task")
-)]
 pub struct Submodule {
     pub at: Pinned,
     pub path: String,
@@ -71,10 +55,6 @@ pub struct Submodule {
 
 /// What a directory path answers with.
 #[derive(Debug)]
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "list answers with it in a later task")
-)]
 pub enum Tree {
     Listing(Listing),
     Submodule(Submodule),

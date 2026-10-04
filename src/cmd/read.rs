@@ -6,7 +6,7 @@ use crate::args::{Cli, UsageError};
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::domain::File;
 use crate::escape::{command_line, content_line};
-use crate::render::json::document;
+use crate::render::json::{Partial, document};
 use crate::render::text::{Marker, address_line, hint, notice, numbered};
 use crate::sourcegraph::Fetch;
 use crate::sourcegraph::blob::{self, ReadRequest};
@@ -230,12 +230,6 @@ struct FileJson<'a> {
 struct LineJson<'a> {
     n: u32,
     text: &'a str,
-}
-
-#[derive(Serialize)]
-struct Partial {
-    reason: String,
-    hints: Vec<String>,
 }
 
 #[cfg(test)]

@@ -2,6 +2,7 @@
 
 #[macro_use]
 mod command;
+mod list;
 mod live;
 mod read;
 mod server;
