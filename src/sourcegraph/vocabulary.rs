@@ -55,9 +55,14 @@ const FILTER_KINDS: &[(&str, &str)] = &[
     ("symbol type", "symbol_type"),
 ];
 
-/// A symbol's `SymbolKind`.
-pub fn symbol_kind(raw: &str) -> Term {
-    term(SYMBOL_KINDS, raw)
+/// A symbol's `SymbolKind` in sego's terms, or why it has none: a value
+/// outside the schema's enum is drift.
+pub fn symbol_kind(raw: &str) -> Result<&'static str, String> {
+    SYMBOL_KINDS
+        .iter()
+        .find(|(upstream, _)| *upstream == raw)
+        .map(|&(_, value)| value)
+        .ok_or_else(|| format!("unknown symbol kind `{raw}`"))
 }
 
 /// A suggested filter's kind.
@@ -87,12 +92,15 @@ mod tests {
 
     #[test]
     fn symbol_kinds() {
-        assert_eq!(symbol_kind("METHOD"), term("method"));
-        assert_eq!(symbol_kind("ENUMMEMBER"), term("enum_member"));
-        assert_eq!(symbol_kind("TYPEPARAMETER"), term("type_parameter"));
-        assert_eq!(symbol_kind("UNKNOWN"), term("unknown"));
-        assert_eq!(symbol_kind("NEWKIND"), other("NEWKIND"));
-        assert_eq!(symbol_kind("method"), other("method"));
+        assert_eq!(symbol_kind("METHOD"), Ok("method"));
+        assert_eq!(symbol_kind("ENUMMEMBER"), Ok("enum_member"));
+        assert_eq!(symbol_kind("TYPEPARAMETER"), Ok("type_parameter"));
+        assert_eq!(symbol_kind("UNKNOWN"), Ok("unknown"));
+        assert_eq!(
+            symbol_kind("NEWKIND"),
+            Err("unknown symbol kind `NEWKIND`".to_owned())
+        );
+        assert!(symbol_kind("method").is_err());
     }
 
     #[test]

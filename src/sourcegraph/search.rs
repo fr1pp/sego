@@ -391,7 +391,7 @@ fn hit(item: Item) -> Result<Hit, String> {
                 path_match: !path_matches.is_empty(),
                 binary,
                 lines,
-                symbols: symbols(wire_symbols),
+                symbols: symbols(wire_symbols)?,
             })
         }
         Item::Repository { name, description, stars } => {
@@ -559,21 +559,26 @@ fn mark(lines: &mut [Line], range: &WireRange) {
     }
 }
 
-/// The symbols with a location, on 1-based lines. A symbol without one has
-/// no line to show it on.
-fn symbols(symbols: Vec<WireSymbol>) -> Vec<Symbol> {
-    symbols
-        .into_iter()
-        .filter_map(|symbol| {
-            let line = symbol.location.range?.start.line.checked_add(1)?;
-            Some(Symbol {
-                line,
-                kind: vocabulary::symbol_kind(&symbol.kind),
-                name: symbol.name,
-                container: symbol.container_name,
-            })
-        })
-        .collect()
+/// The symbols with a location, on 1-based lines, or why one can't be
+/// read. A symbol without a location has no line to show it on.
+fn symbols(symbols: Vec<WireSymbol>) -> Result<Vec<Symbol>, String> {
+    let mut found = Vec::new();
+    for symbol in symbols {
+        let kind = vocabulary::symbol_kind(&symbol.kind)?;
+        let Some(range) = symbol.location.range else {
+            continue;
+        };
+        let Some(line) = range.start.line.checked_add(1) else {
+            continue;
+        };
+        found.push(Symbol {
+            line,
+            kind,
+            name: symbol.name,
+            container: symbol.container_name,
+        });
+    }
+    Ok(found)
 }
 
 #[cfg(test)]
@@ -817,7 +822,7 @@ mod tests {
         let symbol = &files[0].symbols[0];
         assert_eq!(files[0].path, "middleware.go");
         assert_eq!((symbol.line, symbol.name.as_str()), (24, "Use"));
-        assert_eq!(symbol.kind.value, "method");
+        assert_eq!(symbol.kind, "method");
         assert_eq!(symbol.container.as_deref(), Some("mux.Router"));
         let mut found = String::new();
         for file in &files {
@@ -826,8 +831,8 @@ mod tests {
                 let container = container.as_deref().unwrap_or_default();
                 let _ = writeln!(
                     found,
-                    "{}:{line} {} {name} ({container})",
-                    file.path, kind.value
+                    "{}:{line} {kind} {name} ({container})",
+                    file.path
                 );
             }
         }
@@ -857,10 +862,7 @@ mod tests {
                     symbols: [
                         Symbol {
                             line: 24,
-                            kind: Term {
-                                value: "method",
-                                raw: None,
-                            },
+                            kind: "method",
                             name: "Use",
                             container: Some(
                                 "mux.Router",
@@ -868,10 +870,7 @@ mod tests {
                         },
                         Symbol {
                             line: 31,
-                            kind: Term {
-                                value: "method",
-                                raw: None,
-                            },
+                            kind: "method",
                             name: "useInterface",
                             container: Some(
                                 "mux.Router",
@@ -1611,6 +1610,25 @@ mod tests {
             "{failure}"
         );
         assert!(failure.contains("Notebook"), "{failure}");
+    }
+
+    #[test]
+    fn unknown_symbol_kinds_are_schema_drift() {
+        let mut hit = file_match(&serde_json::json!([]));
+        hit["symbols"] = serde_json::json!([
+            {"name": "x", "kind": "MACRO", "containerName": null,
+                "location": {"range": {"start": {"line": 0, "character": 0}}}}
+        ]);
+        let result = answer(
+            "x",
+            reply(&serde_json::json!({"matchCount": 1, "results": [hit]})),
+        );
+        expect![[r#"
+            [bad_response Unanswered]
+            error: the upstream's answer has missing or unknown fields
+            caused by: unknown symbol kind `MACRO`
+        "#]]
+        .assert_eq(&failure(result));
     }
 
     #[test]

@@ -88,7 +88,7 @@ pub struct Term {
 #[derive(Debug)]
 pub struct Symbol {
     pub line: u32,
-    pub kind: Term,
+    pub kind: &'static str,
     pub name: String,
     pub container: Option<String>,
 }

@@ -805,7 +805,16 @@ mod tests {
                 missing: vec![text()],
             },
             cut_short: Some(CutShort { reasons: vec![text()], retry }),
-            filters: vec![filter("repo"), filter("utility")],
+            filters: vec![
+                filter("repo"),
+                filter("utility"),
+                Filter {
+                    kind: Term { value: "other", raw: Some(text()) },
+                    value: text(),
+                    count: 1,
+                    limit_hit: false,
+                },
+            ],
             alert: Some(Alert {
                 title: text(),
                 description: Some(text()),
@@ -820,7 +829,7 @@ mod tests {
         let line = |number, spans| Line { number, text: text(), spans };
         let symbol = Symbol {
             line: 1,
-            kind: Term { value: "other", raw: Some(text()) },
+            kind: "function",
             name: text(),
             container: Some(text()),
         };

@@ -774,10 +774,10 @@ fn help() {
               path, path_match, binary, lines [{n, text, matches [{start, end}]}],
               symbols [{line, kind, name, container}]}, directory {repo, commit, path},
               commit {repo, commit, date, author, subject, diff} or repository {repo,
-              description, stars}. A filter or a symbol whose kind is other has detail
-              {kind}, with the upstream's kind. Commits have 40 hex digits; match
-              offsets count codepoints. Anything else is reported on stderr, and its
-              document, of kind "unavailable" or "error", also goes to stdout.
+              description, stars}. A filter whose kind is other has detail {kind},
+              with the upstream's kind. Commits have 40 hex digits; match offsets
+              count codepoints. Anything else is reported on stderr, and its document,
+              of kind "unavailable" or "error", also goes to stdout.
 
             Matching:
               Matching is case-insensitive unless the query says case:yes. A misspelt

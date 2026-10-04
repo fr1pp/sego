@@ -72,10 +72,10 @@ Output:
   path, path_match, binary, lines [{n, text, matches [{start, end}]}],
   symbols [{line, kind, name, container}]}, directory {repo, commit, path},
   commit {repo, commit, date, author, subject, diff} or repository {repo,
-  description, stars}. A filter or a symbol whose kind is other has detail
-  {kind}, with the upstream's kind. Commits have 40 hex digits; match
-  offsets count codepoints. Anything else is reported on stderr, and its
-  document, of kind \"unavailable\" or \"error\", also goes to stdout.
+  description, stars}. A filter whose kind is other has detail {kind},
+  with the upstream's kind. Commits have 40 hex digits; match offsets
+  count codepoints. Anything else is reported on stderr, and its document,
+  of kind \"unavailable\" or \"error\", also goes to stdout.
 
 Matching:
   Matching is case-insensitive unless the query says case:yes. A misspelt
@@ -257,8 +257,8 @@ fn line_entry(line: &Line) -> (u32, Marker, String) {
 fn symbol_entry(symbol: &Symbol) -> (u32, Marker, String) {
     let Symbol { line, kind, name, container } = symbol;
     let text = match container {
-        Some(container) => format!("{} {name} ({container})", kind.value),
-        None => format!("{} {name}", kind.value),
+        Some(container) => format!("{kind} {name} ({container})"),
+        None => format!("{kind} {name}"),
     };
     (*line, Marker::Match, content_line(&text, None))
 }
@@ -532,18 +532,15 @@ struct SymbolJson<'a> {
     kind: &'a str,
     name: &'a str,
     container: Option<&'a str>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    detail: Option<KindDetail<'a>>,
 }
 
 impl<'a> SymbolJson<'a> {
     fn new(symbol: &'a Symbol) -> SymbolJson<'a> {
         SymbolJson {
             line: symbol.line,
-            kind: symbol.kind.value,
+            kind: symbol.kind,
             name: &symbol.name,
             container: symbol.container.as_deref(),
-            detail: detail(&symbol.kind),
         }
     }
 }
