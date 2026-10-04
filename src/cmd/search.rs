@@ -55,7 +55,6 @@ Output:
       22-
       23: // NewRouter returns a new router instance.
       24: func NewRouter() *Router {
-      25-     return &Router{namedRoutes: make(map[string]*Route)}
 
   A file's lines are N: for a line that matches, N- for context, and --
   between runs that aren't adjacent; its symbols are N: kind name
@@ -67,16 +66,16 @@ Output:
 
   With --json, one document of kind \"search\": query, match_count,
   approximate (null when exact), limit_hit, skipped {timed_out, cloning,
-  missing}, filters [{kind, value, count, limit_hit}] when
-  shown, alert {title, description, hints} or null, partial {reason,
-  hints} when results may be missing, and results. Each
-  result has a type: file {repo, commit, path, path_match, binary, lines
-  [{n, text, matches [{start, end}]}], symbols [{line, kind, name,
-  container}]}, directory {repo, commit, path}, commit {repo, commit,
-  date, author, subject, diff} or repository {repo, description, stars}.
-  Commits have 40 hex digits; match offsets count codepoints. Anything
-  else is reported on stderr, and its document, of kind \"unavailable\" or
-  \"error\", also goes to stdout.
+  missing}, filters [{kind, value, count, limit_hit}] when shown, alert
+  {title, description, hints} or null, partial {reason, hints} when results
+  may be missing, and results. Each result has a type: file {repo, commit,
+  path, path_match, binary, lines [{n, text, matches [{start, end}]}],
+  symbols [{line, kind, name, container}]}, directory {repo, commit, path},
+  commit {repo, commit, date, author, subject, diff} or repository {repo,
+  description, stars}. A filter or a symbol whose kind is other has detail
+  {kind}, with the upstream's kind. Commits have 40 hex digits; match
+  offsets count codepoints. Anything else is reported on stderr, and its
+  document, of kind \"unavailable\" or \"error\", also goes to stdout.
 
 Matching:
   Matching is case-insensitive unless the query says case:yes. A misspelt
@@ -272,10 +271,13 @@ fn hit_text(hit: &Hit) -> (String, String) {
             if file.binary {
                 return (head, "  binary file; lines not shown\n".to_owned());
             }
-            let lines: Vec<_> = file.lines.iter().map(line_entry).collect();
-            let symbols: Vec<_> =
-                file.symbols.iter().map(symbol_entry).collect();
-            (head, numbered(&lines) + &numbered(&symbols))
+            let entries: Vec<_> = file
+                .lines
+                .iter()
+                .map(line_entry)
+                .chain(file.symbols.iter().map(symbol_entry))
+                .collect();
+            (head, numbered(&entries))
         }
         Hit::Directory { path, .. } => {
             let path = path_word(path);

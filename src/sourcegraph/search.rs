@@ -1514,7 +1514,8 @@ mod tests {
                 "description": "no list here", "proposedQueries": null
             }})),
         ));
-        assert!(report.alert.is_some());
+        let alert = report.alert.unwrap();
+        assert_eq!(alert.title, vocabulary::ALERT_MISSING_REVISION);
     }
 
     #[test]

@@ -114,9 +114,12 @@ fn tokens(query: &str) -> Vec<Range<usize>> {
     tokens
 }
 
-/// Whether `token` is one of `query`'s tokens, as `tokens` splits them.
+/// Whether `token` is one of `query`'s tokens, as `tokens` splits them,
+/// ignoring ASCII case.
 pub fn has_token(query: &str, token: &str) -> bool {
-    tokens(query).into_iter().any(|range| query[range] == *token)
+    tokens(query)
+        .into_iter()
+        .any(|range| query[range].eq_ignore_ascii_case(token))
 }
 
 /// The nanoseconds in each of Go's duration units.
@@ -284,6 +287,13 @@ mod tests {
         assert!(has_token(query, "repo:x"));
         assert!(!has_token(query, "months"));
         assert!(!has_token(query, "repo"));
+    }
+
+    #[test]
+    fn tokens_match_ignoring_ascii_case() {
+        assert!(has_token("x lang:Go", "lang:go"));
+        assert!(has_token("x LANG:GO", "lang:go"));
+        assert!(!has_token("x lang:golang", "lang:go"));
     }
 
     #[test]

@@ -446,6 +446,60 @@ fn limit_hit_suggests_narrowing() {
 }
 
 #[test]
+fn filters_in_the_query_are_not_suggested_whatever_their_case() {
+    let args = [
+        r"repo:^github\.com/golang/go$@go1.23.0",
+        "context.WithTimeout",
+        "count:5",
+        "lang:Go",
+    ];
+    let answer = edited("search/limit-hit.json", |_| {});
+    let run = exchange(vec![ok(&answer)], &args);
+    let narrow = run.stdout.lines().find(|line| line.starts_with("narrow:"));
+    expect![[r#"
+        Some(
+            "narrow: -file:_test\\.\\w+$ (3) • -file:(^|/)vendor/ (1)",
+        )
+    "#]]
+    .assert_debug_eq(&narrow);
+}
+
+#[test]
+fn a_file_hits_lines_and_symbols_are_one_numbered_block() {
+    let answer = edited("search/content.json", |results| {
+        let hits = results["results"].as_array_mut().unwrap();
+        hits.truncate(1);
+        hits[0]["chunkMatches"] = json!([{
+            "content": "a := 1\nb := 2",
+            "contentStart": {"line": 2},
+            "ranges": [{"start": {"line": 2, "character": 0},
+                "end": {"line": 2, "character": 1}}],
+        }]);
+        hits[0]["symbols"] = json!([{
+            "name": "c", "kind": "FUNCTION", "containerName": null,
+            "location": {"range": {"start": {"line": 8, "character": 5}}},
+        }]);
+    });
+    let run = exchange(vec![ok(&answer)], &["x"]);
+    expect![[r#"
+        exit 0
+        --- stdout
+        91 matches • 1 result
+
+        github.com/gorilla/mux@a7962380ca08
+        example_route_test.go
+           3: a := 1
+           4- b := 2
+        --
+           9: function c
+        [EOF]
+        --- stderr
+        [EOF]
+    "#]]
+    .assert_eq(&run.transcript());
+}
+
+#[test]
 fn partial_answers_say_what_is_missing() {
     let answer = edited("search/repos.json", |results| {
         results["limitHit"] = true.into();
@@ -680,7 +734,6 @@ fn help() {
                   22-
                   23: // NewRouter returns a new router instance.
                   24: func NewRouter() *Router {
-                  25-     return &Router{namedRoutes: make(map[string]*Route)}
 
               A file's lines are N: for a line that matches, N- for context, and --
               between runs that aren't adjacent; its symbols are N: kind name
@@ -692,16 +745,16 @@ fn help() {
 
               With --json, one document of kind "search": query, match_count,
               approximate (null when exact), limit_hit, skipped {timed_out, cloning,
-              missing}, filters [{kind, value, count, limit_hit}] when
-              shown, alert {title, description, hints} or null, partial {reason,
-              hints} when results may be missing, and results. Each
-              result has a type: file {repo, commit, path, path_match, binary, lines
-              [{n, text, matches [{start, end}]}], symbols [{line, kind, name,
-              container}]}, directory {repo, commit, path}, commit {repo, commit,
-              date, author, subject, diff} or repository {repo, description, stars}.
-              Commits have 40 hex digits; match offsets count codepoints. Anything
-              else is reported on stderr, and its document, of kind "unavailable" or
-              "error", also goes to stdout.
+              missing}, filters [{kind, value, count, limit_hit}] when shown, alert
+              {title, description, hints} or null, partial {reason, hints} when results
+              may be missing, and results. Each result has a type: file {repo, commit,
+              path, path_match, binary, lines [{n, text, matches [{start, end}]}],
+              symbols [{line, kind, name, container}]}, directory {repo, commit, path},
+              commit {repo, commit, date, author, subject, diff} or repository {repo,
+              description, stars}. A filter or a symbol whose kind is other has detail
+              {kind}, with the upstream's kind. Commits have 40 hex digits; match
+              offsets count codepoints. Anything else is reported on stderr, and its
+              document, of kind "unavailable" or "error", also goes to stdout.
 
             Matching:
               Matching is case-insensitive unless the query says case:yes. A misspelt
