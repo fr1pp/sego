@@ -1,6 +1,8 @@
 //! Listing a directory: its entries, to a depth, or where a submodule
 //! points.
 
+use std::cmp::Ordering;
+
 use serde::Deserialize;
 
 use crate::address::{Address, CommitId, Pinned, RepoName, RepoPath};
@@ -169,8 +171,14 @@ pub fn answer(
         entries.push(Entry { path: entry, kind });
     }
     // The upstream sends every directory before any file.
-    entries.sort_by(|a, b| a.path.cmp(&b.path));
+    entries.sort_by(|a, b| path_order(&a.path, &b.path));
     Ok(Tree::Listing(Listing { at, path, entries, truncated }))
+}
+
+/// Paths compared segment by segment, so a directory's entries follow it
+/// directly: `foo`, `foo/bar.go`, `foo.go`.
+fn path_order(a: &str, b: &str) -> Ordering {
+    a.split('/').cmp(b.split('/'))
 }
 
 /// How many segments `path` has; the root has none.
@@ -275,7 +283,8 @@ mod tests {
     fn assert_path_ordered(listing: &Listing) {
         let paths: Vec<_> =
             listing.entries.iter().map(|entry| &entry.path).collect();
-        assert!(paths.is_sorted(), "{paths:?}");
+        let ordered = paths.is_sorted_by(|a, b| path_order(a, b).is_le());
+        assert!(ordered, "{paths:?}");
     }
 
     fn depth(path: &str) -> usize {
@@ -608,6 +617,25 @@ mod tests {
         let paths: Vec<_> =
             listing.entries.iter().map(|entry| entry.path.as_str()).collect();
         assert_eq!(paths, ["a", "a/b", "a/c.go", "m.go", "z"]);
+    }
+
+    #[test]
+    fn entries_follow_their_directory() {
+        let request = ListRequest { depth: 2, ..case("root") };
+        let entry = |path: &str, is_directory| {
+            serde_json::json!({"path": path, "isDirectory": is_directory,
+                "submodule": null})
+        };
+        let entries = serde_json::json!([
+            entry("foo", true),
+            entry("foo/baz", true),
+            entry("foo.go", false),
+            entry("foo/bar.go", false),
+        ]);
+        let listing = listing(answer(&request, tree("", &entries)));
+        let paths: Vec<_> =
+            listing.entries.iter().map(|entry| entry.path.as_str()).collect();
+        assert_eq!(paths, ["foo", "foo/bar.go", "foo/baz", "foo.go"]);
     }
 
     #[test]
