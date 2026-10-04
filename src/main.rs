@@ -13,6 +13,11 @@ mod diagnostic;
     expect(dead_code, reason = "wired into a command in a later task")
 )]
 mod escape;
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "wired into a command in a later task")
+)]
+mod output;
 
 use std::env;
 use std::process::ExitCode;
