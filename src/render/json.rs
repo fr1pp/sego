@@ -32,7 +32,7 @@ struct NonAnswer {
 /// `kind`, then `body`'s fields, then a newline.
 #[expect(
     clippy::expect_used,
-    reason = "an object with string keys always serialises, as UTF-8"
+    reason = "the body is an object with string keys"
 )]
 pub fn document(kind: &str, body: &impl Serialize) -> String {
     let envelope = Envelope { version: SCHEMA_VERSION, kind, body };
@@ -106,7 +106,6 @@ mod tests {
     use serde_json::json;
 
     use super::*;
-    use crate::diagnostic::Outcome;
 
     struct Sample {
         outcome: Outcome,
@@ -200,7 +199,8 @@ mod tests {
     fn only_unsafe_characters_are_escaped() {
         assert_eq!(
             document("s", &json!({"t": "a\u{202e}b\u{200b}\u{1b}"})),
-            "{\"version\":1,\"kind\":\"s\",\"t\":\"a\\u202eb\\u200b\\u001b\"}\n"
+            "{\"version\":1,\"kind\":\"s\",\
+             \"t\":\"a\\u202eb\\u200b\\u001b\"}\n"
         );
     }
 
