@@ -152,11 +152,6 @@ impl Diagnostic for InvalidEndpoint {
     fn outcome(&self) -> Outcome {
         Outcome::Invalid
     }
-
-    /// The top-level help, which documents `SEGO_ENDPOINT`.
-    fn hints(&self) -> Vec<String> {
-        vec!["sego --help".to_owned()]
-    }
 }
 
 #[cfg(test)]
@@ -230,7 +225,6 @@ mod tests {
         assert_eq!(error.outcome(), Outcome::Invalid);
         expect![[r#"
             error: SEGO_ENDPOINT must start with http:// or https://: ftp://example.com
-            hint: sego --help
         "#]].assert_eq(&report(&error));
     }
 
