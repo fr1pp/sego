@@ -14,11 +14,10 @@ use std::io;
 use std::process::ExitCode;
 
 use args::Cli;
-use cmd::{Present, UsageError};
+use cmd::{Action, Present, UsageError};
 use diagnostic::{Diagnostic, report};
 use output::{Output, to_stderr};
 use sourcegraph::transport::{InvalidEndpoint, Transport};
-use sourcegraph::{FetchError, Plan, Reply};
 
 const DEFAULT_ENDPOINT: &str = "https://sourcegraph.com";
 
@@ -60,15 +59,17 @@ fn main() -> ExitCode {
     ExitCode::from(outcome.exit_code())
 }
 
-/// The answer to `cli`, building the transport only for a command that
-/// needs the upstream, and only once its operands are known to be valid.
+/// The answer to `cli`, building the transport only for a command, and
+/// only once its operands are known to be valid.
 fn answer(cli: &Cli) -> Result<Box<dyn Present>, Box<dyn Diagnostic>> {
-    if !cmd::needs_upstream(cli) {
-        return cmd::run(cli, &offline);
+    match cmd::action(cli)? {
+        Action::Print(plain) => Ok(Box::new(plain)),
+        Action::Run(command) => {
+            command.validate(cli)?;
+            let transport = Transport::new(&endpoint()?)?;
+            command.run(cli, &|plan| transport.fetch(plan))
+        }
     }
-    cmd::validate(cli)?;
-    let transport = Transport::new(&endpoint()?)?;
-    cmd::run(cli, &|plan| transport.fetch(plan))
 }
 
 /// `SEGO_ENDPOINT`, or `DEFAULT_ENDPOINT` when it is unset or empty.
@@ -79,10 +80,4 @@ fn endpoint() -> Result<String, InvalidEndpoint> {
             value.into_string().map_err(|_| InvalidEndpoint::NotUtf8)
         }
     }
-}
-
-/// The fetch for invocations that never reach the upstream: help, the
-/// version and usage errors.
-fn offline(_: &Plan) -> Result<Reply, FetchError> {
-    unreachable!("only a command that needs the upstream fetches")
 }

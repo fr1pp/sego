@@ -95,7 +95,7 @@ pub trait Present {
 }
 
 /// Help or the version: the same text with or without `--json`.
-struct Plain(String);
+pub struct Plain(String);
 
 impl Present for Plain {
     fn outcome(&self) -> Outcome {
@@ -113,7 +113,7 @@ impl Present for Plain {
 
 /// A command sego runs.
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum Command {
+pub enum Command {
     Search,
     List,
     Read,
@@ -154,6 +154,35 @@ impl Command {
     fn help(self) -> String {
         let Help { about, details, .. } = self.parts();
         format!("{about}\nUsage:\n  {}\n\n{details}", self.synopsis(0))
+    }
+
+    /// Checks `cli`'s operands as far as possible without fetching
+    /// anything.
+    pub fn validate(self, cli: &Cli) -> Result<(), Box<dyn Diagnostic>> {
+        match self {
+            Command::Search => {
+                search::request(cli)?;
+            }
+            Command::List => {
+                list::request(cli)?;
+            }
+            Command::Read => {
+                read::request(cli)?;
+            }
+        }
+        Ok(())
+    }
+
+    pub fn run(
+        self,
+        cli: &Cli,
+        fetch: Fetch,
+    ) -> Result<Box<dyn Present>, Box<dyn Diagnostic>> {
+        match self {
+            Command::Search => search::run(cli, fetch),
+            Command::List => list::run(cli, fetch),
+            Command::Read => read::run(cli, fetch),
+        }
     }
 }
 
@@ -201,15 +230,14 @@ impl Diagnostic for UsageError {
 }
 
 /// What an invocation asks for.
-enum Action {
-    /// Help for a command, or the top-level help.
-    Help(Option<Command>),
-    Version,
+pub enum Action {
+    /// Help or the version, which need no upstream.
+    Print(Plain),
     Run(Command),
 }
 
 /// What `cli` asks for.
-fn action(cli: &Cli) -> Result<Action, UsageError> {
+pub fn action(cli: &Cli) -> Result<Action, UsageError> {
     let command = match cli.command.as_deref() {
         Some(name) => match Command::parse(name) {
             Some(command) => Some(command),
@@ -230,9 +258,10 @@ fn action(cli: &Cli) -> Result<Action, UsageError> {
         return Err(UsageError::new(message, Some(command)));
     }
     if cli.help {
-        Ok(Action::Help(command))
+        let text = command.map_or_else(help, Command::help);
+        Ok(Action::Print(Plain(text)))
     } else if cli.version {
-        Ok(Action::Version)
+        Ok(Action::Print(Plain(VERSION.to_owned())))
     } else {
         match command {
             Some(command) => Ok(Action::Run(command)),
@@ -241,42 +270,6 @@ fn action(cli: &Cli) -> Result<Action, UsageError> {
                 None,
             )),
         }
-    }
-}
-
-/// Whether the invocation runs a command, which needs the upstream.
-pub fn needs_upstream(cli: &Cli) -> bool {
-    matches!(action(cli), Ok(Action::Run(_)))
-}
-
-/// Checks the invocation as far as possible without fetching anything.
-pub fn validate(cli: &Cli) -> Result<(), Box<dyn Diagnostic>> {
-    match action(cli)? {
-        Action::Run(Command::Search) => {
-            search::request(cli)?;
-        }
-        Action::Run(Command::List) => {
-            list::request(cli)?;
-        }
-        Action::Run(Command::Read) => {
-            read::request(cli)?;
-        }
-        Action::Help(_) | Action::Version => {}
-    }
-    Ok(())
-}
-
-pub fn run(
-    cli: &Cli,
-    fetch: Fetch,
-) -> Result<Box<dyn Present>, Box<dyn Diagnostic>> {
-    match action(cli)? {
-        Action::Help(None) => Ok(Box::new(Plain(help()))),
-        Action::Help(Some(command)) => Ok(Box::new(Plain(command.help()))),
-        Action::Version => Ok(Box::new(Plain(VERSION.to_owned()))),
-        Action::Run(Command::Search) => search::run(cli, fetch),
-        Action::Run(Command::List) => list::run(cli, fetch),
-        Action::Run(Command::Read) => read::run(cli, fetch),
     }
 }
 
@@ -325,6 +318,14 @@ mod tests {
         ("schema_mismatch", 3),
         ("output", 3),
     ];
+
+    /// Checks `cli` as main does before it builds the transport.
+    fn validate(cli: &Cli) -> Result<(), Box<dyn Diagnostic>> {
+        match action(cli)? {
+            Action::Print(_) => Ok(()),
+            Action::Run(command) => command.validate(cli),
+        }
+    }
 
     /// The commands that synopsis `lines` are for.
     fn commands(lines: &[String]) -> String {
