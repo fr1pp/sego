@@ -198,9 +198,7 @@ mod tests {
 
     use super::*;
     use crate::diagnostic::report;
-    use crate::sourcegraph::Reply;
-    use crate::sourcegraph::envelope::decode;
-    use crate::sourcegraph::testing;
+    use crate::sourcegraph::testing::{self, decoded, failure};
 
     /// The capture cases, by name: each is `tests/list/<name>.json`.
     fn cases() -> Vec<(&'static str, ListRequest)> {
@@ -252,20 +250,6 @@ mod tests {
         }
     }
 
-    /// A failure's code, outcome and report.
-    fn failure(result: Result<Tree, Box<dyn Diagnostic>>) -> String {
-        let diagnostic = match result {
-            Ok(tree) => panic!("an answer: {tree:?}"),
-            Err(diagnostic) => diagnostic,
-        };
-        format!(
-            "[{} {:?}]\n{}",
-            diagnostic.code(),
-            diagnostic.outcome(),
-            report(&*diagnostic)
-        )
-    }
-
     /// The entry at `path`.
     fn entry<'a>(listing: &'a Listing, path: &str) -> &'a EntryKind {
         listing
@@ -289,10 +273,6 @@ mod tests {
             listing.entries.iter().map(|entry| &entry.path).collect();
         let ordered = paths.is_sorted_by(|a, b| path_order(a, b).is_le());
         assert!(ordered, "{paths:?}");
-    }
-
-    fn depth(path: &str) -> usize {
-        path.split('/').count()
     }
 
     #[test]
@@ -342,7 +322,9 @@ mod tests {
             entry(&listing, ".github/stale.yml"),
             EntryKind::File
         ));
-        assert!(listing.entries.iter().all(|entry| depth(&entry.path) <= 2));
+        assert!(
+            listing.entries.iter().all(|entry| segments(&entry.path) <= 2)
+        );
         assert!(!listing.truncated);
         assert_path_ordered(&listing);
         expect![[r#"
@@ -545,7 +527,9 @@ mod tests {
             include_str!("../../tests/list/truncated.json"),
         ));
         assert!(listing.entries.len() <= LIST_ENTRY_CAP as usize);
-        assert!(listing.entries.iter().all(|entry| depth(&entry.path) <= 3));
+        assert!(
+            listing.entries.iter().all(|entry| segments(&entry.path) <= 3)
+        );
         assert!(listing.truncated);
         assert_path_ordered(&listing);
         // The upstream sends every directory before any file, so this cut
@@ -594,13 +578,7 @@ mod tests {
                     "entries": entries}
             }
         }}});
-        let reply = Reply {
-            status: 200,
-            body: body.to_string().into_bytes(),
-            trace: None,
-            location: None,
-        };
-        decode(reply).unwrap()
+        decoded(body.to_string())
     }
 
     #[test]
@@ -719,13 +697,7 @@ mod tests {
                 ]}
             }
         }}}"#;
-        let reply = Reply {
-            status: 200,
-            body: body.to_vec(),
-            trace: None,
-            location: None,
-        };
-        let listing = listing(answer(&case("root"), decode(reply).unwrap()));
+        let listing = listing(answer(&case("root"), decoded(body)));
         let EntryKind::Submodule { url, target } = &listing.entries[0].kind
         else {
             panic!("x is not a submodule");
@@ -747,15 +719,7 @@ mod tests {
 
     #[test]
     fn missing_repository_and_commit() {
-        let answer = |data: &str| {
-            let reply = Reply {
-                status: 200,
-                body: data.as_bytes().to_vec(),
-                trace: None,
-                location: None,
-            };
-            answer(&case("root"), decode(reply).unwrap())
-        };
+        let answer = |data: &str| answer(&case("root"), decoded(data));
         let repo = answer(r#"{"data":{"repository":null}}"#);
         let commit = answer(
             r#"{"data":{"repository":{

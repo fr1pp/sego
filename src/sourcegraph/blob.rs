@@ -218,9 +218,7 @@ mod tests {
 
     use super::*;
     use crate::diagnostic::report;
-    use crate::sourcegraph::Reply;
-    use crate::sourcegraph::envelope::decode;
-    use crate::sourcegraph::testing;
+    use crate::sourcegraph::testing::{self, decoded, failure};
 
     /// The capture cases, by name: each is `tests/read/<name>.json`.
     fn cases() -> Vec<(&'static str, ReadRequest)> {
@@ -322,20 +320,6 @@ mod tests {
     /// The file a result answers with.
     fn answered(result: Result<File, Box<dyn Diagnostic>>) -> File {
         result.unwrap_or_else(|diagnostic| panic!("{}", report(&*diagnostic)))
-    }
-
-    /// A failure's code, outcome and report.
-    fn failure(result: Result<File, Box<dyn Diagnostic>>) -> String {
-        let diagnostic = match result {
-            Ok(file) => panic!("an answer: {file:?}"),
-            Err(diagnostic) => diagnostic,
-        };
-        format!(
-            "[{} {:?}]\n{}",
-            diagnostic.code(),
-            diagnostic.outcome(),
-            report(&*diagnostic)
-        )
     }
 
     #[test]
@@ -625,13 +609,7 @@ mod tests {
                 "body": {"content": content}
             }
         }}});
-        let reply = Reply {
-            status: 200,
-            body: body.to_string().into_bytes(),
-            trace: None,
-            location: None,
-        };
-        decode(reply).unwrap()
+        decoded(body.to_string())
     }
 
     #[test]
@@ -657,13 +635,7 @@ mod tests {
             "name":"github.com/gorilla/mux",
             "commit":{"oid":null,"node":null,"lines":null,"body":null}
         }}}"#;
-        let reply = Reply {
-            status: 200,
-            body: body.to_vec(),
-            trace: None,
-            location: None,
-        };
-        let result = answer(&case("range"), decode(reply).unwrap());
+        let result = answer(&case("range"), decoded(body));
         expect![[r#"
             [bad_response Unanswered]
             error: the upstream's answer has missing or unknown fields
@@ -686,13 +658,7 @@ mod tests {
             }
         }},"errors":[{"message":"boom",
             "path":["repository","commit","body","content"]}]}"#;
-        let reply = Reply {
-            status: 200,
-            body: body.to_vec(),
-            trace: None,
-            location: None,
-        };
-        let result = answer(&case("range"), decode(reply).unwrap());
+        let result = answer(&case("range"), decoded(body));
         expect![[r#"
             [server_error Unanswered]
             error: the upstream answered with an error

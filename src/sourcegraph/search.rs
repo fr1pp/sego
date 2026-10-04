@@ -569,9 +569,7 @@ mod tests {
     use super::*;
     use crate::diagnostic::report;
     use crate::domain::{FileHit, Hit, Line, Span};
-    use crate::sourcegraph::Reply;
-    use crate::sourcegraph::envelope::decode;
-    use crate::sourcegraph::testing;
+    use crate::sourcegraph::testing::{self, decoded, failure};
 
     const MUX: &str = r"repo:^github\.com/gorilla/mux$";
     const MUX_TAG: &str = r"repo:^github\.com/gorilla/mux$@v1.7.0";
@@ -634,20 +632,6 @@ mod tests {
         }
     }
 
-    /// A failure's code, outcome and report.
-    fn failure(result: Result<SearchReport, Box<dyn Diagnostic>>) -> String {
-        let diagnostic = match result {
-            Ok(report) => panic!("an answer: {report:?}"),
-            Err(diagnostic) => diagnostic,
-        };
-        format!(
-            "[{} {:?}]\n{}",
-            diagnostic.code(),
-            diagnostic.outcome(),
-            report(&*diagnostic)
-        )
-    }
-
     fn files(report: &SearchReport) -> Vec<&FileHit> {
         report
             .hits
@@ -701,13 +685,7 @@ mod tests {
         }
         let body =
             serde_json::json!({"data": {"search": {"results": fields}}});
-        decode(Reply {
-            status: 200,
-            body: body.to_string().into_bytes(),
-            trace: None,
-            location: None,
-        })
-        .unwrap()
+        decoded(body.to_string())
     }
 
     /// One `FileMatch` in `github.com/x/a` at `a.go`.
@@ -1260,13 +1238,7 @@ mod tests {
                             "end":{"line":9,"character":1}}
                     ]}]}]
         }}}}"#;
-        let reply = Reply {
-            status: 200,
-            body: body.to_vec(),
-            trace: None,
-            location: None,
-        };
-        let report = answered(answer("x", decode(reply).unwrap()));
+        let report = answered(answer("x", decoded(body)));
         let files = files(&report);
         expect![[r#"
             5-🦍x
@@ -1298,13 +1270,7 @@ mod tests {
                     "ranges":[{"start":{"line":0,"character":5},
                         "end":{"line":0,"character":9}}]}]}]
         }}}}"#;
-        let reply = Reply {
-            status: 200,
-            body: body.to_vec(),
-            trace: None,
-            location: None,
-        };
-        let report = answered(answer("logo", decode(reply).unwrap()));
+        let report = answered(answer("logo", decoded(body)));
         assert_eq!(report.match_count, 1);
         let files = files(&report);
         let file = files[0];
@@ -1464,13 +1430,8 @@ mod tests {
 
     #[test]
     fn a_null_search_is_bad_response() {
-        let reply = Reply {
-            status: 200,
-            body: br#"{"data":{"search":null}}"#.to_vec(),
-            trace: None,
-            location: None,
-        };
-        let error = answer("x", decode(reply).unwrap()).unwrap_err();
+        let body = br#"{"data":{"search":null}}"#;
+        let error = answer("x", decoded(body)).unwrap_err();
         assert_eq!(error.code(), "bad_response");
     }
 
