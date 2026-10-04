@@ -1,0 +1,33 @@
+{
+  "request": {
+    "query": "query List(\n  $repo: String!, $rev: String!, $path: String!, $recursive: Boolean!,\n  $first: Int!\n) {\n  repository(name: $repo) {\n    name\n    commit(rev: $rev) {\n      oid\n      node: path(path: $path) {\n        __typename\n        ... on GitBlob { path submodule { url commit } }\n        ... on GitTree {\n          path\n          entries(first: $first, recursive: $recursive) {\n            path isDirectory submodule { url commit }\n          }\n        }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "first": 1000,
+      "path": "src/tools/cargo",
+      "recursive": false,
+      "repo": "github.com/rust-lang/rust",
+      "rev": "1.80.0"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "repository": {
+          "commit": {
+            "node": {
+              "__typename": "GitBlob",
+              "path": "src/tools/cargo",
+              "submodule": {
+                "commit": "37629051518c3df9ac2c1744589362a02ecafa99",
+                "url": "https://github.com/rust-lang/cargo.git"
+              }
+            },
+            "oid": "051478957371ee0084a7c0913941d2a8c4757bb9"
+          },
+          "name": "github.com/rust-lang/rust"
+        }
+      }
+    }
+  }
+}

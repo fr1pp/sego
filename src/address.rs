@@ -6,14 +6,32 @@ use crate::escape::{is_unsafe, shell_word};
 pub struct RepoName(String);
 
 impl RepoName {
-    /// `s` as a repository name, with a URL's scheme, user, scp-style `:`,
-    /// trailing `/`s and one trailing `.git` dropped.
+    /// `s` as a repository name, with a URL's scheme, user, port, scp-style
+    /// `:`, trailing `/`s and one trailing `.git` dropped.
     pub fn parse(s: &str) -> Result<RepoName, AddressError> {
         RepoName::checked(normalise(s))
     }
 
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+
+    /// The repository a submodule's `url` names: as `parse`, but with a
+    /// relative URL (`./` or `../`) resolved against `parent`, and `None`
+    /// for anything that can't be a repository name, such as a local path.
+    pub fn from_submodule_url(
+        url: &str,
+        parent: &RepoName,
+    ) -> Option<RepoName> {
+        let name = if url.starts_with("./") || url.starts_with("../") {
+            tidy(&resolve(parent.as_str(), url)?, false)
+        } else {
+            normalise(url)
+        };
+        if name.starts_with('/') {
+            return None;
+        }
+        RepoName::checked(name).ok()
     }
 
     fn checked(name: String) -> Result<RepoName, AddressError> {
@@ -30,12 +48,13 @@ impl RepoName {
 /// `url` as a repository name: see `RepoName::parse`.
 fn normalise(url: &str) -> String {
     let (rest, scp) = host_onwards(url);
-    tidy(rest, scp)
+    tidy(&rest, scp)
 }
 
-/// `url` with any scheme and user dropped, and whether it is scp-style
-/// (`host:owner/name`), which is only recognised without a scheme.
-fn host_onwards(url: &str) -> (&str, bool) {
+/// `url` with any scheme, user and port dropped, and whether it is
+/// scp-style (`host:owner/name`), which is only recognised without a scheme.
+/// Only a URL with a scheme has a port, and no repository name has one.
+fn host_onwards(url: &str) -> (String, bool) {
     let (rest, scheme) = match url.split_once("://") {
         Some((_, rest)) => (rest, true),
         None => (url, false),
@@ -46,12 +65,41 @@ fn host_onwards(url: &str) -> (&str, bool) {
     } else {
         rest.find(':').filter(|&colon| slash.is_none_or(|s| colon < s))
     };
-    let scp = !scheme && host_end.is_some();
-    let rest = match host_end.and_then(|end| rest[..end].rfind('@')) {
-        Some(at) => &rest[at + 1..],
-        None => rest,
+    let Some(end) = host_end else {
+        return (rest.to_owned(), false);
     };
-    (rest, scp)
+    let host = &rest[..end];
+    let host = host.rfind('@').map_or(host, |at| &host[at + 1..]);
+    let host = if scheme { without_port(host) } else { host };
+    (format!("{host}{}", &rest[end..]), !scheme)
+}
+
+/// `host` without a trailing `:port`.
+fn without_port(host: &str) -> &str {
+    match host.rsplit_once(':') {
+        Some((name, port)) if port.bytes().all(|b| b.is_ascii_digit()) => name,
+        _ => host,
+    }
+}
+
+/// `relative` resolved against `base` as git resolves a submodule's URL
+/// against its superproject's: `base` is the directory `./` names, and `..`
+/// can't climb past its host.
+fn resolve(base: &str, relative: &str) -> Option<String> {
+    let mut segments: Vec<&str> = base.split('/').collect();
+    for segment in relative.split('/') {
+        match segment {
+            "" | "." => {}
+            ".." => {
+                segments.pop();
+                if segments.is_empty() {
+                    return None;
+                }
+            }
+            _ => segments.push(segment),
+        }
+    }
+    Some(segments.join("/"))
 }
 
 /// The repository name in `rest`, the output of `host_onwards`.
@@ -100,7 +148,7 @@ impl Address {
         let (rest, scp) = host_onwards(s);
         let (repo, rev) = match rest.split_once('@') {
             Some((repo, rev)) => (repo, Some(rev)),
-            None => (rest, None),
+            None => (rest.as_str(), None),
         };
         Ok(Address {
             repo: RepoName::checked(tidy(repo, scp))?,
@@ -269,6 +317,9 @@ mod tests {
             ("git@github.com:gorilla/mux.git", "github.com/gorilla/mux"),
             ("ssh://git@github.com/gorilla/mux", "github.com/gorilla/mux"),
             ("GitHub.com/Gorilla/Mux", "GitHub.com/Gorilla/Mux"),
+            ("https://github.com:443/gorilla/mux", "github.com/gorilla/mux"),
+            ("ssh://git@github.com:22/x/y.git", "github.com/x/y"),
+            ("https://u:pw@github.com:443/x/y", "github.com/x/y"),
         ] {
             assert_eq!(RepoName::parse(input).unwrap().as_str(), expected);
         }
@@ -284,6 +335,34 @@ mod tests {
     }
 
     #[test]
+    fn submodule_urls_are_repo_names() {
+        let parent = RepoName::parse("github.com/x/a").unwrap();
+        for (url, expected) in [
+            (
+                "https://github.com/rust-lang/cargo.git",
+                Some("github.com/rust-lang/cargo"),
+            ),
+            ("git@gitlab.com:a/b.git", Some("gitlab.com/a/b")),
+            ("ssh://git@github.com:22/x/y.git", Some("github.com/x/y")),
+            ("../b.git", Some("github.com/x/b")),
+            ("./b", Some("github.com/x/a/b")),
+            ("../../y/b.git/", Some("github.com/y/b")),
+            ("../../../b", None),
+            ("", None),
+            ("file:///srv/git/b.git", None),
+            ("https://github.com/x/b c", None),
+        ] {
+            assert_eq!(
+                RepoName::from_submodule_url(url, &parent)
+                    .as_ref()
+                    .map(RepoName::as_str),
+                expected,
+                "{url}"
+            );
+        }
+    }
+
+    #[test]
     fn addresses_split_at_the_first_at_sign() {
         let a = Address::parse("github.com/gorilla/mux@feature/x").unwrap();
         assert_eq!(a.rev_or_head(), "feature/x");
@@ -295,7 +374,7 @@ mod tests {
             ("github.com/gorilla/mux", "v1.7.0")
         );
         let url =
-            Address::parse("https://git@github.com/x/y.git@a~1").unwrap();
+            Address::parse("https://git@github.com:443/x/y.git@a~1").unwrap();
         assert_eq!(
             (url.repo.as_str(), url.rev.unwrap().as_str()),
             ("github.com/x/y", "a~1")
