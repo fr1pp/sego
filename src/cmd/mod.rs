@@ -119,7 +119,7 @@ fn action(cli: &Cli) -> Result<Action, UsageError> {
     {
         let without = Cli { depth: None, ..cli.clone() };
         return Err(UsageError::new("--depth applies only to list")
-            .with_hint(without.command_line()));
+            .with_hint(correction(&without)));
     }
     if cli.help {
         Ok(Action::Help(command))
@@ -145,13 +145,22 @@ fn known(name: &str, cli: &Cli) -> Result<Command, UsageError> {
     let error =
         UsageError::new(format!("unknown command {}", shell_word(name)));
     let hint = match did_you_mean(name, COMMANDS) {
-        Some(command) => {
-            Cli { command: Some(command.to_owned()), ..cli.clone() }
-                .command_line()
-        }
+        Some(command) => correction(&Cli {
+            command: Some(command.to_owned()),
+            ..cli.clone()
+        }),
         None => "sego --help".to_owned(),
     };
     Err(error.with_hint(hint))
+}
+
+/// `cli`, an invocation with one mistake fixed, as a hint: its command line
+/// if it runs, else its command's help, since another mistake remains.
+fn correction(cli: &Cli) -> String {
+    match validate(cli) {
+        Ok(()) => cli.command_line(),
+        Err(_) => cli.help_hint(),
+    }
 }
 
 /// Whether the invocation runs a command, which needs the upstream.
@@ -199,5 +208,34 @@ mod tests {
         for &name in COMMANDS {
             assert!(Command::parse(name).is_some(), "{name}");
         }
+    }
+
+    #[test]
+    fn corrections_that_still_fail_hint_help() {
+        let invocations: [&[&str]; 6] = [
+            &["serch", "x"],
+            &["serch"],
+            &["serch", "x", "--depth", "2"],
+            &["serch", "--help", "--depth", "2"],
+            &["read", "x/y", "a.go", "--depth", "2"],
+            &["read", "x/y", "--depth", "2"],
+        ];
+        let hints: Vec<String> = invocations
+            .iter()
+            .map(|argv| {
+                let argv = argv.iter().map(std::ffi::OsString::from);
+                let cli = crate::args::parse(argv).unwrap();
+                validate(&cli).err().unwrap().hints().join(" | ")
+            })
+            .collect();
+        expect_test::expect![[r#"
+            sego search x
+            sego search --help
+            sego search --help
+            sego search --help
+            sego read x/y a.go
+            sego read --help
+        "#]]
+        .assert_eq(&(hints.join("\n") + "\n"));
     }
 }

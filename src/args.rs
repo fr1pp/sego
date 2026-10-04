@@ -56,7 +56,7 @@ impl Cli {
     }
 
     /// `sego <command> --help` for a known command, else `sego --help`.
-    fn help_hint(&self) -> String {
+    pub fn help_hint(&self) -> String {
         match self.command.as_deref() {
             Some(command) if COMMANDS.contains(&command) => {
                 format!("sego {command} --help")
@@ -183,8 +183,7 @@ fn option_word(name: &str) -> String {
 }
 
 /// The command line with the unknown option at `position` replaced by the
-/// option nearest its name, if that parses with a known command, or with no
-/// command and `--help` or `--version`.
+/// option nearest its name, if that is an invocation that runs.
 fn corrected(
     args: &[OsString],
     position: usize,
@@ -200,11 +199,7 @@ fn corrected(
     let mut args = args.to_vec();
     args[position - 1] = token;
     let cli = parse(args).ok()?;
-    let runnable = match cli.command.as_deref() {
-        Some(command) => COMMANDS.contains(&command),
-        None => cli.help || cli.version,
-    };
-    runnable.then(|| cli.command_line())
+    crate::cmd::validate(&cli).is_ok().then(|| cli.command_line())
 }
 
 fn lexopt_error(error: lexopt::Error, cli: &Cli) -> UsageError {
@@ -353,9 +348,11 @@ mod tests {
 
     #[test]
     fn unknown_options_suggest_a_correction() {
-        let error = parse_strs(&["read", "x", "--jsno"]).unwrap_err();
+        let error = parse_strs(&["read", "x", "a", "--jsno"]).unwrap_err();
         assert_eq!(error.to_string(), "unknown option --jsno");
-        assert_eq!(error.hints(), ["sego read x --json"]);
+        assert_eq!(error.hints(), ["sego read x a --json"]);
+        let error = parse_strs(&["read", "x", "--jsno"]).unwrap_err();
+        assert_eq!(error.hints(), ["sego read --help"]);
     }
 
     #[cfg(unix)]
