@@ -172,8 +172,9 @@ pub struct Skipped {
     pub missing: Vec<String>,
 }
 
-/// Why a search with hits may be missing some, and `retry`, its query with
-/// a longer `timeout:` when that could bring them in.
+/// Why a search answer, one with hits or a no-repositories alert, may be
+/// missing results, and `retry`, its query with a longer `timeout:` when
+/// that could bring them in.
 #[derive(Debug)]
 pub struct CutShort {
     pub reasons: Vec<String>,
