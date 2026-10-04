@@ -79,7 +79,7 @@ Examples:
 const OPERANDS: &str = "expected <repo>[@<rev>] <path> [<lines>]";
 
 /// The read `cli` asks for: `<repo>[@<rev>] <path> [<lines>]`. Without
-/// `<lines>`, lines 1 to `READ_LINE_CAP`.
+/// `<lines>`, lines 1 to `READ_LINE_CAP`, and the request is capped.
 pub fn request(cli: &Cli) -> Result<ReadRequest, UsageError> {
     let invalid =
         |message: String| UsageError::new(message, Some(Command::Read));
@@ -103,11 +103,14 @@ pub fn request(cli: &Cli) -> Result<ReadRequest, UsageError> {
             "empty path; read needs a file's path".to_owned(),
         ));
     }
-    let range = match lines {
-        Some(lines) => LineRange::parse(lines).map_err(address_error)?,
-        None => LineRange { start: 1, end: Some(READ_LINE_CAP) },
+    let (range, capped) = match lines {
+        Some(lines) => {
+            (LineRange::parse(lines).map_err(address_error)?, false)
+        }
+        None => (LineRange { start: 1, end: Some(READ_LINE_CAP) }, true),
     };
-    Ok(ReadRequest { address, path, start: range.start, end: range.end })
+    let LineRange { start, end } = range;
+    Ok(ReadRequest { address, path, start, end, capped })
 }
 
 pub fn run(
@@ -117,8 +120,7 @@ pub fn run(
     let request = request(cli)?;
     let reply = fetch(&blob::plan(&request))?;
     let file = blob::answer(&request, decode(reply)?)?;
-    let capped = cli.operands.len() == 2;
-    Ok(Box::new(Read { file, capped }))
+    Ok(Box::new(Read { file, capped: request.capped }))
 }
 
 /// A file's lines; `capped` when no range was given, so the line cap
@@ -256,11 +258,13 @@ mod tests {
     fn operands_become_a_request() {
         let range = |operands: &[&str]| {
             let request = request(&cli(operands)).unwrap();
-            (request.start, request.end)
+            (request.start, request.end, request.capped)
         };
-        assert_eq!(range(&["x/y", "a.go"]), (1, Some(READ_LINE_CAP)));
-        assert_eq!(range(&["x/y", "a.go", "30,60"]), (30, Some(60)));
-        assert_eq!(range(&["x/y", "a.go", "30-"]), (30, None));
+        let cap = Some(READ_LINE_CAP);
+        assert_eq!(range(&["x/y", "a.go"]), (1, cap, true));
+        assert_eq!(range(&["x/y", "a.go", "1-500"]), (1, cap, false));
+        assert_eq!(range(&["x/y", "a.go", "30,60"]), (30, Some(60), false));
+        assert_eq!(range(&["x/y", "a.go", "30-"]), (30, None, false));
         for operands in [&["x/y"][..], &["x/y", "a.go", "1", "2"]] {
             let error = request(&cli(operands)).unwrap_err();
             assert_eq!(error.code(), "usage");

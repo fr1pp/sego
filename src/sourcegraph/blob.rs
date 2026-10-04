@@ -46,6 +46,8 @@ pub struct ReadRequest {
     pub path: RepoPath,
     pub start: u32,
     pub end: Option<u32>,
+    /// No range was asked for, so the range is the line cap's.
+    pub capped: bool,
 }
 
 pub fn plan(request: &ReadRequest) -> Plan {
@@ -227,6 +229,7 @@ mod tests {
             path: RepoPath::parse(path),
             start,
             end: Some(end),
+            capped: false,
         };
         let mux = "github.com/gorilla/mux@v1.7.0";
         vec![
