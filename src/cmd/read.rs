@@ -243,6 +243,7 @@ struct LineJson<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::address::{CommitId, Pinned, RepoName};
     use crate::diagnostic::Diagnostic;
     use crate::escape::CLIP_COLUMNS;
 
@@ -278,12 +279,44 @@ mod tests {
 
     #[test]
     fn help_states_the_caps() {
-        assert!(
-            HELP.details.contains(&format!("up to line {READ_LINE_CAP}."))
-        );
-        assert!(
-            HELP.details
-                .contains(&format!("wider than {CLIP_COLUMNS} columns"))
-        );
+        let stated = [
+            format!("up to line {READ_LINE_CAP}."),
+            format!("longer than {READ_LINE_CAP} lines"),
+            format!("stops at line {READ_LINE_CAP},"),
+            format!("wider than {CLIP_COLUMNS} columns"),
+            format!("stopped at line {READ_LINE_CAP}."),
+        ];
+        for text in &stated {
+            assert!(HELP.details.contains(text.as_str()), "no {text:?}");
+        }
+        let mentions = HELP.details.matches("500").count();
+        assert_eq!(mentions, stated.len());
+    }
+
+    #[test]
+    fn json_lines_are_never_clipped() {
+        let wide = "x".repeat(CLIP_COLUMNS + 100);
+        let read = Read {
+            file: File {
+                at: Pinned {
+                    repo: RepoName::parse("github.com/gorilla/mux").unwrap(),
+                    commit: CommitId(
+                        "a7962380ca08b5a188038c69871b8d3fbdf31e89".to_owned(),
+                    ),
+                },
+                path: "wide.go".to_owned(),
+                byte_size: 601,
+                total_lines: 1,
+                content_type: "text/plain".to_owned(),
+                binary: false,
+                start: 1,
+                lines: vec![wide.clone()],
+            },
+            capped: false,
+        };
+        assert!(!read.text().contains(&wide));
+        let document: serde_json::Value =
+            serde_json::from_str(&read.json()).unwrap();
+        assert_eq!(document["lines"][0]["text"], wide.as_str());
     }
 }
