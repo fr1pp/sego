@@ -14,7 +14,8 @@ macro_rules! check {
 pub struct Command {
     program: String,
     args: Vec<OsString>,
-    env: Vec<(String, OsString)>,
+    /// Set or, with `None`, removed, in order.
+    env: Vec<(String, Option<OsString>)>,
 }
 
 impl Command {
@@ -36,7 +37,12 @@ impl Command {
     }
 
     pub fn env(mut self, key: &str, value: impl AsRef<OsStr>) -> Self {
-        self.env.push((key.to_owned(), value.as_ref().to_owned()));
+        self.env.push((key.to_owned(), Some(value.as_ref().to_owned())));
+        self
+    }
+
+    pub fn env_remove(mut self, key: &str) -> Self {
+        self.env.push((key.to_owned(), None));
         self
     }
 
@@ -58,7 +64,10 @@ impl Command {
         let mut command = process::Command::new(&self.program);
         command.args(&self.args).stdin(Stdio::null());
         for (key, value) in &self.env {
-            command.env(key, value);
+            match value {
+                Some(value) => command.env(key, value),
+                None => command.env_remove(key),
+            };
         }
         command
     }

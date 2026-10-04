@@ -2,14 +2,11 @@
 //! default. Run by `just live`.
 
 use crate::Command;
-use crate::sego;
 
-/// sego with the caller's `SEGO_ENDPOINT`, or the default when unset.
+/// sego with the caller's environment, proxy included; `SEGO_ENDPOINT` is
+/// the caller's, or the default when unset.
 fn live() -> Command {
-    sego().env(
-        "SEGO_ENDPOINT",
-        std::env::var_os("SEGO_ENDPOINT").unwrap_or_default(),
-    )
+    Command::bin(env!("CARGO_BIN_EXE_sego"))
 }
 
 #[test]

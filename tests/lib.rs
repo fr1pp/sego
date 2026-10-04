@@ -10,11 +10,24 @@ use command::Command;
 use expect_test::expect;
 use server::Server;
 
-/// sego, pointed at a port nothing listens on, so no test reaches the
-/// network or depends on the caller's environment.
+/// The variables sego's HTTP client reads a proxy from.
+const PROXY_VARIABLES: &[&str] = &[
+    "ALL_PROXY",
+    "all_proxy",
+    "HTTPS_PROXY",
+    "https_proxy",
+    "HTTP_PROXY",
+    "http_proxy",
+];
+
+/// sego, pointed at a port nothing listens on and with no proxy, so no test
+/// reaches the network or depends on the caller's `SEGO_ENDPOINT` or proxy.
 #[must_use]
 pub fn sego() -> Command {
-    Command::bin(env!("CARGO_BIN_EXE_sego"))
+    let sego = Command::bin(env!("CARGO_BIN_EXE_sego"));
+    PROXY_VARIABLES
+        .iter()
+        .fold(sego, |sego, variable| sego.env_remove(variable))
         .env("SEGO_ENDPOINT", server::unreachable())
 }
 

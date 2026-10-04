@@ -332,6 +332,18 @@ fn a_slow_answer_is_awaited() {
     assert_eq!((run.code, run.stderr.as_str()), (0, ""), "{}", run.stderr);
 }
 
+/// `text` with each `os error <n>` as `os error N`: errno values differ
+/// between platforms.
+fn without_errno(text: &str) -> String {
+    let mut parts = text.split("os error ");
+    let mut out = parts.next().unwrap_or_default().to_owned();
+    for part in parts {
+        out.push_str("os error N");
+        out.push_str(part.trim_start_matches(|c: char| c.is_ascii_digit()));
+    }
+    out
+}
+
 #[test]
 fn refused_connections_are_transport_errors() {
     let endpoint = server::unreachable();
@@ -339,17 +351,17 @@ fn refused_connections_are_transport_errors() {
         .env("SEGO_ENDPOINT", &endpoint)
         .args(["read", MUX, "mux.go", "--json"])
         .run();
+    let transcript = run.transcript().replace(&endpoint, "$SEGO_ENDPOINT");
     expect![[r#"
         exit 3
         --- stdout
-        {"version":1,"kind":"error","code":"transport","message":"the request to $SEGO_ENDPOINT/.api/graphql failed: Connection refused (os error 111)","hints":[]}
+        {"version":1,"kind":"error","code":"transport","message":"the request to $SEGO_ENDPOINT/.api/graphql failed: Connection refused (os error N)","hints":[]}
         [EOF]
         --- stderr
         error: the request to $SEGO_ENDPOINT/.api/graphql failed
-        caused by: Connection refused (os error 111)
+        caused by: Connection refused (os error N)
         [EOF]
-    "#]]
-        .assert_eq(&run.transcript().replace(&endpoint, "$SEGO_ENDPOINT"));
+    "#]].assert_eq(&without_errno(&transcript));
 }
 
 #[test]
