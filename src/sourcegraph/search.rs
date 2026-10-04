@@ -203,9 +203,6 @@ enum Item {
         commit: WireCommit,
         diff_preview: Option<Highlighted>,
     },
-    /// A kind of result the document asks nothing of.
-    #[serde(other)]
-    Other,
 }
 
 #[derive(Deserialize)]
@@ -329,14 +326,7 @@ fn report(
         alert,
         results,
     } = results;
-    let mut hits = Vec::new();
-    let mut unsupported = 0;
-    for item in results {
-        match hit(item)? {
-            Some(hit) => hits.push(hit),
-            None => unsupported += 1,
-        }
-    }
+    let hits = results.into_iter().map(hit).collect::<Result<_, _>>()?;
     let names = |repos: Vec<Named>| -> Vec<String> {
         repos.into_iter().map(|repo| repo.name).collect()
     };
@@ -370,7 +360,6 @@ fn report(
             timed_out: names(timedout),
             cloning: names(cloning),
             missing: names(missing),
-            unsupported,
         },
         cut_short: None,
         filters,
@@ -379,8 +368,8 @@ fn report(
     })
 }
 
-/// The hit `item` is; `None` for a kind of result sego doesn't know.
-fn hit(item: Item) -> Result<Option<Hit>, String> {
+/// The hit `item` is.
+fn hit(item: Item) -> Result<Hit, String> {
     let hit = match item {
         Item::FileMatch {
             repository,
@@ -392,7 +381,7 @@ fn hit(item: Item) -> Result<Option<Hit>, String> {
             let at = pinned(&repository.name, file.commit.oid)?;
             if let Some(path) = file.path.strip_suffix('/') {
                 let path = if path == "." { "" } else { path };
-                return Ok(Some(Hit::Directory { at, path: path.to_owned() }));
+                return Ok(Hit::Directory { at, path: path.to_owned() });
             }
             let binary =
                 chunk_matches.iter().any(|chunk| chunk.content.contains('\0'));
@@ -419,9 +408,8 @@ fn hit(item: Item) -> Result<Option<Hit>, String> {
                 diff: diff_preview.map(|diff| diff.value),
             })
         }
-        Item::Other => return Ok(None),
     };
-    Ok(Some(hit))
+    Ok(hit)
 }
 
 fn pinned(name: &str, oid: String) -> Result<Pinned, String> {
@@ -1112,7 +1100,6 @@ mod tests {
                     timed_out: [],
                     cloning: [],
                     missing: [],
-                    unsupported: 0,
                 },
                 cut_short: None,
                 filters: [],
@@ -1531,16 +1518,20 @@ mod tests {
     }
 
     #[test]
-    fn unknown_result_types_are_counted_as_unsupported() {
-        let report = answered(answer(
+    fn unknown_result_types_are_schema_drift() {
+        let result = answer(
             "x",
             reply(&serde_json::json!({"results": [
                 {"__typename": "Notebook"},
                 file_match(&serde_json::json!([])),
             ]})),
-        ));
-        assert_eq!(report.skipped.unsupported, 1);
-        assert_eq!(report.hits.len(), 1);
+        );
+        let failure = failure(result);
+        assert!(
+            failure.starts_with("[bad_response Unanswered]\n"),
+            "{failure}"
+        );
+        assert!(failure.contains("Notebook"), "{failure}");
     }
 
     #[test]

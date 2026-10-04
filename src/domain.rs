@@ -164,13 +164,12 @@ impl Alert {
 }
 
 /// What a search left out: repositories that timed out, are still cloning
-/// or are missing, and how many results were of a kind sego doesn't know.
+/// or are missing.
 #[derive(Debug, Default)]
 pub struct Skipped {
     pub timed_out: Vec<String>,
     pub cloning: Vec<String>,
     pub missing: Vec<String>,
-    pub unsupported: u64,
 }
 
 /// Why a search with hits may be missing some, and `retry`, its query with

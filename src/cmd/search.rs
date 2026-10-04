@@ -43,7 +43,6 @@ Output:
                 still cloning or are missing, or it ran for its whole
                 timeout; then the search with a longer timeout: as a hint:
                 line, when that could help
-    notice:     how many results were of a kind sego doesn't know
     narrow:     when a limit was hit, filters to add and their match counts
     widen:      when nothing matched, filters that bring in repositories the
                 search left out, such as archived:yes
@@ -68,7 +67,7 @@ Output:
 
   With --json, one document of kind \"search\": query, match_count,
   approximate (null when exact), limit_hit, skipped {timed_out, cloning,
-  missing, unsupported}, filters [{kind, value, count, limit_hit}] when
+  missing}, filters [{kind, value, count, limit_hit}] when
   shown, alert {title, description, hints} or null, partial {reason,
   hints} when results may be missing, and results. Each
   result has a type: file {repo, commit, path, path_match, binary, lines
@@ -192,7 +191,7 @@ fn partial(report: &SearchReport) -> Option<Partial> {
 /// The summary line, then a line for each thing the reader should know
 /// before the results.
 fn summary(report: &SearchReport) -> String {
-    let SearchReport { match_count, approximate, skipped, .. } = report;
+    let SearchReport { match_count, approximate, .. } = report;
     let matches = match approximate {
         Some(approximate) => format!("{} matches", sanitise(approximate)),
         None => count(*match_count, "match", "matches"),
@@ -211,15 +210,6 @@ fn summary(report: &SearchReport) -> String {
         for command in hints {
             text.push_str(&hint(&command));
         }
-    }
-    match skipped.unsupported {
-        0 => {}
-        1 => text.push_str(&notice(
-            "1 result of a kind sego doesn't know is not shown",
-        )),
-        n => text.push_str(&notice(&format!(
-            "{n} results of kinds sego doesn't know are not shown"
-        ))),
     }
     if let Some((label, filters)) = suggestions(report) {
         let items: Vec<_> = filters
@@ -347,19 +337,13 @@ impl Present for Search {
 
     fn json(&self) -> String {
         let report = &self.report;
-        let Skipped { timed_out, cloning, missing, unsupported } =
-            &report.skipped;
+        let Skipped { timed_out, cloning, missing } = &report.skipped;
         let body = SearchJson {
             query: &report.query,
             match_count: report.match_count,
             approximate: report.approximate.as_deref(),
             limit_hit: report.limit_hit,
-            skipped: SkippedJson {
-                timed_out,
-                cloning,
-                missing,
-                unsupported: *unsupported,
-            },
+            skipped: SkippedJson { timed_out, cloning, missing },
             filters: suggestions(report).map(|(_, filters)| {
                 filters.into_iter().map(FilterJson::new).collect()
             }),
@@ -395,7 +379,6 @@ struct SkippedJson<'a> {
     timed_out: &'a [String],
     cloning: &'a [String],
     missing: &'a [String],
-    unsupported: u64,
 }
 
 /// The upstream's value for a field sego calls `other`.

@@ -803,7 +803,6 @@ mod tests {
                 timed_out: vec![text()],
                 cloning: vec![text()],
                 missing: vec![text()],
-                unsupported: 2,
             },
             cut_short: Some(CutShort { reasons: vec![text()], retry }),
             filters: vec![filter("repo"), filter("utility")],

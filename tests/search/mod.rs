@@ -102,7 +102,7 @@ fn content_json() {
     let shown = [&run.stdout[..second], ",…]}\n"].concat();
     assert!(results < second);
     expect![[r#"
-        {"version":1,"kind":"search","query":"repo:^github\\.com/gorilla/mux$@v1.7.0 NewRouter case:yes count:all","match_count":91,"approximate":null,"limit_hit":false,"skipped":{"timed_out":[],"cloning":[],"missing":[],"unsupported":0},"alert":null,"results":[{"type":"file","repo":"github.com/gorilla/mux","commit":"a7962380ca08b5a188038c69871b8d3fbdf31e89","path":"example_route_test.go","path_match":false,"binary":false,"lines":[{"n":13,"text":"func ExampleRoute_HeadersRegexp() {","matches":[]},{"n":14,"text":"\tr := mux.NewRouter()","matches":[{"start":10,"end":19}]},{"n":15,"text":"\troute := r.NewRoute().HeadersRegexp(\"Accept\", \"html\")","matches":[]},{"n":35,"text":"func ExampleRoute_HeadersRegexp_exactMatch() {","matches":[]},{"n":36,"text":"\tr := mux.NewRouter()","matches":[{"start":10,"end":19}]},{"n":37,"text":"\troute := r.NewRoute().HeadersRegexp(\"Origin\", \"^https://example.co$\")","matches":[]}],"symbols":[]},…]}
+        {"version":1,"kind":"search","query":"repo:^github\\.com/gorilla/mux$@v1.7.0 NewRouter case:yes count:all","match_count":91,"approximate":null,"limit_hit":false,"skipped":{"timed_out":[],"cloning":[],"missing":[]},"alert":null,"results":[{"type":"file","repo":"github.com/gorilla/mux","commit":"a7962380ca08b5a188038c69871b8d3fbdf31e89","path":"example_route_test.go","path_match":false,"binary":false,"lines":[{"n":13,"text":"func ExampleRoute_HeadersRegexp() {","matches":[]},{"n":14,"text":"\tr := mux.NewRouter()","matches":[{"start":10,"end":19}]},{"n":15,"text":"\troute := r.NewRoute().HeadersRegexp(\"Accept\", \"html\")","matches":[]},{"n":35,"text":"func ExampleRoute_HeadersRegexp_exactMatch() {","matches":[]},{"n":36,"text":"\tr := mux.NewRouter()","matches":[{"start":10,"end":19}]},{"n":37,"text":"\troute := r.NewRoute().HeadersRegexp(\"Origin\", \"^https://example.co$\")","matches":[]}],"symbols":[]},…]}
     "#]].assert_eq(&shown);
 }
 
@@ -334,7 +334,7 @@ fn repos_json() {
     expect![[r#"
         exit 0
         --- stdout
-        {"version":1,"kind":"search","query":"repo:^github\\.com/gorilla/ type:repo mux","match_count":1,"approximate":null,"limit_hit":false,"skipped":{"timed_out":[],"cloning":[],"missing":[],"unsupported":0},"alert":null,"results":[{"type":"repository","repo":"github.com/gorilla/mux","description":"Package gorilla/mux is a powerful HTTP router and URL matcher for building Go web servers with 🦍","stars":21839}]}
+        {"version":1,"kind":"search","query":"repo:^github\\.com/gorilla/ type:repo mux","match_count":1,"approximate":null,"limit_hit":false,"skipped":{"timed_out":[],"cloning":[],"missing":[]},"alert":null,"results":[{"type":"repository","repo":"github.com/gorilla/mux","description":"Package gorilla/mux is a powerful HTTP router and URL matcher for building Go web servers with 🦍","stars":21839}]}
         [EOF]
         --- stderr
         [EOF]
@@ -379,7 +379,7 @@ fn no_hits_suggests_widening() {
         [EOF]
         exit 1
         --- stdout
-        {"version":1,"kind":"search","query":"repo:^github\\.com/gorilla/mux$@v1.7.0 x","match_count":0,"approximate":null,"limit_hit":false,"skipped":{"timed_out":[],"cloning":[],"missing":[],"unsupported":0},"filters":[{"kind":"utility","value":"archived:yes","count":12,"limit_hit":false},{"kind":"utility","value":"fork:yes","count":3,"limit_hit":false}],"alert":null,"results":[]}
+        {"version":1,"kind":"search","query":"repo:^github\\.com/gorilla/mux$@v1.7.0 x","match_count":0,"approximate":null,"limit_hit":false,"skipped":{"timed_out":[],"cloning":[],"missing":[]},"filters":[{"kind":"utility","value":"archived:yes","count":12,"limit_hit":false},{"kind":"utility","value":"fork:yes","count":3,"limit_hit":false}],"alert":null,"results":[]}
         [EOF]
         --- stderr
         [EOF]
@@ -459,10 +459,6 @@ fn partial_answers_say_what_is_missing() {
                 {"description": "narrower", "query": "type:repo mux lang:go"},
             ],
         });
-        results["results"]
-            .as_array_mut()
-            .unwrap()
-            .push(json!({"__typename": "Notebook"}));
     });
     let runs = [&["x"][..], &["x", "--json"]]
         .map(|args| exchange(vec![ok(&answer)], args).transcript());
@@ -474,7 +470,6 @@ fn partial_answers_say_what_is_missing() {
         hint: sego search 'type:repo mux lang:go'
         notice: results may be missing: it hit a limit, 1 repository timed out, 2 repositories are still cloning, 1 repository is missing
         hint: sego search 'x timeout:40s'
-        notice: 1 result of a kind sego doesn't know is not shown
 
         github.com/gorilla/mux • 21839 stars
           Package gorilla/mux is a powerful HTTP router and URL matcher for building Go web servers with 🦍
@@ -483,7 +478,7 @@ fn partial_answers_say_what_is_missing() {
         [EOF]
         exit 0
         --- stdout
-        {"version":1,"kind":"search","query":"x","match_count":1,"approximate":null,"limit_hit":true,"skipped":{"timed_out":["github.com/x/slow"],"cloning":["github.com/x/new","github.com/x/a b"],"missing":["github.com/x/gone"],"unsupported":1},"alert":{"title":"Some results are hidden","description":"Try a\nnarrower query","hints":["sego search 'type:repo mux lang:go'"]},"partial":{"reason":"results may be missing: it hit a limit, 1 repository timed out, 2 repositories are still cloning, 1 repository is missing","hints":["sego search 'x timeout:40s'"]},"results":[{"type":"repository","repo":"github.com/gorilla/mux","description":"Package gorilla/mux is a powerful HTTP router and URL matcher for building Go web servers with 🦍","stars":21839}]}
+        {"version":1,"kind":"search","query":"x","match_count":1,"approximate":null,"limit_hit":true,"skipped":{"timed_out":["github.com/x/slow"],"cloning":["github.com/x/new","github.com/x/a b"],"missing":["github.com/x/gone"]},"alert":{"title":"Some results are hidden","description":"Try a\nnarrower query","hints":["sego search 'type:repo mux lang:go'"]},"partial":{"reason":"results may be missing: it hit a limit, 1 repository timed out, 2 repositories are still cloning, 1 repository is missing","hints":["sego search 'x timeout:40s'"]},"results":[{"type":"repository","repo":"github.com/gorilla/mux","description":"Package gorilla/mux is a powerful HTTP router and URL matcher for building Go web servers with 🦍","stars":21839}]}
         [EOF]
         --- stderr
         [EOF]
@@ -514,7 +509,7 @@ fn binary_hits_show_no_lines() {
         [EOF]
         exit 0
         --- stdout
-        {"version":1,"kind":"search","query":"NewRouter","match_count":91,"approximate":null,"limit_hit":false,"skipped":{"timed_out":[],"cloning":[],"missing":[],"unsupported":0},"alert":null,"results":[{"type":"file","repo":"github.com/gorilla/mux","commit":"a7962380ca08b5a188038c69871b8d3fbdf31e89","path":"example_route_test.go","path_match":false,"binary":true,"lines":[],"symbols":[]}]}
+        {"version":1,"kind":"search","query":"NewRouter","match_count":91,"approximate":null,"limit_hit":false,"skipped":{"timed_out":[],"cloning":[],"missing":[]},"alert":null,"results":[{"type":"file","repo":"github.com/gorilla/mux","commit":"a7962380ca08b5a188038c69871b8d3fbdf31e89","path":"example_route_test.go","path_match":false,"binary":true,"lines":[],"symbols":[]}]}
         [EOF]
         --- stderr
         [EOF]
@@ -673,7 +668,6 @@ fn help() {
                             still cloning or are missing, or it ran for its whole
                             timeout; then the search with a longer timeout: as a hint:
                             line, when that could help
-                notice:     how many results were of a kind sego doesn't know
                 narrow:     when a limit was hit, filters to add and their match counts
                 widen:      when nothing matched, filters that bring in repositories the
                             search left out, such as archived:yes
@@ -698,7 +692,7 @@ fn help() {
 
               With --json, one document of kind "search": query, match_count,
               approximate (null when exact), limit_hit, skipped {timed_out, cloning,
-              missing, unsupported}, filters [{kind, value, count, limit_hit}] when
+              missing}, filters [{kind, value, count, limit_hit}] when
               shown, alert {title, description, hints} or null, partial {reason,
               hints} when results may be missing, and results. Each
               result has a type: file {repo, commit, path, path_match, binary, lines
