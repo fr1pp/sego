@@ -122,8 +122,8 @@ fn directory(path: &str) -> Option<String> {
     (!path.is_empty()).then(|| format!("{path}/"))
 }
 
-/// The notice and the hints for a listing the upstream stopped.
-fn partial(listing: &Listing, depth: u32) -> Option<(String, Vec<String>)> {
+/// The notice and the hints for a listing stopped at the cap.
+fn partial(listing: &Listing, depth: u32) -> Option<Partial> {
     if !listing.truncated {
         return None;
     }
@@ -132,13 +132,14 @@ fn partial(listing: &Listing, depth: u32) -> Option<(String, Vec<String>)> {
          shown"
     );
     if depth <= 1 {
-        return Some((reason, Vec::new()));
+        return Some(Partial { reason, hints: Vec::new() });
     }
     let at = listing.at.to_string();
     let directory = directory(&listing.path);
     let mut operands = vec![at.as_str()];
     operands.extend(directory.as_deref());
-    Some((reason, vec![list_command(&operands, depth - 1)]))
+    let hints = vec![list_command(&operands, depth - 1)];
+    Some(Partial { reason, hints })
 }
 
 /// `sego list` of `operands` with `--depth`, which follows them unless one
@@ -191,7 +192,7 @@ fn listing_text(listing: &Listing, depth: u32) -> String {
     for entry in &listing.entries {
         text.push_str(&entry_line(entry));
     }
-    if let Some((reason, hints)) = partial(listing, depth) {
+    if let Some(Partial { reason, hints }) = partial(listing, depth) {
         text.push_str(&notice(&reason));
         for command in hints {
             text.push_str(&hint(&command));
@@ -233,8 +234,7 @@ impl Present for List {
                         .iter()
                         .map(EntryJson::new)
                         .collect(),
-                    partial: partial(listing, self.depth)
-                        .map(|(reason, hints)| Partial { reason, hints }),
+                    partial: partial(listing, self.depth),
                 };
                 document("listing", &body)
             }
@@ -430,7 +430,7 @@ mod tests {
                 entries: Vec::new(),
                 truncated: true,
             };
-            partial(&listing, 2).unwrap().1.join("\n") + "\n"
+            partial(&listing, 2).unwrap().hints.join("\n") + "\n"
         });
         expect![[r#"
             sego list github.com/x/a@a7962380ca08 --depth 1

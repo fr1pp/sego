@@ -138,7 +138,7 @@ impl Read {
     }
 
     /// The notice and the hint for the lines the cap left out.
-    fn partial(&self) -> Option<(String, String)> {
+    fn partial(&self) -> Option<Partial> {
         let File { at, path, total_lines, .. } = &self.file;
         let next = self.end()? + 1;
         if !self.capped || next > *total_lines {
@@ -150,7 +150,7 @@ impl Read {
         let from = LineRange { start: next, end: None }.to_string();
         let hint =
             command_line(&["sego", "read"], &[&at.to_string(), path, &from]);
-        Some((reason, hint))
+        Some(Partial { reason, hints: vec![hint] })
     }
 }
 
@@ -187,9 +187,11 @@ impl Present for Read {
             .map(|(n, line)| (n, Marker::Match, content_line(line, None)))
             .collect();
         text.push_str(&numbered(&lines));
-        if let Some((reason, command)) = self.partial() {
+        if let Some(Partial { reason, hints }) = self.partial() {
             text.push_str(&notice(&reason));
-            text.push_str(&hint(&command));
+            for command in hints {
+                text.push_str(&hint(&command));
+            }
         }
         text
     }
@@ -210,9 +212,7 @@ impl Present for Read {
                 .zip(&file.lines)
                 .map(|(n, text)| LineJson { n, text })
                 .collect(),
-            partial: self
-                .partial()
-                .map(|(reason, hint)| Partial { reason, hints: vec![hint] }),
+            partial: self.partial(),
         };
         document("file", &body)
     }
