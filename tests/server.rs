@@ -68,11 +68,20 @@ pub fn start(steps: Vec<Step>) -> Server {
     Server { url, finished, thread }
 }
 
-/// The URL of a local port that nothing listens on. The port is free only
-/// until something else binds it; a reuse reaches a local test server, never
-/// the network.
+/// Where `unreachable` looks for a free port: below the ephemeral ranges
+/// (Linux 32768-60999, macOS 49152-65535) that a bind to port 0, as every
+/// mock server makes, draws from.
+const UNREACHABLE_PORTS: std::ops::Range<u16> = 20_000..32_768;
+
+/// The URL of a local port that nothing listens on: the first port in
+/// `UNREACHABLE_PORTS` that binds. No mock server can be given it, so it
+/// stays free unless an unrelated process binds that exact port. Concurrent
+/// callers may share it, which is harmless: each wants a refusal.
 pub fn unreachable() -> String {
-    let listener = TcpListener::bind("127.0.0.1:0").expect("bind a port");
+    let listener = UNREACHABLE_PORTS
+        .clone()
+        .find_map(|port| TcpListener::bind(("127.0.0.1", port)).ok())
+        .expect("bind a port below the ephemeral range");
     format!("http://{}", listener.local_addr().unwrap())
 }
 
