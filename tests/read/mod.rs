@@ -331,6 +331,21 @@ fn a_second_failure_is_unanswered() {
 }
 
 #[test]
+fn a_failed_retry_keeps_the_first_trace() {
+    let busy = Step::Status {
+        status: 503,
+        headers: vec![("x-trace", "one".to_owned())],
+        body: "busy".to_owned(),
+    };
+    let run = exchange(vec![busy, Step::Drop], &[MUX, "mux.go", "--json"]);
+    let document: serde_json::Value =
+        serde_json::from_str(&run.stdout).unwrap();
+    assert_eq!(run.code, 3);
+    assert_eq!(document["code"], "transport");
+    assert_eq!(document["detail"], serde_json::json!({"trace": "one"}));
+}
+
+#[test]
 fn dropped_connections_are_retried() {
     let steps = vec![Step::Drop, Step::Capture("read/range.json")];
     let run = exchange(steps, &[MUX, "mux.go", "213-219"]);

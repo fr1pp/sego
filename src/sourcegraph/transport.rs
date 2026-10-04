@@ -65,12 +65,13 @@ impl Transport {
                 Attempt::Other
             }
         };
-        let last = match retry_delay(&attempt) {
+        let (last, earlier) = match retry_delay(&attempt) {
             Some(delay) => {
+                let earlier = first.ok().and_then(|(reply, _)| reply.trace);
                 thread::sleep(delay);
-                self.send(&body)
+                (self.send(&body), earlier)
             }
-            None => first,
+            None => (first, None),
         };
         match last {
             Ok((reply, _)) => Ok(reply),
@@ -84,6 +85,7 @@ impl Transport {
                     ureq::Error::Io(error) => error.to_string(),
                     error => error.to_string(),
                 },
+                trace: earlier,
             }),
         }
     }

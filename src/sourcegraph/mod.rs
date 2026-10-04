@@ -50,6 +50,8 @@ pub enum FetchError {
     Transport {
         url: String,
         cause: String,
+        /// The `x-trace` of the reply a failed retry followed.
+        trace: Option<String>,
     },
     Status {
         status: u16,
@@ -140,8 +142,8 @@ impl fmt::Display for FetchError {
 impl FetchError {
     fn trace(&self) -> Option<&str> {
         match self {
-            FetchError::Transport { .. } => None,
-            FetchError::Status { trace, .. }
+            FetchError::Transport { trace, .. }
+            | FetchError::Status { trace, .. }
             | FetchError::NotJson { trace, .. }
             | FetchError::Oversized { trace }
             | FetchError::Empty { trace }
@@ -253,6 +255,7 @@ mod tests {
             FetchError::Transport {
                 url: "https://sourcegraph.com/.api/graphql".into(),
                 cause: "Connection refused (os error 111)".into(),
+                trace: trace(),
             },
             FetchError::Status {
                 status: 500,
@@ -289,6 +292,7 @@ mod tests {
             [transport]
             error: the request to https://sourcegraph.com/.api/graphql failed
             caused by: Connection refused (os error 111)
+            detail: {"trace":"abc123"}
             [bad_response]
             error: the upstream answered HTTP 500: internal
             detail: {"trace":"abc123"}

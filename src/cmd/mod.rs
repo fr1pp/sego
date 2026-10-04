@@ -558,7 +558,11 @@ mod tests {
         for &word in CORPUS {
             let text = || word.to_owned();
             all.extend([
-                FetchError::Transport { url: text(), cause: text() },
+                FetchError::Transport {
+                    url: text(),
+                    cause: text(),
+                    trace: Some(text()),
+                },
                 FetchError::Status {
                     status: 302,
                     excerpt: text(),
