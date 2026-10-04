@@ -1,7 +1,8 @@
+use std::borrow::Cow;
 use std::ffi::OsString;
 use std::fmt;
 
-use lexopt::{Arg, Parser};
+use lexopt::Parser;
 
 use crate::cmd::COMMANDS;
 use crate::diagnostic::{Diagnostic, Outcome};
@@ -67,70 +68,19 @@ impl Cli {
 /// Parses the arguments after the program name. Options are long-form only
 /// and may appear anywhere before `--`; any token starting with a single
 /// `-` is an operand. The first operand is the command.
+///
+/// Parsing stops at the first error, whose hint is the help of the command
+/// read so far.
 pub fn parse(
     args: impl IntoIterator<Item = OsString>,
 ) -> Result<Cli, UsageError> {
-    let args: Vec<OsString> = args.into_iter().collect();
-    let mut parser = Parser::from_args(&args);
+    let mut parser = Parser::from_args(args);
+    let count = remaining(&mut parser);
     let mut cli = Cli::default();
-    loop {
-        let operand = parser.try_raw_args().and_then(|mut raw| {
-            raw.next_if(|arg| {
-                let bytes = arg.as_encoded_bytes();
-                bytes.starts_with(b"-") && !bytes.starts_with(b"--")
-            })
-        });
-        let value = match operand {
-            Some(operand) => operand,
-            None => match parser.next() {
-                Ok(None) => break,
-                Ok(Some(Arg::Value(value))) => value,
-                Ok(Some(Arg::Long("json"))) => {
-                    cli.json = true;
-                    continue;
-                }
-                Ok(Some(Arg::Long("help"))) => {
-                    cli.help = true;
-                    continue;
-                }
-                Ok(Some(Arg::Long("version"))) => {
-                    cli.version = true;
-                    continue;
-                }
-                Ok(Some(Arg::Long("depth"))) => {
-                    let value = match parser.value() {
-                        Ok(value) => value,
-                        Err(error) => return Err(lexopt_error(error, &cli)),
-                    };
-                    let value = text(value, position(&mut parser, &args))?;
-                    cli.depth = Some(depth(&value)?);
-                    continue;
-                }
-                Ok(Some(Arg::Long(name))) => {
-                    let message =
-                        format!("unknown option {}", option_word(name));
-                    return Err(
-                        UsageError::new(message).with_hint(cli.help_hint())
-                    );
-                }
-                Ok(Some(Arg::Short(c))) => {
-                    let message = format!(
-                        "unknown option {}",
-                        shell_word(&format!("-{c}"))
-                    );
-                    return Err(
-                        UsageError::new(message).with_hint(cli.help_hint())
-                    );
-                }
-                Err(error) => return Err(lexopt_error(error, &cli)),
-            },
-        };
-        let value = text(value, position(&mut parser, &args))?;
-        match cli.command {
-            None => cli.command = Some(value),
-            Some(_) => cli.operands.push(value),
-        }
-    }
+    parse_into(&mut parser, &mut cli).map_err(|error| {
+        let position = count - remaining(&mut parser);
+        UsageError::new(message(error, position)).with_hint(cli.help_hint())
+    })?;
     Ok(cli)
 }
 
@@ -140,56 +90,98 @@ pub fn wants_json(args: &[OsString]) -> bool {
     args.iter().take_while(|arg| *arg != "--").any(|arg| arg == "--json")
 }
 
-/// The 1-based position of the last argument the parser took.
-fn position(parser: &mut Parser, args: &[OsString]) -> usize {
-    let remaining =
-        parser.try_raw_args().map_or(0, |raw| raw.as_slice().len());
-    args.len() - remaining
+fn parse_into(
+    parser: &mut Parser,
+    cli: &mut Cli,
+) -> Result<(), lexopt::Error> {
+    use lexopt::prelude::*;
+
+    loop {
+        let arg = if let Some(operand) = single_dash(parser) {
+            Value(operand)
+        } else if let Some(arg) = parser.next()? {
+            arg
+        } else {
+            return Ok(());
+        };
+        match arg {
+            Long("json") => cli.json = true,
+            Long("help") => cli.help = true,
+            Long("version") => cli.version = true,
+            Long("depth") => {
+                cli.depth = Some(parser.value()?.parse_with(depth)?);
+            }
+            Value(command) if cli.command.is_none() => {
+                cli.command = Some(command.string()?);
+            }
+            Value(operand) => cli.operands.push(operand.string()?),
+            _ => return Err(arg.unexpected()),
+        }
+    }
 }
 
-fn text(value: OsString, position: usize) -> Result<String, UsageError> {
-    value.into_string().map_err(|_| {
-        UsageError::new(format!("argument {position} is not valid UTF-8"))
+/// The next argument, whole, if it starts with a single `-`. sego has no
+/// short options, and search negations such as `-file:_test` are operands,
+/// so these never reach `Parser::next`, which would split them.
+fn single_dash(parser: &mut Parser) -> Option<OsString> {
+    parser.try_raw_args()?.next_if(|arg| {
+        let bytes = arg.as_encoded_bytes();
+        bytes.starts_with(b"-") && !bytes.starts_with(b"--")
     })
 }
 
-fn depth(value: &str) -> Result<u32, UsageError> {
+/// The number of arguments the parser has yet to take.
+fn remaining(parser: &mut Parser) -> usize {
+    parser.try_raw_args().map_or(0, |raw| raw.as_slice().len())
+}
+
+/// `--depth`'s value, a positive number. Its error is the whole message.
+fn depth(value: &str) -> Result<u32, String> {
     match value.parse() {
         Ok(depth) if depth > 0 => Ok(depth),
-        Ok(_) | Err(_) => Err(UsageError::new(format!(
+        Ok(_) | Err(_) => Err(format!(
             "invalid --depth {}; expected a number from 1 to {}",
             shell_word(value),
             u32::MAX
-        ))
-        .with_hint("sego list --help".to_owned())),
+        )),
     }
 }
 
-/// `--<name>` as a shell word.
-fn option_word(name: &str) -> String {
-    let option = format!("--{name}");
-    if shell_word(name) == name {
-        option
-    } else {
-        shell_word(&option).into_owned()
-    }
-}
-
-fn lexopt_error(error: lexopt::Error, cli: &Cli) -> UsageError {
-    let message = match error {
+/// The message for `error`, raised at the argument at 1-based `position`,
+/// with any echoed input as shell words.
+fn message(error: lexopt::Error, position: usize) -> String {
+    match error {
         lexopt::Error::MissingValue { option } => {
-            format!("{} needs a value", option.as_deref().unwrap_or("option"))
+            let option = option.as_deref().unwrap_or("option");
+            format!("{} needs a value", option_word(option))
         }
+        lexopt::Error::UnexpectedOption(option) => {
+            format!("unknown option {}", option_word(&option))
+        }
+        lexopt::Error::UnexpectedArgument(operand) => format!(
+            "unexpected operand {}",
+            shell_word(&operand.to_string_lossy())
+        ),
         lexopt::Error::UnexpectedValue { option, .. } => {
-            format!("{option} takes no value")
+            format!("{} takes no value", option_word(&option))
         }
-        error @ (lexopt::Error::UnexpectedOption(_)
-        | lexopt::Error::UnexpectedArgument(_)
-        | lexopt::Error::ParsingFailed { .. }
-        | lexopt::Error::NonUnicodeValue(_)
-        | lexopt::Error::Custom(_)) => error.to_string(),
-    };
-    UsageError::new(message).with_hint(cli.help_hint())
+        lexopt::Error::NonUnicodeValue(_) => {
+            format!("argument {position} is not valid UTF-8")
+        }
+        lexopt::Error::ParsingFailed { error, .. }
+        | lexopt::Error::Custom(error) => error.to_string(),
+    }
+}
+
+/// `option`, spelled with its dashes, as a shell word: bare when its name
+/// needs no quoting, although `shell_word` quotes any leading `-`.
+fn option_word(option: &str) -> Cow<'_, str> {
+    let name = option.trim_start_matches('-');
+    if shell_word(name) == name {
+        Cow::Borrowed(option)
+    } else {
+        shell_word(option)
+    }
 }
 
 /// An invocation that can't run as written.
@@ -301,6 +293,12 @@ mod tests {
             &["search", "--weird", "x"],
             &["search", "--a b"],
             &["search", "--=x"],
+            &["list", "x", "--depth"],
+            &["list", "x", "--depth", "0"],
+            &["read", "x", "--depth=x"],
+            &["--depth", "99999999999", "list", "x"],
+            &["--json=1", "search", "x"],
+            &["search", "x", "--help=x"],
         ];
         let errors: Vec<String> = invocations
             .iter()
@@ -316,6 +314,12 @@ mod tests {
             unknown option --weird | sego search --help
             unknown option '--a b' | sego search --help
             unknown option '--' | sego search --help
+            --depth needs a value | sego list --help
+            invalid --depth 0; expected a number from 1 to 4294967295 | sego list --help
+            invalid --depth x; expected a number from 1 to 4294967295 | sego read --help
+            invalid --depth 99999999999; expected a number from 1 to 4294967295 | sego --help
+            --json takes no value | sego --help
+            --help takes no value | sego search --help
         "#]]
         .assert_eq(&errors.concat());
     }
@@ -325,10 +329,28 @@ mod tests {
     fn operands_must_be_utf8() {
         use std::os::unix::ffi::OsStringExt;
 
-        let args =
-            [OsString::from("read"), OsString::from_vec(vec![0x66, 0xff])];
-        let error = parse(args).unwrap_err();
+        let bad = || OsString::from_vec(vec![0x66, 0xff]);
+        let error = parse([OsString::from("read"), bad()]).unwrap_err();
         assert_eq!(error.code(), "usage");
         assert_eq!(error.to_string(), "argument 2 is not valid UTF-8");
+        let mut joined = OsString::from("--depth=");
+        joined.push(bad());
+        let invocations = [
+            vec![bad()],
+            vec!["list".into(), "x".into(), "--depth".into(), bad()],
+            vec!["list".into(), joined],
+        ];
+        let errors = invocations.map(|args| {
+            let error = parse(args).unwrap_err();
+            format!("{error} | {}", error.hints().join(" | "))
+        });
+        assert_eq!(
+            errors,
+            [
+                "argument 1 is not valid UTF-8 | sego --help",
+                "argument 4 is not valid UTF-8 | sego list --help",
+                "argument 2 is not valid UTF-8 | sego list --help",
+            ]
+        );
     }
 }
