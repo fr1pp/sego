@@ -55,8 +55,8 @@ fn normalise(url: &str) -> String {
 /// scp-style (`host:owner/name`), which is only recognised without a scheme.
 /// Only a URL with a scheme has a port, and no repository name has one.
 fn host_onwards(url: &str) -> (String, bool) {
-    let (rest, scheme) = match url.split_once("://") {
-        Some((_, rest)) => (rest, true),
+    let (rest, scheme) = match after_scheme(url) {
+        Some(rest) => (rest, true),
         None => (url, false),
     };
     let slash = rest.find('/');
@@ -72,6 +72,16 @@ fn host_onwards(url: &str) -> (String, bool) {
     let host = host.rfind('@').map_or(host, |at| &host[at + 1..]);
     let host = if scheme { without_port(host) } else { host };
     (format!("{host}{}", &rest[end..]), !scheme)
+}
+
+/// `url` after its `scheme://`, if the text before the first `://` is a
+/// scheme: an ASCII letter, then letters, digits, `+`, `-` or `.`.
+fn after_scheme(url: &str) -> Option<&str> {
+    let (scheme, rest) = url.split_once("://")?;
+    let mut chars = scheme.chars();
+    let is_scheme = chars.next().is_some_and(|c| c.is_ascii_alphabetic())
+        && chars.all(|c| c.is_ascii_alphanumeric() || "+-.".contains(c));
+    is_scheme.then_some(rest)
 }
 
 /// `host` without a trailing `:port`.
@@ -389,6 +399,21 @@ mod tests {
             (url.repo.as_str(), url.rev.unwrap().as_str()),
             ("github.com/x/y", "a~1")
         );
+        expect![[r#"
+            Ok(
+                Address {
+                    repo: RepoName(
+                        "github.com/x/y",
+                    ),
+                    rev: Some(
+                        Rev(
+                            "a://b",
+                        ),
+                    ),
+                },
+            )
+        "#]]
+        .assert_debug_eq(&Address::parse("github.com/x/y@a://b"));
         let bare = Address::parse("github.com/x/y").unwrap();
         assert_eq!((bare.rev.as_ref(), bare.rev_or_head()), (None, "HEAD"));
         assert!(matches!(
