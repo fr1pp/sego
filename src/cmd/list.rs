@@ -5,7 +5,7 @@ use crate::address::{Address, Pinned, RepoPath};
 use crate::args::Cli;
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::domain::{Entry, EntryKind, Listing, Submodule, Tree};
-use crate::escape::shell_word;
+use crate::escape::{command_line, shell_word};
 use crate::render::json::{Partial, document};
 use crate::render::text::{address_line, hint, notice, path_word};
 use crate::sourcegraph::Fetch;
@@ -134,15 +134,23 @@ fn partial(listing: &Listing, depth: u32) -> Option<(String, Vec<String>)> {
     if depth <= 1 {
         return Some((reason, Vec::new()));
     }
-    let mut operands = vec![listing.at.to_string()];
-    operands.extend(directory(&listing.path));
-    let command = Cli {
-        command: Some("list".to_owned()),
-        depth: Some(depth - 1),
-        operands,
-        ..Cli::default()
-    };
-    Some((reason, vec![command.command_line()]))
+    let at = listing.at.to_string();
+    let directory = directory(&listing.path);
+    let mut operands = vec![at.as_str()];
+    operands.extend(directory.as_deref());
+    Some((reason, vec![list_command(&operands, depth - 1)]))
+}
+
+/// `sego list` of `operands` with `--depth`, which follows them unless one
+/// starts with `--`; then it goes before the `--` that `command_line`
+/// inserts.
+fn list_command(operands: &[&str], depth: u32) -> String {
+    let depth = format!("--depth {depth}");
+    if operands.iter().any(|operand| operand.starts_with("--")) {
+        command_line(&["sego", "list", &depth], operands)
+    } else {
+        format!("{} {depth}", command_line(&["sego", "list"], operands))
+    }
 }
 
 /// `n` entries, singular when it is 1.
@@ -411,6 +419,25 @@ mod tests {
             hint: sego list github.com/x/a@a7962380ca08 'a b/' --depth 2
             {"version":1,"kind":"listing","repo":"github.com/x/a","commit":"a7962380ca08b5a188038c69871b8d3fbdf31e89","path":"a b","entries":[],"partial":{"reason":"listing stopped at 1000 entries; some entries are not shown","hints":["sego list github.com/x/a@a7962380ca08 'a b/' --depth 2"]}}
         "#]].assert_eq(&shown);
+    }
+
+    #[test]
+    fn depth_hints_put_the_option_before_a_dashed_operand() {
+        let hints = ["", "--x", "-x"].map(|path| {
+            let listing = Listing {
+                at: at(),
+                path: path.to_owned(),
+                entries: Vec::new(),
+                truncated: true,
+            };
+            partial(&listing, 2).unwrap().1.join("\n") + "\n"
+        });
+        expect![[r#"
+            sego list github.com/x/a@a7962380ca08 --depth 1
+            sego list --depth 1 -- github.com/x/a@a7962380ca08 --x/
+            sego list github.com/x/a@a7962380ca08 '-x/' --depth 1
+        "#]]
+        .assert_eq(&hints.concat());
     }
 
     #[test]

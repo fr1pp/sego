@@ -3,7 +3,7 @@ use std::ffi::OsString;
 
 use lexopt::Parser;
 
-use crate::escape::{command_line, shell_word};
+use crate::escape::shell_word;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Cli {
@@ -13,43 +13,6 @@ pub struct Cli {
     pub help: bool,
     pub version: bool,
     pub operands: Vec<String>,
-}
-
-impl Cli {
-    /// The invocation as one shell command line: `sego`, the command, the
-    /// operands, then the options. When an operand starts with `--`, the
-    /// options go first and `--` comes before the operands.
-    pub fn command_line(&self) -> String {
-        let command = self.command.as_deref().map(shell_word);
-        let mut options = Vec::new();
-        if self.json {
-            options.push("--json".to_owned());
-        }
-        if let Some(depth) = self.depth {
-            options.push(format!("--depth {depth}"));
-        }
-        if self.help {
-            options.push("--help".to_owned());
-        }
-        if self.version {
-            options.push("--version".to_owned());
-        }
-        let mut head = vec!["sego"];
-        head.extend(command.as_deref());
-        let operands: Vec<&str> =
-            self.operands.iter().map(String::as_str).collect();
-        if operands.iter().any(|operand| operand.starts_with("--")) {
-            head.extend(options.iter().map(String::as_str));
-            command_line(&head, &operands)
-        } else {
-            let mut line = command_line(&head, &operands);
-            for option in &options {
-                line.push(' ');
-                line.push_str(option);
-            }
-            line
-        }
-    }
 }
 
 /// Parses the arguments after the program name. Options are long-form only
