@@ -571,9 +571,7 @@ fn symbols(symbols: Vec<WireSymbol>) -> Vec<Symbol> {
                 line,
                 kind: vocabulary::symbol_kind(&symbol.kind),
                 name: symbol.name,
-                container: symbol
-                    .container_name
-                    .filter(|container| !container.is_empty()),
+                container: symbol.container_name,
             })
         })
         .collect()
