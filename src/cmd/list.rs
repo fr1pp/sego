@@ -118,7 +118,7 @@ pub struct List {
 
 /// `path` as a directory operand: with a trailing `/`, or none for the
 /// root.
-fn directory(path: &str) -> Option<String> {
+fn directory_operand(path: &str) -> Option<String> {
     (!path.is_empty()).then(|| format!("{path}/"))
 }
 
@@ -135,7 +135,7 @@ fn partial(listing: &Listing, depth: u32) -> Option<Partial> {
         return Some(Partial { reason, hints: Vec::new() });
     }
     let at = listing.at.to_string();
-    let directory = directory(&listing.path);
+    let directory = directory_operand(&listing.path);
     let mut operands = vec![at.as_str()];
     operands.extend(directory.as_deref());
     let hints = vec![list_command(&operands, depth - 1)];
@@ -155,7 +155,7 @@ fn list_command(operands: &[&str], depth: u32) -> String {
 }
 
 /// `n` entries, singular when it is 1.
-fn entries(n: usize) -> String {
+fn entry_count(n: usize) -> String {
     match n {
         1 => "1 entry".to_owned(),
         n => format!("{n} entries"),
@@ -164,9 +164,9 @@ fn entries(n: usize) -> String {
 
 /// Where a submodule points: its repository and commit as a shell word, or
 /// its URL when that names no repository.
-fn target(url: &str, target: Option<&Pinned>) -> String {
-    match target {
-        Some(target) => target.word(),
+fn target(url: &str, pinned: Option<&Pinned>) -> String {
+    match pinned {
+        Some(pinned) => pinned.word(),
         None => shell_word(url).into_owned(),
     }
 }
@@ -185,10 +185,10 @@ fn entry_line(Entry { path, kind }: &Entry) -> String {
 
 fn listing_text(listing: &Listing, depth: u32) -> String {
     let address = listing.at.to_string();
-    let directory = directory(&path_word(&listing.path));
+    let directory = directory_operand(&path_word(&listing.path));
     let mut words = vec![address.as_str()];
     words.extend(directory.as_deref());
-    let mut text = address_line(&words, &[entries(listing.entries.len())]);
+    let mut text = address_line(&words, &[entry_count(listing.entries.len())]);
     for entry in &listing.entries {
         text.push_str(&entry_line(entry));
     }
