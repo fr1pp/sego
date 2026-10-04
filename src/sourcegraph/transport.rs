@@ -4,6 +4,7 @@ use std::thread;
 use std::time::Duration;
 
 use ureq::Agent;
+use ureq::http::Uri;
 
 use super::{FetchError, GLOBAL_TIMEOUT, Plan, Reply};
 use crate::diagnostic::{Diagnostic, Outcome};
@@ -21,10 +22,13 @@ pub struct Transport {
 
 impl Transport {
     pub fn new(endpoint: &str) -> Result<Transport, InvalidEndpoint> {
-        if !endpoint.starts_with("http://")
-            && !endpoint.starts_with("https://")
-        {
-            return Err(InvalidEndpoint::Scheme(endpoint.to_owned()));
+        let uri = endpoint.parse::<Uri>().ok();
+        let valid = uri.is_some_and(|uri| {
+            matches!(uri.scheme_str(), Some("http" | "https"))
+                && uri.host().is_some_and(|host| !host.is_empty())
+        });
+        if !valid {
+            return Err(InvalidEndpoint::NotHttp(endpoint.to_owned()));
         }
         let agent = Agent::config_builder()
             .http_status_as_error(false)
@@ -134,18 +138,18 @@ fn retry_delay(attempt: &Attempt) -> Option<Duration> {
 /// A `SEGO_ENDPOINT` sego can't send requests to.
 #[derive(Debug)]
 pub enum InvalidEndpoint {
-    /// Without `http://` or `https://`: the value.
-    Scheme(String),
+    /// Not an http or https URI with a host: the value.
+    NotHttp(String),
     NotUtf8,
 }
 
 impl fmt::Display for InvalidEndpoint {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            InvalidEndpoint::Scheme(endpoint) => write!(
+            InvalidEndpoint::NotHttp(endpoint) => write!(
                 f,
-                "SEGO_ENDPOINT must start with http:// or https://: \
-                 {endpoint}"
+                "SEGO_ENDPOINT must be an http:// or https:// URL with a \
+                 host: {endpoint}"
             ),
             InvalidEndpoint::NotUtf8 => {
                 f.write_str("SEGO_ENDPOINT is not valid UTF-8")
@@ -170,7 +174,6 @@ mod tests {
 
     use super::*;
     use crate::diagnostic::report;
-    use crate::sourcegraph::Fetch;
 
     #[test]
     fn transient_failures_are_retried_once() {
@@ -216,15 +219,29 @@ mod tests {
     }
 
     #[test]
-    fn endpoints_need_a_scheme_and_lose_a_trailing_slash() {
-        assert!(Transport::new("sourcegraph.com").is_err());
+    fn endpoints_need_an_http_scheme_and_a_host() {
+        for endpoint in
+            ["http://", "http://bad host", "ftp://x", "sourcegraph.com"]
+        {
+            let error = Transport::new(endpoint).err().unwrap();
+            assert_eq!(error.code(), "usage", "{endpoint}");
+            assert_eq!(error.outcome(), Outcome::Invalid, "{endpoint}");
+        }
+        let urls = [
+            "https://sourcegraph.com",
+            "https://host/sourcegraph",
+            "https://host/",
+            "http://localhost:3080",
+        ]
+        .map(|endpoint| Transport::new(endpoint).unwrap().url().to_owned());
         assert_eq!(
-            Transport::new("https://sourcegraph.com/").unwrap().url(),
-            "https://sourcegraph.com/.api/graphql"
-        );
-        assert_eq!(
-            Transport::new("http://localhost:3080").unwrap().url(),
-            "http://localhost:3080/.api/graphql"
+            urls,
+            [
+                "https://sourcegraph.com/.api/graphql",
+                "https://host/sourcegraph/.api/graphql",
+                "https://host/.api/graphql",
+                "http://localhost:3080/.api/graphql",
+            ]
         );
     }
 
@@ -234,21 +251,7 @@ mod tests {
         assert_eq!(error.code(), "usage");
         assert_eq!(error.outcome(), Outcome::Invalid);
         expect![[r#"
-            error: SEGO_ENDPOINT must start with http:// or https://: ftp://example.com
+            error: SEGO_ENDPOINT must be an http:// or https:// URL with a host: ftp://example.com
         "#]].assert_eq(&report(&error));
-    }
-
-    #[test]
-    fn a_request_with_no_response_is_a_transport_error() {
-        let transport = Transport::new("http://bad host").unwrap();
-        let fetch: Fetch = &|plan| transport.fetch(plan);
-        let plan = Plan { query: "{ x }", variables: serde_json::json!({}) };
-        let error = fetch(&plan).unwrap_err();
-        assert_eq!(error.code(), "transport");
-        expect![[r#"
-            error: the request to http://bad host/.api/graphql failed
-            caused by: http: invalid uri character
-        "#]]
-        .assert_eq(&report(&error));
     }
 }

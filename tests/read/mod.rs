@@ -432,19 +432,29 @@ fn the_trace_reaches_json_detail() {
 }
 
 #[test]
-fn an_endpoint_without_a_scheme_is_invalid() {
-    let run = sego()
-        .env("SEGO_ENDPOINT", "sourcegraph.com")
-        .args(["read", MUX, "mux.go"])
-        .run();
+fn an_endpoint_without_an_http_scheme_and_a_host_is_invalid() {
+    let runs = ["sourcegraph.com", "http://bad host"].map(|endpoint| {
+        sego()
+            .env("SEGO_ENDPOINT", endpoint)
+            .args(["read", MUX, "mux.go"])
+            .run()
+            .transcript()
+    });
     expect![[r#"
         exit 2
         --- stdout
         [EOF]
         --- stderr
-        error: SEGO_ENDPOINT must start with http:// or https://: sourcegraph.com
+        error: SEGO_ENDPOINT must be an http:// or https:// URL with a host: sourcegraph.com
         [EOF]
-    "#]].assert_eq(&run.transcript());
+        exit 2
+        --- stdout
+        [EOF]
+        --- stderr
+        error: SEGO_ENDPOINT must be an http:// or https:// URL with a host: http://bad host
+        [EOF]
+    "#]]
+    .assert_eq(&runs.concat());
 }
 
 #[cfg(unix)]
