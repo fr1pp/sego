@@ -1,3 +1,4 @@
+pub mod envelope;
 pub mod transport;
 
 use std::fmt;
@@ -19,10 +20,6 @@ impl Plan {
 
 /// An HTTP response, whatever its status.
 #[derive(Debug)]
-#[cfg_attr(
-    test,
-    expect(dead_code, reason = "read by the decoder in a later task")
-)]
 pub struct Reply {
     pub status: u16,
     pub body: Vec<u8>,
