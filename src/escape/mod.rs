@@ -85,9 +85,10 @@ pub fn content_line(raw: &str, focus: Option<usize>) -> String {
 
 /// `s` as one POSIX shell word that delivers its exact bytes: bare when
 /// that is safe, `'…'` when it has no control or unsafe character, and
-/// `$'…'` otherwise. A leading `-` is quoted, so a bare word never reads as
-/// an option, and so is a leading `=`, which zsh expands to a command's
-/// path.
+/// `$'…'` otherwise. A leading `-` is quoted, but that doesn't hide the
+/// word from sego's option parser, which gets the same bytes either way;
+/// only the `--` that `command_line` inserts does. A leading `=` is quoted
+/// because zsh expands it to a command's path.
 pub fn shell_word(s: &str) -> Cow<'_, str> {
     if s.starts_with('-') { Cow::Owned(quoted(s)) } else { word(s) }
 }
