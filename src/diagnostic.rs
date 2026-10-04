@@ -3,7 +3,7 @@ use std::fmt::{self, Display, Write as _};
 use crate::address::{LineRange, Pinned};
 use crate::domain::{Alert, NotAFile, Unavailable};
 use crate::escape::{command_line, sanitise, shell_word};
-use crate::sourcegraph::search::with_doubled_timeout;
+use crate::sourcegraph::search::with_longer_timeout;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Outcome {
@@ -234,7 +234,7 @@ impl Diagnostic for SearchProblem {
                 alert.queries().map(search).collect()
             }
             SearchProblem::Incomplete { query, .. } => {
-                let retry = with_doubled_timeout(query);
+                let retry = with_longer_timeout(query);
                 vec![search(retry.as_deref().unwrap_or(query))]
             }
         }
@@ -503,6 +503,14 @@ mod tests {
                 },
             },
             SearchProblem::Incomplete {
+                query: "x timeout:40s".into(),
+                reason: "it ran for its whole timeout:40s".into(),
+            },
+            SearchProblem::Incomplete {
+                query: "x timeout:1m".into(),
+                reason: "it ran for its whole timeout:1m".into(),
+            },
+            SearchProblem::Incomplete {
                 query: "x timeout:1m30s".into(),
                 reason: "it ran for its whole timeout:1m30s".into(),
             },
@@ -526,8 +534,14 @@ mod tests {
             hint: sego search 'repo:^github\.com/gorilla/mux$ ('
             hint: sego search '-file:_test x'
             [incomplete Unanswered]
+            error: the search was cut short with no hits: it ran for its whole timeout:40s
+            hint: sego search 'x timeout:80s'
+            [incomplete Unanswered]
+            error: the search was cut short with no hits: it ran for its whole timeout:1m
+            hint: sego search 'x timeout:90s'
+            [incomplete Unanswered]
             error: the search was cut short with no hits: it ran for its whole timeout:1m30s
-            hint: sego search 'x timeout:3m'
+            hint: sego search 'x timeout:1m30s'
             [incomplete Unanswered]
             error: the search was cut short with no hits: 1 repository timed out
             hint: sego search x

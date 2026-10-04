@@ -461,7 +461,11 @@ mod tests {
                     },
                 },
                 SearchProblem::Incomplete {
-                    query: format!("{word} timeout:1m30s"),
+                    query: format!("{word} timeout:30s"),
+                    reason: word.to_owned(),
+                },
+                SearchProblem::Incomplete {
+                    query: format!("{word} timeout:2m"),
                     reason: word.to_owned(),
                 },
                 SearchProblem::Incomplete {

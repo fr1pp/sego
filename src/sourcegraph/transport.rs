@@ -5,11 +5,10 @@ use std::time::Duration;
 
 use ureq::Agent;
 
-use super::{FetchError, Plan, Reply};
+use super::{FetchError, GLOBAL_TIMEOUT, Plan, Reply};
 use crate::diagnostic::{Diagnostic, Outcome};
 
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
-const GLOBAL_TIMEOUT: Duration = Duration::from_secs(95);
 const BODY_LIMIT: u64 = 32 * 1024 * 1024;
 /// The longest sego waits before its one retry.
 const RETRY_BUDGET: Duration = Duration::from_secs(10);

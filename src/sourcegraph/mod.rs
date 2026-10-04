@@ -8,8 +8,13 @@ pub mod tree;
 pub mod vocabulary;
 
 use std::fmt;
+use std::time::Duration;
 
 use crate::diagnostic::{Diagnostic, Outcome};
+
+/// The longest one request may take, from connecting to the end of the
+/// body.
+pub const GLOBAL_TIMEOUT: Duration = Duration::from_secs(95);
 
 /// A GraphQL document and its variables.
 pub struct Plan {

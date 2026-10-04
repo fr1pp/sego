@@ -15,7 +15,7 @@ use crate::domain::{
 
 use super::envelope::Envelope;
 use super::vocabulary;
-use super::{FetchError, Plan};
+use super::{FetchError, GLOBAL_TIMEOUT, Plan};
 
 const QUERY: &str = r"query Search($query: String!) {
   search(query: $query, version: V3, patternType: keyword) {
@@ -160,12 +160,22 @@ fn go_text(duration: Duration) -> String {
         )
 }
 
-/// `query` with its `timeout:` doubled; `None` if it has none.
-pub fn with_doubled_timeout(query: &str) -> Option<String> {
+/// The longest `timeout:` a hint proposes, short enough that a search
+/// running for all of it can still answer within `GLOBAL_TIMEOUT`.
+const LONGEST_TIMEOUT: Duration =
+    GLOBAL_TIMEOUT.saturating_sub(Duration::from_secs(5));
+
+/// `query` with its `timeout:` doubled, up to `LONGEST_TIMEOUT`; `None` if
+/// it has none or that is no longer.
+pub fn with_longer_timeout(query: &str) -> Option<String> {
     let (value, duration) = timeout_token(query)?;
-    let mut doubled = query.to_owned();
-    doubled.replace_range(value, &go_text(duration.saturating_mul(2)));
-    Some(doubled)
+    let longer = duration.saturating_mul(2).min(LONGEST_TIMEOUT);
+    if longer <= duration {
+        return None;
+    }
+    let mut retry = query.to_owned();
+    retry.replace_range(value, &go_text(longer));
+    Some(retry)
 }
 
 #[derive(Deserialize)]
@@ -805,16 +815,28 @@ mod tests {
     }
 
     #[test]
-    fn doubled_timeouts() {
-        let doubled = |query| with_doubled_timeout(query);
-        assert_eq!(doubled("x timeout:1ms").as_deref(), Some("x timeout:2ms"));
-        assert_eq!(
-            doubled("timeout:1m30s x").as_deref(),
-            Some("timeout:3m x")
-        );
-        assert_eq!(doubled("x timeout:45s").as_deref(), Some("x timeout:90s"));
-        assert_eq!(doubled("x timeout:0.5s").as_deref(), Some("x timeout:1s"));
-        assert_eq!(doubled("x"), None);
+    fn longer_timeouts_double_up_to_the_cap() {
+        let longer = |query| with_longer_timeout(query);
+        assert_eq!(longer("x timeout:1ms").as_deref(), Some("x timeout:2ms"));
+        assert_eq!(longer("timeout:20s x").as_deref(), Some("timeout:40s x"));
+        assert_eq!(longer("x timeout:45s").as_deref(), Some("x timeout:90s"));
+        assert_eq!(longer("x timeout:0.5s").as_deref(), Some("x timeout:1s"));
+        assert_eq!(longer("x timeout:1m").as_deref(), Some("x timeout:90s"));
+        assert_eq!(longer("x timeout:89s").as_deref(), Some("x timeout:90s"));
+        assert_eq!(longer("x timeout:1m30s"), None);
+        assert_eq!(longer("x timeout:2m"), None);
+        assert_eq!(longer("x timeout:0s"), None);
+        assert_eq!(longer("x"), None);
+    }
+
+    #[test]
+    fn longer_timeouts_end_before_the_request_does() {
+        for seconds in 1..200 {
+            let query = format!("x timeout:{seconds}s");
+            let Some(longer) = with_longer_timeout(&query) else { continue };
+            let timeout = query_timeout(&longer).unwrap();
+            assert!(timeout < GLOBAL_TIMEOUT, "{query} -> {longer}");
+        }
     }
 
     #[test]
