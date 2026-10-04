@@ -39,6 +39,7 @@ impl Transport {
         Ok(Transport { url, agent })
     }
 
+    #[cfg(test)]
     pub fn url(&self) -> &str {
         &self.url
     }

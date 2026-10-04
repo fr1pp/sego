@@ -23,6 +23,10 @@ pub enum NotAFile {
 /// A definitive answer that the thing asked for isn't there. Names and
 /// paths are as the upstream returned them, or as the caller sent them.
 #[derive(Debug)]
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "list answers NotADirectory in a later task")
+)]
 pub enum Unavailable {
     RepoNotFound { repo: String },
     RevisionNotFound { repo: String, rev: String },

@@ -2,13 +2,26 @@
 
 #[macro_use]
 mod command;
+mod live;
+mod read;
+mod server;
 
 use command::Command;
 use expect_test::expect;
+use server::Server;
 
+/// sego, pointed at a port nothing listens on, so no test reaches the
+/// network or depends on the caller's environment.
 #[must_use]
 pub fn sego() -> Command {
     Command::bin(env!("CARGO_BIN_EXE_sego"))
+        .env("SEGO_ENDPOINT", server::unreachable())
+}
+
+/// sego, pointed at `server`.
+#[must_use]
+pub fn sego_at(server: &Server) -> Command {
+    sego().env("SEGO_ENDPOINT", server.url())
 }
 
 #[test]
@@ -152,13 +165,26 @@ fn depth_only_applies_to_list() {
 #[test]
 fn empty_operands_are_usage_errors() {
     check!(
-        sego().args(["read", ""]),
+        sego().args(["read", "", "mux.go"]),
         expect![[r#"
         exit 2
         --- stdout
         [EOF]
         --- stderr
-        error: read is not implemented yet
+        error: empty repository name
+        hint: sego read --help
+        [EOF]
+    "#]]
+    );
+    check!(
+        sego().args(["read", "github.com/gorilla/mux", ""]),
+        expect![[r#"
+        exit 2
+        --- stdout
+        [EOF]
+        --- stderr
+        error: empty path; read needs a file's path
+        hint: sego list github.com/gorilla/mux
         [EOF]
     "#]]
     );

@@ -84,3 +84,24 @@ escape-table:
 # Rebuild every capture's request from sego's own plans, send it, and rewrite the file.
 capture:
     cargo test --bin sego capture -- --ignored --test-threads=1
+
+# Live tests, re-captured responses, and a drift check.
+live:
+    cargo test --test integration live -- --ignored
+    just capture
+    just drift
+
+# Fail if a re-captured response changed in anything but server-measured times.
+drift:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    strip='walk(if type == "object" then del(.elapsedMilliseconds) else . end)'
+    status=0
+    for f in $(git diff --name-only -- 'tests/*/*.json'); do
+        if cmp -s <(git show "HEAD:$f" | jq -S "$strip") <(jq -S "$strip" "$f"); then
+            git checkout -- "$f"
+        else
+            echo "drift: $f" >&2; status=1
+        fi
+    done
+    exit "$status"

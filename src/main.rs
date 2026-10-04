@@ -1,27 +1,11 @@
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "wired into a command in a later task")
-)]
 mod address;
 mod args;
 mod cmd;
 mod diagnostic;
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "wired into a command in a later task")
-)]
 mod domain;
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "wired into a command in a later task")
-)]
 mod escape;
 mod output;
 mod render;
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "wired into a command in a later task")
-)]
 mod sourcegraph;
 
 use std::env;

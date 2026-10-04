@@ -200,9 +200,14 @@ pub struct Pinned {
 impl Pinned {
     /// `repo@short` as a shell word, valid input to any command.
     pub fn word(&self) -> String {
-        let address =
-            format!("{}@{}", self.repo.as_str(), self.commit.short());
-        shell_word(&address).into_owned()
+        shell_word(&self.to_string()).into_owned()
+    }
+}
+
+/// `repo@short`, unquoted.
+impl fmt::Display for Pinned {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}@{}", self.repo.as_str(), self.commit.short())
     }
 }
 

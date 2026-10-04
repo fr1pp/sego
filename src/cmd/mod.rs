@@ -1,3 +1,5 @@
+pub mod read;
+
 use crate::args::{Cli, UsageError, did_you_mean};
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::escape::shell_word;
@@ -127,6 +129,14 @@ fn not_implemented(command: &str) -> Box<dyn Diagnostic> {
     Box::new(UsageError::new(format!("{command} is not implemented yet")))
 }
 
+/// A command's help.
+fn help(command: &str) -> Result<&'static str, Box<dyn Diagnostic>> {
+    match command {
+        "read" => Ok(read::HELP),
+        command => Err(not_implemented(command)),
+    }
+}
+
 /// Whether the invocation runs a command, which needs the upstream.
 pub fn needs_upstream(cli: &Cli) -> bool {
     matches!(action(cli), Ok(Action::Run(_)))
@@ -134,19 +144,25 @@ pub fn needs_upstream(cli: &Cli) -> bool {
 
 /// Checks the invocation as far as possible without fetching anything.
 pub fn validate(cli: &Cli) -> Result<(), Box<dyn Diagnostic>> {
-    action(cli)?;
-    Ok(())
+    match action(cli)? {
+        Action::Run("read") => {
+            read::request(cli)?;
+            Ok(())
+        }
+        Action::Run(command) => Err(not_implemented(command)),
+        Action::Help(_) | Action::Version => Ok(()),
+    }
 }
 
 pub fn run(
     cli: &Cli,
-    _fetch: Fetch,
+    fetch: Fetch,
 ) -> Result<Box<dyn Present>, Box<dyn Diagnostic>> {
     match action(cli)? {
         Action::Help(None) => Ok(Box::new(Plain(HELP))),
+        Action::Help(Some(command)) => Ok(Box::new(Plain(help(command)?))),
         Action::Version => Ok(Box::new(Plain(VERSION))),
-        Action::Help(Some(command)) | Action::Run(command) => {
-            Err(not_implemented(command))
-        }
+        Action::Run("read") => read::run(cli, fetch),
+        Action::Run(command) => Err(not_implemented(command)),
     }
 }
