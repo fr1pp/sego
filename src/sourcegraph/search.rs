@@ -362,8 +362,8 @@ pub fn answer(
     };
     let elapsed = Duration::from_millis(results.elapsed_milliseconds);
     let report = report(query, results)
-        .map_err(|cause| FetchError::Field { cause, trace })?;
-    classify(report, elapsed)
+        .map_err(|cause| FetchError::Field { cause, trace: trace.clone() })?;
+    classify(report, elapsed, trace)
 }
 
 /// The report of `results`, or why one of its hits can't be read.
@@ -484,10 +484,11 @@ fn pinned(name: &str, oid: String) -> Result<Pinned, String> {
 
 /// `report` as an answer, or why there is none. A search with hits is
 /// always an answer; one without is classified by its alert, then by
-/// whether it was cut short.
+/// whether it was cut short. `trace` is the reply's.
 fn classify(
     mut report: SearchReport,
     elapsed: Duration,
+    trace: Option<String>,
 ) -> Result<SearchReport, Box<dyn Diagnostic>> {
     if !report.hits.is_empty() {
         return Ok(report);
@@ -512,7 +513,7 @@ fn classify(
     }
     let query = report.query;
     let reason = reasons.join(", ");
-    Err(SearchProblem::Incomplete { query, reason }.into())
+    Err(SearchProblem::Incomplete { query, reason, trace }.into())
 }
 
 /// The repository and revision of the first `* <repo>@<rev>` line of a

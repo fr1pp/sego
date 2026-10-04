@@ -463,14 +463,17 @@ mod tests {
                 SearchProblem::Incomplete {
                     query: format!("{word} timeout:30s"),
                     reason: word.to_owned(),
+                    trace: Some(word.to_owned()),
                 },
                 SearchProblem::Incomplete {
                     query: format!("{word} timeout:2m"),
                     reason: word.to_owned(),
+                    trace: None,
                 },
                 SearchProblem::Incomplete {
                     query: word.to_owned(),
                     reason: word.to_owned(),
+                    trace: None,
                 },
             ]);
         }

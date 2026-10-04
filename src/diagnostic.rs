@@ -182,11 +182,12 @@ impl Diagnostic for Unavailable {
 }
 
 /// A search with no hits that has no answer: the upstream couldn't run the
-/// query, or cut it short. `reason` says how.
+/// query, or cut it short. `reason` says how, and `trace` is the reply's
+/// `x-trace`.
 #[derive(Debug)]
 pub enum SearchProblem {
     BadQuery { alert: Alert },
-    Incomplete { query: String, reason: String },
+    Incomplete { query: String, reason: String, trace: Option<String> },
 }
 
 impl fmt::Display for SearchProblem {
@@ -237,6 +238,15 @@ impl Diagnostic for SearchProblem {
                 let retry = with_longer_timeout(query);
                 vec![search(retry.as_deref().unwrap_or(query))]
             }
+        }
+    }
+
+    fn detail(&self) -> Option<serde_json::Value> {
+        match self {
+            SearchProblem::BadQuery { .. } => None,
+            SearchProblem::Incomplete { trace, .. } => trace
+                .as_deref()
+                .map(|trace| serde_json::json!({"trace": trace})),
         }
     }
 }
@@ -505,18 +515,22 @@ mod tests {
             SearchProblem::Incomplete {
                 query: "x timeout:40s".into(),
                 reason: "it ran for its whole timeout:40s".into(),
+                trace: Some("abc123".into()),
             },
             SearchProblem::Incomplete {
                 query: "x timeout:1m".into(),
                 reason: "it ran for its whole timeout:1m".into(),
+                trace: None,
             },
             SearchProblem::Incomplete {
                 query: "x timeout:1m30s".into(),
                 reason: "it ran for its whole timeout:1m30s".into(),
+                trace: None,
             },
             SearchProblem::Incomplete {
                 query: "x".into(),
                 reason: "1 repository timed out".into(),
+                trace: None,
             },
         ];
         let mut text = String::new();
@@ -524,6 +538,9 @@ mod tests {
             let _ =
                 writeln!(text, "[{} {:?}]", problem.code(), problem.outcome());
             text.push_str(&report(problem));
+            if let Some(detail) = problem.detail() {
+                let _ = writeln!(text, "detail: {detail}");
+            }
         }
         expect![[r#"
             [bad_query Invalid]
@@ -536,6 +553,7 @@ mod tests {
             [incomplete Unanswered]
             error: the search was cut short with no hits: it ran for its whole timeout:40s
             hint: sego search 'x timeout:80s'
+            detail: {"trace":"abc123"}
             [incomplete Unanswered]
             error: the search was cut short with no hits: it ran for its whole timeout:1m
             hint: sego search 'x timeout:90s'

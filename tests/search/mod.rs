@@ -548,6 +548,21 @@ fn timed_out_is_unanswered() {
 }
 
 #[test]
+fn timed_out_carries_the_trace() {
+    let args = [MUX_TAG, "NewRouter", "timeout:1ms", "--json"];
+    expect![[r#"
+        exit 3
+        --- stdout
+        {"version":1,"kind":"error","code":"incomplete","message":"the search was cut short with no hits: it ran for its whole timeout:1ms","hints":["sego search 'repo:^github\\.com/gorilla/mux$@v1.7.0 NewRouter timeout:2ms'"],"detail":{"trace":"test-trace"}}
+        [EOF]
+        --- stderr
+        error: the search was cut short with no hits: it ran for its whole timeout:1ms
+        hint: sego search 'repo:^github\.com/gorilla/mux$@v1.7.0 NewRouter timeout:2ms'
+        [EOF]
+    "#]].assert_eq(&search("search/timed-out.json", &args));
+}
+
+#[test]
 fn negations_need_no_escaping() {
     let step = Step::Search {
         capture: "search/no-hits.json",
