@@ -10,7 +10,8 @@ use super::{FetchError, GLOBAL_TIMEOUT, Plan, Reply};
 use crate::diagnostic::{Diagnostic, Outcome};
 
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
-const BODY_LIMIT: u64 = 32 * 1024 * 1024;
+/// The most of an answer sego reads, in bytes.
+pub const BODY_LIMIT: u64 = 32 * 1024 * 1024;
 /// The longest sego waits before its one retry.
 const RETRY_BUDGET: Duration = Duration::from_secs(10);
 
@@ -57,8 +58,12 @@ impl Transport {
                 status: reply.status,
                 retry_after: *retry_after,
             },
-            Err(ureq::Error::Io(error)) => Attempt::Io(error.kind()),
-            Err(_) => Attempt::Other,
+            Err(Failure::Transport(ureq::Error::Io(error))) => {
+                Attempt::Io(error.kind())
+            }
+            Err(Failure::Transport(_) | Failure::Oversized(_)) => {
+                Attempt::Other
+            }
         };
         let last = match retry_delay(&attempt) {
             Some(delay) => {
@@ -69,9 +74,13 @@ impl Transport {
         };
         match last {
             Ok((reply, _)) => Ok(reply),
-            Err(error) => Err(FetchError::Transport {
+            Err(Failure::Oversized(trace)) => {
+                Err(FetchError::Oversized { trace })
+            }
+            Err(Failure::Transport(error)) => Err(FetchError::Transport {
                 url: self.url.clone(),
                 cause: match error {
+                    // io::Error's own text, without ureq's `io: ` prefix.
                     ureq::Error::Io(error) => error.to_string(),
                     error => error.to_string(),
                 },
@@ -80,15 +89,13 @@ impl Transport {
     }
 
     /// One exchange: the reply and its `Retry-After`.
-    fn send(
-        &self,
-        body: &str,
-    ) -> Result<(Reply, Option<Duration>), ureq::Error> {
+    fn send(&self, body: &str) -> Result<(Reply, Option<Duration>), Failure> {
         let response = self
             .agent
             .post(&self.url)
             .header("Content-Type", "application/json")
-            .send(body)?;
+            .send(body)
+            .map_err(Failure::Transport)?;
         let header = |name: &str| {
             response.headers().get(name).map(|value| {
                 String::from_utf8_lossy(value.as_bytes()).into_owned()
@@ -103,10 +110,25 @@ impl Transport {
         let body = response
             .into_body()
             .into_with_config()
-            .limit(BODY_LIMIT)
-            .read_to_vec()?;
+            // ureq refuses a body of exactly `limit` bytes too.
+            .limit(BODY_LIMIT + 1)
+            .read_to_vec()
+            .map_err(|error| match error {
+                ureq::Error::BodyExceedsLimit(_) => {
+                    Failure::Oversized(trace.clone())
+                }
+                error => Failure::Transport(error),
+            })?;
         Ok((Reply { status, body, trace, location }, retry_after))
     }
+}
+
+/// Why an exchange has no reply.
+enum Failure {
+    /// No complete response.
+    Transport(ureq::Error),
+    /// A body over `BODY_LIMIT`: the response's `x-trace`.
+    Oversized(Option<String>),
 }
 
 /// How a request went, as far as retrying is concerned.

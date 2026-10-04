@@ -572,6 +572,7 @@ mod tests {
                     trace: None,
                 },
                 FetchError::NotJson { excerpt: text(), trace: Some(text()) },
+                FetchError::Oversized { trace: Some(text()) },
                 FetchError::Empty { trace: Some(text()) },
                 FetchError::Field { cause: text(), trace: None },
                 FetchError::Server {
@@ -696,6 +697,7 @@ mod tests {
             Transport,
             Status,
             NotJson,
+            Oversized,
             Empty,
             Field,
             Server,

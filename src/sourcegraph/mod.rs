@@ -61,6 +61,9 @@ pub enum FetchError {
         excerpt: String,
         trace: Option<String>,
     },
+    Oversized {
+        trace: Option<String>,
+    },
     Empty {
         trace: Option<String>,
     },
@@ -112,6 +115,11 @@ impl fmt::Display for FetchError {
                     None => Ok(()),
                 }
             }
+            FetchError::Oversized { .. } => write!(
+                f,
+                "the upstream's answer is over {} MiB",
+                transport::BODY_LIMIT / (1024 * 1024)
+            ),
             FetchError::Empty { .. } => {
                 f.write_str("the upstream's answer is empty")
             }
@@ -135,6 +143,7 @@ impl FetchError {
             FetchError::Transport { .. } => None,
             FetchError::Status { trace, .. }
             | FetchError::NotJson { trace, .. }
+            | FetchError::Oversized { trace }
             | FetchError::Empty { trace }
             | FetchError::Field { trace, .. }
             | FetchError::Server { trace, .. }
@@ -149,6 +158,7 @@ impl Diagnostic for FetchError {
             FetchError::Transport { .. } => "transport",
             FetchError::Status { .. }
             | FetchError::NotJson { .. }
+            | FetchError::Oversized { .. }
             | FetchError::Empty { .. }
             | FetchError::Field { .. } => "bad_response",
             FetchError::Server { .. } => "server_error",
@@ -168,6 +178,7 @@ impl Diagnostic for FetchError {
             | FetchError::Schema { errors, .. } => errors.clone(),
             FetchError::Status { .. }
             | FetchError::NotJson { .. }
+            | FetchError::Oversized { .. }
             | FetchError::Empty { .. } => Vec::new(),
         }
     }
@@ -250,6 +261,7 @@ mod tests {
                 trace: trace(),
             },
             FetchError::NotJson { excerpt: "<html>".into(), trace: trace() },
+            FetchError::Oversized { trace: trace() },
             FetchError::Empty { trace: trace() },
             FetchError::Field {
                 cause: "missing field `repository`".into(),
@@ -282,6 +294,9 @@ mod tests {
             detail: {"trace":"abc123"}
             [bad_response]
             error: the upstream's answer isn't JSON: <html>
+            detail: {"trace":"abc123"}
+            [bad_response]
+            error: the upstream's answer is over 32 MiB
             detail: {"trace":"abc123"}
             [bad_response]
             error: the upstream's answer is empty

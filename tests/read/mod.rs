@@ -431,6 +431,39 @@ fn the_trace_reaches_json_detail() {
     "#]].assert_eq(&run.transcript());
 }
 
+/// The most of an answer sego reads: 32 MiB.
+const BODY_LIMIT: usize = 32 * 1024 * 1024;
+
+#[test]
+fn an_answer_over_32_mib_is_bad_response() {
+    let steps = vec![status(200, &"x".repeat(BODY_LIMIT + 1))];
+    let run = exchange(steps, &[MUX, "mux.go", "--json"]);
+    expect![[r#"
+        exit 3
+        --- stdout
+        {"version":1,"kind":"error","code":"bad_response","message":"the upstream's answer is over 32 MiB","hints":[],"detail":{"trace":"test-trace"}}
+        [EOF]
+        --- stderr
+        error: the upstream's answer is over 32 MiB
+        [EOF]
+    "#]].assert_eq(&run.transcript());
+}
+
+#[test]
+fn an_answer_of_exactly_32_mib_is_accepted() {
+    let steps = vec![status(200, &" ".repeat(BODY_LIMIT))];
+    let run = exchange(steps, &[MUX, "mux.go"]);
+    expect![[r#"
+        exit 3
+        --- stdout
+        [EOF]
+        --- stderr
+        error: the upstream's answer is empty
+        [EOF]
+    "#]]
+    .assert_eq(&run.transcript());
+}
+
 #[test]
 fn an_endpoint_without_an_http_scheme_and_a_host_is_invalid() {
     let runs = ["sourcegraph.com", "http://bad host"].map(|endpoint| {
