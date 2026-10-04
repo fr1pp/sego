@@ -277,7 +277,6 @@ pub fn action(cli: &Cli) -> Result<Action, UsageError> {
 mod tests {
     use std::ffi::OsString;
     use std::io::{self, Write};
-    use std::os::unix::ffi::OsStringExt as _;
     use std::process;
 
     use expect_test::expect;
@@ -544,7 +543,13 @@ mod tests {
                 vec!["read".into(), "x/y".into(), option(), "1".into()],
             ]);
         }
-        argvs.push(vec!["read".into(), OsString::from_vec(vec![0x66, 0xff])]);
+        #[cfg(unix)]
+        {
+            use std::os::unix::ffi::OsStringExt as _;
+
+            let bad = OsString::from_vec(vec![0x66, 0xff]);
+            argvs.push(vec!["read".into(), bad]);
+        }
         argvs.iter().map(Vec::as_slice).map(usage).collect()
     }
 
