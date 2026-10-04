@@ -1,8 +1,8 @@
 use serde::Serialize;
 
-use super::{Help, Present};
+use super::{Command, Help, Present, UsageError};
 use crate::address::{Address, AddressError, LineRange, RepoPath};
-use crate::args::{Cli, UsageError};
+use crate::args::Cli;
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::domain::File;
 use crate::escape::{command_line, content_line};
@@ -78,7 +78,7 @@ const OPERANDS: &str = "expected <repo>[@<rev>] <path> [<lines>]";
 /// `<lines>`, lines 1 to `READ_LINE_CAP`.
 pub fn request(cli: &Cli) -> Result<ReadRequest, UsageError> {
     let invalid =
-        |message: String| UsageError::new(message, cli.command.as_deref());
+        |message: String| UsageError::new(message, Some(Command::Read));
     let (repo, path, lines) = match cli.operands.as_slice() {
         [repo, path] => (repo, path, None),
         [repo, path, lines] => (repo, path, Some(lines)),

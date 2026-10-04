@@ -2,8 +2,8 @@ use std::fmt::Write as _;
 
 use serde::Serialize;
 
-use super::{Help, Present};
-use crate::args::{Cli, UsageError};
+use super::{Command, Help, Present, UsageError};
+use crate::args::Cli;
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::domain::{
     Alert, CommitHit, FileHit, Filter, Hit, Line, RepoHit, SearchReport,
@@ -102,7 +102,7 @@ pub fn request(cli: &Cli) -> Result<String, UsageError> {
     let query = cli.operands.join(" ");
     if query.trim().is_empty() {
         let message = "missing query; expected <query>...";
-        return Err(UsageError::new(message, cli.command.as_deref()));
+        return Err(UsageError::new(message, Some(Command::Search)));
     }
     Ok(query)
 }

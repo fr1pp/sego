@@ -2,9 +2,9 @@ pub mod list;
 pub mod read;
 pub mod search;
 
-use std::fmt::Write as _;
+use std::fmt::{self, Write as _};
 
-use crate::args::{Cli, UsageError};
+use crate::args::{Cli, ParseError};
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::escape::shell_word;
 use crate::sourcegraph::Fetch;
@@ -68,21 +68,12 @@ fn help() -> String {
 }
 
 /// The synopsis a usage error shows: the line of `command`, or every
-/// command's line when it names no command.
-pub fn synopsis(command: Option<&str>) -> Vec<String> {
-    match command.and_then(Command::parse) {
+/// command's line when there is none.
+fn synopsis(command: Option<Command>) -> Vec<String> {
+    match command {
         Some(command) => vec![command.synopsis(0)],
         None => synopses(),
     }
-}
-
-/// The commands that synopsis `lines` are for.
-#[cfg(test)]
-pub fn commands(lines: &[String]) -> String {
-    let names = lines.iter().filter_map(|line| {
-        line.strip_prefix("sego ")?.split_whitespace().next()
-    });
-    names.collect::<Vec<_>>().join(" ")
 }
 
 /// Every command's synopsis, in the order of `COMMANDS`, with the names
@@ -166,6 +157,49 @@ impl Command {
     }
 }
 
+/// An invocation that can't run as written, and the synopsis it should
+/// have followed.
+#[derive(Debug)]
+pub struct UsageError {
+    message: String,
+    usage: Vec<String>,
+}
+
+impl UsageError {
+    /// An error in an invocation of `command`, or of sego when there is no
+    /// command.
+    fn new(message: impl Into<String>, command: Option<Command>) -> Self {
+        UsageError { message: message.into(), usage: synopsis(command) }
+    }
+}
+
+/// An unknown or absent command name gives every synopsis.
+impl From<ParseError> for UsageError {
+    fn from(ParseError { message, command }: ParseError) -> Self {
+        UsageError::new(message, command.as_deref().and_then(Command::parse))
+    }
+}
+
+impl fmt::Display for UsageError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.message)
+    }
+}
+
+impl Diagnostic for UsageError {
+    fn code(&self) -> &'static str {
+        "usage"
+    }
+
+    fn outcome(&self) -> Outcome {
+        Outcome::Invalid
+    }
+
+    fn usage(&self) -> Vec<String> {
+        self.usage.clone()
+    }
+}
+
 /// What an invocation asks for.
 enum Action {
     /// Help for a command, or the top-level help.
@@ -176,16 +210,14 @@ enum Action {
 
 /// What `cli` asks for.
 fn action(cli: &Cli) -> Result<Action, UsageError> {
-    let invalid =
-        |message: String| UsageError::new(message, cli.command.as_deref());
     let command = match cli.command.as_deref() {
         Some(name) => match Command::parse(name) {
             Some(command) => Some(command),
             None => {
-                return Err(invalid(format!(
-                    "unknown command {}",
-                    shell_word(name)
-                )));
+                return Err(UsageError::new(
+                    format!("unknown command {}", shell_word(name)),
+                    None,
+                ));
             }
         },
         None => None,
@@ -194,7 +226,8 @@ fn action(cli: &Cli) -> Result<Action, UsageError> {
         && command != Command::List
         && cli.depth.is_some()
     {
-        return Err(invalid("--depth applies only to list".to_owned()));
+        let message = "--depth applies only to list";
+        return Err(UsageError::new(message, Some(command)));
     }
     if cli.help {
         Ok(Action::Help(command))
@@ -203,8 +236,9 @@ fn action(cli: &Cli) -> Result<Action, UsageError> {
     } else {
         match command {
             Some(command) => Ok(Action::Run(command)),
-            None => Err(invalid(
-                "missing command; expected search, list or read".to_owned(),
+            None => Err(UsageError::new(
+                "missing command; expected search, list or read",
+                None,
             )),
         }
     }
@@ -292,6 +326,14 @@ mod tests {
         ("output", 3),
     ];
 
+    /// The commands that synopsis `lines` are for.
+    fn commands(lines: &[String]) -> String {
+        let names = lines.iter().filter_map(|line| {
+            line.strip_prefix("sego ")?.split_whitespace().next()
+        });
+        names.collect::<Vec<_>>().join(" ")
+    }
+
     #[test]
     fn every_command_name_parses() {
         for &name in COMMANDS {
@@ -304,7 +346,7 @@ mod tests {
         let commands = [Some("search"), Some("list"), Some("read")];
         let mut text = String::new();
         for command in commands.into_iter().chain([None, Some("serch")]) {
-            for line in synopsis(command) {
+            for line in synopsis(command.and_then(Command::parse)) {
                 text.push_str(&line);
                 text.push('\n');
             }
@@ -358,6 +400,48 @@ mod tests {
         .assert_eq(&errors.concat());
     }
 
+    #[test]
+    fn parse_errors_show_the_synopsis_of_the_command_read_so_far() {
+        let invocations: &[&[&str]] = &[
+            &["read", "x", "a", "--jsno"],
+            &["--jsno", "read", "x"],
+            &["read", "x/y", "--weird.go", "1-2"],
+            &["search", "--weird", "x"],
+            &["search", "--a b"],
+            &["search", "--=x"],
+            &["list", "x", "--depth"],
+            &["list", "x", "--depth", "0"],
+            &["read", "x", "--depth=x"],
+            &["--depth", "99999999999", "list", "x"],
+            &["--json=1", "search", "x"],
+            &["search", "x", "--help=x"],
+        ];
+        let errors: Vec<String> = invocations
+            .iter()
+            .map(|argv| {
+                let argv = argv.iter().map(OsString::from);
+                let error = UsageError::from(args::parse(argv).unwrap_err());
+                assert_eq!(error.hints(), Vec::<String>::new());
+                format!("{error} | {}\n", commands(&error.usage()))
+            })
+            .collect();
+        expect![[r#"
+            unknown option --jsno | read
+            unknown option --jsno | search list read
+            unknown option --weird.go | read
+            unknown option --weird | search
+            unknown option '--a b' | search
+            unknown option '--' | search
+            --depth needs a value | list
+            invalid --depth 0; expected a number from 1 to 4294967295 | list
+            invalid --depth x; expected a number from 1 to 4294967295 | read
+            invalid --depth 99999999999; expected a number from 1 to 4294967295 | search list read
+            --json takes no value | search list read
+            --help takes no value | search
+        "#]]
+        .assert_eq(&errors.concat());
+    }
+
     /// The corpus without the empty string, which is never a file's path
     /// or a query.
     fn words() -> impl Iterator<Item = &'static str> {
@@ -383,7 +467,7 @@ mod tests {
     /// The diagnostic sego reports for `argv`, which must be invalid.
     fn usage(argv: &[OsString]) -> Box<dyn Diagnostic> {
         match args::parse(argv.to_vec()) {
-            Err(error) => Box::new(error),
+            Err(error) => Box::new(UsageError::from(error)),
             Ok(cli) => match validate(&cli) {
                 Err(diagnostic) => diagnostic,
                 Ok(()) => panic!("{argv:?} is valid"),
@@ -793,7 +877,7 @@ mod tests {
             return Some("not a sego command".to_owned());
         };
         match args::parse(argv.iter().map(OsString::from)) {
-            Err(error) => Some(error.to_string()),
+            Err(error) => Some(error.message),
             Ok(cli) => validate(&cli).err().map(|error| error.to_string()),
         }
     }

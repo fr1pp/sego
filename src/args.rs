@@ -1,11 +1,8 @@
 use std::borrow::Cow;
 use std::ffi::OsString;
-use std::fmt;
 
 use lexopt::Parser;
 
-use crate::cmd;
-use crate::diagnostic::{Diagnostic, Outcome};
 use crate::escape::{command_line, shell_word};
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -59,19 +56,30 @@ impl Cli {
 /// and may appear anywhere before `--`; any token starting with a single
 /// `-` is an operand. The first operand is the command.
 ///
-/// Parsing stops at the first error, which shows the synopsis of the
-/// command read so far.
+/// Parsing stops at the first error, which names the command read so
+/// far.
 pub fn parse(
     args: impl IntoIterator<Item = OsString>,
-) -> Result<Cli, UsageError> {
+) -> Result<Cli, ParseError> {
     let mut parser = Parser::from_args(args);
     let count = remaining(&mut parser);
     let mut cli = Cli::default();
     parse_into(&mut parser, &mut cli).map_err(|error| {
         let position = count - remaining(&mut parser);
-        UsageError::new(message(error, position), cli.command.as_deref())
+        ParseError {
+            message: message(error, position),
+            command: cli.command.clone(),
+        }
     })?;
     Ok(cli)
+}
+
+/// Arguments that don't parse: the message, and the command name read
+/// before the error, if there was one.
+#[derive(Debug)]
+pub struct ParseError {
+    pub message: String,
+    pub command: Option<String>,
 }
 
 /// Whether `--json` is among the options, so that even a usage error can
@@ -174,53 +182,13 @@ fn option_word(option: &str) -> Cow<'_, str> {
     }
 }
 
-/// An invocation that can't run as written, and the synopsis it should
-/// have followed.
-#[derive(Debug)]
-pub struct UsageError {
-    message: String,
-    usage: Vec<String>,
-}
-
-impl UsageError {
-    /// An error in an invocation of `command`, or of sego when it names no
-    /// command.
-    pub fn new(message: impl Into<String>, command: Option<&str>) -> Self {
-        UsageError { message: message.into(), usage: cmd::synopsis(command) }
-    }
-}
-
-impl fmt::Display for UsageError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.message)
-    }
-}
-
-impl Diagnostic for UsageError {
-    fn code(&self) -> &'static str {
-        "usage"
-    }
-
-    fn outcome(&self) -> Outcome {
-        Outcome::Invalid
-    }
-
-    fn usage(&self) -> Vec<String> {
-        self.usage.clone()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::ffi::OsString;
 
-    use expect_test::expect;
-
     use super::*;
-    use crate::cmd::commands;
-    use crate::diagnostic::{Diagnostic, Outcome};
 
-    fn parse_strs(args: &[&str]) -> Result<Cli, UsageError> {
+    fn parse_strs(args: &[&str]) -> Result<Cli, ParseError> {
         parse(args.iter().map(OsString::from))
     }
 
@@ -265,53 +233,8 @@ mod tests {
         for depth in ["0", "x", "99999999999"] {
             let error =
                 parse_strs(&["list", "x", "--depth", depth]).unwrap_err();
-            assert_eq!(
-                (error.code(), error.outcome()),
-                ("usage", Outcome::Invalid),
-                "{depth}"
-            );
+            assert_eq!(error.command.as_deref(), Some("list"), "{depth}");
         }
-    }
-
-    #[test]
-    fn errors_show_the_synopsis_of_the_command_read_so_far() {
-        let invocations: &[&[&str]] = &[
-            &["read", "x", "a", "--jsno"],
-            &["--jsno", "read", "x"],
-            &["read", "x/y", "--weird.go", "1-2"],
-            &["search", "--weird", "x"],
-            &["search", "--a b"],
-            &["search", "--=x"],
-            &["list", "x", "--depth"],
-            &["list", "x", "--depth", "0"],
-            &["read", "x", "--depth=x"],
-            &["--depth", "99999999999", "list", "x"],
-            &["--json=1", "search", "x"],
-            &["search", "x", "--help=x"],
-        ];
-        let errors: Vec<String> = invocations
-            .iter()
-            .map(|argv| {
-                let error = parse_strs(argv).unwrap_err();
-                assert_eq!(error.hints(), Vec::<String>::new());
-                format!("{error} | {}\n", commands(&error.usage()))
-            })
-            .collect();
-        expect![[r#"
-            unknown option --jsno | read
-            unknown option --jsno | search list read
-            unknown option --weird.go | read
-            unknown option --weird | search
-            unknown option '--a b' | search
-            unknown option '--' | search
-            --depth needs a value | list
-            invalid --depth 0; expected a number from 1 to 4294967295 | list
-            invalid --depth x; expected a number from 1 to 4294967295 | read
-            invalid --depth 99999999999; expected a number from 1 to 4294967295 | search list read
-            --json takes no value | search list read
-            --help takes no value | search
-        "#]]
-        .assert_eq(&errors.concat());
     }
 
     #[cfg(unix)]
@@ -321,8 +244,7 @@ mod tests {
 
         let bad = || OsString::from_vec(vec![0x66, 0xff]);
         let error = parse([OsString::from("read"), bad()]).unwrap_err();
-        assert_eq!(error.code(), "usage");
-        assert_eq!(error.to_string(), "argument 2 is not valid UTF-8");
+        assert_eq!(error.message, "argument 2 is not valid UTF-8");
         let mut joined = OsString::from("--depth=");
         joined.push(bad());
         let invocations = [
@@ -331,15 +253,18 @@ mod tests {
             vec!["list".into(), joined],
         ];
         let errors = invocations.map(|args| {
-            let error = parse(args).unwrap_err();
-            format!("{error} | {}", commands(&error.usage()))
+            let ParseError { message, command } = parse(args).unwrap_err();
+            (message, command)
         });
+        let error = |message: &str, command: Option<&str>| {
+            (message.to_owned(), command.map(str::to_owned))
+        };
         assert_eq!(
             errors,
             [
-                "argument 1 is not valid UTF-8 | search list read",
-                "argument 4 is not valid UTF-8 | list",
-                "argument 2 is not valid UTF-8 | list",
+                error("argument 1 is not valid UTF-8", None),
+                error("argument 4 is not valid UTF-8", Some("list")),
+                error("argument 2 is not valid UTF-8", Some("list")),
             ]
         );
     }

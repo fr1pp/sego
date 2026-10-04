@@ -14,7 +14,7 @@ use std::io::{self, Write};
 use std::process::ExitCode;
 
 use args::Cli;
-use cmd::Present;
+use cmd::{Present, UsageError};
 use diagnostic::{Diagnostic, report};
 use output::Output;
 use sourcegraph::transport::Transport;
@@ -25,8 +25,9 @@ const DEFAULT_ENDPOINT: &str = "https://sourcegraph.com";
 fn main() -> ExitCode {
     let args: Vec<OsString> = env::args_os().skip(1).collect();
     let json = args::wants_json(&args);
-    let result =
-        args::parse(args).map_err(Box::from).and_then(|cli| answer(&cli));
+    let result = args::parse(args)
+        .map_err(|error| Box::from(UsageError::from(error)))
+        .and_then(|cli| answer(&cli));
     let mut stdout = Output::new(io::stdout().lock());
     let outcome = match result {
         Ok(present) => {

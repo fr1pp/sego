@@ -1,8 +1,8 @@
 use serde::Serialize;
 
-use super::{Help, Present};
+use super::{Command, Help, Present, UsageError};
 use crate::address::{Address, Pinned, RepoPath};
-use crate::args::{Cli, UsageError};
+use crate::args::Cli;
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::domain::{Entry, EntryKind, Listing, Submodule, Tree};
 use crate::escape::shell_word;
@@ -81,7 +81,7 @@ const OPERANDS: &str = "expected <repo>[@<rev>] [<path>]";
 /// which defaults to 1.
 pub fn request(cli: &Cli) -> Result<ListRequest, UsageError> {
     let invalid =
-        |message: String| UsageError::new(message, cli.command.as_deref());
+        |message: String| UsageError::new(message, Some(Command::List));
     let (repo, path) = match cli.operands.as_slice() {
         [repo] => (repo, ""),
         [repo, path] => (repo, path.as_str()),
