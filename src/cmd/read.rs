@@ -96,7 +96,7 @@ pub fn request(cli: &Cli) -> Result<ReadRequest, UsageError> {
     let path = RepoPath::parse(path);
     if path.is_root() {
         return Err(UsageError::new("empty path; read needs a file's path")
-            .with_hint(command_line(&["sego", "list"], &[repo])));
+            .with_hint(help()));
     }
     let range = match lines {
         Some(lines) => LineRange::parse(lines).map_err(invalid)?,

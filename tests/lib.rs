@@ -199,7 +199,7 @@ fn empty_operands_are_usage_errors() {
         [EOF]
         --- stderr
         error: empty path; read needs a file's path
-        hint: sego list github.com/gorilla/mux
+        hint: sego read --help
         [EOF]
     "#]]
     );

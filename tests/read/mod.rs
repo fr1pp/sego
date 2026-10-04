@@ -416,6 +416,7 @@ fn an_endpoint_without_a_scheme_is_invalid() {
         [EOF]
         --- stderr
         error: SEGO_ENDPOINT must start with http:// or https://: sourcegraph.com
+        hint: sego --help
         [EOF]
     "#]].assert_eq(&run.transcript());
 }
