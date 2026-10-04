@@ -7,8 +7,6 @@ use crate::cmd::COMMANDS;
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::escape::{command_line, shell_word};
 
-const OPTIONS: &[&str] = &["json", "depth", "help", "version"];
-
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Cli {
     pub command: Option<String>,
@@ -73,21 +71,7 @@ pub fn parse(
     args: impl IntoIterator<Item = OsString>,
 ) -> Result<Cli, UsageError> {
     let args: Vec<OsString> = args.into_iter().collect();
-    parse_reading(&args, Unknown::Error)
-}
-
-/// What the parser makes of a `--` token that names no option.
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum Unknown {
-    Error,
-    Operand,
-}
-
-fn parse_reading(
-    args: &[OsString],
-    unknown: Unknown,
-) -> Result<Cli, UsageError> {
-    let mut parser = Parser::from_args(args);
+    let mut parser = Parser::from_args(&args);
     let mut cli = Cli::default();
     loop {
         let operand = parser.try_raw_args().and_then(|mut raw| {
@@ -118,30 +102,16 @@ fn parse_reading(
                         Ok(value) => value,
                         Err(error) => return Err(lexopt_error(error, &cli)),
                     };
-                    let value = text(value, position(&mut parser, args))?;
+                    let value = text(value, position(&mut parser, &args))?;
                     cli.depth = Some(depth(&value)?);
                     continue;
                 }
                 Ok(Some(Arg::Long(name))) => {
-                    let name = name.to_owned();
-                    let attached = parser.optional_value();
-                    let at = position(&mut parser, args);
-                    if unknown == Unknown::Operand {
-                        args[at - 1].clone()
-                    } else {
-                        let error = UsageError::new(format!(
-                            "unknown option {}",
-                            option_word(&name)
-                        ));
-                        let hint = match did_you_mean(&name, OPTIONS) {
-                            Some(option) => {
-                                corrected(args, at, option, attached)
-                            }
-                            None => literal(args),
-                        };
-                        let hint = hint.unwrap_or_else(|| cli.help_hint());
-                        return Err(error.with_hint(hint));
-                    }
+                    let message =
+                        format!("unknown option {}", option_word(name));
+                    return Err(
+                        UsageError::new(message).with_hint(cli.help_hint())
+                    );
                 }
                 Ok(Some(Arg::Short(c))) => {
                     let message = format!(
@@ -155,7 +125,7 @@ fn parse_reading(
                 Err(error) => return Err(lexopt_error(error, &cli)),
             },
         };
-        let value = text(value, position(&mut parser, args))?;
+        let value = text(value, position(&mut parser, &args))?;
         match cli.command {
             None => cli.command = Some(value),
             Some(_) => cli.operands.push(value),
@@ -205,33 +175,6 @@ fn option_word(name: &str) -> String {
     }
 }
 
-/// The command line with the unknown option at `position` replaced by
-/// `option`, if that is an invocation that runs.
-fn corrected(
-    args: &[OsString],
-    position: usize,
-    option: &str,
-    attached: Option<OsString>,
-) -> Option<String> {
-    let mut token = OsString::from(format!("--{option}"));
-    if let Some(attached) = attached {
-        token.push("=");
-        token.push(attached);
-    }
-    let mut args = args.to_vec();
-    args[position - 1] = token;
-    let cli = parse(args).ok()?;
-    crate::cmd::validate(&cli).is_ok().then(|| cli.command_line())
-}
-
-/// The command line with every unknown option read as an operand, after
-/// `--`, if that is an invocation that runs: a path or query word that
-/// starts with `--`, pasted without one.
-fn literal(args: &[OsString]) -> Option<String> {
-    let cli = parse_reading(args, Unknown::Operand).ok()?;
-    crate::cmd::validate(&cli).is_ok().then(|| cli.command_line())
-}
-
 fn lexopt_error(error: lexopt::Error, cli: &Cli) -> UsageError {
     let message = match error {
         lexopt::Error::MissingValue { option } => {
@@ -247,35 +190,6 @@ fn lexopt_error(error: lexopt::Error, cli: &Cli) -> UsageError {
         | lexopt::Error::Custom(_)) => error.to_string(),
     };
     UsageError::new(message).with_hint(cli.help_hint())
-}
-
-/// The candidate nearest `input`, if it is at most two edits away.
-pub fn did_you_mean<'a>(
-    input: &str,
-    candidates: &[&'a str],
-) -> Option<&'a str> {
-    candidates
-        .iter()
-        .map(|&candidate| (distance(input, candidate), candidate))
-        .filter(|&(edits, _)| edits <= 2)
-        .min_by_key(|&(edits, _)| edits)
-        .map(|(_, candidate)| candidate)
-}
-
-/// The Levenshtein distance between `a` and `b`, in characters.
-fn distance(a: &str, b: &str) -> usize {
-    let b: Vec<char> = b.chars().collect();
-    let mut row: Vec<usize> = (0..=b.len()).collect();
-    for (i, ca) in a.chars().enumerate() {
-        let mut diagonal = row[0];
-        row[0] = i + 1;
-        for (j, &cb) in b.iter().enumerate() {
-            let substitution = diagonal + usize::from(ca != cb);
-            diagonal = row[j + 1];
-            row[j + 1] = substitution.min(row[j] + 1).min(diagonal + 1);
-        }
-    }
-    row[b.len()]
 }
 
 /// An invocation that can't run as written.
@@ -319,6 +233,8 @@ impl Diagnostic for UsageError {
 #[cfg(test)]
 mod tests {
     use std::ffi::OsString;
+
+    use expect_test::expect;
 
     use super::*;
     use crate::diagnostic::{Diagnostic, Outcome};
@@ -377,37 +293,31 @@ mod tests {
     }
 
     #[test]
-    fn unknown_options_suggest_a_correction() {
-        let error = parse_strs(&["read", "x", "a", "--jsno"]).unwrap_err();
-        assert_eq!(error.to_string(), "unknown option --jsno");
-        assert_eq!(error.hints(), ["sego read x a --json"]);
-        let error = parse_strs(&["read", "x", "--jsno"]).unwrap_err();
-        assert_eq!(error.hints(), ["sego read --help"]);
-    }
-
-    #[test]
-    fn unknown_options_that_run_as_operands_hint_the_command_with_dashes() {
-        let at = "github.com/gorilla/mux@a7962380ca08";
-        let hints = |args: &[&str]| parse_strs(args).unwrap_err().hints();
-        let error =
-            parse_strs(&["read", at, "--weird.go", "213-214"]).unwrap_err();
-        assert_eq!(error.to_string(), "unknown option --weird.go");
-        assert_eq!(
-            error.hints(),
-            [format!("sego read -- {at} --weird.go 213-214")]
-        );
-        assert_eq!(
-            hints(&["read", "x/y", "--a=b.go", "--json"]),
-            ["sego read --json -- x/y --a=b.go"]
-        );
-        assert_eq!(
-            hints(&["search", "--weird", "x", "--odd"]),
-            ["sego search -- --weird x --odd"]
-        );
-        assert_eq!(
-            hints(&["read", "x/y", "--weird.go", "0"]),
-            ["sego read --help"]
-        );
+    fn errors_hint_the_help_of_the_command_read_so_far() {
+        let invocations: &[&[&str]] = &[
+            &["read", "x", "a", "--jsno"],
+            &["--jsno", "read", "x"],
+            &["read", "x/y", "--weird.go", "1-2"],
+            &["search", "--weird", "x"],
+            &["search", "--a b"],
+            &["search", "--=x"],
+        ];
+        let errors: Vec<String> = invocations
+            .iter()
+            .map(|argv| {
+                let error = parse_strs(argv).unwrap_err();
+                format!("{error} | {}\n", error.hints().join(" | "))
+            })
+            .collect();
+        expect![[r#"
+            unknown option --jsno | sego read --help
+            unknown option --jsno | sego --help
+            unknown option --weird.go | sego read --help
+            unknown option --weird | sego search --help
+            unknown option '--a b' | sego search --help
+            unknown option '--' | sego search --help
+        "#]]
+        .assert_eq(&errors.concat());
     }
 
     #[cfg(unix)]

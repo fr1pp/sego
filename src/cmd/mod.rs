@@ -2,7 +2,7 @@ pub mod list;
 pub mod read;
 pub mod search;
 
-use crate::args::{Cli, UsageError, did_you_mean};
+use crate::args::{Cli, UsageError};
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::escape::shell_word;
 use crate::sourcegraph::Fetch;
@@ -108,18 +108,28 @@ enum Action {
     Run(Command),
 }
 
+/// What `cli` asks for. A usage error's hint is the command's help, or the
+/// top-level help when there is no known command.
 fn action(cli: &Cli) -> Result<Action, UsageError> {
+    let invalid =
+        |message: String| UsageError::new(message).with_hint(cli.help_hint());
     let command = match cli.command.as_deref() {
-        Some(name) => Some(known(name, cli)?),
+        Some(name) => match Command::parse(name) {
+            Some(command) => Some(command),
+            None => {
+                return Err(invalid(format!(
+                    "unknown command {}",
+                    shell_word(name)
+                )));
+            }
+        },
         None => None,
     };
     if let Some(command) = command
         && command != Command::List
         && cli.depth.is_some()
     {
-        let without = Cli { depth: None, ..cli.clone() };
-        return Err(UsageError::new("--depth applies only to list")
-            .with_hint(correction(&without)));
+        return Err(invalid("--depth applies only to list".to_owned()));
     }
     if cli.help {
         Ok(Action::Help(command))
@@ -128,38 +138,10 @@ fn action(cli: &Cli) -> Result<Action, UsageError> {
     } else {
         match command {
             Some(command) => Ok(Action::Run(command)),
-            None => Err(UsageError::new(
-                "missing command; expected search, list or read",
-            )
-            .with_hint("sego --help".to_owned())),
+            None => Err(invalid(
+                "missing command; expected search, list or read".to_owned(),
+            )),
         }
-    }
-}
-
-/// `name` as a command; if it is none of `COMMANDS`, a usage error whose
-/// hint, when the name is close to one, is the corrected command.
-fn known(name: &str, cli: &Cli) -> Result<Command, UsageError> {
-    if let Some(command) = Command::parse(name) {
-        return Ok(command);
-    }
-    let error =
-        UsageError::new(format!("unknown command {}", shell_word(name)));
-    let hint = match did_you_mean(name, COMMANDS) {
-        Some(command) => correction(&Cli {
-            command: Some(command.to_owned()),
-            ..cli.clone()
-        }),
-        None => "sego --help".to_owned(),
-    };
-    Err(error.with_hint(hint))
-}
-
-/// `cli`, an invocation with one mistake fixed, as a hint: its command line
-/// if it runs, else its command's help, since another mistake remains.
-fn correction(cli: &Cli) -> String {
-    match validate(cli) {
-        Ok(()) => cli.command_line(),
-        Err(_) => cli.help_hint(),
     }
 }
 
@@ -252,32 +234,37 @@ mod tests {
     }
 
     #[test]
-    fn corrections_that_still_fail_hint_help() {
-        let invocations: [&[&str]; 6] = [
+    fn usage_errors_hint_the_command_help() {
+        let invocations: [&[&str]; 8] = [
             &["serch", "x"],
             &["serch"],
             &["serch", "x", "--depth", "2"],
             &["serch", "--help", "--depth", "2"],
             &["read", "x/y", "a.go", "--depth", "2"],
             &["read", "x/y", "--depth", "2"],
+            &["search", "x", "--depth", "2"],
+            &["--depth", "2"],
         ];
-        let hints: Vec<String> = invocations
+        let errors: Vec<String> = invocations
             .iter()
             .map(|argv| {
                 let argv = argv.iter().map(OsString::from);
                 let cli = args::parse(argv).unwrap();
-                validate(&cli).err().unwrap().hints().join(" | ")
+                let error = validate(&cli).err().unwrap();
+                format!("{error} | {}\n", error.hints().join(" | "))
             })
             .collect();
         expect![[r#"
-            sego search x
-            sego search --help
-            sego search --help
-            sego search --help
-            sego read x/y a.go
-            sego read --help
+            unknown command serch | sego --help
+            unknown command serch | sego --help
+            unknown command serch | sego --help
+            unknown command serch | sego --help
+            --depth applies only to list | sego read --help
+            --depth applies only to list | sego read --help
+            --depth applies only to list | sego search --help
+            missing command; expected search, list or read | sego --help
         "#]]
-        .assert_eq(&(hints.join("\n") + "\n"));
+        .assert_eq(&errors.concat());
     }
 
     /// The corpus without the empty string, which is never a file's path

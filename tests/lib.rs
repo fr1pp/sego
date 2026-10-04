@@ -129,7 +129,7 @@ fn no_command() {
 }
 
 #[test]
-fn unknown_command_suggests_one() {
+fn unknown_command_hints_help() {
     check!(
         sego().args(["serch", "NewRouter"]),
         expect![[r#"
@@ -138,7 +138,7 @@ fn unknown_command_suggests_one() {
         [EOF]
         --- stderr
         error: unknown command serch
-        hint: sego search NewRouter
+        hint: sego --help
         [EOF]
     "#]]
     );
@@ -151,11 +151,11 @@ fn json_usage_errors_go_to_both_streams() {
         expect![[r#"
         exit 2
         --- stdout
-        {"version":1,"kind":"error","code":"usage","message":"unknown command serch","hints":["sego search x --json"]}
+        {"version":1,"kind":"error","code":"usage","message":"unknown command serch","hints":["sego --help"]}
         [EOF]
         --- stderr
         error: unknown command serch
-        hint: sego search x --json
+        hint: sego --help
         [EOF]
     "#]]
     );
@@ -171,7 +171,7 @@ fn depth_only_applies_to_list() {
         [EOF]
         --- stderr
         error: --depth applies only to list
-        hint: sego search x
+        hint: sego search --help
         [EOF]
     "#]]
     );
