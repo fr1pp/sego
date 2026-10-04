@@ -93,6 +93,11 @@ fn tokens(query: &str) -> Vec<Range<usize>> {
     tokens
 }
 
+/// Whether `token` is one of `query`'s tokens, as `tokens` splits them.
+pub fn has_token(query: &str, token: &str) -> bool {
+    tokens(query).into_iter().any(|range| query[range] == *token)
+}
+
 /// The nanoseconds in each of Go's duration units.
 const GO_UNITS: &[(&str, u128)] = &[
     ("h", 3_600_000_000_000),
@@ -152,14 +157,6 @@ fn go_text(duration: Duration) -> String {
             || format!("{nanos}ns"),
             |&(unit, scale)| format!("{}{unit}", nanos / scale),
         )
-}
-
-/// The duration of `query`'s first `timeout:` token outside double quotes,
-/// in Go's syntax; `None` if there is none, it doesn't parse or it is zero.
-pub fn query_timeout(query: &str) -> Option<Duration> {
-    timeout_token(query)
-        .map(|(_, duration)| duration)
-        .filter(|duration| !duration.is_zero())
 }
 
 /// `query` with its `timeout:` doubled; `None` if it has none.
@@ -769,6 +766,13 @@ mod tests {
         })
     }
 
+    /// The timeout `cut_short` waits for: `query`'s, unless it is zero.
+    fn query_timeout(query: &str) -> Option<Duration> {
+        timeout_token(query)
+            .map(|(_, duration)| duration)
+            .filter(|duration| !duration.is_zero())
+    }
+
     #[test]
     fn query_timeouts() {
         let ms = Duration::from_millis;
@@ -784,6 +788,16 @@ mod tests {
         assert_eq!(query_timeout("x timeout:5"), None);
         assert_eq!(query_timeout("x timeout:0s"), None);
         assert_eq!(query_timeout("x mytimeout:5s"), None);
+    }
+
+    #[test]
+    fn tokens_keep_quoted_spaces() {
+        let query = r#"repo:x before:"2 months ago" "a b" c"#;
+        assert!(has_token(query, r#"before:"2 months ago""#));
+        assert!(has_token(query, r#""a b""#));
+        assert!(has_token(query, "repo:x"));
+        assert!(!has_token(query, "months"));
+        assert!(!has_token(query, "repo"));
     }
 
     #[test]

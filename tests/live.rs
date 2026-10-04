@@ -28,3 +28,16 @@ fn list_live() {
     let run = live().args(["list", "github.com/gorilla/mux@v1.7.0"]).run();
     assert_eq!(run.code, 0, "{}", run.transcript());
 }
+
+#[test]
+#[ignore = "network: run by just live"]
+fn search_live() {
+    let run = live().args([
+        "search",
+        r"repo:^github\.com/gorilla/mux$@v1.7.0",
+        "NewRouter",
+        "case:yes",
+    ]);
+    let run = run.run();
+    assert_eq!(run.code, 0, "{}", run.transcript());
+}

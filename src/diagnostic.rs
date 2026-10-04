@@ -184,10 +184,6 @@ impl Diagnostic for Unavailable {
 /// A search with no hits that has no answer: the upstream couldn't run the
 /// query, or cut it short. `reason` says how.
 #[derive(Debug)]
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "wired into a command in a later task")
-)]
 pub enum SearchProblem {
     BadQuery { alert: Alert },
     Incomplete { query: String, reason: String },

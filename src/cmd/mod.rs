@@ -1,5 +1,6 @@
 pub mod list;
 pub mod read;
+pub mod search;
 
 use crate::args::{Cli, UsageError, did_you_mean};
 use crate::diagnostic::{Diagnostic, Outcome};
@@ -72,12 +73,39 @@ impl Present for Plain {
     }
 }
 
+/// A command sego runs.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Command {
+    Search,
+    List,
+    Read,
+}
+
+impl Command {
+    fn parse(name: &str) -> Option<Command> {
+        match name {
+            "search" => Some(Command::Search),
+            "list" => Some(Command::List),
+            "read" => Some(Command::Read),
+            _ => None,
+        }
+    }
+
+    fn help(self) -> &'static str {
+        match self {
+            Command::Search => search::HELP,
+            Command::List => list::HELP,
+            Command::Read => read::HELP,
+        }
+    }
+}
+
 /// What an invocation asks for.
 enum Action {
     /// Help for a command, or the top-level help.
-    Help(Option<&'static str>),
+    Help(Option<Command>),
     Version,
-    Run(&'static str),
+    Run(Command),
 }
 
 fn action(cli: &Cli) -> Result<Action, UsageError> {
@@ -86,7 +114,7 @@ fn action(cli: &Cli) -> Result<Action, UsageError> {
         None => None,
     };
     if let Some(command) = command
-        && command != "list"
+        && command != Command::List
         && cli.depth.is_some()
     {
         let without = Cli { depth: None, ..cli.clone() };
@@ -108,10 +136,10 @@ fn action(cli: &Cli) -> Result<Action, UsageError> {
     }
 }
 
-/// `name` as one of `COMMANDS`; if it is none of them, a usage error
-/// whose hint, when the name is close to one, is the corrected command.
-fn known(name: &str, cli: &Cli) -> Result<&'static str, UsageError> {
-    if let Some(&command) = COMMANDS.iter().find(|&&command| command == name) {
+/// `name` as a command; if it is none of `COMMANDS`, a usage error whose
+/// hint, when the name is close to one, is the corrected command.
+fn known(name: &str, cli: &Cli) -> Result<Command, UsageError> {
+    if let Some(command) = Command::parse(name) {
         return Ok(command);
     }
     let error =
@@ -126,19 +154,6 @@ fn known(name: &str, cli: &Cli) -> Result<&'static str, UsageError> {
     Err(error.with_hint(hint))
 }
 
-fn not_implemented(command: &str) -> Box<dyn Diagnostic> {
-    Box::new(UsageError::new(format!("{command} is not implemented yet")))
-}
-
-/// A command's help.
-fn help(command: &str) -> Result<&'static str, Box<dyn Diagnostic>> {
-    match command {
-        "list" => Ok(list::HELP),
-        "read" => Ok(read::HELP),
-        command => Err(not_implemented(command)),
-    }
-}
-
 /// Whether the invocation runs a command, which needs the upstream.
 pub fn needs_upstream(cli: &Cli) -> bool {
     matches!(action(cli), Ok(Action::Run(_)))
@@ -147,17 +162,18 @@ pub fn needs_upstream(cli: &Cli) -> bool {
 /// Checks the invocation as far as possible without fetching anything.
 pub fn validate(cli: &Cli) -> Result<(), Box<dyn Diagnostic>> {
     match action(cli)? {
-        Action::Run("list") => {
+        Action::Run(Command::Search) => {
+            search::request(cli)?;
+        }
+        Action::Run(Command::List) => {
             list::request(cli)?;
-            Ok(())
         }
-        Action::Run("read") => {
+        Action::Run(Command::Read) => {
             read::request(cli)?;
-            Ok(())
         }
-        Action::Run(command) => Err(not_implemented(command)),
-        Action::Help(_) | Action::Version => Ok(()),
+        Action::Help(_) | Action::Version => {}
     }
+    Ok(())
 }
 
 pub fn run(
@@ -166,10 +182,22 @@ pub fn run(
 ) -> Result<Box<dyn Present>, Box<dyn Diagnostic>> {
     match action(cli)? {
         Action::Help(None) => Ok(Box::new(Plain(HELP))),
-        Action::Help(Some(command)) => Ok(Box::new(Plain(help(command)?))),
+        Action::Help(Some(command)) => Ok(Box::new(Plain(command.help()))),
         Action::Version => Ok(Box::new(Plain(VERSION))),
-        Action::Run("list") => list::run(cli, fetch),
-        Action::Run("read") => read::run(cli, fetch),
-        Action::Run(command) => Err(not_implemented(command)),
+        Action::Run(Command::Search) => search::run(cli, fetch),
+        Action::Run(Command::List) => list::run(cli, fetch),
+        Action::Run(Command::Read) => read::run(cli, fetch),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn every_command_name_parses() {
+        for &name in COMMANDS {
+            assert!(Command::parse(name).is_some(), "{name}");
+        }
     }
 }

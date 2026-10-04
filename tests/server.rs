@@ -23,6 +23,9 @@ pub enum Step {
     /// Checks the request against the capture's `request`, a path under
     /// `tests/`, and answers with its `response`.
     Capture(&'static str),
+    /// Checks the request against the capture's `request` with its query
+    /// variable replaced by `query`, and answers with its `response`.
+    Search { capture: &'static str, query: &'static str },
     /// Answers with this status, headers and body.
     Status { status: u16, headers: Vec<(&'static str, String)>, body: String },
     /// Reads the request, then closes the connection without answering.
@@ -130,17 +133,9 @@ fn answer(stream: TcpStream, step: Step) -> Result<(), String> {
     let request = Request::read(stream)?;
     request.check()?;
     match step {
-        Step::Capture(path) => {
-            let capture = capture(path);
-            let mismatch = (request.json() != capture["request"])
-                .then(|| format!("the request doesn't match {path}"));
-            let status = capture["response"]["status"]
-                .as_u64()
-                .and_then(|status| u16::try_from(status).ok())
-                .expect("a capture's status");
-            let body = capture["response"]["body"].to_string();
-            request.respond(status, &[], &body)?;
-            mismatch.map_or(Ok(()), Err)
+        Step::Capture(path) => respond_with(request, path, None),
+        Step::Search { capture, query } => {
+            respond_with(request, capture, Some(query))
         }
         Step::Status { status, headers, body } => {
             request.respond(status, &headers, &body)
@@ -150,7 +145,31 @@ fn answer(stream: TcpStream, step: Step) -> Result<(), String> {
     }
 }
 
-fn capture(path: &str) -> serde_json::Value {
+/// Answers with the capture at `path`, checking the request against its
+/// own, with the query variable replaced when `query` is given.
+fn respond_with(
+    request: Request,
+    path: &str,
+    query: Option<&str>,
+) -> Result<(), String> {
+    let capture = capture(path);
+    let mut expected = capture["request"].clone();
+    if let Some(query) = query {
+        expected["variables"]["query"] = query.into();
+    }
+    let mismatch = (request.json() != expected)
+        .then(|| format!("the request doesn't match {path}"));
+    let status = capture["response"]["status"]
+        .as_u64()
+        .and_then(|status| u16::try_from(status).ok())
+        .expect("a capture's status");
+    let body = capture["response"]["body"].to_string();
+    request.respond(status, &[], &body)?;
+    mismatch.map_or(Ok(()), Err)
+}
+
+/// The capture at `path`, under `tests/`.
+pub fn capture(path: &str) -> serde_json::Value {
     let file = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests").join(path);
     let text = fs::read_to_string(&file)
         .unwrap_or_else(|error| panic!("{}: {error}", file.display()));

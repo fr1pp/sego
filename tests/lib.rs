@@ -5,6 +5,7 @@ mod command;
 mod list;
 mod live;
 mod read;
+mod search;
 mod server;
 
 use command::Command;

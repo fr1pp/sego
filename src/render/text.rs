@@ -24,10 +24,6 @@ pub fn address_line(words: &[&str], meta: &[String]) -> String {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Marker {
     Match,
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "search shows context in a later task")
-    )]
     Context,
 }
 
