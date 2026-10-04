@@ -23,6 +23,11 @@ mod output;
     expect(dead_code, reason = "wired into a command in a later task")
 )]
 mod render;
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "wired into a command in a later task")
+)]
+mod sourcegraph;
 
 use std::env;
 use std::process::ExitCode;
