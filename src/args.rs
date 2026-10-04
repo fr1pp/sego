@@ -91,7 +91,9 @@ fn single_dash(parser: &mut Parser) -> Option<OsString> {
     })
 }
 
-/// The number of arguments the parser has yet to take.
+/// The number of arguments the parser has yet to take, or 0 while an
+/// option's value is pending. The count is used only for `NonUnicodeValue`,
+/// which is raised after any pending value has been taken.
 fn remaining(parser: &mut Parser) -> usize {
     parser.try_raw_args().map_or(0, |raw| raw.as_slice().len())
 }
