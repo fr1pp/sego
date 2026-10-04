@@ -659,6 +659,79 @@ mod tests {
         all
     }
 
+    /// Every variant of the diagnostic enums the fixtures above cover.
+    const VARIANTS: &[&str] = &[
+        "FetchError::Transport",
+        "FetchError::Status",
+        "FetchError::NotJson",
+        "FetchError::Empty",
+        "FetchError::Field",
+        "FetchError::Server",
+        "FetchError::Schema",
+        "Unavailable::RepoNotFound",
+        "Unavailable::RevisionNotFound",
+        "Unavailable::PathNotFound",
+        "Unavailable::NotAFile",
+        "Unavailable::NotADirectory",
+        "Unavailable::TooLarge",
+        "Unavailable::OutOfRange",
+        "SearchProblem::BadQuery",
+        "SearchProblem::Incomplete",
+    ];
+
+    /// The name of `error`'s variant. The match is exhaustive, so a new
+    /// variant doesn't compile until it is named here and in `VARIANTS`,
+    /// and `every_variant_has_a_fixture` fails until it has a fixture.
+    fn fetch_error_variant(error: &FetchError) -> &'static str {
+        match error {
+            FetchError::Transport { .. } => "FetchError::Transport",
+            FetchError::Status { .. } => "FetchError::Status",
+            FetchError::NotJson { .. } => "FetchError::NotJson",
+            FetchError::Empty { .. } => "FetchError::Empty",
+            FetchError::Field { .. } => "FetchError::Field",
+            FetchError::Server { .. } => "FetchError::Server",
+            FetchError::Schema { .. } => "FetchError::Schema",
+        }
+    }
+
+    /// The name of `unavailable`'s variant, as `fetch_error_variant`.
+    fn unavailable_variant(unavailable: &Unavailable) -> &'static str {
+        match unavailable {
+            Unavailable::RepoNotFound { .. } => "Unavailable::RepoNotFound",
+            Unavailable::RevisionNotFound { .. } => {
+                "Unavailable::RevisionNotFound"
+            }
+            Unavailable::PathNotFound { .. } => "Unavailable::PathNotFound",
+            Unavailable::NotAFile { .. } => "Unavailable::NotAFile",
+            Unavailable::NotADirectory { .. } => "Unavailable::NotADirectory",
+            Unavailable::TooLarge { .. } => "Unavailable::TooLarge",
+            Unavailable::OutOfRange { .. } => "Unavailable::OutOfRange",
+        }
+    }
+
+    /// The name of `problem`'s variant, as `fetch_error_variant`.
+    fn search_problem_variant(problem: &SearchProblem) -> &'static str {
+        match problem {
+            SearchProblem::BadQuery { .. } => "SearchProblem::BadQuery",
+            SearchProblem::Incomplete { .. } => "SearchProblem::Incomplete",
+        }
+    }
+
+    #[test]
+    fn every_variant_has_a_fixture() {
+        let mut seen: Vec<&str> = fetch_errors()
+            .iter()
+            .map(fetch_error_variant)
+            .chain(unavailable().iter().map(unavailable_variant))
+            .chain(search_problems().iter().map(search_problem_variant))
+            .collect();
+        seen.sort_unstable();
+        seen.dedup();
+        let mut expected = VARIANTS.to_vec();
+        expected.sort_unstable();
+        assert_eq!(seen, expected);
+    }
+
     /// Writes nothing, failing with `cause`.
     struct Failing(String);
 
@@ -849,24 +922,56 @@ mod tests {
         words.split_terminator('\0').map(str::to_owned).collect()
     }
 
+    /// The command each diagnostic code's hints run, and each answer
+    /// kind's.
+    const HINT_COMMANDS: &[(&str, &str)] = &[
+        ("repo_not_found", "search"),
+        ("revision_not_found", "list"),
+        ("path_not_found", "list"),
+        ("not_a_file", "list"),
+        ("not_a_directory", "read"),
+        ("out_of_range", "read"),
+        ("bad_query", "search"),
+        ("incomplete", "search"),
+        ("file", "read"),
+        ("listing", "list"),
+        ("search", "search"),
+    ];
+
     #[test]
-    fn every_hint_is_a_valid_sego_invocation() {
-        let mut hints: Vec<String> =
-            diagnostics().iter().flat_map(|d| d.hints()).collect();
+    fn every_hint_is_a_valid_sego_invocation_of_its_command() {
+        let mut hints: Vec<(String, String)> = Vec::new();
+        for diagnostic in diagnostics() {
+            let code = diagnostic.code().to_owned();
+            hints.extend(
+                diagnostic.hints().into_iter().map(|h| (code.clone(), h)),
+            );
+        }
         for answer in answers() {
-            let document = serde_json::from_str(&answer.json()).unwrap();
-            json_hints(&document, &mut hints);
+            let document: Value =
+                serde_json::from_str(&answer.json()).unwrap();
+            let kind = document["kind"].as_str().unwrap().to_owned();
+            let mut found = Vec::new();
+            json_hints(&document, &mut found);
+            hints.extend(found.into_iter().map(|h| (kind.clone(), h)));
         }
         hints.sort();
         hints.dedup();
-        let invalid: Vec<String> = hints
+        let wrong: Vec<String> = hints
             .iter()
-            .filter_map(|hint| {
-                let error = invocation_error(&shell_words(hint))?;
-                Some(format!("{hint}: {error}"))
+            .filter_map(|(code, hint)| {
+                let words = shell_words(hint);
+                let error = invocation_error(&words).or_else(|| {
+                    let row = HINT_COMMANDS.iter().find(|row| row.0 == code);
+                    let Some(&(_, command)) = row else {
+                        return Some(format!("no command for {code}"));
+                    };
+                    (words[1] != command).then(|| format!("not {command}"))
+                })?;
+                Some(format!("{code}: {hint}: {error}"))
             })
             .collect();
-        assert_eq!(invalid, Vec::<String>::new());
+        assert_eq!(wrong, Vec::<String>::new());
     }
 
     /// Why `words` isn't a sego command that runs, if it isn't.
@@ -892,6 +997,32 @@ mod tests {
         "schema_mismatch",
         "output",
     ];
+
+    /// The codes of diagnostics that report the upstream's answer.
+    const UPSTREAM_CODES: &[&str] = &[
+        "repo_not_found",
+        "revision_not_found",
+        "path_not_found",
+        "not_a_file",
+        "not_a_directory",
+        "too_large",
+        "out_of_range",
+        "bad_query",
+        "incomplete",
+    ];
+
+    #[test]
+    fn every_code_is_own_or_upstream() {
+        for &(code, _) in EXIT_CODES {
+            let own = OWN_CODES.contains(&code);
+            let upstream = UPSTREAM_CODES.contains(&code);
+            assert!(own != upstream, "{code}");
+        }
+        let listed = OWN_CODES.iter().chain(UPSTREAM_CODES);
+        for code in listed {
+            assert!(EXIT_CODES.iter().any(|row| row.0 == *code), "{code}");
+        }
+    }
 
     #[test]
     fn hints_come_only_from_the_upstream() {
