@@ -80,22 +80,22 @@ const OPERANDS: &str = "expected <repo>[@<rev>] [<path>]";
 /// The listing `cli` asks for: `<repo>[@<rev>] [<path>]`, to `--depth`,
 /// which defaults to 1.
 pub fn request(cli: &Cli) -> Result<ListRequest, UsageError> {
-    let help = || "sego list --help".to_owned();
+    let invalid =
+        |message: String| UsageError::new(message, cli.command.as_deref());
     let (repo, path) = match cli.operands.as_slice() {
         [repo] => (repo, ""),
         [repo, path] => (repo, path.as_str()),
         [] => {
             let message = format!("missing operands; {OPERANDS}");
-            return Err(UsageError::new(message).with_hint(help()));
+            return Err(invalid(message));
         }
         [..] => {
             let message = format!("too many operands; {OPERANDS}");
-            return Err(UsageError::new(message).with_hint(help()));
+            return Err(invalid(message));
         }
     };
-    let address = Address::parse(repo).map_err(|error| {
-        UsageError::new(error.to_string()).with_hint(help())
-    })?;
+    let address =
+        Address::parse(repo).map_err(|error| invalid(error.to_string()))?;
     let path = RepoPath::parse(path);
     Ok(ListRequest { address, path, depth: cli.depth.unwrap_or(1) })
 }
@@ -342,7 +342,11 @@ mod tests {
         for operands in [&[][..], &["x/y", "a", "b"]] {
             let error = request(&cli(operands, None)).unwrap_err();
             assert_eq!(error.code(), "usage");
-            assert_eq!(error.hints(), ["sego list --help"]);
+            assert_eq!(error.hints(), Vec::<String>::new());
+            assert_eq!(
+                error.usage(),
+                ["sego list [--json] [--depth N] <repo>[@<rev>] [<path>]"]
+            );
         }
     }
 

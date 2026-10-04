@@ -100,8 +100,8 @@ Examples:
 pub fn request(cli: &Cli) -> Result<String, UsageError> {
     let query = cli.operands.join(" ");
     if query.trim().is_empty() {
-        return Err(UsageError::new("missing query; expected <query>...")
-            .with_hint("sego search --help".to_owned()));
+        let message = "missing query; expected <query>...";
+        return Err(UsageError::new(message, cli.command.as_deref()));
     }
     Ok(query)
 }

@@ -593,14 +593,14 @@ fn a_missing_query_sends_nothing() {
         [EOF]
         --- stderr
         error: missing query; expected <query>...
-        hint: sego search --help
+        usage: sego search [--json] <query>...
         [EOF]
         exit 2
         --- stdout
         [EOF]
         --- stderr
         error: missing query; expected <query>...
-        hint: sego search --help
+        usage: sego search [--json] <query>...
         [EOF]
     "#]]
     .assert_eq(&runs.concat());

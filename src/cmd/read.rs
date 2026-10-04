@@ -77,30 +77,30 @@ const OPERANDS: &str = "expected <repo>[@<rev>] <path> [<lines>]";
 /// The read `cli` asks for: `<repo>[@<rev>] <path> [<lines>]`. Without
 /// `<lines>`, lines 1 to `READ_LINE_CAP`.
 pub fn request(cli: &Cli) -> Result<ReadRequest, UsageError> {
-    let help = || "sego read --help".to_owned();
+    let invalid =
+        |message: String| UsageError::new(message, cli.command.as_deref());
     let (repo, path, lines) = match cli.operands.as_slice() {
         [repo, path] => (repo, path, None),
         [repo, path, lines] => (repo, path, Some(lines)),
         [] | [_] => {
             let message = format!("missing operands; {OPERANDS}");
-            return Err(UsageError::new(message).with_hint(help()));
+            return Err(invalid(message));
         }
         [..] => {
             let message = format!("too many operands; {OPERANDS}");
-            return Err(UsageError::new(message).with_hint(help()));
+            return Err(invalid(message));
         }
     };
-    let invalid = |error: AddressError| {
-        UsageError::new(error.to_string()).with_hint(help())
-    };
-    let address = Address::parse(repo).map_err(invalid)?;
+    let address_error = |error: AddressError| invalid(error.to_string());
+    let address = Address::parse(repo).map_err(address_error)?;
     let path = RepoPath::parse(path);
     if path.is_root() {
-        return Err(UsageError::new("empty path; read needs a file's path")
-            .with_hint(help()));
+        return Err(invalid(
+            "empty path; read needs a file's path".to_owned(),
+        ));
     }
     let range = match lines {
-        Some(lines) => LineRange::parse(lines).map_err(invalid)?,
+        Some(lines) => LineRange::parse(lines).map_err(address_error)?,
         None => LineRange { start: 1, end: Some(READ_LINE_CAP) },
     };
     Ok(ReadRequest { address, path, start: range.start, end: range.end })
@@ -259,7 +259,11 @@ mod tests {
         for operands in [&["x/y"][..], &["x/y", "a.go", "1", "2"]] {
             let error = request(&cli(operands)).unwrap_err();
             assert_eq!(error.code(), "usage");
-            assert_eq!(error.hints(), ["sego read --help"]);
+            assert_eq!(error.hints(), Vec::<String>::new());
+            assert_eq!(
+                error.usage(),
+                ["sego read [--json] <repo>[@<rev>] <path> [<lines>]"]
+            );
         }
     }
 

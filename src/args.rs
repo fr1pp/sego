@@ -4,7 +4,7 @@ use std::fmt;
 
 use lexopt::Parser;
 
-use crate::cmd::COMMANDS;
+use crate::cmd;
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::escape::{command_line, shell_word};
 
@@ -53,24 +53,14 @@ impl Cli {
             line
         }
     }
-
-    /// `sego <command> --help` for a known command, else `sego --help`.
-    pub fn help_hint(&self) -> String {
-        match self.command.as_deref() {
-            Some(command) if COMMANDS.contains(&command) => {
-                format!("sego {command} --help")
-            }
-            Some(_) | None => "sego --help".to_owned(),
-        }
-    }
 }
 
 /// Parses the arguments after the program name. Options are long-form only
 /// and may appear anywhere before `--`; any token starting with a single
 /// `-` is an operand. The first operand is the command.
 ///
-/// Parsing stops at the first error, whose hint is the help of the command
-/// read so far.
+/// Parsing stops at the first error, which shows the synopsis of the
+/// command read so far.
 pub fn parse(
     args: impl IntoIterator<Item = OsString>,
 ) -> Result<Cli, UsageError> {
@@ -79,7 +69,7 @@ pub fn parse(
     let mut cli = Cli::default();
     parse_into(&mut parser, &mut cli).map_err(|error| {
         let position = count - remaining(&mut parser);
-        UsageError::new(message(error, position)).with_hint(cli.help_hint())
+        UsageError::new(message(error, position), cli.command.as_deref())
     })?;
     Ok(cli)
 }
@@ -184,21 +174,19 @@ fn option_word(option: &str) -> Cow<'_, str> {
     }
 }
 
-/// An invocation that can't run as written.
+/// An invocation that can't run as written, and the synopsis it should
+/// have followed.
 #[derive(Debug)]
 pub struct UsageError {
     message: String,
-    hints: Vec<String>,
+    usage: Vec<String>,
 }
 
 impl UsageError {
-    pub fn new(message: impl Into<String>) -> Self {
-        UsageError { message: message.into(), hints: Vec::new() }
-    }
-
-    pub fn with_hint(mut self, hint: String) -> Self {
-        self.hints.push(hint);
-        self
+    /// An error in an invocation of `command`, or of sego when it names no
+    /// command.
+    pub fn new(message: impl Into<String>, command: Option<&str>) -> Self {
+        UsageError { message: message.into(), usage: cmd::synopsis(command) }
     }
 }
 
@@ -217,8 +205,8 @@ impl Diagnostic for UsageError {
         Outcome::Invalid
     }
 
-    fn hints(&self) -> Vec<String> {
-        self.hints.clone()
+    fn usage(&self) -> Vec<String> {
+        self.usage.clone()
     }
 }
 
@@ -229,6 +217,7 @@ mod tests {
     use expect_test::expect;
 
     use super::*;
+    use crate::cmd::commands;
     use crate::diagnostic::{Diagnostic, Outcome};
 
     fn parse_strs(args: &[&str]) -> Result<Cli, UsageError> {
@@ -285,7 +274,7 @@ mod tests {
     }
 
     #[test]
-    fn errors_hint_the_help_of_the_command_read_so_far() {
+    fn errors_show_the_synopsis_of_the_command_read_so_far() {
         let invocations: &[&[&str]] = &[
             &["read", "x", "a", "--jsno"],
             &["--jsno", "read", "x"],
@@ -304,22 +293,23 @@ mod tests {
             .iter()
             .map(|argv| {
                 let error = parse_strs(argv).unwrap_err();
-                format!("{error} | {}\n", error.hints().join(" | "))
+                assert_eq!(error.hints(), Vec::<String>::new());
+                format!("{error} | {}\n", commands(&error.usage()))
             })
             .collect();
         expect![[r#"
-            unknown option --jsno | sego read --help
-            unknown option --jsno | sego --help
-            unknown option --weird.go | sego read --help
-            unknown option --weird | sego search --help
-            unknown option '--a b' | sego search --help
-            unknown option '--' | sego search --help
-            --depth needs a value | sego list --help
-            invalid --depth 0; expected a number from 1 to 4294967295 | sego list --help
-            invalid --depth x; expected a number from 1 to 4294967295 | sego read --help
-            invalid --depth 99999999999; expected a number from 1 to 4294967295 | sego --help
-            --json takes no value | sego --help
-            --help takes no value | sego search --help
+            unknown option --jsno | read
+            unknown option --jsno | search list read
+            unknown option --weird.go | read
+            unknown option --weird | search
+            unknown option '--a b' | search
+            unknown option '--' | search
+            --depth needs a value | list
+            invalid --depth 0; expected a number from 1 to 4294967295 | list
+            invalid --depth x; expected a number from 1 to 4294967295 | read
+            invalid --depth 99999999999; expected a number from 1 to 4294967295 | search list read
+            --json takes no value | search list read
+            --help takes no value | search
         "#]]
         .assert_eq(&errors.concat());
     }
@@ -342,14 +332,14 @@ mod tests {
         ];
         let errors = invocations.map(|args| {
             let error = parse(args).unwrap_err();
-            format!("{error} | {}", error.hints().join(" | "))
+            format!("{error} | {}", commands(&error.usage()))
         });
         assert_eq!(
             errors,
             [
-                "argument 1 is not valid UTF-8 | sego --help",
-                "argument 4 is not valid UTF-8 | sego list --help",
-                "argument 2 is not valid UTF-8 | sego list --help",
+                "argument 1 is not valid UTF-8 | search list read",
+                "argument 4 is not valid UTF-8 | list",
+                "argument 2 is not valid UTF-8 | list",
             ]
         );
     }

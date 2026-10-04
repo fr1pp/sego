@@ -303,14 +303,14 @@ fn depth_zero_is_invalid() {
         [EOF]
         --- stderr
         error: invalid --depth 0; expected a number from 1 to 4294967295
-        hint: sego list --help
+        usage: sego list [--json] [--depth N] <repo>[@<rev>] [<path>]
         [EOF]
         exit 2
         --- stdout
         [EOF]
         --- stderr
         error: too many operands; expected <repo>[@<rev>] [<path>]
-        hint: sego list --help
+        usage: sego list [--json] [--depth N] <repo>[@<rev>] [<path>]
         [EOF]
     "#]]
     .assert_eq(&runs.concat());

@@ -261,21 +261,21 @@ fn invalid_ranges_send_nothing() {
         [EOF]
         --- stderr
         error: invalid line range 0; lines are numbered from 1
-        hint: sego read --help
+        usage: sego read [--json] <repo>[@<rev>] <path> [<lines>]
         [EOF]
         exit 2
         --- stdout
         [EOF]
         --- stderr
         error: invalid line range 5-3; the end is before the start
-        hint: sego read --help
+        usage: sego read [--json] <repo>[@<rev>] <path> [<lines>]
         [EOF]
         exit 2
         --- stdout
         [EOF]
         --- stderr
         error: invalid revision v1..v2; a revision cannot contain ".."
-        hint: sego read --help
+        usage: sego read [--json] <repo>[@<rev>] <path> [<lines>]
         [EOF]
     "#]]
     .assert_eq(&runs.concat());

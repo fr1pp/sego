@@ -44,13 +44,13 @@ fn version() {
     check!(
         sego().arg("--version"),
         expect![[r#"
-            exit 0
-            --- stdout
-            sego 0.1.0
-            [EOF]
-            --- stderr
-            [EOF]
-        "#]]
+        exit 0
+        --- stdout
+        sego 0.1.0
+        [EOF]
+        --- stderr
+        [EOF]
+    "#]]
     );
 }
 
@@ -122,14 +122,16 @@ fn no_command() {
         [EOF]
         --- stderr
         error: missing command; expected search, list or read
-        hint: sego --help
+        usage: sego search [--json] <query>...
+               sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]
+               sego read   [--json] <repo>[@<rev>] <path> [<lines>]
         [EOF]
     "#]]
     );
 }
 
 #[test]
-fn unknown_command_hints_help() {
+fn unknown_command_shows_every_synopsis() {
     check!(
         sego().args(["serch", "NewRouter"]),
         expect![[r#"
@@ -138,7 +140,9 @@ fn unknown_command_hints_help() {
         [EOF]
         --- stderr
         error: unknown command serch
-        hint: sego --help
+        usage: sego search [--json] <query>...
+               sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]
+               sego read   [--json] <repo>[@<rev>] <path> [<lines>]
         [EOF]
     "#]]
     );
@@ -151,11 +155,13 @@ fn json_usage_errors_go_to_both_streams() {
         expect![[r#"
         exit 2
         --- stdout
-        {"version":1,"kind":"error","code":"usage","message":"unknown command serch","hints":["sego --help"]}
+        {"version":1,"kind":"error","code":"usage","message":"unknown command serch","hints":[],"usage":["sego search [--json] <query>...","sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]","sego read   [--json] <repo>[@<rev>] <path> [<lines>]"]}
         [EOF]
         --- stderr
         error: unknown command serch
-        hint: sego --help
+        usage: sego search [--json] <query>...
+               sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]
+               sego read   [--json] <repo>[@<rev>] <path> [<lines>]
         [EOF]
     "#]]
     );
@@ -171,7 +177,7 @@ fn depth_only_applies_to_list() {
         [EOF]
         --- stderr
         error: --depth applies only to list
-        hint: sego search --help
+        usage: sego search [--json] <query>...
         [EOF]
     "#]]
     );
@@ -187,7 +193,7 @@ fn empty_operands_are_usage_errors() {
         [EOF]
         --- stderr
         error: empty repository name
-        hint: sego read --help
+        usage: sego read [--json] <repo>[@<rev>] <path> [<lines>]
         [EOF]
     "#]]
     );
@@ -199,7 +205,7 @@ fn empty_operands_are_usage_errors() {
         [EOF]
         --- stderr
         error: empty path; read needs a file's path
-        hint: sego read --help
+        usage: sego read [--json] <repo>[@<rev>] <path> [<lines>]
         [EOF]
     "#]]
     );

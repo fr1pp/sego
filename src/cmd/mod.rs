@@ -67,6 +67,24 @@ fn help() -> String {
     format!("{ABOUT}\nUsage:\n{usage}  sego <command> --help\n\n{DETAILS}")
 }
 
+/// The synopsis a usage error shows: the line of `command`, or every
+/// command's line when it names no command.
+pub fn synopsis(command: Option<&str>) -> Vec<String> {
+    match command.and_then(Command::parse) {
+        Some(command) => vec![command.synopsis(0)],
+        None => synopses(),
+    }
+}
+
+/// The commands that synopsis `lines` are for.
+#[cfg(test)]
+pub fn commands(lines: &[String]) -> String {
+    let names = lines.iter().filter_map(|line| {
+        line.strip_prefix("sego ")?.split_whitespace().next()
+    });
+    names.collect::<Vec<_>>().join(" ")
+}
+
 /// Every command's synopsis, in the order of `COMMANDS`, with the names
 /// padded to the longest so the operands line up.
 fn synopses() -> Vec<String> {
@@ -156,11 +174,10 @@ enum Action {
     Run(Command),
 }
 
-/// What `cli` asks for. A usage error's hint is the command's help, or the
-/// top-level help when there is no known command.
+/// What `cli` asks for.
 fn action(cli: &Cli) -> Result<Action, UsageError> {
     let invalid =
-        |message: String| UsageError::new(message).with_hint(cli.help_hint());
+        |message: String| UsageError::new(message, cli.command.as_deref());
     let command = match cli.command.as_deref() {
         Some(name) => match Command::parse(name) {
             Some(command) => Some(command),
@@ -282,21 +299,31 @@ mod tests {
     }
 
     #[test]
-    fn each_help_shows_its_synopsis() {
-        for &name in COMMANDS {
-            let command = Command::parse(name).unwrap();
-            let usage = format!("\nUsage:\n  {}\n\n", command.synopsis(0));
-            assert!(command.help().contains(&usage), "{name}");
+    fn synopses_align_only_when_there_are_several() {
+        let commands = [Some("search"), Some("list"), Some("read")];
+        let mut text = String::new();
+        for command in commands.into_iter().chain([None, Some("serch")]) {
+            for line in synopsis(command) {
+                text.push_str(&line);
+                text.push('\n');
+            }
         }
-        let mut lines = String::new();
-        for line in synopses() {
-            let _ = writeln!(lines, "  {line}");
-        }
-        assert!(help().contains(&format!("\nUsage:\n{lines}")));
+        expect![[r#"
+            sego search [--json] <query>...
+            sego list [--json] [--depth N] <repo>[@<rev>] [<path>]
+            sego read [--json] <repo>[@<rev>] <path> [<lines>]
+            sego search [--json] <query>...
+            sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]
+            sego read   [--json] <repo>[@<rev>] <path> [<lines>]
+            sego search [--json] <query>...
+            sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]
+            sego read   [--json] <repo>[@<rev>] <path> [<lines>]
+        "#]]
+        .assert_eq(&text);
     }
 
     #[test]
-    fn usage_errors_hint_the_command_help() {
+    fn usage_errors_show_the_synopsis_of_the_command() {
         let invocations: [&[&str]; 8] = [
             &["serch", "x"],
             &["serch"],
@@ -313,18 +340,19 @@ mod tests {
                 let argv = argv.iter().map(OsString::from);
                 let cli = args::parse(argv).unwrap();
                 let error = validate(&cli).err().unwrap();
-                format!("{error} | {}\n", error.hints().join(" | "))
+                assert_eq!(error.hints(), Vec::<String>::new());
+                format!("{error} | {}\n", commands(&error.usage()))
             })
             .collect();
         expect![[r#"
-            unknown command serch | sego --help
-            unknown command serch | sego --help
-            unknown command serch | sego --help
-            unknown command serch | sego --help
-            --depth applies only to list | sego read --help
-            --depth applies only to list | sego read --help
-            --depth applies only to list | sego search --help
-            missing command; expected search, list or read | sego --help
+            unknown command serch | search list read
+            unknown command serch | search list read
+            unknown command serch | search list read
+            unknown command serch | search list read
+            --depth applies only to list | read
+            --depth applies only to list | read
+            --depth applies only to list | search
+            missing command; expected search, list or read | search list read
         "#]]
         .assert_eq(&errors.concat());
     }
@@ -360,6 +388,23 @@ mod tests {
                 Ok(()) => panic!("{argv:?} is valid"),
             },
         }
+    }
+
+    #[test]
+    fn each_help_shows_the_synopsis_its_usage_errors_show() {
+        for &name in COMMANDS {
+            let command = Command::parse(name).unwrap();
+            let lines = usage(&[name.into()]).usage();
+            let [line] = <[String; 1]>::try_from(lines)
+                .unwrap_or_else(|lines| panic!("{lines:?}"));
+            let block = format!("\nUsage:\n  {line}\n\n");
+            assert!(command.help().contains(&block), "{name}");
+        }
+        let mut lines = String::new();
+        for line in usage(&[]).usage() {
+            let _ = writeln!(lines, "  {line}");
+        }
+        assert!(help().contains(&format!("\nUsage:\n{lines}")));
     }
 
     fn usage_errors() -> Vec<Box<dyn Diagnostic>> {
@@ -545,6 +590,13 @@ mod tests {
     /// One instance of every diagnostic variant, over the corpus.
     fn diagnostics() -> Vec<Box<dyn Diagnostic>> {
         let mut all = usage_errors();
+        all.extend(other_diagnostics());
+        all
+    }
+
+    /// Every diagnostic variant but usage errors, over the corpus.
+    fn other_diagnostics() -> Vec<Box<dyn Diagnostic>> {
+        let mut all: Vec<Box<dyn Diagnostic>> = Vec::new();
         all.extend(fetch_errors().into_iter().map(Box::from));
         all.extend(unavailable().into_iter().map(Box::from));
         all.extend(search_problems().into_iter().map(Box::from));
@@ -745,6 +797,38 @@ mod tests {
         }
     }
 
+    /// The codes of diagnostics raised on sego's side, not the upstream's
+    /// answer, so they never have hints.
+    const OWN_CODES: &[&str] = &[
+        "usage",
+        "transport",
+        "bad_response",
+        "server_error",
+        "schema_mismatch",
+        "output",
+    ];
+
+    #[test]
+    fn hints_come_only_from_the_upstream() {
+        for diagnostic in diagnostics() {
+            if OWN_CODES.contains(&diagnostic.code()) {
+                assert_eq!(diagnostic.hints(), Vec::<String>::new());
+            }
+        }
+    }
+
+    #[test]
+    fn only_usage_errors_show_a_synopsis() {
+        for diagnostic in usage_errors() {
+            let usage = diagnostic.usage();
+            assert!(!usage.is_empty(), "{diagnostic}");
+            assert!(usage.iter().all(|line| line.starts_with("sego ")));
+        }
+        for diagnostic in other_diagnostics() {
+            assert_eq!(diagnostic.usage(), Vec::<String>::new());
+        }
+    }
+
     #[test]
     fn every_message_is_one_line() {
         for diagnostic in diagnostics() {
@@ -763,13 +847,20 @@ mod tests {
                 assert!(first.starts_with("error: "), "{text}");
                 diagnostic.causes().len()
             };
+            let usage = diagnostic.usage().len();
             let hints = diagnostic.hints().len();
-            assert_eq!(rest.len(), causes + hints, "{text}");
-            let (cause_lines, hint_lines) = rest.split_at(causes);
+            assert_eq!(rest.len(), causes + usage + hints, "{text}");
+            let (cause_lines, rest) = rest.split_at(causes);
+            let (usage_lines, hint_lines) = rest.split_at(usage);
             assert!(
                 cause_lines.iter().all(|line| line.starts_with("caused by: ")),
                 "{text}"
             );
+            for (i, line) in usage_lines.iter().enumerate() {
+                let prefix =
+                    if i == 0 { "usage: sego " } else { "       sego " };
+                assert!(line.starts_with(prefix), "{text}");
+            }
             assert!(
                 hint_lines.iter().all(|line| line.starts_with("hint: ")),
                 "{text}"
