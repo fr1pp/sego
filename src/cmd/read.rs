@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use super::Present;
+use super::{Help, Present};
 use crate::address::{Address, AddressError, LineRange, RepoPath};
 use crate::args::{Cli, UsageError};
 use crate::diagnostic::{Diagnostic, Outcome};
@@ -16,12 +16,12 @@ use crate::sourcegraph::envelope::decode;
 /// dogfooding).
 pub const READ_LINE_CAP: u32 = 500;
 
-pub const HELP: &str = "\
+pub const HELP: Help = Help {
+    about: "\
 sego read prints the numbered lines of a file at a revision.
-
-Usage:
-  sego read [--json] <repo>[@<rev>] <path> [<lines>]
-
+",
+    synopsis: "[--json] <repo>[@<rev>] <path> [<lines>]",
+    details: "\
 Operands:
   <repo>    a repository, such as github.com/gorilla/mux; a URL, a trailing
             .git and a trailing slash are accepted. Matching is
@@ -69,7 +69,8 @@ Examples:
   sego read github.com/gorilla/mux@v1.7.0 mux.go 30-60
   sego read github.com/gorilla/mux@v1.7.0 mux.go 30-
   sego read github.com/gorilla/mux@v1.7.0 mux.go 30,60
-";
+",
+};
 
 const OPERANDS: &str = "expected <repo>[@<rev>] <path> [<lines>]";
 
@@ -264,7 +265,12 @@ mod tests {
 
     #[test]
     fn help_states_the_caps() {
-        assert!(HELP.contains(&format!("up to line {READ_LINE_CAP}.")));
-        assert!(HELP.contains(&format!("wider than {CLIP_COLUMNS} columns")));
+        assert!(
+            HELP.details.contains(&format!("up to line {READ_LINE_CAP}."))
+        );
+        assert!(
+            HELP.details
+                .contains(&format!("wider than {CLIP_COLUMNS} columns"))
+        );
     }
 }

@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use super::Present;
+use super::{Help, Present};
 use crate::address::{Address, Pinned, RepoPath};
 use crate::args::{Cli, UsageError};
 use crate::diagnostic::{Diagnostic, Outcome};
@@ -12,12 +12,12 @@ use crate::sourcegraph::Fetch;
 use crate::sourcegraph::envelope::decode;
 use crate::sourcegraph::tree::{self, LIST_ENTRY_CAP, ListRequest};
 
-pub const HELP: &str = "\
+pub const HELP: Help = Help {
+    about: "\
 sego list prints the entries of a directory at a revision.
-
-Usage:
-  sego list [--json] [--depth N] <repo>[@<rev>] [<path>]
-
+",
+    synopsis: "[--json] [--depth N] <repo>[@<rev>] [<path>]",
+    details: "\
 Operands:
   <repo>    a repository, such as github.com/gorilla/mux; a URL, a trailing
             .git and a trailing slash are accepted. Matching is
@@ -72,7 +72,8 @@ Examples:
   sego list github.com/gorilla/mux@v1.7.0
   sego list github.com/gorilla/mux@v1.7.0 .github/
   sego list --depth 2 github.com/gorilla/mux@v1.7.0
-";
+",
+};
 
 const OPERANDS: &str = "expected <repo>[@<rev>] [<path>]";
 
@@ -410,8 +411,11 @@ mod tests {
     #[test]
     fn help_states_the_cap() {
         assert!(
-            HELP.contains(&format!("listing at {LIST_ENTRY_CAP} entries"))
+            HELP.details
+                .contains(&format!("listing at {LIST_ENTRY_CAP} entries"))
         );
-        assert!(HELP.contains(&format!("stopped at {LIST_ENTRY_CAP}")));
+        assert!(
+            HELP.details.contains(&format!("stopped at {LIST_ENTRY_CAP}"))
+        );
     }
 }

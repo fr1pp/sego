@@ -2,7 +2,7 @@ use std::fmt::Write as _;
 
 use serde::Serialize;
 
-use super::Present;
+use super::{Help, Present};
 use crate::args::{Cli, UsageError};
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::domain::{
@@ -16,13 +16,13 @@ use crate::sourcegraph::Fetch;
 use crate::sourcegraph::envelope::decode;
 use crate::sourcegraph::search::{self, has_token};
 
-pub const HELP: &str = "\
+pub const HELP: Help = Help {
+    about: "\
 sego search prints the code, paths, symbols, commits and repositories that
 match a Sourcegraph query.
-
-Usage:
-  sego search [--json] <query>...
-
+",
+    synopsis: "[--json] <query>...",
+    details: "\
 Operands:
   <query>   a Sourcegraph search query. The operands are joined with spaces
             and sent as they are. A token that starts with a single dash,
@@ -93,7 +93,8 @@ Examples:
   sego search 'func NewRouter'
   sego search 'repo:^github\\.com/gorilla/mux$' NewRouter
   sego search -file:_test NewRouter
-";
+",
+};
 
 /// The query `cli` asks for: its operands joined with spaces.
 pub fn request(cli: &Cli) -> Result<String, UsageError> {
@@ -558,7 +559,8 @@ mod tests {
 
     #[test]
     fn help_states_the_clip_width() {
-        let help = HELP.split_whitespace().collect::<Vec<_>>().join(" ");
+        let help =
+            HELP.details.split_whitespace().collect::<Vec<_>>().join(" ");
         assert!(help.contains(&format!("wider than {CLIP_COLUMNS} columns")));
     }
 }

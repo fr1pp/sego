@@ -2,6 +2,8 @@ pub mod list;
 pub mod read;
 pub mod search;
 
+use std::fmt::Write as _;
+
 use crate::args::{Cli, UsageError};
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::escape::shell_word;
@@ -9,16 +11,23 @@ use crate::sourcegraph::Fetch;
 
 pub const COMMANDS: &[&str] = &["search", "list", "read"];
 
-const HELP: &str = "\
+/// A command's help, split around its synopsis, which usage errors show
+/// too.
+pub struct Help {
+    /// What the command does: the paragraph before `Usage:`.
+    pub about: &'static str,
+    /// The synopsis after `sego <command> `.
+    pub synopsis: &'static str,
+    /// Everything after the synopsis.
+    pub details: &'static str,
+}
+
+const ABOUT: &str = "\
 sego finds and inspects public source code at any revision, through
 Sourcegraph's GraphQL API.
+";
 
-Usage:
-  sego search [--json] <query>...
-  sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]
-  sego read   [--json] <repo>[@<rev>] <path> [<lines>]
-  sego <command> --help
-
+const DETAILS: &str = "\
 Commands:
   search   where is it? Matching code, paths, symbols, commits and repos
   list     what is here? The entries of a directory
@@ -49,6 +58,26 @@ Exit codes:
 
 const VERSION: &str = concat!("sego ", env!("CARGO_PKG_VERSION"), "\n");
 
+/// The top-level help, with every command's synopsis.
+fn help() -> String {
+    let mut usage = String::new();
+    for line in synopses() {
+        let _ = writeln!(usage, "  {line}");
+    }
+    format!("{ABOUT}\nUsage:\n{usage}  sego <command> --help\n\n{DETAILS}")
+}
+
+/// Every command's synopsis, in the order of `COMMANDS`, with the names
+/// padded to the longest so the operands line up.
+fn synopses() -> Vec<String> {
+    let width = COMMANDS.iter().map(|name| name.len()).max().unwrap_or(0);
+    COMMANDS
+        .iter()
+        .filter_map(|&name| Command::parse(name))
+        .map(|command| command.synopsis(width))
+        .collect()
+}
+
 /// An answer, ready to print.
 pub trait Present {
     fn outcome(&self) -> Outcome;
@@ -57,7 +86,7 @@ pub trait Present {
 }
 
 /// Help or the version: the same text with or without `--json`.
-struct Plain(&'static str);
+struct Plain(String);
 
 impl Present for Plain {
     fn outcome(&self) -> Outcome {
@@ -65,11 +94,11 @@ impl Present for Plain {
     }
 
     fn text(&self) -> String {
-        self.0.to_owned()
+        self.0.clone()
     }
 
     fn json(&self) -> String {
-        self.0.to_owned()
+        self.0.clone()
     }
 }
 
@@ -91,12 +120,31 @@ impl Command {
         }
     }
 
-    fn help(self) -> &'static str {
+    fn name(self) -> &'static str {
         match self {
-            Command::Search => search::HELP,
-            Command::List => list::HELP,
-            Command::Read => read::HELP,
+            Command::Search => "search",
+            Command::List => "list",
+            Command::Read => "read",
         }
+    }
+
+    fn parts(self) -> &'static Help {
+        match self {
+            Command::Search => &search::HELP,
+            Command::List => &list::HELP,
+            Command::Read => &read::HELP,
+        }
+    }
+
+    /// `sego <name> <synopsis>`, the name padded to at least `width`
+    /// columns.
+    fn synopsis(self, width: usize) -> String {
+        format!("sego {:width$} {}", self.name(), self.parts().synopsis)
+    }
+
+    fn help(self) -> String {
+        let Help { about, details, .. } = self.parts();
+        format!("{about}\nUsage:\n  {}\n\n{details}", self.synopsis(0))
     }
 }
 
@@ -172,9 +220,9 @@ pub fn run(
     fetch: Fetch,
 ) -> Result<Box<dyn Present>, Box<dyn Diagnostic>> {
     match action(cli)? {
-        Action::Help(None) => Ok(Box::new(Plain(HELP))),
+        Action::Help(None) => Ok(Box::new(Plain(help()))),
         Action::Help(Some(command)) => Ok(Box::new(Plain(command.help()))),
-        Action::Version => Ok(Box::new(Plain(VERSION))),
+        Action::Version => Ok(Box::new(Plain(VERSION.to_owned()))),
         Action::Run(Command::Search) => search::run(cli, fetch),
         Action::Run(Command::List) => list::run(cli, fetch),
         Action::Run(Command::Read) => read::run(cli, fetch),
@@ -231,6 +279,20 @@ mod tests {
         for &name in COMMANDS {
             assert!(Command::parse(name).is_some(), "{name}");
         }
+    }
+
+    #[test]
+    fn each_help_shows_its_synopsis() {
+        for &name in COMMANDS {
+            let command = Command::parse(name).unwrap();
+            let usage = format!("\nUsage:\n  {}\n\n", command.synopsis(0));
+            assert!(command.help().contains(&usage), "{name}");
+        }
+        let mut lines = String::new();
+        for line in synopses() {
+            let _ = writeln!(lines, "  {line}");
+        }
+        assert!(help().contains(&format!("\nUsage:\n{lines}")));
     }
 
     #[test]
