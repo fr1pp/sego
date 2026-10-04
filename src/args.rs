@@ -73,7 +73,21 @@ pub fn parse(
     args: impl IntoIterator<Item = OsString>,
 ) -> Result<Cli, UsageError> {
     let args: Vec<OsString> = args.into_iter().collect();
-    let mut parser = Parser::from_args(&args);
+    parse_reading(&args, Unknown::Error)
+}
+
+/// What the parser makes of a `--` token that names no option.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Unknown {
+    Error,
+    Operand,
+}
+
+fn parse_reading(
+    args: &[OsString],
+    unknown: Unknown,
+) -> Result<Cli, UsageError> {
+    let mut parser = Parser::from_args(args);
     let mut cli = Cli::default();
     loop {
         let operand = parser.try_raw_args().and_then(|mut raw| {
@@ -104,21 +118,30 @@ pub fn parse(
                         Ok(value) => value,
                         Err(error) => return Err(lexopt_error(error, &cli)),
                     };
-                    let value = text(value, position(&mut parser, &args))?;
+                    let value = text(value, position(&mut parser, args))?;
                     cli.depth = Some(depth(&value)?);
                     continue;
                 }
                 Ok(Some(Arg::Long(name))) => {
                     let name = name.to_owned();
                     let attached = parser.optional_value();
-                    let at = position(&mut parser, &args);
-                    let error = UsageError::new(format!(
-                        "unknown option {}",
-                        option_word(&name)
-                    ));
-                    let hint = corrected(&args, at, &name, attached)
-                        .unwrap_or_else(|| cli.help_hint());
-                    return Err(error.with_hint(hint));
+                    let at = position(&mut parser, args);
+                    if unknown == Unknown::Operand {
+                        args[at - 1].clone()
+                    } else {
+                        let error = UsageError::new(format!(
+                            "unknown option {}",
+                            option_word(&name)
+                        ));
+                        let hint = match did_you_mean(&name, OPTIONS) {
+                            Some(option) => {
+                                corrected(args, at, option, attached)
+                            }
+                            None => literal(args),
+                        };
+                        let hint = hint.unwrap_or_else(|| cli.help_hint());
+                        return Err(error.with_hint(hint));
+                    }
                 }
                 Ok(Some(Arg::Short(c))) => {
                     let message = format!(
@@ -132,7 +155,7 @@ pub fn parse(
                 Err(error) => return Err(lexopt_error(error, &cli)),
             },
         };
-        let value = text(value, position(&mut parser, &args))?;
+        let value = text(value, position(&mut parser, args))?;
         match cli.command {
             None => cli.command = Some(value),
             Some(_) => cli.operands.push(value),
@@ -182,15 +205,14 @@ fn option_word(name: &str) -> String {
     }
 }
 
-/// The command line with the unknown option at `position` replaced by the
-/// option nearest its name, if that is an invocation that runs.
+/// The command line with the unknown option at `position` replaced by
+/// `option`, if that is an invocation that runs.
 fn corrected(
     args: &[OsString],
     position: usize,
-    name: &str,
+    option: &str,
     attached: Option<OsString>,
 ) -> Option<String> {
-    let option = did_you_mean(name, OPTIONS)?;
     let mut token = OsString::from(format!("--{option}"));
     if let Some(attached) = attached {
         token.push("=");
@@ -199,6 +221,14 @@ fn corrected(
     let mut args = args.to_vec();
     args[position - 1] = token;
     let cli = parse(args).ok()?;
+    crate::cmd::validate(&cli).is_ok().then(|| cli.command_line())
+}
+
+/// The command line with every unknown option read as an operand, after
+/// `--`, if that is an invocation that runs: a path or query word that
+/// starts with `--`, pasted without one.
+fn literal(args: &[OsString]) -> Option<String> {
+    let cli = parse_reading(args, Unknown::Operand).ok()?;
     crate::cmd::validate(&cli).is_ok().then(|| cli.command_line())
 }
 
@@ -353,6 +383,31 @@ mod tests {
         assert_eq!(error.hints(), ["sego read x a --json"]);
         let error = parse_strs(&["read", "x", "--jsno"]).unwrap_err();
         assert_eq!(error.hints(), ["sego read --help"]);
+    }
+
+    #[test]
+    fn unknown_options_that_run_as_operands_hint_the_command_with_dashes() {
+        let at = "github.com/gorilla/mux@a7962380ca08";
+        let hints = |args: &[&str]| parse_strs(args).unwrap_err().hints();
+        let error =
+            parse_strs(&["read", at, "--weird.go", "213-214"]).unwrap_err();
+        assert_eq!(error.to_string(), "unknown option --weird.go");
+        assert_eq!(
+            error.hints(),
+            [format!("sego read -- {at} --weird.go 213-214")]
+        );
+        assert_eq!(
+            hints(&["read", "x/y", "--a=b.go", "--json"]),
+            ["sego read --json -- x/y --a=b.go"]
+        );
+        assert_eq!(
+            hints(&["search", "--weird", "x", "--odd"]),
+            ["sego search -- --weird x --odd"]
+        );
+        assert_eq!(
+            hints(&["read", "x/y", "--weird.go", "0"]),
+            ["sego read --help"]
+        );
     }
 
     #[cfg(unix)]

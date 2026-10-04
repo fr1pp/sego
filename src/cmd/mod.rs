@@ -325,6 +325,7 @@ mod tests {
             &["--verison"],
             &["read", "x/y", "a.go", "--jsno"],
             &["read", "x/y", "--jsno"],
+            &["read", "x/y", "--weird.go", "1-2", "--json"],
             &["search", "x", "--dpeth", "2"],
             &["list", "x/y", "--depht=0"],
             &["--json=1"],
@@ -357,8 +358,11 @@ mod tests {
             ]);
         }
         for word in words() {
-            let option = format!("--{word}");
-            argvs.push(vec!["list".into(), "x/y".into(), option.into()]);
+            let option = || OsString::from(format!("--{word}"));
+            argvs.extend([
+                vec!["list".into(), "x/y".into(), option()],
+                vec!["read".into(), "x/y".into(), option(), "1".into()],
+            ]);
         }
         argvs.push(vec!["read".into(), OsString::from_vec(vec![0x66, 0xff])]);
         argvs.iter().map(Vec::as_slice).map(usage).collect()
