@@ -38,7 +38,7 @@ impl RepoName {
         if name.is_empty() {
             Err(AddressError::EmptyRepo)
         } else if name.chars().any(forbidden) {
-            Err(AddressError::BadName(name))
+            Err(AddressError::BadRepo(name))
         } else {
             Ok(RepoName(name))
         }
@@ -123,7 +123,7 @@ impl Rev {
         } else if s.contains("..") {
             Err(AddressError::TwoDots(s.to_owned()))
         } else if s.chars().any(forbidden) {
-            Err(AddressError::BadName(s.to_owned()))
+            Err(AddressError::BadRev(s.to_owned()))
         } else {
             Ok(Rev(s.to_owned()))
         }
@@ -267,7 +267,8 @@ pub enum AddressError {
     LineZero(String),
     Inverted(String),
     BadLines(String),
-    BadName(String),
+    BadRepo(String),
+    BadRev(String),
 }
 
 impl fmt::Display for AddressError {
@@ -295,11 +296,17 @@ impl fmt::Display for AddressError {
                 "invalid line range {}; expected N, N-M, N- or N,M",
                 shell_word(lines)
             ),
-            AddressError::BadName(name) => write!(
+            AddressError::BadRepo(name) => write!(
                 f,
-                "invalid name {}; names cannot contain whitespace or control \
-                 characters",
+                "invalid repository name {}; a repository name cannot \
+                 contain whitespace, control or invisible characters",
                 shell_word(name)
+            ),
+            AddressError::BadRev(rev) => write!(
+                f,
+                "invalid revision {}; a revision cannot contain whitespace, \
+                 control or invisible characters",
+                shell_word(rev)
             ),
         }
     }
@@ -307,6 +314,8 @@ impl fmt::Display for AddressError {
 
 #[cfg(test)]
 mod tests {
+    use expect_test::expect;
+
     use super::*;
 
     #[test]
@@ -331,7 +340,7 @@ mod tests {
         ));
         assert!(matches!(
             RepoName::parse("github.com/x/y z"),
-            Err(AddressError::BadName(_))
+            Err(AddressError::BadRepo(_))
         ));
     }
 
@@ -394,9 +403,33 @@ mod tests {
         for bad in ["github.com/x/y@a b", "github.com/x/y@a\u{1b}"] {
             assert!(matches!(
                 Address::parse(bad),
-                Err(AddressError::BadName(_))
+                Err(AddressError::BadRev(_))
             ));
         }
+    }
+
+    #[test]
+    fn name_errors_say_what_they_reject() {
+        let messages: String = ["a b", "a\u{1b}", "a\u{200b}"]
+            .into_iter()
+            .flat_map(|bad| {
+                [
+                    format!("github.com/x/{bad}"),
+                    format!("github.com/x/y@{bad}"),
+                ]
+            })
+            .map(|input| {
+                Address::parse(&input).unwrap_err().to_string() + "\n"
+            })
+            .collect();
+        expect![[r#"
+            invalid repository name 'github.com/x/a b'; a repository name cannot contain whitespace, control or invisible characters
+            invalid revision 'a b'; a revision cannot contain whitespace, control or invisible characters
+            invalid repository name $'github.com/x/a\033'; a repository name cannot contain whitespace, control or invisible characters
+            invalid revision $'a\033'; a revision cannot contain whitespace, control or invisible characters
+            invalid repository name $'github.com/x/a\342\200\213'; a repository name cannot contain whitespace, control or invisible characters
+            invalid revision $'a\342\200\213'; a revision cannot contain whitespace, control or invisible characters
+        "#]].assert_eq(&messages);
     }
 
     #[test]
@@ -404,7 +437,7 @@ mod tests {
         assert_eq!(Rev::parse("a7962380~1").unwrap().as_str(), "a7962380~1");
         assert!(matches!(Rev::parse(""), Err(AddressError::EmptyRev)));
         assert!(matches!(Rev::parse("a..b"), Err(AddressError::TwoDots(_))));
-        assert!(matches!(Rev::parse("a\tb"), Err(AddressError::BadName(_))));
+        assert!(matches!(Rev::parse("a\tb"), Err(AddressError::BadRev(_))));
     }
 
     #[test]
@@ -493,9 +526,14 @@ mod tests {
                 "invalid line range 'a b'; expected N, N-M, N- or N,M",
             ),
             (
-                AddressError::BadName("a\u{1b}".to_owned()),
-                "invalid name $'a\\033'; \
-                 names cannot contain whitespace or control characters",
+                AddressError::BadRepo("a\u{1b}".to_owned()),
+                "invalid repository name $'a\\033'; a repository name \
+                 cannot contain whitespace, control or invisible characters",
+            ),
+            (
+                AddressError::BadRev("a b".to_owned()),
+                "invalid revision 'a b'; a revision \
+                 cannot contain whitespace, control or invisible characters",
             ),
         ] {
             assert_eq!(error.to_string(), shown);
