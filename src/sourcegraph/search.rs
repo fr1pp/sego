@@ -1639,13 +1639,22 @@ mod tests {
             "title": "x", "description": null,
             "proposedQueries": [{"description": {}, "query": "x"}]
         });
-        for results in [
+        let failures: String = [
             serde_json::json!({"matchCount": 1, "results": [path_match]}),
             serde_json::json!({"alert": alert}),
-        ] {
-            let error = answer("x", reply(&results)).unwrap_err();
-            assert_eq!(error.code(), "bad_response", "{results}");
-        }
+        ]
+        .iter()
+        .map(|results| failure(answer("x", reply(results))))
+        .collect();
+        expect![[r#"
+            [bad_response Unanswered]
+            error: the upstream's answer has missing or unknown fields
+            caused by: invalid type: null, expected struct WireRange
+            [bad_response Unanswered]
+            error: the upstream's answer has missing or unknown fields
+            caused by: invalid type: map, expected a string
+        "#]]
+        .assert_eq(&failures);
     }
 
     #[test]
