@@ -143,8 +143,8 @@ pub fn answer(
     };
     let trace = envelope.trace.clone();
     // A blob's `lines` or `body` alias is null only with an error at its
-    // path: the read cap's, handled above, or another, which `into_data`
-    // reports. So only drift reaches this.
+    // path: the read cap's, handled before either alias is read, or another,
+    // which `into_data` reports. So only drift reaches this.
     let missing = |field: &str| FetchError::Field {
         cause: format!("a blob has no {field}"),
         trace: trace.clone(),
