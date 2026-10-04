@@ -190,7 +190,7 @@ fn summary(report: &SearchReport) -> String {
     text.push('\n');
     if let Some(alert) = &report.alert {
         text.push_str(&alert_line(alert));
-        for query in &alert.proposed {
+        for query in alert.queries() {
             text.push_str(&hint(&search_command(query)));
         }
     }
@@ -357,11 +357,7 @@ impl Present for Search {
             alert: report.alert.as_ref().map(|alert| AlertJson {
                 title: &alert.title,
                 description: alert.description.as_deref(),
-                hints: alert
-                    .proposed
-                    .iter()
-                    .map(|query| search_command(query))
-                    .collect(),
+                hints: alert.queries().map(search_command).collect(),
             }),
             results: report.hits.iter().map(HitJson::new).collect(),
         };

@@ -231,7 +231,7 @@ impl Diagnostic for SearchProblem {
         let search = |query: &str| command_line(&["sego", "search"], &[query]);
         match self {
             SearchProblem::BadQuery { alert } => {
-                alert.proposed.iter().map(|query| search(query)).collect()
+                alert.queries().map(search).collect()
             }
             SearchProblem::Incomplete { query, .. } => {
                 let retry = with_doubled_timeout(query);
@@ -466,6 +466,18 @@ mod tests {
 
         assert_eq!((Bare.code(), Bare.detail()), ("bare", None));
         assert_eq!(report(&Bare), "error: bare\n");
+    }
+
+    #[test]
+    fn blank_proposed_queries_are_not_hints() {
+        let problem = SearchProblem::BadQuery {
+            alert: Alert {
+                title: "Unable To Process Query".into(),
+                description: None,
+                proposed: vec![String::new(), " \t".into(), "x".into()],
+            },
+        };
+        assert_eq!(problem.hints(), ["sego search x"]);
     }
 
     #[test]

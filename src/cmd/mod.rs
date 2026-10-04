@@ -286,6 +286,13 @@ mod tests {
         CORPUS.iter().copied().filter(|word| !word.is_empty())
     }
 
+    /// Every word of the corpus, and a blank one.
+    fn blank_and_corpus() -> Vec<String> {
+        let mut all = vec![" ".to_owned()];
+        all.extend(CORPUS.iter().map(|&word| word.to_owned()));
+        all
+    }
+
     fn at() -> Pinned {
         Pinned {
             repo: RepoName::parse("github.com/gorilla/mux").unwrap(),
@@ -446,7 +453,7 @@ mod tests {
                     alert: Alert {
                         title: ALERT_BAD_QUERY.to_owned(),
                         description: Some(word.to_owned()),
-                        proposed: words().map(str::to_owned).collect(),
+                        proposed: blank_and_corpus(),
                     },
                 },
                 SearchProblem::Incomplete {
@@ -514,7 +521,7 @@ mod tests {
             alert: Some(Alert {
                 title: text(),
                 description: Some(text()),
-                proposed: vec![text()],
+                proposed: blank_and_corpus(),
             }),
             hits,
         }

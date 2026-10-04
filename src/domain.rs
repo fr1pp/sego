@@ -153,6 +153,16 @@ pub struct Alert {
     pub proposed: Vec<String>,
 }
 
+impl Alert {
+    /// The proposed queries sego can run: those that aren't blank.
+    pub fn queries(&self) -> impl Iterator<Item = &str> {
+        self.proposed
+            .iter()
+            .map(String::as_str)
+            .filter(|query| !query.trim().is_empty())
+    }
+}
+
 /// What a search left out: repositories that timed out, are still cloning
 /// or are missing, and how many results were of a kind sego doesn't know.
 #[derive(Debug, Default)]
