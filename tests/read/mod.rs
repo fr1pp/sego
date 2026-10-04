@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use expect_test::expect;
 
@@ -384,11 +384,11 @@ fn rate_limits_with_retry_after_are_retried() {
 
 #[test]
 fn a_slow_answer_is_awaited() {
-    let steps = vec![
-        Step::Stall(Duration::from_millis(500)),
-        Step::Capture("read/range.json"),
-    ];
+    let stall = Duration::from_millis(500);
+    let steps = vec![Step::Stall(stall), Step::Capture("read/range.json")];
+    let start = Instant::now();
     let run = exchange(steps, &[MUX, "mux.go", "213-219"]);
+    assert!(start.elapsed() >= stall, "answered before the stall ended");
     assert_eq!((run.code, run.stderr.as_str()), (0, ""), "{}", run.stderr);
 }
 

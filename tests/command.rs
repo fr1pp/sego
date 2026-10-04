@@ -53,7 +53,8 @@ impl Command {
 
     pub fn run_with_closed_stdout(&self) -> Run {
         // Dropping the reader only after spawning would race the child's
-        // first write into the pipe buffer.
+        // first write into the pipe buffer. A fork on another thread can
+        // still hold a copy of the read end; that only skips the EPIPE path.
         let (reader, writer) = io::pipe().expect("create a pipe");
         drop(reader);
         let output = self.command().stdout(writer).output();
@@ -107,4 +108,17 @@ fn collect(output: Output) -> Run {
         stdout: String::from_utf8(stdout).expect("stdout is UTF-8"),
         stderr: String::from_utf8(stderr).expect("stderr is UTF-8"),
     }
+}
+
+#[test]
+fn transcript_marks_a_missing_final_newline() {
+    let run = Run { code: 0, stdout: "a".to_owned(), stderr: String::new() };
+    expect_test::expect![[r#"
+        exit 0
+        --- stdout
+        a[EOF]
+        --- stderr
+        [EOF]
+    "#]]
+    .assert_eq(&run.transcript());
 }

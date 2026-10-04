@@ -68,7 +68,9 @@ pub fn start(steps: Vec<Step>) -> Server {
     Server { url, finished, thread }
 }
 
-/// The URL of a local port that nothing listens on.
+/// The URL of a local port that nothing listens on. The port is free only
+/// until something else binds it; a reuse reaches a local test server, never
+/// the network.
 pub fn unreachable() -> String {
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind a port");
     format!("http://{}", listener.local_addr().unwrap())
