@@ -1,6 +1,6 @@
 use std::fmt::{self, Display, Write as _};
 
-use crate::address::{LineRange, Pinned};
+use crate::address::LineRange;
 use crate::domain::{NotAFile, Unavailable};
 use crate::escape::{command_line, sanitise, shell_word};
 
@@ -144,10 +144,6 @@ impl Diagnostic for Unavailable {
     fn hints(&self) -> Vec<String> {
         let list = ["sego", "list"];
         let read = ["sego", "read"];
-        // `repo@short`, unquoted: `command_line` quotes its operands.
-        let pinned = |at: &Pinned| {
-            format!("{}@{}", at.repo.as_str(), at.commit.short())
-        };
         let hint = match self {
             Unavailable::RepoNotFound { repo } => {
                 let name = repo.rsplit('/').next().unwrap_or(repo);
@@ -158,7 +154,7 @@ impl Diagnostic for Unavailable {
                 command_line(&list, &[repo])
             }
             Unavailable::PathNotFound { at, path } => {
-                let at = pinned(at);
+                let at = at.to_string();
                 match path.rsplit_once('/') {
                     Some((parent, _)) => {
                         command_line(&list, &[&at, &format!("{parent}/")])
@@ -171,10 +167,10 @@ impl Diagnostic for Unavailable {
                     NotAFile::Directory => format!("{path}/"),
                     NotAFile::Submodule => path.clone(),
                 };
-                command_line(&list, &[&pinned(at), &path])
+                command_line(&list, &[&at.to_string(), &path])
             }
             Unavailable::NotADirectory { at, path } => {
-                command_line(&read, &[&pinned(at), path])
+                command_line(&read, &[&at.to_string(), path])
             }
             Unavailable::TooLarge { .. } => return Vec::new(),
             Unavailable::OutOfRange { at, path, total_lines, .. } => {
@@ -182,7 +178,10 @@ impl Diagnostic for Unavailable {
                     return Vec::new();
                 }
                 let lines = LineRange { start: 1, end: Some(*total_lines) };
-                command_line(&read, &[&pinned(at), path, &lines.to_string()])
+                command_line(
+                    &read,
+                    &[&at.to_string(), path, &lines.to_string()],
+                )
             }
         };
         vec![hint]
@@ -196,7 +195,7 @@ mod tests {
     use expect_test::expect;
 
     use super::*;
-    use crate::address::{CommitId, RepoName};
+    use crate::address::{CommitId, Pinned, RepoName};
 
     struct Sample {
         outcome: Outcome,
