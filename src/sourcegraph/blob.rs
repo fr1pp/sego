@@ -1,7 +1,6 @@
 //! Reading a file: its metadata, line count and a range of its lines.
 
 use serde::Deserialize;
-use serde::de::IgnoredAny;
 
 use crate::address::{Address, CommitId, Pinned, RepoName, RepoPath};
 use crate::diagnostic::Diagnostic;
@@ -97,12 +96,21 @@ enum Node {
         byte_size: u64,
         binary: bool,
         content_type: String,
-        /// Only its presence matters here.
-        submodule: Option<IgnoredAny>,
+        submodule: Option<Submodule>,
     },
     GitTree {
         path: String,
     },
+}
+
+/// Only its presence matters here.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Submodule {
+    #[serde(rename = "url")]
+    _url: String,
+    #[serde(rename = "commit")]
+    _commit: String,
 }
 
 /// Empty unless the path is a blob.
@@ -640,6 +648,28 @@ mod tests {
             [bad_response Unanswered]
             error: the upstream's answer has missing or unknown fields
             caused by: invalid type: null, expected a string
+        "#]]
+        .assert_eq(&failure(result));
+    }
+
+    #[test]
+    fn a_submodule_without_its_url_and_commit_is_bad_response() {
+        let body = br#"{"data":{"repository":{
+            "name":"github.com/rust-lang/rust",
+            "commit":{
+                "oid":"a7962380ca08b5a188038c69871b8d3fbdf31e89",
+                "node":{"__typename":"GitBlob","path":"src/tools/cargo",
+                    "byteSize":0,"binary":false,
+                    "contentType":"text/plain","submodule":{}},
+                "lines":{"totalLines":0},
+                "body":{"content":""}
+            }
+        }}}"#;
+        let result = answer(&case("submodule"), decoded(body));
+        expect![[r#"
+            [bad_response Unanswered]
+            error: the upstream's answer has missing or unknown fields
+            caused by: missing field `url`
         "#]]
         .assert_eq(&failure(result));
     }

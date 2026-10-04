@@ -4,7 +4,6 @@ use std::fmt;
 use std::time::Duration;
 
 use serde::Deserialize;
-use serde::de::IgnoredAny;
 
 use crate::address::{CommitId, Pinned, RepoName};
 use crate::diagnostic::{Diagnostic, Outcome};
@@ -178,7 +177,7 @@ struct WireAlert {
 #[serde(deny_unknown_fields)]
 struct Proposal {
     #[serde(rename = "description")]
-    _description: IgnoredAny,
+    _description: Option<String>,
     query: String,
 }
 
@@ -189,7 +188,7 @@ enum Item {
     FileMatch {
         repository: Named,
         file: WireFile,
-        path_matches: Vec<IgnoredAny>,
+        path_matches: Vec<WireRange>,
         symbols: Vec<WireSymbol>,
         chunk_matches: Vec<Chunk>,
     },
@@ -1612,6 +1611,23 @@ mod tests {
             "{failure}"
         );
         assert!(failure.contains("Notebook"), "{failure}");
+    }
+
+    #[test]
+    fn subtrees_sego_ignores_are_still_checked_against_the_schema() {
+        let mut path_match = file_match(&serde_json::json!([]));
+        path_match["pathMatches"] = serde_json::json!([null]);
+        let alert = serde_json::json!({
+            "title": "x", "description": null,
+            "proposedQueries": [{"description": {}, "query": "x"}]
+        });
+        for results in [
+            serde_json::json!({"matchCount": 1, "results": [path_match]}),
+            serde_json::json!({"alert": alert}),
+        ] {
+            let error = answer("x", reply(&results)).unwrap_err();
+            assert_eq!(error.code(), "bad_response", "{results}");
+        }
     }
 
     #[test]
