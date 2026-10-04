@@ -621,6 +621,7 @@ mod tests {
 
     const MUX: &str = r"repo:^github\.com/gorilla/mux$";
     const MUX_TAG: &str = r"repo:^github\.com/gorilla/mux$@v1.7.0";
+    const GO_TAG: &str = r"repo:^github\.com/golang/go$@go1.23.0";
 
     /// The capture cases, by name: each is `tests/search/<name>.json`.
     fn cases() -> Vec<(&'static str, String)> {
@@ -643,7 +644,7 @@ mod tests {
                 r"repo:^github\.com/gorilla/mux$@v9.9.9 NewRouter".to_owned(),
             ),
             ("timed-out", format!("{MUX_TAG} NewRouter timeout:1ms")),
-            ("limit-hit", "lang:go context.WithTimeout count:5".to_owned()),
+            ("limit-hit", format!("{GO_TAG} context.WithTimeout count:5")),
         ]
     }
 
@@ -1297,28 +1298,28 @@ mod tests {
             [
                 Filter {
                     kind: Term {
-                        value: "utility",
-                        raw: None,
-                    },
-                    value: "archived:yes",
-                    count: 68678,
-                    limit_hit: true,
-                },
-                Filter {
-                    kind: Term {
-                        value: "utility",
-                        raw: None,
-                    },
-                    value: "fork:yes",
-                    count: 282,
-                    limit_hit: true,
-                },
-                Filter {
-                    kind: Term {
                         value: "type",
                         raw: None,
                     },
                     value: "type:file",
+                    count: 5,
+                    limit_hit: true,
+                },
+                Filter {
+                    kind: Term {
+                        value: "lang",
+                        raw: None,
+                    },
+                    value: "lang:go",
+                    count: 5,
+                    limit_hit: true,
+                },
+                Filter {
+                    kind: Term {
+                        value: "repo",
+                        raw: None,
+                    },
+                    value: "repo:^github\\.com/golang/go$@go1.23.0",
                     count: 5,
                     limit_hit: true,
                 },

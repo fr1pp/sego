@@ -366,42 +366,42 @@ fn no_repos_shows_the_alert() {
 
 #[test]
 fn limit_hit_suggests_narrowing() {
-    let args = ["lang:go", "context.WithTimeout", "count:5"];
+    let args = [
+        r"repo:^github\.com/golang/go$@go1.23.0",
+        "context.WithTimeout",
+        "count:5",
+    ];
     expect![[r#"
         exit 0
         --- stdout
         5+ matches • 5 results • limit hit
-        narrow: repo:^github\.com/Nouuu/Albion-Online-OpenRadar$ (1) • repo:^github\.com/Wraient/curd$ (1) • repo:^github\.com/hotchpotch/openai-api-server-via-codex$ (1) • repo:^github\.com/projectdiscovery/urlfinder$ (1) • repo:^github\.com/regiellis/godot-mcp-go$ (1)
+        narrow: lang:go (5) • -file:_test\.\w+$ (3) • -file:(^|/)vendor/ (1)
 
-        github.com/projectdiscovery/urlfinder@e732aab57e7f
-        pkg/agent/agent.go
-         132-
-         133: 		ctx, cancel := context.WithTimeout(ctx, maxEnumTime)
-         134-
+        github.com/golang/go@6885bad7dd86
+        src/cmd/cgo/internal/testplugin/plugin_test.go
+         242-
+         243: 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+         244- 	defer cancel()
 
-        github.com/Nouuu/Albion-Online-OpenRadar@69a76de88515
-        cmd/radar/main.go
-         407-
-         408: 	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
-         409- 	defer cancel()
+        src/cmd/go/internal/test/test.go
+        1549- 	// but add a last-ditch deadline to detect and stop wedged binaries.
+        1550: 	ctx, cancel := context.WithTimeout(ctx, testKillTimeout)
+        1551- 	defer cancel()
 
-        github.com/regiellis/godot-mcp-go@676670d5d742
-        cmd/swallowtail/run.go
-         181- 	if moviePath != "" && *wait {
-         182: 		ctx, cancel := context.WithTimeout(context.Background(), *timeout)
-         183- 		defer cancel()
+        src/cmd/go/script_test.go
+          82- 		var cancel context.CancelFunc
+          83: 		ctx, cancel = context.WithTimeout(ctx, timeout)
+          84- 		t.Cleanup(cancel)
 
-        github.com/Wraient/curd@713cab7fb6de
-        internal/config.go
-         345- func authenticateWithBrowser(tokenPath string) (string, error) {
-         346: 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-         347- 	defer cancel()
+        src/cmd/vendor/golang.org/x/tools/go/analysis/passes/unusedresult/unusedresult.go
+          64- 		"context.WithDeadline": true,
+          65: 		"context.WithTimeout":  true,
+          66- 		"context.WithValue":    true,
 
-        github.com/hotchpotch/openai-api-server-via-codex@f248d9631270
-        internal/app/server.go
-          94- 		}
-          95: 		ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
-          96- 		defer cancel()
+        src/context/afterfunc_test.go
+          89- 	ctx0 := &afterFuncContext{}
+          90: 	ctx1, cancel := context.WithTimeout(ctx0, veryLongDuration)
+          91- 	defer cancel()
         [EOF]
         --- stderr
         [EOF]

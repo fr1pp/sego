@@ -2,7 +2,7 @@
   "request": {
     "query": "query Search($query: String!) {\n  search(query: $query, version: V3, patternType: keyword) {\n    results {\n      matchCount limitHit approximateResultCount elapsedMilliseconds\n      dynamicFilters { value count limitHit kind }\n      cloning { name } missing { name } timedout { name }\n      alert { title description proposedQueries { description query } }\n      results {\n        __typename\n        ... on FileMatch {\n          repository { name }\n          file { path commit { oid } }\n          pathMatches { start { line character } end { line character } }\n          symbols { name kind containerName location { range { start { line character } } } }\n          chunkMatches { content contentStart { line } ranges { start { line character } end { line character } } }\n        }\n        ... on Repository { name description stars }\n        ... on CommitSearchResult {\n          commit { oid subject author { person { name } date } repository { name } }\n          diffPreview { value }\n        }\n      }\n    }\n  }\n}\n",
     "variables": {
-      "query": "lang:go context.WithTimeout count:5"
+      "query": "repo:^github\\.com/golang/go$@go1.23.0 context.WithTimeout count:5"
     }
   },
   "response": {
@@ -16,28 +16,10 @@
             "cloning": [],
             "dynamicFilters": [
               {
-                "count": 68678,
-                "kind": "utility",
-                "limitHit": true,
-                "value": "archived:yes"
-              },
-              {
-                "count": 282,
-                "kind": "utility",
-                "limitHit": true,
-                "value": "fork:yes"
-              },
-              {
                 "count": 5,
                 "kind": "type",
                 "limitHit": true,
                 "value": "type:file"
-              },
-              {
-                "count": 5,
-                "kind": "type",
-                "limitHit": true,
-                "value": "type:path"
               },
               {
                 "count": 5,
@@ -46,37 +28,25 @@
                 "value": "lang:go"
               },
               {
-                "count": 1,
+                "count": 5,
                 "kind": "repo",
                 "limitHit": true,
-                "value": "repo:^github\\.com/Nouuu/Albion-Online-OpenRadar$"
+                "value": "repo:^github\\.com/golang/go$@go1.23.0"
+              },
+              {
+                "count": 3,
+                "kind": "file",
+                "limitHit": true,
+                "value": "-file:_test\\.\\w+$"
               },
               {
                 "count": 1,
-                "kind": "repo",
+                "kind": "file",
                 "limitHit": true,
-                "value": "repo:^github\\.com/Wraient/curd$"
-              },
-              {
-                "count": 1,
-                "kind": "repo",
-                "limitHit": true,
-                "value": "repo:^github\\.com/hotchpotch/openai-api-server-via-codex$"
-              },
-              {
-                "count": 1,
-                "kind": "repo",
-                "limitHit": true,
-                "value": "repo:^github\\.com/projectdiscovery/urlfinder$"
-              },
-              {
-                "count": 1,
-                "kind": "repo",
-                "limitHit": true,
-                "value": "repo:^github\\.com/regiellis/godot-mcp-go$"
+                "value": "-file:(^|/)vendor/"
               }
             ],
-            "elapsedMilliseconds": 1288,
+            "elapsedMilliseconds": 346,
             "limitHit": true,
             "matchCount": 5,
             "missing": [],
@@ -85,64 +55,19 @@
                 "__typename": "FileMatch",
                 "chunkMatches": [
                   {
-                    "content": "\n\t\tctx, cancel := context.WithTimeout(ctx, maxEnumTime)\n\n",
+                    "content": "\n\tctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)\n\tdefer cancel()\n",
                     "contentStart": {
-                      "line": 131
-                    },
-                    "ranges": [
-                      {
-                        "end": {
-                          "character": 36,
-                          "line": 132
-                        },
-                        "start": {
-                          "character": 17,
-                          "line": 132
-                        }
-                      }
-                    ]
-                  }
-                ],
-                "file": {
-                  "commit": {
-                    "oid": "e732aab57e7fedacbd00da26a380d101dce1c5c4"
-                  },
-                  "path": "pkg/agent/agent.go"
-                },
-                "pathMatches": [
-                  {
-                    "end": {
-                      "character": 18,
-                      "line": 0
-                    },
-                    "start": {
-                      "character": 15,
-                      "line": 0
-                    }
-                  }
-                ],
-                "repository": {
-                  "name": "github.com/projectdiscovery/urlfinder"
-                },
-                "symbols": []
-              },
-              {
-                "__typename": "FileMatch",
-                "chunkMatches": [
-                  {
-                    "content": "\n\tctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)\n\tdefer cancel()\n",
-                    "contentStart": {
-                      "line": 406
+                      "line": 241
                     },
                     "ranges": [
                       {
                         "end": {
                           "character": 35,
-                          "line": 407
+                          "line": 242
                         },
                         "start": {
                           "character": 16,
-                          "line": 407
+                          "line": 242
                         }
                       }
                     ]
@@ -150,24 +75,13 @@
                 ],
                 "file": {
                   "commit": {
-                    "oid": "69a76de885152492390a904c64fd4c1a7c241c50"
+                    "oid": "6885bad7dd86880be6929c02085e5c7a67ff2887"
                   },
-                  "path": "cmd/radar/main.go"
+                  "path": "src/cmd/cgo/internal/testplugin/plugin_test.go"
                 },
-                "pathMatches": [
-                  {
-                    "end": {
-                      "character": 17,
-                      "line": 0
-                    },
-                    "start": {
-                      "character": 14,
-                      "line": 0
-                    }
-                  }
-                ],
+                "pathMatches": [],
                 "repository": {
-                  "name": "github.com/Nouuu/Albion-Online-OpenRadar"
+                  "name": "github.com/golang/go"
                 },
                 "symbols": []
               },
@@ -175,64 +89,19 @@
                 "__typename": "FileMatch",
                 "chunkMatches": [
                   {
-                    "content": "\tif moviePath != \"\" && *wait {\n\t\tctx, cancel := context.WithTimeout(context.Background(), *timeout)\n\t\tdefer cancel()\n",
+                    "content": "\t// but add a last-ditch deadline to detect and stop wedged binaries.\n\tctx, cancel := context.WithTimeout(ctx, testKillTimeout)\n\tdefer cancel()\n",
                     "contentStart": {
-                      "line": 180
-                    },
-                    "ranges": [
-                      {
-                        "end": {
-                          "character": 36,
-                          "line": 181
-                        },
-                        "start": {
-                          "character": 17,
-                          "line": 181
-                        }
-                      }
-                    ]
-                  }
-                ],
-                "file": {
-                  "commit": {
-                    "oid": "676670d5d7422b2fd68efc965ccc9598a3fdea0e"
-                  },
-                  "path": "cmd/swallowtail/run.go"
-                },
-                "pathMatches": [
-                  {
-                    "end": {
-                      "character": 22,
-                      "line": 0
-                    },
-                    "start": {
-                      "character": 19,
-                      "line": 0
-                    }
-                  }
-                ],
-                "repository": {
-                  "name": "github.com/regiellis/godot-mcp-go"
-                },
-                "symbols": []
-              },
-              {
-                "__typename": "FileMatch",
-                "chunkMatches": [
-                  {
-                    "content": "func authenticateWithBrowser(tokenPath string) (string, error) {\n\tctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)\n\tdefer cancel()\n",
-                    "contentStart": {
-                      "line": 344
+                      "line": 1548
                     },
                     "ranges": [
                       {
                         "end": {
                           "character": 35,
-                          "line": 345
+                          "line": 1549
                         },
                         "start": {
                           "character": 16,
-                          "line": 345
+                          "line": 1549
                         }
                       }
                     ]
@@ -240,24 +109,13 @@
                 ],
                 "file": {
                   "commit": {
-                    "oid": "713cab7fb6dec388e5bda376d08474b69b2b9630"
+                    "oid": "6885bad7dd86880be6929c02085e5c7a67ff2887"
                   },
-                  "path": "internal/config.go"
+                  "path": "src/cmd/go/internal/test/test.go"
                 },
-                "pathMatches": [
-                  {
-                    "end": {
-                      "character": 18,
-                      "line": 0
-                    },
-                    "start": {
-                      "character": 15,
-                      "line": 0
-                    }
-                  }
-                ],
+                "pathMatches": [],
                 "repository": {
-                  "name": "github.com/Wraient/curd"
+                  "name": "github.com/golang/go"
                 },
                 "symbols": []
               },
@@ -265,19 +123,19 @@
                 "__typename": "FileMatch",
                 "chunkMatches": [
                   {
-                    "content": "\t\t}\n\t\tctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)\n\t\tdefer cancel()\n",
+                    "content": "\t\tvar cancel context.CancelFunc\n\t\tctx, cancel = context.WithTimeout(ctx, timeout)\n\t\tt.Cleanup(cancel)\n",
                     "contentStart": {
-                      "line": 93
+                      "line": 81
                     },
                     "ranges": [
                       {
                         "end": {
-                          "character": 36,
-                          "line": 94
+                          "character": 35,
+                          "line": 82
                         },
                         "start": {
-                          "character": 17,
-                          "line": 94
+                          "character": 16,
+                          "line": 82
                         }
                       }
                     ]
@@ -285,24 +143,81 @@
                 ],
                 "file": {
                   "commit": {
-                    "oid": "f248d96312702b08bd511e610603ecd5023c8efb"
+                    "oid": "6885bad7dd86880be6929c02085e5c7a67ff2887"
                   },
-                  "path": "internal/app/server.go"
+                  "path": "src/cmd/go/script_test.go"
                 },
-                "pathMatches": [
+                "pathMatches": [],
+                "repository": {
+                  "name": "github.com/golang/go"
+                },
+                "symbols": []
+              },
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [
                   {
-                    "end": {
-                      "character": 22,
-                      "line": 0
+                    "content": "\t\t\"context.WithDeadline\": true,\n\t\t\"context.WithTimeout\":  true,\n\t\t\"context.WithValue\":    true,\n",
+                    "contentStart": {
+                      "line": 63
                     },
-                    "start": {
-                      "character": 19,
-                      "line": 0
-                    }
+                    "ranges": [
+                      {
+                        "end": {
+                          "character": 22,
+                          "line": 64
+                        },
+                        "start": {
+                          "character": 3,
+                          "line": 64
+                        }
+                      }
+                    ]
                   }
                 ],
+                "file": {
+                  "commit": {
+                    "oid": "6885bad7dd86880be6929c02085e5c7a67ff2887"
+                  },
+                  "path": "src/cmd/vendor/golang.org/x/tools/go/analysis/passes/unusedresult/unusedresult.go"
+                },
+                "pathMatches": [],
                 "repository": {
-                  "name": "github.com/hotchpotch/openai-api-server-via-codex"
+                  "name": "github.com/golang/go"
+                },
+                "symbols": []
+              },
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [
+                  {
+                    "content": "\tctx0 := &afterFuncContext{}\n\tctx1, cancel := context.WithTimeout(ctx0, veryLongDuration)\n\tdefer cancel()\n",
+                    "contentStart": {
+                      "line": 88
+                    },
+                    "ranges": [
+                      {
+                        "end": {
+                          "character": 36,
+                          "line": 89
+                        },
+                        "start": {
+                          "character": 17,
+                          "line": 89
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "file": {
+                  "commit": {
+                    "oid": "6885bad7dd86880be6929c02085e5c7a67ff2887"
+                  },
+                  "path": "src/context/afterfunc_test.go"
+                },
+                "pathMatches": [],
+                "repository": {
+                  "name": "github.com/golang/go"
                 },
                 "symbols": []
               }
