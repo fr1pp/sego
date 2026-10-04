@@ -132,13 +132,14 @@ fn go_duration(text: &str) -> Option<Duration> {
         let whole: u128 =
             if whole.is_empty() { 0 } else { whole.parse().ok()? };
         let mut part = whole.checked_mul(scale)?;
-        let mut divisor = 1;
+        let mut divisor: u128 = 1;
         // Digits past the 18th are below a nanosecond in every unit.
         for digit in fraction.chars() {
             let digit = digit.to_digit(10)?;
             if divisor < 10u128.pow(18) {
-                divisor *= 10;
-                part += u128::from(digit) * scale / divisor;
+                divisor = divisor.checked_mul(10)?;
+                let nanos = u128::from(digit).checked_mul(scale)?;
+                part = part.checked_add(nanos.checked_div(divisor)?)?;
             }
         }
         nanos = nanos.checked_add(part)?;
@@ -789,6 +790,8 @@ mod tests {
         assert_eq!(query_timeout("x timeout:5"), None);
         assert_eq!(query_timeout("x timeout:0s"), None);
         assert_eq!(query_timeout("x mytimeout:5s"), None);
+        let overflow = "x timeout:340282366920938463463374607431.9s";
+        assert_eq!(query_timeout(overflow), None);
     }
 
     #[test]
