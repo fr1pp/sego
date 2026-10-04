@@ -37,8 +37,9 @@ const QUERY: &str = r"query List(
 }
 ";
 
-/// The most entries one listing asks for. The upstream cuts a listing at
-/// this many without saying so.
+/// The most entries one listing shows. The upstream cuts a listing at
+/// `first` without saying so, so a listing asks for one more than this, and
+/// is truncated only when that one arrives.
 pub const LIST_ENTRY_CAP: u32 = 1000;
 
 /// The entries of `path` down to `depth` levels below it; 1 is its own
@@ -58,7 +59,7 @@ pub fn plan(request: &ListRequest) -> Plan {
             "rev": request.address.rev_or_head(),
             "path": request.path.upstream(),
             "recursive": request.depth > 1,
-            "first": LIST_ENTRY_CAP,
+            "first": LIST_ENTRY_CAP + 1,
         }),
     }
 }
@@ -154,10 +155,13 @@ pub fn answer(
         }
         Some(Node::GitTree { path, entries }) => (path, entries),
     };
-    let truncated = upstream.len() >= LIST_ENTRY_CAP as usize;
+    let cap = LIST_ENTRY_CAP as usize;
+    let truncated = upstream.len() > cap;
     let depth = request.depth as usize + segments(&path);
     let mut entries = Vec::new();
-    for TreeEntry { path: entry, is_directory, submodule } in upstream {
+    for TreeEntry { path: entry, is_directory, submodule } in
+        upstream.into_iter().take(cap)
+    {
         if segments(&entry) > depth {
             continue;
         }
@@ -636,6 +640,26 @@ mod tests {
         let paths: Vec<_> =
             listing.entries.iter().map(|entry| entry.path.as_str()).collect();
         assert_eq!(paths, ["foo", "foo/bar.go", "foo/baz", "foo.go"]);
+    }
+
+    #[test]
+    fn only_an_entry_past_the_cap_truncates() {
+        let request = case("root");
+        let listed = |count: usize| {
+            let entries: Vec<_> = (0..count)
+                .map(|n| {
+                    serde_json::json!({"path": format!("f{n:04}"),
+                        "isDirectory": false, "submodule": null})
+                })
+                .collect();
+            let entries = serde_json::Value::from(entries);
+            let listing = listing(answer(&request, tree("", &entries)));
+            (listing.entries.len(), listing.truncated)
+        };
+        let cap = LIST_ENTRY_CAP as usize;
+        assert_eq!(listed(cap), (cap, false));
+        assert_eq!(listed(cap + 1), (cap, true));
+        assert_eq!(plan(&request).variables["first"], cap + 1);
     }
 
     #[test]

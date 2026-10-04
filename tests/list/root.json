@@ -2,7 +2,7 @@
   "request": {
     "query": "query List(\n  $repo: String!, $rev: String!, $path: String!, $recursive: Boolean!,\n  $first: Int!\n) {\n  repository(name: $repo) {\n    name\n    commit(rev: $rev) {\n      oid\n      node: path(path: $path) {\n        __typename\n        ... on GitBlob { path submodule { url commit } }\n        ... on GitTree {\n          path\n          entries(first: $first, recursive: $recursive) {\n            path isDirectory submodule { url commit }\n          }\n        }\n      }\n    }\n  }\n}\n",
     "variables": {
-      "first": 1000,
+      "first": 1001,
       "path": "",
       "recursive": false,
       "repo": "github.com/gorilla/mux",

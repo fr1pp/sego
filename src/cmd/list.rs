@@ -44,9 +44,9 @@ Output:
     src/tools/bump-stage0/
     src/tools/cargo • submodule github.com/rust-lang/cargo@37629051518c
 
-  The upstream stops a listing at 1000 entries, which may leave out
-  entries from anywhere in it. Such a listing ends with a notice: line,
-  and with --depth above 1 a hint: line for one level less.
+  A listing stops at 1000 entries, which may leave out entries from
+  anywhere in it. Such a listing ends with a notice: line, and with
+  --depth above 1 a hint: line for one level less.
 
   A submodule's path answers with its address line, then, on a line of its
   own, the repository and commit it pins, or its URL.
@@ -444,7 +444,7 @@ mod tests {
     fn help_states_the_cap() {
         assert!(
             HELP.details
-                .contains(&format!("listing at {LIST_ENTRY_CAP} entries"))
+                .contains(&format!("stops at {LIST_ENTRY_CAP} entries"))
         );
         assert!(
             HELP.details.contains(&format!("stopped at {LIST_ENTRY_CAP}"))
