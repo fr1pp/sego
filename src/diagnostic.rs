@@ -36,6 +36,12 @@ pub trait Diagnostic: Display {
     }
 }
 
+impl<D: Diagnostic + 'static> From<D> for Box<dyn Diagnostic> {
+    fn from(diagnostic: D) -> Self {
+        Box::new(diagnostic)
+    }
+}
+
 /// The stderr text: an *answered no* as a plain sentence, anything else as
 /// `error:` with its `caused by:` lines; then the `hint:` lines. Message and
 /// causes are sanitised so each stays on one line; hints are already shell
