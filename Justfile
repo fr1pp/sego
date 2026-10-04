@@ -109,14 +109,16 @@ drift:
     done
     exit "$status"
 
-# Fetch the upstream schema into target/schema.json, for nullability checks.
+# Fetch the schema the documents are checked against into target/schema.json.
 schema:
     #!/usr/bin/env bash
     set -euo pipefail
     mkdir -p target
     query=$(cat <<'GRAPHQL'
-    query { __schema { types { name kind enumValues { name }
-      fields { name type { kind name ofType { kind name ofType { kind name } } } } } } }
+    query { __schema { types {
+      name kind enumValues { name } possibleTypes { name }
+      fields { name type { kind name
+        ofType { kind name ofType { kind name ofType { kind name } } } } } } } }
     GRAPHQL
     )
     jq -n --arg q "$query" '{query: $q}' \
