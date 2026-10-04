@@ -113,14 +113,15 @@ struct Submodule {
     _commit: String,
 }
 
-/// Empty unless the path is a blob.
+/// `totalLines` is absent unless the path is a blob, and never null.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 struct Lines {
     total_lines: Option<u32>,
 }
 
-/// Empty unless the path is a blob, and null over the read cap.
+/// `content` is absent unless the path is a blob, and never null: over the
+/// read cap, the error nulls the whole `body` alias instead.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Body {
@@ -141,6 +142,9 @@ pub fn answer(
         None => false,
     };
     let trace = envelope.trace.clone();
+    // A blob's `lines` or `body` alias is null only with an error at its
+    // path: the read cap's, handled above, or another, which `into_data`
+    // reports. So only drift reaches this.
     let missing = |field: &str| FetchError::Field {
         cause: format!("a blob has no {field}"),
         trace: trace.clone(),
