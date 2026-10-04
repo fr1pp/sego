@@ -1,5 +1,6 @@
 mod table;
 
+use std::borrow::Cow;
 use std::fmt::Write as _;
 
 pub fn is_unsafe(c: char) -> bool {
@@ -24,8 +25,95 @@ pub fn sanitise(raw: &str) -> String {
     text
 }
 
+/// `s` as one POSIX shell word that delivers its exact bytes: bare when
+/// that is safe, `'…'` when it has no control or unsafe character, and
+/// `$'…'` otherwise. A leading `-` is quoted, so a bare word never reads as
+/// an option.
+pub fn shell_word(s: &str) -> Cow<'_, str> {
+    if s.starts_with('-') { Cow::Owned(quoted(s)) } else { word(s) }
+}
+
+/// `head`, the program and its options, which must already be shell words,
+/// then each operand as a shell word. If any operand starts with `--`, a
+/// `--` goes before the operands, and after it a leading `-` needs no
+/// quoting.
+pub fn command_line(head: &[&str], operands: &[&str]) -> String {
+    let dashes = operands.iter().any(|operand| operand.starts_with("--"));
+    let mut line = head.join(" ");
+    if dashes {
+        line.push_str(" --");
+    }
+    for &operand in operands {
+        let operand = if dashes { word(operand) } else { shell_word(operand) };
+        line.push(' ');
+        line.push_str(&operand);
+    }
+    line
+}
+
+fn word(s: &str) -> Cow<'_, str> {
+    let bare = |c: char| c.is_ascii_alphanumeric() || "@%+=:,./_-".contains(c);
+    if !s.is_empty() && s.chars().all(bare) {
+        Cow::Borrowed(s)
+    } else {
+        Cow::Owned(quoted(s))
+    }
+}
+
+fn quoted(s: &str) -> String {
+    let escaped = |c: char| c.is_control() || is_unsafe(c);
+    if !s.chars().any(escaped) {
+        return format!("'{}'", s.replace('\'', r"'\''"));
+    }
+    // POSIX.1-2024 `$'…'` has `\x` but not `\u`.
+    let mut text = String::from("$'");
+    for c in s.chars() {
+        match c {
+            '\\' => text.push_str(r"\\"),
+            '\'' => text.push_str(r"\'"),
+            '\n' => text.push_str(r"\n"),
+            '\t' => text.push_str(r"\t"),
+            '\r' => text.push_str(r"\r"),
+            c if escaped(c) => {
+                for byte in c.encode_utf8(&mut [0; 4]).bytes() {
+                    let _ = write!(text, "\\x{byte:02x}");
+                }
+            }
+            c => text.push(c),
+        }
+    }
+    text.push('\'');
+    text
+}
+
+/// Strings that need every form of shell word and the escape set.
+#[cfg(test)]
+pub const CORPUS: &[&str] = &[
+    "",
+    "plain",
+    "two words",
+    "it's",
+    "$HOME",
+    "`id`",
+    "a\\b",
+    "*?[]{}",
+    "!#~",
+    "new\nline",
+    "tab\t",
+    "cr\r",
+    "esc\u{1b}[0m",
+    "rtl\u{202e}",
+    "zw\u{200b}",
+    "汉语",
+    "🚀",
+    "-dash",
+    "--long",
+];
+
 #[cfg(test)]
 mod tests {
+    use std::process::Command;
+
     use super::*;
 
     #[test]
@@ -62,5 +150,40 @@ mod tests {
     fn sanitise_strips_one_trailing_carriage_return() {
         assert_eq!(sanitise("crlf\r"), "crlf");
         assert_eq!(sanitise("mid\rline"), r"mid\x0dline");
+    }
+
+    #[test]
+    fn shell_words() {
+        assert_eq!(shell_word("mux.go"), "mux.go");
+        assert_eq!(
+            shell_word("github.com/gorilla/mux@a7962380ca08"),
+            "github.com/gorilla/mux@a7962380ca08"
+        );
+        assert_eq!(shell_word(""), "''");
+        assert_eq!(shell_word("src/my file.go"), "'src/my file.go'");
+        assert_eq!(shell_word("it's"), r"'it'\''s'");
+        assert_eq!(shell_word("a7962380~1"), "'a7962380~1'");
+        assert_eq!(shell_word("a\u{200b}b"), r"$'a\xe2\x80\x8bb'");
+        assert_eq!(shell_word("tab\there"), r"$'tab\there'");
+        assert_eq!(shell_word("back\\slash\u{1b}"), r"$'back\\slash\x1b'");
+    }
+
+    #[test]
+    fn command_lines_put_dashes_before_dashed_operands() {
+        assert_eq!(
+            command_line(&["sego", "read"], &["r", "--x"]),
+            "sego read -- r --x"
+        );
+    }
+
+    #[test]
+    fn shell_words_round_trip_through_bash() {
+        for &word in CORPUS {
+            let script = format!("printf %s {}", shell_word(word));
+            let output =
+                Command::new("bash").args(["-c", &script]).output().unwrap();
+            assert!(output.status.success(), "{script}: {output:?}");
+            assert_eq!(output.stdout, word.as_bytes(), "{script}");
+        }
     }
 }
