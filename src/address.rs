@@ -18,15 +18,19 @@ impl RepoName {
 
     /// The repository a submodule's `url` names: as `parse`, but with a
     /// relative URL (`./` or `../`) resolved against `parent`, and `None`
-    /// for anything that can't be a repository name, such as a local path.
+    /// for anything that can't be a repository name. As in git, a URL with
+    /// neither a scheme nor scp form, such as `foo/bar`, is a local path.
     pub fn from_submodule_url(
         url: &str,
         parent: &RepoName,
     ) -> Option<RepoName> {
         let name = if url.starts_with("./") || url.starts_with("../") {
-            tidy(&resolve(parent.as_str(), url)?, false)
+            tidy(&resolve(parent.as_str(), url)?, Form::Bare)
         } else {
-            normalise(url)
+            match host_onwards(url) {
+                (_, Form::Bare) => return None,
+                (rest, form) => tidy(&rest, form),
+            }
         };
         if name.starts_with('/') {
             return None;
@@ -47,31 +51,38 @@ impl RepoName {
 
 /// `url` as a repository name: see `RepoName::parse`.
 fn normalise(url: &str) -> String {
-    let (rest, scp) = host_onwards(url);
-    tidy(&rest, scp)
+    let (rest, form) = host_onwards(url);
+    tidy(&rest, form)
 }
 
-/// `url` with any scheme, user and port dropped, and whether it is
-/// scp-style (`host:owner/name`), which is only recognised without a scheme.
-/// Only a URL with a scheme has a port, and no repository name has one.
-fn host_onwards(url: &str) -> (String, bool) {
-    let (rest, scheme) = match after_scheme(url) {
-        Some(rest) => (rest, true),
-        None => (url, false),
-    };
-    let slash = rest.find('/');
-    let host_end = if scheme {
-        Some(slash.unwrap_or(rest.len()))
+/// How a URL names its host.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Form {
+    /// `scheme://[user@]host[:port]/…`
+    Scheme,
+    /// `[user@]host:owner/name`, recognised only without a scheme.
+    Scp,
+    /// Neither, so there is no host to find.
+    Bare,
+}
+
+/// `url` with any scheme, user and port dropped, and its form. Only a URL
+/// with a scheme has a port, and no repository name has one.
+fn host_onwards(url: &str) -> (String, Form) {
+    let (rest, form, end) = if let Some(rest) = after_scheme(url) {
+        (rest, Form::Scheme, rest.find('/').unwrap_or(rest.len()))
     } else {
-        rest.find(':').filter(|&colon| slash.is_none_or(|s| colon < s))
-    };
-    let Some(end) = host_end else {
-        return (rest.to_owned(), false);
+        let slash = url.find('/');
+        let colon = url.find(':');
+        match colon.filter(|&colon| slash.is_none_or(|s| colon < s)) {
+            Some(colon) => (url, Form::Scp, colon),
+            None => return (url.to_owned(), Form::Bare),
+        }
     };
     let host = &rest[..end];
     let host = host.rfind('@').map_or(host, |at| &host[at + 1..]);
-    let host = if scheme { without_port(host) } else { host };
-    (format!("{host}{}", &rest[end..]), !scheme)
+    let host = if form == Form::Scheme { without_port(host) } else { host };
+    (format!("{host}{}", &rest[end..]), form)
 }
 
 /// `url` after its `scheme://`, if the text before the first `://` is a
@@ -113,8 +124,11 @@ fn resolve(base: &str, relative: &str) -> Option<String> {
 }
 
 /// The repository name in `rest`, the output of `host_onwards`.
-fn tidy(rest: &str, scp: bool) -> String {
-    let name = if scp { rest.replacen(':', "/", 1) } else { rest.to_owned() };
+fn tidy(rest: &str, form: Form) -> String {
+    let name = match form {
+        Form::Scp => rest.replacen(':', "/", 1),
+        Form::Scheme | Form::Bare => rest.to_owned(),
+    };
     let name = name.trim_end_matches('/');
     name.strip_suffix(".git").unwrap_or(name).to_owned()
 }
@@ -155,13 +169,13 @@ impl Address {
     /// `s` split at the first `@` after the host, so a URL's user is not
     /// read as the separator.
     pub fn parse(s: &str) -> Result<Address, AddressError> {
-        let (rest, scp) = host_onwards(s);
+        let (rest, form) = host_onwards(s);
         let (repo, rev) = match rest.split_once('@') {
             Some((repo, rev)) => (repo, Some(rev)),
             None => (rest.as_str(), None),
         };
         Ok(Address {
-            repo: RepoName::checked(tidy(repo, scp))?,
+            repo: RepoName::checked(tidy(repo, form))?,
             rev: rev.map(Rev::parse).transpose()?,
         })
     }
@@ -371,6 +385,8 @@ mod tests {
             ("", None),
             ("file:///srv/git/b.git", None),
             ("https://github.com/x/b c", None),
+            ("foo/bar", None),
+            ("github.com/x/b", None),
         ] {
             assert_eq!(
                 RepoName::from_submodule_url(url, &parent)
