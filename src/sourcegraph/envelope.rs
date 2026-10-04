@@ -17,7 +17,8 @@ pub struct GraphQlError {
 }
 
 /// A GraphQL response from a 200 reply. `data` that is `null` or `{}` is
-/// `None`, and at least one of `data` and `errors` is present.
+/// `None`. `decode` guarantees one of `data` and `errors`; `take_error` may
+/// leave neither.
 #[derive(Debug)]
 pub struct Envelope {
     pub data: Option<serde_json::Value>,
@@ -64,8 +65,8 @@ pub fn decode(reply: Reply) -> Result<Envelope, FetchError> {
     Ok(Envelope { data, errors, trace })
 }
 
-/// At most `EXCERPT_BYTES` of the body's first line, never cut inside a
-/// character, then sanitised.
+/// At most `EXCERPT_BYTES`, 200 bytes of the body's first line, before
+/// escaping, never cut inside a character; then sanitised.
 fn excerpt(body: &[u8]) -> String {
     let text = String::from_utf8_lossy(body);
     let line = first_line(&text).unwrap_or_default();
@@ -163,14 +164,14 @@ mod tests {
 
     #[test]
     fn excerpts_are_200_bytes_of_the_first_line_sanitised() {
-        let line = "é".repeat(150);
+        let line = format!("a{}", "é".repeat(150));
         let body = format!("\n  {line}\nsecond line");
         let FetchError::Status { excerpt, .. } =
             decode(reply(404, body.as_bytes())).unwrap_err()
         else {
             panic!("not a status error");
         };
-        assert_eq!(excerpt, "é".repeat(100));
+        assert_eq!(excerpt, format!("a{}", "é".repeat(99)));
 
         let FetchError::NotJson { excerpt, .. } =
             decode(reply(200, b"\x1b[31mred\xff\nmore")).unwrap_err()
