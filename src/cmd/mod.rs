@@ -840,7 +840,7 @@ mod tests {
 
     /// `line` split into words by bash, as an agent's shell would.
     fn shell_words(line: &str) -> Vec<String> {
-        let script = format!(r"printf '%s\0' {line}");
+        let script = format!(r"shopt -s failglob; printf '%s\0' {line}");
         let output =
             process::Command::new("bash").args(["-c", &script]).output();
         let output = output.unwrap();

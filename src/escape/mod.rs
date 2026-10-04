@@ -157,11 +157,14 @@ pub const CORPUS: &[&str] = &[
     "`id`",
     "a\\b",
     "*?[]{}",
+    "*",
+    "a?[b]",
     "!#~",
     "new\nline",
     "tab\t",
     "cr\r",
     "esc\u{1b}[0m",
+    "esc\u{1b}7",
     "rtl\u{202e}",
     "zw\u{200b}",
     "zw\u{200b}7b",
@@ -189,6 +192,17 @@ mod tests {
     }
 
     #[test]
+    fn is_unsafe_follows_the_range_edges() {
+        assert!(!is_unsafe('\u{2027}'));
+        assert!(is_unsafe('\u{2028}'));
+        assert!(is_unsafe('\u{202e}'));
+        assert!(!is_unsafe('\u{202f}'));
+        assert!(is_unsafe('\u{e0fff}'));
+        assert!(!is_unsafe('\u{e1000}'));
+        assert!(!is_unsafe('\u{e0100}'));
+    }
+
+    #[test]
     fn sanitise_escapes_unsafe_characters() {
         assert_eq!(sanitise("a\u{202e}b"), r"a\u{202e}b");
         assert_eq!(sanitise("\u{1b}[31m"), r"\x1b[31m");
@@ -212,6 +226,7 @@ mod tests {
     fn sanitise_strips_one_trailing_carriage_return() {
         assert_eq!(sanitise("crlf\r"), "crlf");
         assert_eq!(sanitise("mid\rline"), r"mid\x0dline");
+        assert_eq!(sanitise("a\r\r"), r"a\x0d");
     }
 
     #[test]
@@ -288,12 +303,29 @@ mod tests {
             command_line(&["sego", "read"], &["r", "--x", "=y"]),
             "sego read -- r --x '=y'"
         );
+        assert_eq!(
+            command_line(&["sego", "read"], &["x/y", "--a\u{200b}"]),
+            r"sego read -- x/y $'--a\342\200\213'"
+        );
+    }
+
+    #[test]
+    fn command_lines_without_dashed_operands_have_no_dashes() {
+        assert_eq!(
+            command_line(&["sego", "read"], &["x/y", "-a.go", "1-5"]),
+            "sego read x/y '-a.go' 1-5"
+        );
+        assert_eq!(
+            command_line(&["sego", "read"], &["x/y", "a\tb"]),
+            r"sego read x/y $'a\tb'"
+        );
     }
 
     #[test]
     fn shell_words_round_trip_through_bash() {
         for &word in CORPUS {
-            let script = format!("printf %s {}", shell_word(word));
+            let script =
+                format!("shopt -s failglob; printf %s {}", shell_word(word));
             let output =
                 Command::new("bash").args(["-c", &script]).output().unwrap();
             assert!(output.status.success(), "{script}: {output:?}");
