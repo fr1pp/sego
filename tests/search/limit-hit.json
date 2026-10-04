@@ -1,0 +1,316 @@
+{
+  "request": {
+    "query": "query Search($query: String!) {\n  search(query: $query, version: V3, patternType: keyword) {\n    results {\n      matchCount limitHit approximateResultCount elapsedMilliseconds\n      dynamicFilters { value count limitHit kind }\n      cloning { name } missing { name } timedout { name }\n      alert { title description proposedQueries { description query } }\n      results {\n        __typename\n        ... on FileMatch {\n          repository { name }\n          file { path commit { oid } }\n          pathMatches { start { line character } end { line character } }\n          symbols { name kind containerName location { range { start { line character } } } }\n          chunkMatches { content contentStart { line } ranges { start { line character } end { line character } } }\n        }\n        ... on Repository { name description stars }\n        ... on CommitSearchResult {\n          commit { oid subject author { person { name } date } repository { name } }\n          diffPreview { value }\n        }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "query": "lang:go context.WithTimeout count:5"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "search": {
+          "results": {
+            "alert": null,
+            "approximateResultCount": "5+",
+            "cloning": [],
+            "dynamicFilters": [
+              {
+                "count": 68678,
+                "kind": "utility",
+                "limitHit": true,
+                "value": "archived:yes"
+              },
+              {
+                "count": 282,
+                "kind": "utility",
+                "limitHit": true,
+                "value": "fork:yes"
+              },
+              {
+                "count": 5,
+                "kind": "type",
+                "limitHit": true,
+                "value": "type:file"
+              },
+              {
+                "count": 5,
+                "kind": "type",
+                "limitHit": true,
+                "value": "type:path"
+              },
+              {
+                "count": 5,
+                "kind": "lang",
+                "limitHit": true,
+                "value": "lang:go"
+              },
+              {
+                "count": 1,
+                "kind": "repo",
+                "limitHit": true,
+                "value": "repo:^github\\.com/Nouuu/Albion-Online-OpenRadar$"
+              },
+              {
+                "count": 1,
+                "kind": "repo",
+                "limitHit": true,
+                "value": "repo:^github\\.com/Wraient/curd$"
+              },
+              {
+                "count": 1,
+                "kind": "repo",
+                "limitHit": true,
+                "value": "repo:^github\\.com/hotchpotch/openai-api-server-via-codex$"
+              },
+              {
+                "count": 1,
+                "kind": "repo",
+                "limitHit": true,
+                "value": "repo:^github\\.com/projectdiscovery/urlfinder$"
+              },
+              {
+                "count": 1,
+                "kind": "repo",
+                "limitHit": true,
+                "value": "repo:^github\\.com/regiellis/godot-mcp-go$"
+              }
+            ],
+            "elapsedMilliseconds": 1288,
+            "limitHit": true,
+            "matchCount": 5,
+            "missing": [],
+            "results": [
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [
+                  {
+                    "content": "\n\t\tctx, cancel := context.WithTimeout(ctx, maxEnumTime)\n\n",
+                    "contentStart": {
+                      "line": 131
+                    },
+                    "ranges": [
+                      {
+                        "end": {
+                          "character": 36,
+                          "line": 132
+                        },
+                        "start": {
+                          "character": 17,
+                          "line": 132
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "file": {
+                  "commit": {
+                    "oid": "e732aab57e7fedacbd00da26a380d101dce1c5c4"
+                  },
+                  "path": "pkg/agent/agent.go"
+                },
+                "pathMatches": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 15,
+                      "line": 0
+                    }
+                  }
+                ],
+                "repository": {
+                  "name": "github.com/projectdiscovery/urlfinder"
+                },
+                "symbols": []
+              },
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [
+                  {
+                    "content": "\n\tctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)\n\tdefer cancel()\n",
+                    "contentStart": {
+                      "line": 406
+                    },
+                    "ranges": [
+                      {
+                        "end": {
+                          "character": 35,
+                          "line": 407
+                        },
+                        "start": {
+                          "character": 16,
+                          "line": 407
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "file": {
+                  "commit": {
+                    "oid": "69a76de885152492390a904c64fd4c1a7c241c50"
+                  },
+                  "path": "cmd/radar/main.go"
+                },
+                "pathMatches": [
+                  {
+                    "end": {
+                      "character": 17,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 14,
+                      "line": 0
+                    }
+                  }
+                ],
+                "repository": {
+                  "name": "github.com/Nouuu/Albion-Online-OpenRadar"
+                },
+                "symbols": []
+              },
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [
+                  {
+                    "content": "\tif moviePath != \"\" && *wait {\n\t\tctx, cancel := context.WithTimeout(context.Background(), *timeout)\n\t\tdefer cancel()\n",
+                    "contentStart": {
+                      "line": 180
+                    },
+                    "ranges": [
+                      {
+                        "end": {
+                          "character": 36,
+                          "line": 181
+                        },
+                        "start": {
+                          "character": 17,
+                          "line": 181
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "file": {
+                  "commit": {
+                    "oid": "676670d5d7422b2fd68efc965ccc9598a3fdea0e"
+                  },
+                  "path": "cmd/swallowtail/run.go"
+                },
+                "pathMatches": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 19,
+                      "line": 0
+                    }
+                  }
+                ],
+                "repository": {
+                  "name": "github.com/regiellis/godot-mcp-go"
+                },
+                "symbols": []
+              },
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [
+                  {
+                    "content": "func authenticateWithBrowser(tokenPath string) (string, error) {\n\tctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)\n\tdefer cancel()\n",
+                    "contentStart": {
+                      "line": 344
+                    },
+                    "ranges": [
+                      {
+                        "end": {
+                          "character": 35,
+                          "line": 345
+                        },
+                        "start": {
+                          "character": 16,
+                          "line": 345
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "file": {
+                  "commit": {
+                    "oid": "713cab7fb6dec388e5bda376d08474b69b2b9630"
+                  },
+                  "path": "internal/config.go"
+                },
+                "pathMatches": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 15,
+                      "line": 0
+                    }
+                  }
+                ],
+                "repository": {
+                  "name": "github.com/Wraient/curd"
+                },
+                "symbols": []
+              },
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [
+                  {
+                    "content": "\t\t}\n\t\tctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)\n\t\tdefer cancel()\n",
+                    "contentStart": {
+                      "line": 93
+                    },
+                    "ranges": [
+                      {
+                        "end": {
+                          "character": 36,
+                          "line": 94
+                        },
+                        "start": {
+                          "character": 17,
+                          "line": 94
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "file": {
+                  "commit": {
+                    "oid": "f248d96312702b08bd511e610603ecd5023c8efb"
+                  },
+                  "path": "internal/app/server.go"
+                },
+                "pathMatches": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 19,
+                      "line": 0
+                    }
+                  }
+                ],
+                "repository": {
+                  "name": "github.com/hotchpotch/openai-api-server-via-codex"
+                },
+                "symbols": []
+              }
+            ],
+            "timedout": []
+          }
+        }
+      }
+    }
+  }
+}

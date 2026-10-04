@@ -1,0 +1,99 @@
+{
+  "request": {
+    "query": "query Search($query: String!) {\n  search(query: $query, version: V3, patternType: keyword) {\n    results {\n      matchCount limitHit approximateResultCount elapsedMilliseconds\n      dynamicFilters { value count limitHit kind }\n      cloning { name } missing { name } timedout { name }\n      alert { title description proposedQueries { description query } }\n      results {\n        __typename\n        ... on FileMatch {\n          repository { name }\n          file { path commit { oid } }\n          pathMatches { start { line character } end { line character } }\n          symbols { name kind containerName location { range { start { line character } } } }\n          chunkMatches { content contentStart { line } ranges { start { line character } end { line character } } }\n        }\n        ... on Repository { name description stars }\n        ... on CommitSearchResult {\n          commit { oid subject author { person { name } date } repository { name } }\n          diffPreview { value }\n        }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "query": "repo:^github\\.com/gorilla/mux$ type:diff Walk count:3"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "search": {
+          "results": {
+            "alert": null,
+            "approximateResultCount": "3+",
+            "cloning": [],
+            "dynamicFilters": [
+              {
+                "count": 3,
+                "kind": "type",
+                "limitHit": true,
+                "value": "type:diff"
+              },
+              {
+                "count": 3,
+                "kind": "repo",
+                "limitHit": true,
+                "value": "repo:^github\\.com/gorilla/mux$"
+              },
+              {
+                "count": 2,
+                "kind": "commit date",
+                "limitHit": true,
+                "value": "before:\"2 months ago\""
+              },
+              {
+                "count": 1,
+                "kind": "author",
+                "limitHit": true,
+                "value": "author:32021905\\+fharding1@users\\.noreply\\.github\\.com"
+              },
+              {
+                "count": 1,
+                "kind": "author",
+                "limitHit": true,
+                "value": "author:franklinharding0\\.0@gmail\\.com"
+              }
+            ],
+            "elapsedMilliseconds": 131,
+            "limitHit": true,
+            "matchCount": 3,
+            "missing": [],
+            "results": [
+              {
+                "__typename": "CommitSearchResult",
+                "commit": {
+                  "author": {
+                    "date": "2019-11-14T20:19:09Z",
+                    "person": {
+                      "name": "Franklin Harding"
+                    }
+                  },
+                  "oid": "946b6237eb8d0ce3225f502b7fd4208d0b60ce5f",
+                  "repository": {
+                    "name": "github.com/gorilla/mux"
+                  },
+                  "subject": "Fix the CORSMethodMiddleware bug with subrouters"
+                },
+                "diffPreview": {
+                  "value": "middleware.go middleware.go\n@@ -60,3 +60,1 @@ func CORSMethodMiddleware(r *Router) MiddlewareFunc {\n \n-\terr := r.Walk(func(route *Route, _ *Router, _ []*Route) error {\n-\t\tfor _, m := range route.matchers {\n"
+                }
+              },
+              {
+                "__typename": "CommitSearchResult",
+                "commit": {
+                  "author": {
+                    "date": "2019-06-29T20:52:29Z",
+                    "person": {
+                      "name": "Franklin Harding"
+                    }
+                  },
+                  "oid": "05347690167e152b85ece29fdfa9cc12a7b8c385",
+                  "repository": {
+                    "name": "github.com/gorilla/mux"
+                  },
+                  "subject": "Improve CORS Method Middleware (#477)"
+                },
+                "diffPreview": {
+                  "value": "middleware.go middleware.go\n@@ -43,3 +42,0 @@ func (r *Router) useInterface(mw middleware) {\n-\n-\t\t\terr := r.Walk(func(route *Route, _ *Router, _ []*Route) error {\n-\t\t\t\tfor _, m := range route.matchers {\n@@ -73,0 +60,3 @@ func CORSMethodMiddleware(r *Router) MiddlewareFunc {\n+\n+\terr := r.Walk(func(route *Route, _ *Router, _ []*Route) error {\n+\t\tfor _, m := range route.matchers {\n"
+                }
+              }
+            ],
+            "timedout": []
+          }
+        }
+      }
+    }
+  }
+}

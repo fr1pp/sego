@@ -105,3 +105,19 @@ drift:
         fi
     done
     exit "$status"
+
+# Fetch the upstream schema into target/schema.json, for nullability checks.
+schema:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p target
+    query=$(cat <<'GRAPHQL'
+    query { __schema { types { name kind enumValues { name }
+      fields { name type { kind name ofType { kind name ofType { kind name } } } } } } }
+    GRAPHQL
+    )
+    jq -n --arg q "$query" '{query: $q}' \
+      | curl -sSf -A "sego-dev/0" -H 'Content-Type: application/json' \
+          --data-binary @- "${SEGO_ENDPOINT:-https://sourcegraph.com}/.api/graphql" \
+      > target/schema.json
+    jq -e '.data.__schema.types | length' target/schema.json

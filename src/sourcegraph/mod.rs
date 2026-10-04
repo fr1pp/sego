@@ -1,9 +1,19 @@
 pub mod blob;
 pub mod envelope;
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "wired into a command in a later task")
+)]
+pub mod search;
 #[cfg(test)]
 pub mod testing;
 pub mod transport;
 pub mod tree;
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "wired into a command in a later task")
+)]
+pub mod vocabulary;
 
 use std::fmt;
 

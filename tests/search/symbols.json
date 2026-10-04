@@ -1,0 +1,174 @@
+{
+  "request": {
+    "query": "query Search($query: String!) {\n  search(query: $query, version: V3, patternType: keyword) {\n    results {\n      matchCount limitHit approximateResultCount elapsedMilliseconds\n      dynamicFilters { value count limitHit kind }\n      cloning { name } missing { name } timedout { name }\n      alert { title description proposedQueries { description query } }\n      results {\n        __typename\n        ... on FileMatch {\n          repository { name }\n          file { path commit { oid } }\n          pathMatches { start { line character } end { line character } }\n          symbols { name kind containerName location { range { start { line character } } } }\n          chunkMatches { content contentStart { line } ranges { start { line character } end { line character } } }\n        }\n        ... on Repository { name description stars }\n        ... on CommitSearchResult {\n          commit { oid subject author { person { name } date } repository { name } }\n          diffPreview { value }\n        }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "query": "repo:^github\\.com/gorilla/mux$@v1.7.0 type:symbol /^Use/"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "search": {
+          "results": {
+            "alert": null,
+            "approximateResultCount": "5",
+            "cloning": [],
+            "dynamicFilters": [
+              {
+                "count": 5,
+                "kind": "type",
+                "limitHit": true,
+                "value": "type:symbol"
+              },
+              {
+                "count": 5,
+                "kind": "lang",
+                "limitHit": true,
+                "value": "lang:go"
+              },
+              {
+                "count": 5,
+                "kind": "repo",
+                "limitHit": true,
+                "value": "repo:^github\\.com/gorilla/mux$@v1.7.0"
+              },
+              {
+                "count": 3,
+                "kind": "symbol type",
+                "limitHit": true,
+                "value": "select:symbol.method"
+              },
+              {
+                "count": 2,
+                "kind": "symbol type",
+                "limitHit": true,
+                "value": "select:symbol.field"
+              }
+            ],
+            "elapsedMilliseconds": 19,
+            "limitHit": false,
+            "matchCount": 5,
+            "missing": [],
+            "results": [
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [],
+                "file": {
+                  "commit": {
+                    "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+                  },
+                  "path": "middleware.go"
+                },
+                "pathMatches": [],
+                "repository": {
+                  "name": "github.com/gorilla/mux"
+                },
+                "symbols": [
+                  {
+                    "containerName": "mux.Router",
+                    "kind": "METHOD",
+                    "location": {
+                      "range": {
+                        "start": {
+                          "character": 17,
+                          "line": 23
+                        }
+                      }
+                    },
+                    "name": "Use"
+                  },
+                  {
+                    "containerName": "mux.Router",
+                    "kind": "METHOD",
+                    "location": {
+                      "range": {
+                        "start": {
+                          "character": 17,
+                          "line": 30
+                        }
+                      }
+                    },
+                    "name": "useInterface"
+                  }
+                ]
+              },
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [],
+                "file": {
+                  "commit": {
+                    "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+                  },
+                  "path": "mux.go"
+                },
+                "pathMatches": [],
+                "repository": {
+                  "name": "github.com/gorilla/mux"
+                },
+                "symbols": [
+                  {
+                    "containerName": "mux.routeConf",
+                    "kind": "FIELD",
+                    "location": {
+                      "range": {
+                        "start": {
+                          "character": 1,
+                          "line": 74
+                        }
+                      }
+                    },
+                    "name": "useEncodedPath"
+                  },
+                  {
+                    "containerName": "mux.Router",
+                    "kind": "METHOD",
+                    "location": {
+                      "range": {
+                        "start": {
+                          "character": 17,
+                          "line": 268
+                        }
+                      }
+                    },
+                    "name": "UseEncodedPath"
+                  }
+                ]
+              },
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [],
+                "file": {
+                  "commit": {
+                    "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+                  },
+                  "path": "regexp.go"
+                },
+                "pathMatches": [],
+                "repository": {
+                  "name": "github.com/gorilla/mux"
+                },
+                "symbols": [
+                  {
+                    "containerName": "mux.routeRegexpOptions",
+                    "kind": "FIELD",
+                    "location": {
+                      "range": {
+                        "start": {
+                          "character": 1,
+                          "line": 18
+                        }
+                      }
+                    },
+                    "name": "useEncodedPath"
+                  }
+                ]
+              }
+            ],
+            "timedout": []
+          }
+        }
+      }
+    }
+  }
+}
