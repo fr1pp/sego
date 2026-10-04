@@ -31,6 +31,10 @@ pub trait Diagnostic: Display {
     fn causes(&self) -> Vec<String> {
         Vec::new()
     }
+    /// The synopsis lines of the command a usage error is about.
+    fn usage(&self) -> Vec<String> {
+        Vec::new()
+    }
     fn hints(&self) -> Vec<String> {
         Vec::new()
     }
@@ -46,9 +50,9 @@ impl<D: Diagnostic + 'static> From<D> for Box<dyn Diagnostic> {
 }
 
 /// The stderr text: an *answered no* as a plain sentence, anything else as
-/// `error:` with its `caused by:` lines; then the `hint:` lines. Message and
-/// causes are sanitised so each stays on one line; hints are already shell
-/// words.
+/// `error:` with its `caused by:` lines; then the `usage:` lines, aligned
+/// under the first; then the `hint:` lines. Message and causes are sanitised
+/// so each stays on one line; hints are already shell words.
 pub fn report(diagnostic: &dyn Diagnostic) -> String {
     let message = sanitise(&diagnostic.to_string());
     let mut text = String::new();
@@ -59,6 +63,11 @@ pub fn report(diagnostic: &dyn Diagnostic) -> String {
         for cause in diagnostic.causes() {
             let _ = writeln!(text, "caused by: {}", sanitise(&cause));
         }
+    }
+    let mut prefix = "usage: ";
+    for line in diagnostic.usage() {
+        let _ = writeln!(text, "{prefix}{line}");
+        prefix = "       ";
     }
     for hint in diagnostic.hints() {
         let _ = writeln!(text, "hint: {hint}");
@@ -264,6 +273,7 @@ mod tests {
         outcome: Outcome,
         message: String,
         causes: Vec<String>,
+        usage: Vec<String>,
         hints: Vec<String>,
     }
 
@@ -273,6 +283,7 @@ mod tests {
                 outcome: Outcome::AnsweredNo,
                 message: "repository github.com/gorilla/nope not found".into(),
                 causes: Vec::new(),
+                usage: Vec::new(),
                 hints: vec!["sego search 'type:repo nope'".into()],
             }
         }
@@ -284,6 +295,7 @@ mod tests {
                           https://sourcegraph.com/.api/graphql failed"
                     .into(),
                 causes: vec!["connection refused".into()],
+                usage: Vec::new(),
                 hints: vec!["sego read github.com/x/y mux.go".into()],
             }
         }
@@ -306,6 +318,10 @@ mod tests {
 
         fn causes(&self) -> Vec<String> {
             self.causes.clone()
+        }
+
+        fn usage(&self) -> Vec<String> {
+            self.usage.clone()
         }
 
         fn hints(&self) -> Vec<String> {
@@ -350,6 +366,7 @@ mod tests {
             outcome: Outcome::Invalid,
             message: "bad\nthing\u{202e}".into(),
             causes: vec!["first\r\nsecond".into()],
+            usage: Vec::new(),
             hints: Vec::new(),
         };
         expect![[r#"
@@ -357,6 +374,32 @@ mod tests {
             caused by: first\x0d\x0asecond
         "#]]
         .assert_eq(&report(&sample));
+    }
+
+    #[test]
+    fn usage_lines_follow_the_causes_aligned() {
+        let sample = |usage: &[&str]| Sample {
+            outcome: Outcome::Invalid,
+            message: "unknown option --test".into(),
+            causes: vec!["cause".into()],
+            usage: usage.iter().map(|&line| line.to_owned()).collect(),
+            hints: Vec::new(),
+        };
+        let one = sample(&["sego search [--json] <query>..."]);
+        let all = sample(&[
+            "sego search [--json] <query>...",
+            "sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]",
+        ]);
+        expect![[r#"
+            error: unknown option --test
+            caused by: cause
+            usage: sego search [--json] <query>...
+            error: unknown option --test
+            caused by: cause
+            usage: sego search [--json] <query>...
+                   sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]
+        "#]]
+        .assert_eq(&(report(&one) + &report(&all)));
     }
 
     #[test]

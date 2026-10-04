@@ -22,6 +22,8 @@ struct NonAnswer {
     code: &'static str,
     message: String,
     hints: Vec<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    usage: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     detail: Option<serde_json::Value>,
 }
@@ -65,6 +67,7 @@ pub fn diagnostic(d: &dyn Diagnostic) -> String {
         code: d.code(),
         message,
         hints: d.hints(),
+        usage: d.usage(),
         detail: d.detail(),
     };
     document(kind, &body)
@@ -109,6 +112,7 @@ mod tests {
         outcome: Outcome,
         message: &'static str,
         causes: Vec<String>,
+        usage: Vec<String>,
         hints: Vec<String>,
         detail: Option<serde_json::Value>,
     }
@@ -119,6 +123,7 @@ mod tests {
                 outcome: Outcome::AnsweredNo,
                 message: "repository github.com/gorilla/nope not found",
                 causes: Vec::new(),
+                usage: Vec::new(),
                 hints: vec!["sego search 'type:repo nope'".into()],
                 detail: None,
             }
@@ -130,6 +135,7 @@ mod tests {
                 message: "the request to https://sourcegraph.com/.api/graphql \
                           failed",
                 causes: vec!["connection refused".into()],
+                usage: Vec::new(),
                 hints: Vec::new(),
                 detail: Some(json!({"status": 502})),
             }
@@ -153,6 +159,10 @@ mod tests {
 
         fn causes(&self) -> Vec<String> {
             self.causes.clone()
+        }
+
+        fn usage(&self) -> Vec<String> {
+            self.usage.clone()
         }
 
         fn hints(&self) -> Vec<String> {
@@ -225,11 +235,31 @@ mod tests {
     }
 
     #[test]
+    fn usage_errors_carry_their_synopsis() {
+        let sample = Sample {
+            outcome: Outcome::Invalid,
+            message: "unknown command serch",
+            causes: Vec::new(),
+            usage: vec![
+                "sego search [--json] <query>...".into(),
+                "sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]"
+                    .into(),
+            ],
+            hints: Vec::new(),
+            detail: None,
+        };
+        expect![[r#"
+            {"version":1,"kind":"error","code":"sample","message":"unknown command serch","hints":[],"usage":["sego search [--json] <query>...","sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]"]}
+        "#]].assert_eq(&diagnostic(&sample));
+    }
+
+    #[test]
     fn diagnostic_messages_are_escaped_like_any_text() {
         let sample = Sample {
             outcome: Outcome::Invalid,
             message: "bad\u{202e}",
             causes: vec!["first".into(), "second\n".into()],
+            usage: Vec::new(),
             hints: Vec::new(),
             detail: None,
         };
