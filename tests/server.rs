@@ -5,9 +5,10 @@ use std::fmt::Write as _;
 use std::fs;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::ops::Range;
 use std::path::Path;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, OnceLock};
 use std::thread::{self, JoinHandle};
 use std::time::Duration;
 
@@ -68,21 +69,26 @@ pub fn start(steps: Vec<Step>) -> Server {
     Server { url, finished, thread }
 }
 
-/// Where `unreachable` looks for a free port: below the ephemeral ranges
-/// (Linux 32768-60999, macOS 49152-65535) that a bind to port 0, as every
-/// mock server makes, draws from.
-const UNREACHABLE_PORTS: std::ops::Range<u16> = 20_000..32_768;
+/// Where `unreachable` looks for a free port: below the default ephemeral
+/// ranges (Linux 32768-60999, macOS 49152-65535) that a bind to port 0, as
+/// every mock server makes, draws from.
+const UNREACHABLE_PORTS: Range<u16> = 20_000..32_768;
 
 /// The URL of a local port that nothing listens on: the first port in
-/// `UNREACHABLE_PORTS` that binds. No mock server can be given it, so it
-/// stays free unless an unrelated process binds that exact port. Concurrent
-/// callers may share it, which is harmless: each wants a refusal.
+/// `UNREACHABLE_PORTS` that binds, found once per test process. That one
+/// bind ends before any caller knows the port, and no mock server can be
+/// given it unless the host's ephemeral range reaches below 32768; an
+/// unrelated process can still bind it.
 pub fn unreachable() -> String {
-    let listener = UNREACHABLE_PORTS
-        .clone()
-        .find_map(|port| TcpListener::bind(("127.0.0.1", port)).ok())
-        .expect("bind a port below the ephemeral range");
-    format!("http://{}", listener.local_addr().unwrap())
+    static URL: OnceLock<String> = OnceLock::new();
+    URL.get_or_init(|| {
+        let listener = UNREACHABLE_PORTS
+            .clone()
+            .find_map(|port| TcpListener::bind(("127.0.0.1", port)).ok())
+            .expect("bind a port below the ephemeral range");
+        format!("http://{}", listener.local_addr().unwrap())
+    })
+    .clone()
 }
 
 /// Takes each step in turn, then refuses any further request. Returns the
