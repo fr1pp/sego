@@ -259,7 +259,7 @@ mod tests {
     use super::*;
     use crate::address::{CommitId, Pinned, RepoName};
     use crate::args;
-    use crate::diagnostic::{SearchProblem, report};
+    use crate::diagnostic::report;
     use crate::domain::{
         Alert, CommitHit, Entry, EntryKind, File, FileHit, Filter, Hit, Line,
         Listing, NotAFile, RepoHit, SearchReport, Skipped, Span, Submodule,
@@ -269,6 +269,7 @@ mod tests {
     use crate::output::Output;
     use crate::render;
     use crate::sourcegraph::FetchError;
+    use crate::sourcegraph::search::SearchProblem;
     use crate::sourcegraph::transport::Transport;
     use crate::sourcegraph::vocabulary::ALERT_BAD_QUERY;
 

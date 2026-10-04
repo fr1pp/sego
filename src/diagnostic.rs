@@ -1,9 +1,8 @@
 use std::fmt::{self, Display, Write as _};
 
 use crate::address::{LineRange, Pinned};
-use crate::domain::{Alert, NotAFile, Unavailable};
+use crate::domain::{NotAFile, Unavailable};
 use crate::escape::{command_line, sanitise, shell_word};
-use crate::sourcegraph::query::with_longer_timeout;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Outcome {
@@ -187,76 +186,6 @@ impl Diagnostic for Unavailable {
             }
         };
         vec![hint]
-    }
-}
-
-/// A search with no hits that has no answer: the upstream couldn't run the
-/// query, or cut it short. `reason` says how, and `trace` is the reply's
-/// `x-trace`.
-#[derive(Debug)]
-pub enum SearchProblem {
-    BadQuery { alert: Alert },
-    Incomplete { query: String, reason: String, trace: Option<String> },
-}
-
-impl fmt::Display for SearchProblem {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            SearchProblem::BadQuery { .. } => {
-                f.write_str("the upstream can't run this query")
-            }
-            SearchProblem::Incomplete { reason, .. } => {
-                write!(f, "the search was cut short with no hits: {reason}")
-            }
-        }
-    }
-}
-
-impl Diagnostic for SearchProblem {
-    fn code(&self) -> &'static str {
-        match self {
-            SearchProblem::BadQuery { .. } => "bad_query",
-            SearchProblem::Incomplete { .. } => "incomplete",
-        }
-    }
-
-    fn outcome(&self) -> Outcome {
-        match self {
-            SearchProblem::BadQuery { .. } => Outcome::Invalid,
-            SearchProblem::Incomplete { .. } => Outcome::Unanswered,
-        }
-    }
-
-    /// The alert's description, the upstream's account of the problem.
-    fn causes(&self) -> Vec<String> {
-        match self {
-            SearchProblem::BadQuery { alert } => {
-                alert.description.iter().cloned().collect()
-            }
-            SearchProblem::Incomplete { .. } => Vec::new(),
-        }
-    }
-
-    fn hints(&self) -> Vec<String> {
-        let search = |query: &str| command_line(&["sego", "search"], &[query]);
-        match self {
-            SearchProblem::BadQuery { alert } => {
-                alert.queries().map(search).collect()
-            }
-            SearchProblem::Incomplete { query, .. } => {
-                let retry = with_longer_timeout(query);
-                vec![search(retry.as_deref().unwrap_or(query))]
-            }
-        }
-    }
-
-    fn detail(&self) -> Option<serde_json::Value> {
-        match self {
-            SearchProblem::BadQuery { .. } => None,
-            SearchProblem::Incomplete { trace, .. } => trace
-                .as_deref()
-                .map(|trace| serde_json::json!({"trace": trace})),
-        }
     }
 }
 
@@ -519,93 +448,5 @@ mod tests {
 
         assert_eq!((Bare.code(), Bare.detail()), ("bare", None));
         assert_eq!(report(&Bare), "error: bare\n");
-    }
-
-    #[test]
-    fn blank_proposed_queries_are_not_hints() {
-        let problem = SearchProblem::BadQuery {
-            alert: Alert {
-                title: "Unable To Process Query".into(),
-                description: None,
-                proposed: vec![String::new(), " \t".into(), "x".into()],
-            },
-        };
-        assert_eq!(problem.hints(), ["sego search x"]);
-    }
-
-    #[test]
-    fn search_problems_name_the_next_search() {
-        let all = [
-            SearchProblem::BadQuery {
-                alert: Alert {
-                    title: "Unable To Process Query".into(),
-                    description: Some(
-                        "Error parsing regexp: missing closing ): `(`".into(),
-                    ),
-                    proposed: Vec::new(),
-                },
-            },
-            SearchProblem::BadQuery {
-                alert: Alert {
-                    title: "Unable To Process Query".into(),
-                    description: None,
-                    proposed: vec![
-                        "repo:^github\\.com/gorilla/mux$ (".into(),
-                        "-file:_test x".into(),
-                    ],
-                },
-            },
-            SearchProblem::Incomplete {
-                query: "x timeout:40s".into(),
-                reason: "it ran for its whole timeout:40s".into(),
-                trace: Some("abc123".into()),
-            },
-            SearchProblem::Incomplete {
-                query: "x timeout:1m".into(),
-                reason: "it ran for its whole timeout:1m".into(),
-                trace: None,
-            },
-            SearchProblem::Incomplete {
-                query: "x timeout:1m30s".into(),
-                reason: "it ran for its whole timeout:1m30s".into(),
-                trace: None,
-            },
-            SearchProblem::Incomplete {
-                query: "x".into(),
-                reason: "1 repository timed out".into(),
-                trace: None,
-            },
-        ];
-        let mut text = String::new();
-        for problem in &all {
-            let _ =
-                writeln!(text, "[{} {:?}]", problem.code(), problem.outcome());
-            text.push_str(&report(problem));
-            if let Some(detail) = problem.detail() {
-                let _ = writeln!(text, "detail: {detail}");
-            }
-        }
-        expect![[r#"
-            [bad_query Invalid]
-            error: the upstream can't run this query
-            caused by: Error parsing regexp: missing closing ): `(`
-            [bad_query Invalid]
-            error: the upstream can't run this query
-            hint: sego search 'repo:^github\.com/gorilla/mux$ ('
-            hint: sego search '-file:_test x'
-            [incomplete Unanswered]
-            error: the search was cut short with no hits: it ran for its whole timeout:40s
-            hint: sego search 'x timeout:80s'
-            detail: {"trace":"abc123"}
-            [incomplete Unanswered]
-            error: the search was cut short with no hits: it ran for its whole timeout:1m
-            hint: sego search 'x timeout:90s'
-            [incomplete Unanswered]
-            error: the search was cut short with no hits: it ran for its whole timeout:1m30s
-            hint: sego search 'x timeout:1m30s'
-            [incomplete Unanswered]
-            error: the search was cut short with no hits: 1 repository timed out
-            hint: sego search x
-        "#]].assert_eq(&text);
     }
 }
