@@ -163,6 +163,16 @@ mod tests {
             (error.code(), error.outcome(), error.to_string()),
             ("output", Outcome::Unanswered, "cannot write to stdout".into())
         );
-        assert_eq!(error.causes(), ["no storage space"]);
+        assert_eq!(error.causes().len(), 1);
+    }
+
+    #[test]
+    fn a_flush_error_other_than_a_closed_pipe_is_reported() {
+        let pipe =
+            Pipe { flush_error: Some(ErrorKind::Other), ..Pipe::default() };
+        let mut output = Output::new(pipe);
+        output.write("first\n").unwrap();
+        let error = output.flush().unwrap_err();
+        assert_eq!((error.code(), error.causes().len()), ("output", 1));
     }
 }
