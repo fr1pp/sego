@@ -173,6 +173,14 @@ pub struct Skipped {
     pub unsupported: u64,
 }
 
+/// Why a search with hits may be missing some, and `retry`, its query with
+/// a longer `timeout:` when that could bring them in.
+#[derive(Debug)]
+pub struct CutShort {
+    pub reasons: Vec<String>,
+    pub retry: Option<String>,
+}
+
 /// A search's hits and summary. `approximate` is the upstream's rounded
 /// count, such as `5+`, when it differs from `match_count`.
 #[derive(Debug)]
@@ -182,6 +190,7 @@ pub struct SearchReport {
     pub approximate: Option<String>,
     pub limit_hit: bool,
     pub skipped: Skipped,
+    pub cut_short: Option<CutShort>,
     pub filters: Vec<Filter>,
     pub alert: Option<Alert>,
     pub hits: Vec<Hit>,

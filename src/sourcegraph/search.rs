@@ -9,13 +9,13 @@ use serde::de::IgnoredAny;
 use crate::address::{CommitId, Pinned, RepoName};
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::domain::{
-    Alert, CommitHit, FileHit, Filter, Hit, Line, RepoHit, SearchReport,
-    Skipped, Span, Symbol, Unavailable,
+    Alert, CommitHit, CutShort, FileHit, Filter, Hit, Line, RepoHit,
+    SearchReport, Skipped, Span, Symbol, Unavailable,
 };
 use crate::escape::command_line;
 
 use super::envelope::Envelope;
-use super::query::{timeout_token, with_longer_timeout};
+use super::query::{Source, Timeout, effective_timeout, with_longer_timeout};
 use super::vocabulary;
 use super::{FetchError, Plan};
 
@@ -52,7 +52,8 @@ pub fn plan(query: &str) -> Plan {
 
 /// A search with no hits that has no answer: the upstream couldn't run the
 /// query, or cut it short. `reason` says how, and `trace` is the reply's
-/// `x-trace`.
+/// `x-trace`. An incomplete search hints its query with a longer
+/// `timeout:`, unless the upstream allows none.
 #[derive(Debug)]
 pub enum SearchProblem {
     BadQuery { alert: Alert },
@@ -104,8 +105,11 @@ impl Diagnostic for SearchProblem {
                 alert.queries().map(search).collect()
             }
             SearchProblem::Incomplete { query, .. } => {
-                let retry = with_longer_timeout(query);
-                vec![search(retry.as_deref().unwrap_or(query))]
+                with_longer_timeout(query)
+                    .as_deref()
+                    .map(search)
+                    .into_iter()
+                    .collect()
             }
         }
     }
@@ -368,6 +372,7 @@ fn report(
             missing: names(missing),
             unsupported,
         },
+        cut_short: None,
         filters,
         alert,
         hits,
@@ -425,15 +430,26 @@ fn pinned(name: &str, oid: String) -> Result<Pinned, String> {
 }
 
 /// `report` as an answer, or why there is none. A search with hits is
-/// always an answer; one without is classified by its alert, then by
-/// whether it was cut short. `trace` is the reply's.
+/// always an answer, which says if it was cut short; one without is
+/// classified by its alert, then by whether it was cut short. `trace` is
+/// the reply's.
 fn classify(
     mut report: SearchReport,
     elapsed: Duration,
     trace: Option<String>,
 ) -> Result<SearchReport, Box<dyn Diagnostic>> {
+    let (reasons, longer_helps) = cut_short(&report, elapsed);
+    let answer = |mut report: SearchReport, reasons: Vec<String>| {
+        if !reasons.is_empty() {
+            let retry = longer_helps
+                .then(|| with_longer_timeout(&report.query))
+                .flatten();
+            report.cut_short = Some(CutShort { reasons, retry });
+        }
+        Ok(report)
+    };
     if !report.hits.is_empty() {
-        return Ok(report);
+        return answer(report, reasons);
     }
     let bad_query = |alert: &Alert| alert.title == vocabulary::ALERT_BAD_QUERY;
     if let Some(alert) = report.alert.take_if(|alert| bad_query(alert)) {
@@ -441,7 +457,9 @@ fn classify(
     }
     let alert = report.alert.as_ref();
     match alert.map(|alert| (alert.title.as_str(), &alert.description)) {
-        Some((vocabulary::ALERT_NO_REPOS, _)) => return Ok(report),
+        Some((vocabulary::ALERT_NO_REPOS, _)) => {
+            return answer(report, reasons);
+        }
         Some((vocabulary::ALERT_MISSING_REVISION, Some(description))) => {
             if let Some((repo, rev)) = missing_revision(description) {
                 return Err(Unavailable::RevisionNotFound { repo, rev }.into());
@@ -449,7 +467,6 @@ fn classify(
         }
         _ => {}
     }
-    let reasons = cut_short(&report, elapsed);
     if reasons.is_empty() {
         return Ok(report);
     }
@@ -468,30 +485,44 @@ fn missing_revision(description: &str) -> Option<(String, String)> {
 }
 
 /// How a search was cut short, if it was: the upstream's signals of
-/// partial results, and `query`'s `timeout:` when the search ran that long.
-fn cut_short(report: &SearchReport, elapsed: Duration) -> Vec<String> {
+/// partial results, and its effective timeout when it ran that long; and
+/// whether a longer timeout could help, because it ran that long or
+/// repositories timed out.
+fn cut_short(report: &SearchReport, elapsed: Duration) -> (Vec<String>, bool) {
     let repositories = |count: usize, one: &str, many: &str| match count {
         0 => None,
         1 => Some(format!("1 repository {one}")),
         n => Some(format!("{n} repositories {many}")),
     };
     let Skipped { timed_out, cloning, missing, .. } = &report.skipped;
-    let query = report.query.as_str();
-    let timeout = timeout_token(query)
-        .filter(|(_, timeout)| !timeout.is_zero() && elapsed >= *timeout)
-        .map(|(value, _)| {
-            format!("it ran for its whole timeout:{}", &query[value])
+    let Timeout { duration, source } = effective_timeout(&report.query);
+    let seconds = duration.as_secs();
+    let ran_out =
+        (!duration.is_zero() && elapsed >= duration).then(|| match source {
+            Source::Query(typed) => {
+                format!("it ran for its whole timeout:{typed}")
+            }
+            Source::Default => {
+                format!("it ran for the default timeout ({seconds}s)")
+            }
+            Source::Ceiling => {
+                format!(
+                    "it ran for the upstream's longest timeout ({seconds}s)"
+                )
+            }
         });
-    [
+    let longer_helps = ran_out.is_some() || !timed_out.is_empty();
+    let reasons = [
         report.limit_hit.then(|| "it hit a limit".to_owned()),
         repositories(timed_out.len(), "timed out", "timed out"),
         repositories(cloning.len(), "is still cloning", "are still cloning"),
         repositories(missing.len(), "is missing", "are missing"),
-        timeout,
+        ran_out,
     ]
     .into_iter()
     .flatten()
-    .collect()
+    .collect();
+    (reasons, longer_helps)
 }
 
 /// The lines of a file's chunks, numbered from 1, with the spans their
@@ -1083,6 +1114,7 @@ mod tests {
                     missing: [],
                     unsupported: 0,
                 },
+                cut_short: None,
                 filters: [],
                 alert: None,
                 hits: [],
@@ -1170,6 +1202,9 @@ mod tests {
             include_str!("../../tests/search/limit-hit.json"),
         ));
         assert!(report.limit_hit);
+        let cut_short = report.cut_short.as_ref().unwrap();
+        assert_eq!(cut_short.reasons, ["it hit a limit"]);
+        assert_eq!(cut_short.retry, None);
         assert_eq!(report.hits.len(), 5);
         assert_eq!(report.approximate.as_deref(), Some("5+"));
         let lang = report
@@ -1336,33 +1371,90 @@ mod tests {
         expect![[r#"
             [incomplete Unanswered]
             error: the search was cut short with no hits: it hit a limit
-            hint: sego search x
+            hint: sego search 'x timeout:40s'
             [incomplete Unanswered]
             error: the search was cut short with no hits: 1 repository timed out
-            hint: sego search x
+            hint: sego search 'x timeout:40s'
             [incomplete Unanswered]
             error: the search was cut short with no hits: 1 repository is still cloning
-            hint: sego search x
+            hint: sego search 'x timeout:40s'
             [incomplete Unanswered]
             error: the search was cut short with no hits: 1 repository is missing
-            hint: sego search x
+            hint: sego search 'x timeout:40s'
             [incomplete Unanswered]
             error: the search was cut short with no hits: it ran for its whole timeout:1s
             hint: sego search 'x timeout:2s'
-        "#]].assert_eq(&text);
+        "#]]
+        .assert_eq(&text);
 
-        let within = reply(&serde_json::json!({"elapsedMilliseconds": 999}));
-        let report = answered(answer("x timeout:1s", within));
-        assert!(report.hits.is_empty());
+        for (query, elapsed) in [("x timeout:1s", 999), ("x", 19_999)] {
+            let within =
+                reply(&serde_json::json!({"elapsedMilliseconds": elapsed}));
+            let report = answered(answer(query, within));
+            assert!(report.hits.is_empty());
+            assert!(report.cut_short.is_none());
+        }
+    }
 
-        let chunks = serde_json::json!([]);
-        let with_hits = reply(&serde_json::json!({
-            "limitHit": true, "timedout": named("github.com/x/a"),
-            "results": [file_match(&chunks)]
-        }));
-        let report = answered(answer("x", with_hits));
-        assert!(report.limit_hit);
-        assert_eq!(report.skipped.timed_out, ["github.com/x/a"]);
+    #[test]
+    fn searches_that_ran_for_their_whole_timeout_are_cut_short() {
+        let elapsed = |ms: u64| serde_json::json!({"elapsedMilliseconds": ms});
+        let mut text = String::new();
+        for (query, results) in
+            [("x", elapsed(21_000)), ("x timeout:90s", elapsed(61_000))]
+        {
+            text.push_str(&failure(answer(query, reply(&results))));
+        }
+        expect![[r#"
+            [incomplete Unanswered]
+            error: the search was cut short with no hits: it ran for the default timeout (20s)
+            hint: sego search 'x timeout:40s'
+            [incomplete Unanswered]
+            error: the search was cut short with no hits: it ran for the upstream's longest timeout (60s)
+        "#]]
+        .assert_eq(&text);
+    }
+
+    #[test]
+    fn searches_cut_short_with_hits_are_answers_that_say_so() {
+        let named = |name: &str| serde_json::json!([{"name": name}]);
+        let hits = |results: serde_json::Value| {
+            let mut results = results;
+            results["matchCount"] = 1.into();
+            results["results"] =
+                serde_json::json!([file_match(&serde_json::json!([]))]);
+            reply(&results)
+        };
+        let cases = [
+            ("x", serde_json::json!({"elapsedMilliseconds": 21_000})),
+            (
+                "x",
+                serde_json::json!({"limitHit": true, "elapsedMilliseconds": 100}),
+            ),
+            (
+                "x",
+                serde_json::json!({
+                    "limitHit": true, "timedout": named("github.com/x/a")
+                }),
+            ),
+            (
+                "x count:5",
+                serde_json::json!({"timedout": named("github.com/x/a")}),
+            ),
+        ];
+        let mut text = String::new();
+        for (query, results) in cases {
+            let report = answered(answer(query, hits(results)));
+            assert_eq!(report.hits.len(), 1);
+            let _ = writeln!(text, "{query}: {:?}", report.cut_short);
+        }
+        expect![[r#"
+            x: Some(CutShort { reasons: ["it ran for the default timeout (20s)"], retry: Some("x timeout:40s") })
+            x: Some(CutShort { reasons: ["it hit a limit"], retry: None })
+            x: Some(CutShort { reasons: ["it hit a limit", "1 repository timed out"], retry: Some("x timeout:40s") })
+            x count:5: Some(CutShort { reasons: ["1 repository timed out"], retry: None })
+        "#]]
+        .assert_eq(&text);
     }
 
     #[test]
@@ -1401,6 +1493,29 @@ mod tests {
             )
         "#]]
         .assert_debug_eq(&report.alert);
+    }
+
+    #[test]
+    fn a_no_repos_answer_says_if_it_was_cut_short() {
+        let report = answered(answer(
+            "x",
+            reply(&serde_json::json!({
+                "limitHit": true,
+                "alert": {"title": vocabulary::ALERT_NO_REPOS,
+                    "description": null, "proposedQueries": null}
+            })),
+        ));
+        expect![[r#"
+            Some(
+                CutShort {
+                    reasons: [
+                        "it hit a limit",
+                    ],
+                    retry: None,
+                },
+            )
+        "#]]
+        .assert_debug_eq(&report.cut_short);
     }
 
     #[test]
@@ -1509,17 +1624,15 @@ mod tests {
             hint: sego search '-file:_test x'
             [incomplete Unanswered]
             error: the search was cut short with no hits: it ran for its whole timeout:40s
-            hint: sego search 'x timeout:80s'
+            hint: sego search 'x timeout:1m'
             detail: {"trace":"abc123"}
             [incomplete Unanswered]
             error: the search was cut short with no hits: it ran for its whole timeout:1m
-            hint: sego search 'x timeout:90s'
             [incomplete Unanswered]
             error: the search was cut short with no hits: it ran for its whole timeout:1m30s
-            hint: sego search 'x timeout:1m30s'
             [incomplete Unanswered]
             error: the search was cut short with no hits: 1 repository timed out
-            hint: sego search x
+            hint: sego search 'x timeout:40s'
         "#]].assert_eq(&text);
     }
 }

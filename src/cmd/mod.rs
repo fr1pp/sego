@@ -287,9 +287,9 @@ mod tests {
     use crate::args;
     use crate::diagnostic::report;
     use crate::domain::{
-        Alert, CommitHit, Entry, EntryKind, File, FileHit, Filter, Hit, Line,
-        Listing, NotAFile, RepoHit, SearchReport, Skipped, Span, Submodule,
-        Symbol, Term, Tree, Unavailable,
+        Alert, CommitHit, CutShort, Entry, EntryKind, File, FileHit, Filter,
+        Hit, Line, Listing, NotAFile, RepoHit, SearchReport, Skipped, Span,
+        Submodule, Symbol, Term, Tree, Unavailable,
     };
     use crate::escape::{CORPUS, is_unsafe};
     use crate::output::Output;
@@ -782,7 +782,11 @@ mod tests {
         all
     }
 
-    fn search_report(word: &str, hits: Vec<Hit>) -> SearchReport {
+    fn search_report(
+        word: &str,
+        hits: Vec<Hit>,
+        retry: Option<String>,
+    ) -> SearchReport {
         let text = || word.to_owned();
         let filter = |kind| Filter {
             kind: Term { value: kind, raw: None },
@@ -801,6 +805,7 @@ mod tests {
                 missing: vec![text()],
                 unsupported: 2,
             },
+            cut_short: Some(CutShort { reasons: vec![text()], retry }),
             filters: vec![filter("repo"), filter("utility")],
             alert: Some(Alert {
                 title: text(),
@@ -892,8 +897,10 @@ mod tests {
             };
             let tree = Tree::Submodule(submodule);
             all.push(Box::new(list::List { tree, depth: 1 }));
-            for hits in [hits(word), Vec::new()] {
-                let report = search_report(word, hits);
+            for (hits, retry) in
+                [(hits(word), Some(word.to_owned())), (Vec::new(), None)]
+            {
+                let report = search_report(word, hits, retry);
                 all.push(Box::new(search::Search { report }));
             }
         }

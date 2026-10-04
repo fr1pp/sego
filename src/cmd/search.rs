@@ -6,11 +6,11 @@ use super::{Command, Help, Present, UsageError};
 use crate::args::Cli;
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::domain::{
-    Alert, CommitHit, FileHit, Filter, Hit, Line, RepoHit, SearchReport,
-    Skipped, Symbol, Term,
+    Alert, CommitHit, CutShort, FileHit, Filter, Hit, Line, RepoHit,
+    SearchReport, Skipped, Symbol, Term,
 };
-use crate::escape::{command_line, content_line, sanitise, shell_word};
-use crate::render::json::document;
+use crate::escape::{command_line, content_line, sanitise};
+use crate::render::json::{Partial, document};
 use crate::render::text::{
     Marker, address_line, hint, notice, numbered, path_word,
 };
@@ -33,14 +33,16 @@ Operands:
 
 Output:
   A summary line: the number of matches, with + when the upstream counted
-  only some, the number of results, and limit hit when the search stopped
-  at a limit, such as its count:. Then, when there is one, a line each:
+  only some, and the number of results. Then, when there is one, a line
+  each:
 
     alert:      the upstream's message about the query, then its proposed
                 queries as hint: lines
-    timed out:  the repositories that timed out
-    cloning:    the repositories still cloning
-    missing:    the repositories missing upstream
+    notice:     that results may be missing, and why: the search hit a
+                limit, such as its count:, repositories timed out, are
+                still cloning or are missing, or it ran for its whole
+                timeout; then the search with a longer timeout: as a hint:
+                line, when that could help
     notice:     how many results were of a kind sego doesn't know
     narrow:     when a limit was hit, filters to add and their match counts
     widen:      when nothing matched, filters that bring in repositories the
@@ -67,7 +69,8 @@ Output:
   With --json, one document of kind \"search\": query, match_count,
   approximate (null when exact), limit_hit, skipped {timed_out, cloning,
   missing, unsupported}, filters [{kind, value, count, limit_hit}] when
-  shown, alert {title, description, hints} or null, and results. Each
+  shown, alert {title, description, hints} or null, partial {reason,
+  hints} when results may be missing, and results. Each
   result has a type: file {repo, commit, path, path_match, binary, lines
   [{n, text, matches [{start, end}]}], symbols [{line, kind, name,
   container}]}, directory {repo, commit, path}, commit {repo, commit,
@@ -79,8 +82,10 @@ Output:
 Matching:
   Matching is case-insensitive unless the query says case:yes. A misspelt
   filter or an unbalanced quote becomes search text and matches nothing,
-  silently. A search with no results under a short timeout: may have been
-  cut short; when it ran for its whole timeout, it is unanswered.
+  silently. A search runs for its timeout:, up to 60s; without one, for
+  20s, or 60s with count:. A search with no results under a short timeout:
+  may have been cut short; when it ran for its whole timeout, it is
+  unanswered.
 
 Exit codes:
   0  answered      the results
@@ -176,39 +181,38 @@ fn alert_line(Alert { title, description, .. }: &Alert) -> String {
     format!("alert: {}\n", sanitise(&text))
 }
 
+/// The notice and the hint for a search that may be missing results.
+fn partial(report: &SearchReport) -> Option<Partial> {
+    let CutShort { reasons, retry } = report.cut_short.as_ref()?;
+    let reason = format!("results may be missing: {}", reasons.join(", "));
+    let hints = retry.as_deref().map(search_command).into_iter().collect();
+    Some(Partial { reason, hints })
+}
+
 /// The summary line, then a line for each thing the reader should know
 /// before the results.
 fn summary(report: &SearchReport) -> String {
-    let SearchReport { match_count, approximate, limit_hit, skipped, .. } =
-        report;
+    let SearchReport { match_count, approximate, skipped, .. } = report;
     let matches = match approximate {
         Some(approximate) => format!("{} matches", sanitise(approximate)),
         None => count(*match_count, "match", "matches"),
     };
     let results = report.hits.len() as u64;
     let mut text =
-        format!("{matches} • {}", count(results, "result", "results"));
-    if *limit_hit {
-        text.push_str(" • limit hit");
-    }
-    text.push('\n');
+        format!("{matches} • {}\n", count(results, "result", "results"));
     if let Some(alert) = &report.alert {
         text.push_str(&alert_line(alert));
         for query in alert.queries() {
             text.push_str(&hint(&search_command(query)));
         }
     }
-    let Skipped { timed_out, cloning, missing, unsupported } = skipped;
-    for (label, repos) in
-        [("timed out", timed_out), ("cloning", cloning), ("missing", missing)]
-    {
-        if !repos.is_empty() {
-            let words: Vec<_> =
-                repos.iter().map(|repo| shell_word(repo)).collect();
-            let _ = writeln!(text, "{label}: {}", words.join(" "));
+    if let Some(Partial { reason, hints }) = partial(report) {
+        text.push_str(&notice(&reason));
+        for command in hints {
+            text.push_str(&hint(&command));
         }
     }
-    match unsupported {
+    match skipped.unsupported {
         0 => {}
         1 => text.push_str(&notice(
             "1 result of a kind sego doesn't know is not shown",
@@ -364,6 +368,7 @@ impl Present for Search {
                 description: alert.description.as_deref(),
                 hints: alert.queries().map(search_command).collect(),
             }),
+            partial: partial(report),
             results: report.hits.iter().map(HitJson::new).collect(),
         };
         document("search", &body)
@@ -380,6 +385,8 @@ struct SearchJson<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     filters: Option<Vec<FilterJson<'a>>>,
     alert: Option<AlertJson<'a>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    partial: Option<Partial>,
     results: Vec<HitJson<'a>>,
 }
 
@@ -560,11 +567,20 @@ impl<'a> SymbolJson<'a> {
 mod tests {
     use super::*;
     use crate::escape::CLIP_COLUMNS;
+    use crate::sourcegraph::query::UPSTREAM_MAX_TIMEOUT;
 
     #[test]
     fn help_states_the_clip_width() {
         let help =
             HELP.details.split_whitespace().collect::<Vec<_>>().join(" ");
         assert!(help.contains(&format!("wider than {CLIP_COLUMNS} columns")));
+    }
+
+    #[test]
+    fn help_states_the_longest_timeout() {
+        let help =
+            HELP.details.split_whitespace().collect::<Vec<_>>().join(" ");
+        let longest = UPSTREAM_MAX_TIMEOUT.as_secs();
+        assert!(help.contains(&format!("timeout:, up to {longest}s")));
     }
 }

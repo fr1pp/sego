@@ -1,20 +1,77 @@
-//! Search query syntax: tokens, and the `timeout:` field.
+//! Search query syntax: tokens, and the timeout a search runs for.
 
 use std::ops::Range;
 use std::time::Duration;
 
-use super::GLOBAL_TIMEOUT;
+/// How long the upstream lets a search run when its query sets neither
+/// `timeout:` nor `count:`.
+const UPSTREAM_DEFAULT_TIMEOUT: Duration = Duration::from_secs(20);
 
-/// `query`'s first `timeout:` token outside double quotes: the byte range
-/// of its value and the duration it gives. `None` if there is none or its
-/// value isn't a Go duration.
-pub fn timeout_token(query: &str) -> Option<(Range<usize>, Duration)> {
-    const FIELD: &str = "timeout:";
-    let token = tokens(query).into_iter().find(|token| {
+/// The longest the upstream lets a search run, and how long it runs when
+/// its query sets `count:` but not `timeout:`. A longer `timeout:` is cut
+/// to it silently. It is the upstream's default
+/// `search.limits.maxTimeoutSeconds`, and sourcegraph.com's.
+pub const UPSTREAM_MAX_TIMEOUT: Duration = Duration::from_secs(60);
+
+/// The timeout a search runs for, and where it comes from.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Timeout {
+    pub duration: Duration,
+    pub source: Source,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Source {
+    /// The query's `timeout:`, holding its value as typed.
+    Query(String),
+    /// `UPSTREAM_DEFAULT_TIMEOUT`.
+    Default,
+    /// `UPSTREAM_MAX_TIMEOUT`, from a longer `timeout:` or from `count:`.
+    Ceiling,
+}
+
+/// The timeout the upstream gives a search for `query`: its `timeout:`, up
+/// to `UPSTREAM_MAX_TIMEOUT`; else `UPSTREAM_MAX_TIMEOUT` if it has a
+/// `count:`; else `UPSTREAM_DEFAULT_TIMEOUT`.
+pub fn effective_timeout(query: &str) -> Timeout {
+    let ceiling =
+        Timeout { duration: UPSTREAM_MAX_TIMEOUT, source: Source::Ceiling };
+    match timeout_token(query) {
+        Some((_, duration)) if duration > UPSTREAM_MAX_TIMEOUT => ceiling,
+        Some((value, duration)) => Timeout {
+            duration,
+            source: Source::Query(query[value].to_owned()),
+        },
+        None if has_field(query, "count:") => ceiling,
+        None => Timeout {
+            duration: UPSTREAM_DEFAULT_TIMEOUT,
+            source: Source::Default,
+        },
+    }
+}
+
+/// `query`'s first token outside quotes that starts with `field`, such as
+/// `count:`, ignoring ASCII case.
+fn field_token(query: &str, field: &str) -> Option<Range<usize>> {
+    tokens(query).into_iter().find(|token| {
         query[token.clone()]
-            .get(..FIELD.len())
-            .is_some_and(|field| field.eq_ignore_ascii_case(FIELD))
-    })?;
+            .get(..field.len())
+            .is_some_and(|name| name.eq_ignore_ascii_case(field))
+    })
+}
+
+/// Whether `query` has a token outside quotes that starts with `field`,
+/// such as `count:`, ignoring ASCII case.
+fn has_field(query: &str, field: &str) -> bool {
+    field_token(query, field).is_some()
+}
+
+/// `query`'s first `timeout:` token outside quotes: the byte range of its
+/// value and the duration it gives. `None` if there is none or its value
+/// isn't a Go duration.
+fn timeout_token(query: &str) -> Option<(Range<usize>, Duration)> {
+    const FIELD: &str = "timeout:";
+    let token = field_token(query, FIELD)?;
     let value = token.start + FIELD.len()..token.end;
     let duration = go_duration(&query[value.clone()])?;
     Some((value, duration))
@@ -117,52 +174,90 @@ fn go_text(duration: Duration) -> String {
         )
 }
 
-/// The longest `timeout:` a hint proposes, short enough that a search
-/// running for all of it can still answer within `GLOBAL_TIMEOUT`.
-const LONGEST_TIMEOUT: Duration =
-    GLOBAL_TIMEOUT.saturating_sub(Duration::from_secs(5));
+/// The longest `timeout:` a hint proposes: the upstream runs no search
+/// longer.
+const LONGEST_TIMEOUT: Duration = UPSTREAM_MAX_TIMEOUT;
 
-/// `query` with its `timeout:` doubled, up to `LONGEST_TIMEOUT`; `None` if
-/// it has none or that is no longer.
+/// `query` with `timeout:` set to twice its effective timeout, up to
+/// `LONGEST_TIMEOUT`, replacing its value or appended; `None` if the
+/// effective timeout is already that long. A zero timeout becomes
+/// `UPSTREAM_DEFAULT_TIMEOUT`.
 pub fn with_longer_timeout(query: &str) -> Option<String> {
-    let (value, duration) = timeout_token(query)?;
-    let longer = duration.saturating_mul(2).min(LONGEST_TIMEOUT);
-    if longer <= duration {
+    let current = effective_timeout(query).duration;
+    if current >= LONGEST_TIMEOUT {
         return None;
     }
+    let longer = if current.is_zero() {
+        UPSTREAM_DEFAULT_TIMEOUT
+    } else {
+        current.saturating_mul(2).min(LONGEST_TIMEOUT)
+    };
+    let longer = go_text(longer);
     let mut retry = query.to_owned();
-    retry.replace_range(value, &go_text(longer));
+    if let Some((value, _)) = timeout_token(query) {
+        retry.replace_range(value, &longer);
+    } else {
+        retry.push_str(" timeout:");
+        retry.push_str(&longer);
+    }
     Some(retry)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::sourcegraph::GLOBAL_TIMEOUT;
 
-    /// The timeout `cut_short` waits for: `query`'s, unless it is zero.
-    fn query_timeout(query: &str) -> Option<Duration> {
-        timeout_token(query)
-            .map(|(_, duration)| duration)
-            .filter(|duration| !duration.is_zero())
+    fn timeout(duration: Duration, source: Source) -> Timeout {
+        Timeout { duration, source }
+    }
+
+    fn typed(value: &str) -> Source {
+        Source::Query(value.to_owned())
     }
 
     #[test]
     fn query_timeouts() {
         let ms = Duration::from_millis;
-        assert_eq!(query_timeout("x timeout:1ms"), Some(ms(1)));
-        assert_eq!(query_timeout("timeout:1m30s x"), Some(ms(90_000)));
-        assert_eq!(query_timeout("x"), None);
-        assert_eq!(query_timeout("\"timeout:5s\""), None);
-        assert_eq!(query_timeout("\"a timeout:5s\" x"), None);
-        assert_eq!(query_timeout("content:\"a timeout:5s\""), None);
-        assert_eq!(query_timeout("x timeout:2h"), Some(ms(7_200_000)));
-        assert_eq!(query_timeout("x timeout:1.5s"), Some(ms(1500)));
-        assert_eq!(query_timeout("x timeout:soon"), None);
-        assert_eq!(query_timeout("x timeout:5"), None);
-        assert_eq!(query_timeout("x timeout:0s"), None);
-        assert_eq!(query_timeout("x mytimeout:5s"), None);
+        let default = timeout(ms(20_000), Source::Default);
+        let ceiling = timeout(ms(60_000), Source::Ceiling);
         let overflow = "x timeout:340282366920938463463374607431.9s";
-        assert_eq!(query_timeout(overflow), None);
+        for (query, expected) in [
+            ("x timeout:1ms", timeout(ms(1), typed("1ms"))),
+            ("x TIMEOUT:5s", timeout(ms(5000), typed("5s"))),
+            ("timeout:1m x", timeout(ms(60_000), typed("1m"))),
+            ("timeout:1m30s x", ceiling.clone()),
+            ("x", default.clone()),
+            ("\"timeout:5s\"", default.clone()),
+            ("\"a timeout:5s\" x", default.clone()),
+            ("content:\"a timeout:5s\"", default.clone()),
+            ("x timeout:2h", ceiling.clone()),
+            ("x timeout:1.5s", timeout(ms(1500), typed("1.5s"))),
+            ("x timeout:soon", default.clone()),
+            ("x timeout:5", default.clone()),
+            ("x timeout:0s", timeout(ms(0), typed("0s"))),
+            ("x mytimeout:5s", default.clone()),
+            (overflow, default.clone()),
+        ] {
+            assert_eq!(effective_timeout(query), expected, "{query}");
+        }
+    }
+
+    #[test]
+    fn effective_timeouts() {
+        let s = Duration::from_secs;
+        for (query, expected) in [
+            ("x", timeout(s(20), Source::Default)),
+            ("x count:5", timeout(s(60), Source::Ceiling)),
+            ("x count:all", timeout(s(60), Source::Ceiling)),
+            ("x timeout:30s count:all", timeout(s(30), typed("30s"))),
+            ("x timeout:90s", timeout(s(60), Source::Ceiling)),
+            ("x \"count:5\"", timeout(s(20), Source::Default)),
+            ("x xcount:5", timeout(s(20), Source::Default)),
+            ("x COUNT:5", timeout(s(60), Source::Ceiling)),
+        ] {
+            assert_eq!(effective_timeout(query), expected, "{query}");
+        }
     }
 
     #[test]
@@ -176,26 +271,34 @@ mod tests {
     }
 
     #[test]
-    fn longer_timeouts_double_up_to_the_cap() {
+    fn longer_timeouts() {
         let longer = |query| with_longer_timeout(query);
-        assert_eq!(longer("x timeout:1ms").as_deref(), Some("x timeout:2ms"));
+        assert_eq!(longer("x").as_deref(), Some("x timeout:40s"));
+        assert_eq!(longer("x timeout:20s").as_deref(), Some("x timeout:40s"));
         assert_eq!(longer("timeout:20s x").as_deref(), Some("timeout:40s x"));
-        assert_eq!(longer("x timeout:45s").as_deref(), Some("x timeout:90s"));
-        assert_eq!(longer("x timeout:0.5s").as_deref(), Some("x timeout:1s"));
-        assert_eq!(longer("x timeout:1m").as_deref(), Some("x timeout:90s"));
-        assert_eq!(longer("x timeout:89s").as_deref(), Some("x timeout:90s"));
-        assert_eq!(longer("x timeout:1m30s"), None);
+        assert_eq!(longer("x timeout:40s").as_deref(), Some("x timeout:1m"));
+        assert_eq!(longer("x timeout:45s").as_deref(), Some("x timeout:1m"));
+        assert_eq!(longer("x timeout:1m"), None);
         assert_eq!(longer("x timeout:2m"), None);
-        assert_eq!(longer("x timeout:0s"), None);
-        assert_eq!(longer("x"), None);
+        assert_eq!(longer("x count:5"), None);
+        assert_eq!(
+            longer("x count:5 timeout:10s").as_deref(),
+            Some("x count:5 timeout:20s")
+        );
+        assert_eq!(longer("x timeout:1ms").as_deref(), Some("x timeout:2ms"));
+        assert_eq!(longer("x timeout:0.5s").as_deref(), Some("x timeout:1s"));
+        assert_eq!(longer("x timeout:0s").as_deref(), Some("x timeout:20s"));
     }
 
     #[test]
     fn longer_timeouts_end_before_the_request_does() {
-        for seconds in 1..200 {
-            let query = format!("x timeout:{seconds}s");
+        for query in ["x", "x count:5"]
+            .map(str::to_owned)
+            .into_iter()
+            .chain((0..200).map(|seconds| format!("x timeout:{seconds}s")))
+        {
             let Some(longer) = with_longer_timeout(&query) else { continue };
-            let timeout = query_timeout(&longer).unwrap();
+            let timeout = effective_timeout(&longer).duration;
             assert!(timeout < GLOBAL_TIMEOUT, "{query} -> {longer}");
         }
     }

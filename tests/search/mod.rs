@@ -252,7 +252,8 @@ fn commits() {
     expect![[r#"
         exit 0
         --- stdout
-        3+ matches • 3 results • limit hit
+        3+ matches • 3 results
+        notice: results may be missing: it hit a limit
         narrow: before:"2 months ago" (3) • author:kamil@kamilkisiel\.net (1) • author:nick@nickhudkins\.com (1) • author:nmiyake@palantir\.com (1)
 
         github.com/gorilla/mux
@@ -282,7 +283,8 @@ fn diffs() {
     expect![[r#"
         exit 0
         --- stdout
-        3+ matches • 2 results • limit hit
+        3+ matches • 2 results
+        notice: results may be missing: it hit a limit
         narrow: before:"2 months ago" (2) • author:32021905\+fharding1@users\.noreply\.github\.com (1) • author:franklinharding0\.0@gmail\.com (1)
 
         github.com/gorilla/mux
@@ -408,7 +410,8 @@ fn limit_hit_suggests_narrowing() {
     expect![[r#"
         exit 0
         --- stdout
-        5+ matches • 5 results • limit hit
+        5+ matches • 5 results
+        notice: results may be missing: it hit a limit
         narrow: lang:go (5) • -file:_test\.\w+$ (3) • -file:(^|/)vendor/ (1)
 
         github.com/golang/go@6885bad7dd86
@@ -445,6 +448,7 @@ fn limit_hit_suggests_narrowing() {
 #[test]
 fn partial_answers_say_what_is_missing() {
     let answer = edited("search/repos.json", |results| {
+        results["limitHit"] = true.into();
         results["timedout"] = json!([{"name": "github.com/x/slow"}]);
         results["cloning"] = json!([{"name": "github.com/x/new"}, {"name": "github.com/x/a b"}]);
         results["missing"] = json!([{"name": "github.com/x/gone"}]);
@@ -468,9 +472,8 @@ fn partial_answers_say_what_is_missing() {
         1 match • 1 result
         alert: Some results are hidden: Try a narrower query
         hint: sego search 'type:repo mux lang:go'
-        timed out: github.com/x/slow
-        cloning: github.com/x/new 'github.com/x/a b'
-        missing: github.com/x/gone
+        notice: results may be missing: it hit a limit, 1 repository timed out, 2 repositories are still cloning, 1 repository is missing
+        hint: sego search 'x timeout:40s'
         notice: 1 result of a kind sego doesn't know is not shown
 
         github.com/gorilla/mux • 21839 stars
@@ -480,7 +483,7 @@ fn partial_answers_say_what_is_missing() {
         [EOF]
         exit 0
         --- stdout
-        {"version":1,"kind":"search","query":"x","match_count":1,"approximate":null,"limit_hit":false,"skipped":{"timed_out":["github.com/x/slow"],"cloning":["github.com/x/new","github.com/x/a b"],"missing":["github.com/x/gone"],"unsupported":1},"alert":{"title":"Some results are hidden","description":"Try a\nnarrower query","hints":["sego search 'type:repo mux lang:go'"]},"results":[{"type":"repository","repo":"github.com/gorilla/mux","description":"Package gorilla/mux is a powerful HTTP router and URL matcher for building Go web servers with 🦍","stars":21839}]}
+        {"version":1,"kind":"search","query":"x","match_count":1,"approximate":null,"limit_hit":true,"skipped":{"timed_out":["github.com/x/slow"],"cloning":["github.com/x/new","github.com/x/a b"],"missing":["github.com/x/gone"],"unsupported":1},"alert":{"title":"Some results are hidden","description":"Try a\nnarrower query","hints":["sego search 'type:repo mux lang:go'"]},"partial":{"reason":"results may be missing: it hit a limit, 1 repository timed out, 2 repositories are still cloning, 1 repository is missing","hints":["sego search 'x timeout:40s'"]},"results":[{"type":"repository","repo":"github.com/gorilla/mux","description":"Package gorilla/mux is a powerful HTTP router and URL matcher for building Go web servers with 🦍","stars":21839}]}
         [EOF]
         --- stderr
         [EOF]
@@ -660,14 +663,16 @@ fn help() {
 
             Output:
               A summary line: the number of matches, with + when the upstream counted
-              only some, the number of results, and limit hit when the search stopped
-              at a limit, such as its count:. Then, when there is one, a line each:
+              only some, and the number of results. Then, when there is one, a line
+              each:
 
                 alert:      the upstream's message about the query, then its proposed
                             queries as hint: lines
-                timed out:  the repositories that timed out
-                cloning:    the repositories still cloning
-                missing:    the repositories missing upstream
+                notice:     that results may be missing, and why: the search hit a
+                            limit, such as its count:, repositories timed out, are
+                            still cloning or are missing, or it ran for its whole
+                            timeout; then the search with a longer timeout: as a hint:
+                            line, when that could help
                 notice:     how many results were of a kind sego doesn't know
                 narrow:     when a limit was hit, filters to add and their match counts
                 widen:      when nothing matched, filters that bring in repositories the
@@ -694,7 +699,8 @@ fn help() {
               With --json, one document of kind "search": query, match_count,
               approximate (null when exact), limit_hit, skipped {timed_out, cloning,
               missing, unsupported}, filters [{kind, value, count, limit_hit}] when
-              shown, alert {title, description, hints} or null, and results. Each
+              shown, alert {title, description, hints} or null, partial {reason,
+              hints} when results may be missing, and results. Each
               result has a type: file {repo, commit, path, path_match, binary, lines
               [{n, text, matches [{start, end}]}], symbols [{line, kind, name,
               container}]}, directory {repo, commit, path}, commit {repo, commit,
@@ -706,8 +712,10 @@ fn help() {
             Matching:
               Matching is case-insensitive unless the query says case:yes. A misspelt
               filter or an unbalanced quote becomes search text and matches nothing,
-              silently. A search with no results under a short timeout: may have been
-              cut short; when it ran for its whole timeout, it is unanswered.
+              silently. A search runs for its timeout:, up to 60s; without one, for
+              20s, or 60s with count:. A search with no results under a short timeout:
+              may have been cut short; when it ran for its whole timeout, it is
+              unanswered.
 
             Exit codes:
               0  answered      the results
