@@ -210,7 +210,7 @@ impl LineRange {
         }
         match end {
             Some(end) if end < start => {
-                Err(AddressError::Inverted { start, end })
+                Err(AddressError::Inverted(s.to_owned()))
             }
             _ => Ok(LineRange { start, end }),
         }
@@ -265,7 +265,7 @@ pub enum AddressError {
     EmptyRev,
     TwoDots(String),
     LineZero(String),
-    Inverted { start: u32, end: u32 },
+    Inverted(String),
     BadLines(String),
     BadName(String),
 }
@@ -285,9 +285,10 @@ impl fmt::Display for AddressError {
                 "invalid line range {}; lines are numbered from 1",
                 shell_word(lines)
             ),
-            AddressError::Inverted { start, end } => write!(
+            AddressError::Inverted(lines) => write!(
                 f,
-                "invalid line range {start}-{end}; the end is before the start"
+                "invalid line range {}; the end is before the start",
+                shell_word(lines)
             ),
             AddressError::BadLines(lines) => write!(
                 f,
@@ -441,8 +442,12 @@ mod tests {
         ));
         assert!(matches!(
             LineRange::parse("33-30"),
-            Err(AddressError::Inverted { start: 33, end: 30 })
+            Err(AddressError::Inverted(_))
         ));
+        assert_eq!(
+            LineRange::parse("33,30").unwrap_err().to_string(),
+            "invalid line range 33,30; the end is before the start"
+        );
         for bad in ["99999999999", "a-b", "", "-3", "+3", "3,", "3-4-5"] {
             assert!(
                 matches!(
@@ -480,8 +485,8 @@ mod tests {
                 "invalid line range 0; lines are numbered from 1",
             ),
             (
-                AddressError::Inverted { start: 33, end: 30 },
-                "invalid line range 33-30; the end is before the start",
+                AddressError::Inverted("33,30".to_owned()),
+                "invalid line range 33,30; the end is before the start",
             ),
             (
                 AddressError::BadLines("a b".to_owned()),
