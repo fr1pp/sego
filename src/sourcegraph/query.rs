@@ -78,18 +78,21 @@ fn timeout_token(query: &str) -> Option<(Range<usize>, Duration)> {
 }
 
 /// The byte ranges of `query`'s tokens: runs of anything but whitespace,
-/// where whitespace between double quotes, as in `"a b"` or
-/// `content:"a b"`, doesn't end a token.
+/// where whitespace between quotes, as in `"a b"`, `'a b'` or
+/// `content:"a b"`, doesn't end a token. As upstream, a quote opens only at
+/// the start of a token or of a field's value, so `don't` quotes nothing.
 fn tokens(query: &str) -> Vec<Range<usize>> {
     let mut tokens = Vec::new();
     let mut start = None;
-    let (mut quoted, mut escaped) = (false, false);
+    let mut quote = None;
+    let mut escaped = false;
+    let mut previous = None;
     for (i, c) in query.char_indices() {
-        if quoted {
+        if let Some(delimiter) = quote {
             match c {
                 _ if escaped => escaped = false,
                 '\\' => escaped = true,
-                '"' => quoted = false,
+                _ if c == delimiter => quote = None,
                 _ => {}
             }
         } else if c.is_whitespace() {
@@ -97,9 +100,13 @@ fn tokens(query: &str) -> Vec<Range<usize>> {
                 tokens.push(start..i);
             }
         } else {
+            let opens = start.is_none() || previous == Some(':');
             start.get_or_insert(i);
-            quoted = c == '"';
+            if opens && matches!(c, '"' | '\'') {
+                quote = Some(c);
+            }
         }
+        previous = Some(c);
     }
     if let Some(start) = start {
         tokens.push(start..query.len());
@@ -231,6 +238,13 @@ mod tests {
             ("\"timeout:5s\"", default.clone()),
             ("\"a timeout:5s\" x", default.clone()),
             ("content:\"a timeout:5s\"", default.clone()),
+            ("'timeout:5s'", default.clone()),
+            ("'a timeout:5s b'", default.clone()),
+            ("x 'a timeout:5s b' y", default.clone()),
+            ("content:'a timeout:5s b'", default.clone()),
+            (r"'a \' timeout:5s' x", default.clone()),
+            ("don't timeout:5s", timeout(ms(5000), typed("5s"))),
+            ("a\"b timeout:5s", timeout(ms(5000), typed("5s"))),
             ("x timeout:2h", ceiling.clone()),
             ("x timeout:1.5s", timeout(ms(1500), typed("1.5s"))),
             ("x timeout:soon", default.clone()),
@@ -262,9 +276,11 @@ mod tests {
 
     #[test]
     fn tokens_keep_quoted_spaces() {
-        let query = r#"repo:x before:"2 months ago" "a b" c"#;
+        let query = r#"repo:x before:"2 months ago" "a b" c 'd e' f:'g h'"#;
         assert!(has_token(query, r#"before:"2 months ago""#));
         assert!(has_token(query, r#""a b""#));
+        assert!(has_token(query, "'d e'"));
+        assert!(has_token(query, "f:'g h'"));
         assert!(has_token(query, "repo:x"));
         assert!(!has_token(query, "months"));
         assert!(!has_token(query, "repo"));
