@@ -1464,15 +1464,22 @@ mod tests {
     fn searches_that_ran_for_their_whole_timeout_are_cut_short() {
         let elapsed = |ms: u64| serde_json::json!({"elapsedMilliseconds": ms});
         let mut text = String::new();
-        for (query, results) in
-            [("x", elapsed(21_000)), ("x timeout:90s", elapsed(61_000))]
-        {
+        for (query, results) in [
+            ("x", elapsed(21_000)),
+            ("x timeout:90s", elapsed(61_000)),
+            ("x timeout:1m", elapsed(60_000)),
+            ("x timeout:60s", elapsed(60_000)),
+        ] {
             text.push_str(&failure(answer(query, reply(&results))));
         }
         expect![[r#"
             [incomplete Unanswered]
             error: the search was cut short with no hits: it ran for the default timeout (20s)
             hint: sego search 'x timeout:40s'
+            [incomplete Unanswered]
+            error: the search was cut short with no hits: it ran for the upstream's longest timeout (60s)
+            [incomplete Unanswered]
+            error: the search was cut short with no hits: it ran for the upstream's longest timeout (60s)
             [incomplete Unanswered]
             error: the search was cut short with no hits: it ran for the upstream's longest timeout (60s)
         "#]]
@@ -1705,12 +1712,14 @@ mod tests {
             },
             SearchProblem::Incomplete {
                 query: "x timeout:1m".into(),
-                reason: "it ran for its whole timeout:1m".into(),
+                reason: "it ran for the upstream's longest timeout (60s)"
+                    .into(),
                 trace: None,
             },
             SearchProblem::Incomplete {
                 query: "x timeout:1m30s".into(),
-                reason: "it ran for its whole timeout:1m30s".into(),
+                reason: "it ran for the upstream's longest timeout (60s)"
+                    .into(),
                 trace: None,
             },
             SearchProblem::Incomplete {
@@ -1741,9 +1750,9 @@ mod tests {
             hint: sego search 'x timeout:1m'
             detail: {"trace":"abc123"}
             [incomplete Unanswered]
-            error: the search was cut short with no hits: it ran for its whole timeout:1m
+            error: the search was cut short with no hits: it ran for the upstream's longest timeout (60s)
             [incomplete Unanswered]
-            error: the search was cut short with no hits: it ran for its whole timeout:1m30s
+            error: the search was cut short with no hits: it ran for the upstream's longest timeout (60s)
             [incomplete Unanswered]
             error: the search was cut short with no hits: 1 repository timed out
             hint: sego search 'x timeout:40s'

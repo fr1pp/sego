@@ -26,18 +26,20 @@ pub enum Source {
     Query(String),
     /// `UPSTREAM_DEFAULT_TIMEOUT`.
     Default,
-    /// `UPSTREAM_MAX_TIMEOUT`, from a longer `timeout:` or from `count:`.
+    /// `UPSTREAM_MAX_TIMEOUT`, from a `timeout:` at least that long or from
+    /// `count:`.
     Ceiling,
 }
 
 /// The timeout the upstream gives a search for `query`: its `timeout:`, up
-/// to `UPSTREAM_MAX_TIMEOUT`; else `UPSTREAM_MAX_TIMEOUT` if it has a
-/// `count:`; else `UPSTREAM_DEFAULT_TIMEOUT`.
+/// to `UPSTREAM_MAX_TIMEOUT`, which is `Source::Ceiling` when reached; else
+/// `UPSTREAM_MAX_TIMEOUT` if it has a `count:`; else
+/// `UPSTREAM_DEFAULT_TIMEOUT`.
 pub fn effective_timeout(query: &str) -> Timeout {
     let ceiling =
         Timeout { duration: UPSTREAM_MAX_TIMEOUT, source: Source::Ceiling };
     match timeout_token(query) {
-        Some((_, duration)) if duration > UPSTREAM_MAX_TIMEOUT => ceiling,
+        Some((_, duration)) if duration >= UPSTREAM_MAX_TIMEOUT => ceiling,
         Some((value, duration)) => Timeout {
             duration,
             source: Source::Query(query[value].to_owned()),
@@ -236,7 +238,9 @@ mod tests {
         for (query, expected) in [
             ("x timeout:1ms", timeout(ms(1), typed("1ms"))),
             ("x TIMEOUT:5s", timeout(ms(5000), typed("5s"))),
-            ("timeout:1m x", timeout(ms(60_000), typed("1m"))),
+            ("timeout:1m x", ceiling.clone()),
+            ("x timeout:60s", ceiling.clone()),
+            ("x timeout:59.999s", timeout(ms(59_999), typed("59.999s"))),
             ("timeout:1m30s x", ceiling.clone()),
             ("x", default.clone()),
             ("\"timeout:5s\"", default.clone()),
@@ -272,6 +276,8 @@ mod tests {
             ("x count:all", timeout(s(60), Source::Ceiling)),
             ("x timeout:30s count:all", timeout(s(30), typed("30s"))),
             ("x timeout:90s", timeout(s(60), Source::Ceiling)),
+            ("x timeout:1m", timeout(s(60), Source::Ceiling)),
+            ("x timeout:60s", timeout(s(60), Source::Ceiling)),
             ("x \"count:5\"", timeout(s(20), Source::Default)),
             ("x xcount:5", timeout(s(20), Source::Default)),
             ("x COUNT:5", timeout(s(60), Source::Ceiling)),
