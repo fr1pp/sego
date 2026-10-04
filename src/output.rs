@@ -47,6 +47,11 @@ impl<W: Write> Output<W> {
     }
 }
 
+/// Writes to stderr, ignoring failure: there is nowhere left to report it.
+pub fn to_stderr(text: &str) {
+    let _ = io::stderr().write_all(text.as_bytes());
+}
+
 #[derive(Debug)]
 pub struct OutputError(io::Error);
 

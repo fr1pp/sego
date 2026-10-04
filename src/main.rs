@@ -10,13 +10,13 @@ mod sourcegraph;
 
 use std::env;
 use std::ffi::OsString;
-use std::io::{self, Write};
+use std::io;
 use std::process::ExitCode;
 
 use args::Cli;
 use cmd::{Present, UsageError};
 use diagnostic::{Diagnostic, report};
-use output::Output;
+use output::{Output, to_stderr};
 use sourcegraph::transport::Transport;
 use sourcegraph::{FetchError, Plan, Reply};
 
@@ -84,9 +84,4 @@ fn endpoint() -> String {
 /// version and usage errors.
 fn offline(_: &Plan) -> Result<Reply, FetchError> {
     unreachable!("only a command that needs the upstream fetches")
-}
-
-/// Writes to stderr, ignoring failure: there is nowhere left to report it.
-fn to_stderr(text: &str) {
-    let _ = io::stderr().write_all(text.as_bytes());
 }
