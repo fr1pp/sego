@@ -448,7 +448,6 @@ enum HitJson<'a> {
         date: &'a str,
         author: &'a str,
         subject: &'a str,
-        #[serde(skip_serializing_if = "Option::is_none")]
         diff: Option<&'a str>,
     },
     Repository {

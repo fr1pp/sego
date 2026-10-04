@@ -567,6 +567,13 @@ mod tests {
                 subject: text(),
                 diff: Some(format!("{word}\n{word}")),
             }),
+            Hit::Commit(CommitHit {
+                at: at(),
+                date: text(),
+                author: text(),
+                subject: text(),
+                diff: None,
+            }),
             Hit::Repository(RepoHit {
                 repo: RepoName::parse("github.com/gorilla/mux").unwrap(),
                 description: text(),

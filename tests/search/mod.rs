@@ -238,7 +238,7 @@ fn commits_json() {
     let results = run.stdout.find(r#""results":["#).unwrap();
     let second = run.stdout.find(r#",{"type":"commit""#).unwrap();
     expect![[r#"
-        "results":[{"type":"commit","repo":"github.com/gorilla/mux","commit":"dc835075986d1932ee5495f32e3631770715fd6c","date":"2018-01-20T04:47:48Z","author":"Kamil Kisiel","subject":"[docs] README.md: Improve \"walking routes\" example. (#337) (#323)"}
+        "results":[{"type":"commit","repo":"github.com/gorilla/mux","commit":"dc835075986d1932ee5495f32e3631770715fd6c","date":"2018-01-20T04:47:48Z","author":"Kamil Kisiel","subject":"[docs] README.md: Improve \"walking routes\" example. (#337) (#323)","diff":null}
     "#]].assert_eq(&format!("{}\n", &run.stdout[results..second]));
 }
 
