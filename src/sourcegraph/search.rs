@@ -1364,6 +1364,27 @@ mod tests {
     }
 
     #[test]
+    fn symbols_without_a_range_are_dropped() {
+        let mut hit = file_match(&serde_json::json!([]));
+        hit["symbols"] = serde_json::json!([
+            {"name": "lost", "kind": "FUNCTION", "containerName": null,
+                "location": {"range": null}},
+            {"name": "found", "kind": "FUNCTION", "containerName": null,
+                "location": {"range": {"start": {"line": 6, "character": 5}}}}
+        ]);
+        let report = answered(answer(
+            "found",
+            reply(&serde_json::json!({"matchCount": 1, "results": [hit]})),
+        ));
+        let files = files(&report);
+        let [symbol] = files[0].symbols.as_slice() else {
+            panic!("symbols: {:?}", files[0].symbols);
+        };
+        assert_eq!((symbol.line, symbol.name.as_str()), (7, "found"));
+        assert_eq!(symbol.container, None);
+    }
+
+    #[test]
     fn spans_count_codepoints_outside_the_bmp() {
         let chunks = serde_json::json!([{
             "content": "🦍 NewRouter()",
