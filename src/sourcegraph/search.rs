@@ -435,20 +435,21 @@ fn hit(item: Item) -> Result<Option<Hit>, String> {
             chunk_matches,
         } => {
             let at = pinned(&repository.name, file.commit.oid)?;
-            match file.path.strip_suffix('/') {
-                Some(path) => {
-                    let path = if path == "." { "" } else { path };
-                    Hit::Directory { at, path: path.to_owned() }
-                }
-                None => Hit::File(FileHit {
-                    at,
-                    path: file.path,
-                    path_match: !path_matches.is_empty(),
-                    binary: false,
-                    lines: lines(chunk_matches),
-                    symbols: symbols(wire_symbols),
-                }),
+            if let Some(path) = file.path.strip_suffix('/') {
+                let path = if path == "." { "" } else { path };
+                return Ok(Some(Hit::Directory { at, path: path.to_owned() }));
             }
+            let binary =
+                chunk_matches.iter().any(|chunk| chunk.content.contains('\0'));
+            let lines = if binary { Vec::new() } else { lines(chunk_matches) };
+            Hit::File(FileHit {
+                at,
+                path: file.path,
+                path_match: !path_matches.is_empty(),
+                binary,
+                lines,
+                symbols: symbols(wire_symbols),
+            })
         }
         Item::Repository { name, description, stars } => {
             let repo = RepoName::parse(&name).map_err(|e| e.to_string())?;
@@ -1353,6 +1354,43 @@ mod tests {
         assert_eq!(files[0].lines[0].text, "🦍x");
         assert_eq!(files[0].lines[0].spans, []);
         assert_eq!(files[0].lines[1].spans, [Span { start: 3, end: 4 }]);
+    }
+
+    #[test]
+    fn a_nul_in_a_chunk_makes_a_binary_hit_with_no_lines() {
+        let body = br#"{"data":{"search":{"results":{
+            "matchCount":1,"limitHit":false,"approximateResultCount":"1",
+            "elapsedMilliseconds":5,"dynamicFilters":[],"cloning":[],
+            "missing":[],"timedout":[],"alert":null,
+            "results":[{"__typename":"FileMatch",
+                "repository":{"name":"github.com/x/a"},
+                "file":{"path":"logo.png","commit":{
+                    "oid":"a7962380ca08b5a188038c69871b8d3fbdf31e89"}},
+                "pathMatches":[{"start":{"line":0,"character":0},
+                    "end":{"line":0,"character":4}}],
+                "symbols":[{"name":"logo","kind":"CONSTANT",
+                    "containerName":null,
+                    "location":{"range":{"start":{"line":2,"character":0}}}}],
+                "chunkMatches":[{"content":"PNG\u0000\u0001logo",
+                    "contentStart":{"line":0},
+                    "ranges":[{"start":{"line":0,"character":5},
+                        "end":{"line":0,"character":9}}]}]}]
+        }}}}"#;
+        let reply = Reply {
+            status: 200,
+            body: body.to_vec(),
+            trace: None,
+            location: None,
+        };
+        let report = answered(answer("logo", decode(reply).unwrap()));
+        assert_eq!(report.match_count, 1);
+        let files = files(&report);
+        let file = files[0];
+        assert!(file.binary);
+        assert_eq!(file.lines.len(), 0);
+        assert!(file.path_match);
+        assert_eq!(file.symbols.len(), 1);
+        assert_eq!(file.symbols[0].line, 3);
     }
 
     #[test]

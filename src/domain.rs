@@ -119,8 +119,9 @@ pub struct FileHit {
     pub at: Pinned,
     pub path: String,
     pub path_match: bool,
-    /// Always false: search doesn't ask, as finding out reads every hit's
-    /// content.
+    /// True when any of its matched content has a NUL byte; a binary hit
+    /// has no lines. Search never asks the upstream, whose answer reads every
+    /// hit's whole content.
     pub binary: bool,
     pub lines: Vec<Line>,
     pub symbols: Vec<Symbol>,
