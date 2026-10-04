@@ -13,10 +13,9 @@ pub struct File {
     pub lines: Vec<String>,
 }
 
-/// A directory's entries in the upstream's order: every directory, then
-/// every file and submodule, each group in path order. A listing cut at the
-/// upstream's limit is complete only up to `truncated_after`, the path of
-/// the last entry the upstream returned, in that order.
+/// A directory's entries, in path order. A truncated listing is missing
+/// entries from anywhere in it: the upstream cuts it at its limit after
+/// sending every directory before any file.
 #[derive(Debug)]
 #[cfg_attr(
     not(test),
@@ -26,7 +25,7 @@ pub struct Listing {
     pub at: Pinned,
     pub path: String,
     pub entries: Vec<Entry>,
-    pub truncated_after: Option<String>,
+    pub truncated: bool,
 }
 
 /// A path in a listing, from the repository's root.
@@ -48,11 +47,16 @@ pub struct Entry {
 pub enum EntryKind {
     Directory,
     File,
-    /// The repository and commit the submodule pins.
-    Submodule(Pinned),
+    /// The submodule's URL as `.gitmodules` gives it, and the repository
+    /// and commit it pins, if the URL names a repository.
+    Submodule {
+        url: String,
+        target: Option<Pinned>,
+    },
 }
 
-/// A submodule asked for as a directory: where it points.
+/// A submodule asked for as a directory: its URL as `.gitmodules` gives it,
+/// and the repository and commit it pins, if the URL names a repository.
 #[derive(Debug)]
 #[cfg_attr(
     not(test),
@@ -61,7 +65,8 @@ pub enum EntryKind {
 pub struct Submodule {
     pub at: Pinned,
     pub path: String,
-    pub target: Pinned,
+    pub url: String,
+    pub target: Option<Pinned>,
 }
 
 /// What a directory path answers with.

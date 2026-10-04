@@ -133,16 +133,9 @@ pub fn answer(
         trace: trace.clone(),
     })?;
     let at = Pinned { repo, commit: CommitId(oid) };
-    let target = |link: Gitlink| -> Result<Pinned, FetchError> {
-        let repo = RepoName::from_submodule_url(&link.url, &at.repo)
-            .ok_or_else(|| FetchError::Field {
-                cause: format!(
-                    "a submodule's URL isn't a repository: {}",
-                    link.url
-                ),
-                trace: trace.clone(),
-            })?;
-        Ok(Pinned { repo, commit: CommitId(link.commit) })
+    let target = |link: &Gitlink| {
+        RepoName::from_submodule_url(&link.url, &at.repo)
+            .map(|repo| Pinned { repo, commit: CommitId(link.commit.clone()) })
     };
     let (path, upstream) = match node {
         None => {
@@ -150,18 +143,16 @@ pub fn answer(
             return Err(Unavailable::PathNotFound { at, path }.into());
         }
         Some(Node::GitBlob { path, submodule: Some(link) }) => {
-            let target = target(link)?;
-            return Ok(Tree::Submodule(Submodule { at, path, target }));
+            let target = target(&link);
+            let url = link.url;
+            return Ok(Tree::Submodule(Submodule { at, path, url, target }));
         }
         Some(Node::GitBlob { path, submodule: None }) => {
             return Err(Unavailable::NotADirectory { at, path }.into());
         }
         Some(Node::GitTree { path, entries }) => (path, entries),
     };
-    let truncated_after = upstream
-        .last()
-        .filter(|_| upstream.len() >= LIST_ENTRY_CAP as usize)
-        .map(|entry| entry.path.clone());
+    let truncated = upstream.len() >= LIST_ENTRY_CAP as usize;
     let depth = request.depth as usize + segments(&path);
     let mut entries = Vec::new();
     for TreeEntry { path: entry, is_directory, submodule } in upstream {
@@ -169,13 +160,17 @@ pub fn answer(
             continue;
         }
         let kind = match submodule {
-            Some(link) => EntryKind::Submodule(target(link)?),
+            Some(link) => {
+                EntryKind::Submodule { target: target(&link), url: link.url }
+            }
             None if is_directory => EntryKind::Directory,
             None => EntryKind::File,
         };
         entries.push(Entry { path: entry, kind });
     }
-    Ok(Tree::Listing(Listing { at, path, entries, truncated_after }))
+    // The upstream sends every directory before any file.
+    entries.sort_by(|a, b| a.path.cmp(&b.path));
+    Ok(Tree::Listing(Listing { at, path, entries, truncated }))
 }
 
 /// How many segments `path` has; the root has none.
@@ -277,6 +272,12 @@ mod tests {
         text
     }
 
+    fn assert_path_ordered(listing: &Listing) {
+        let paths: Vec<_> =
+            listing.entries.iter().map(|entry| &entry.path).collect();
+        assert!(paths.is_sorted(), "{paths:?}");
+    }
+
     fn depth(path: &str) -> usize {
         path.split('/').count()
     }
@@ -289,7 +290,8 @@ mod tests {
         assert_eq!((listing.path.as_str(), listing.entries.len()), ("", 21));
         assert!(matches!(entry(&listing, ".github"), EntryKind::Directory));
         assert!(matches!(entry(&listing, "mux.go"), EntryKind::File));
-        assert_eq!(listing.truncated_after, None);
+        assert!(!listing.truncated);
+        assert_path_ordered(&listing);
         expect![[r#"
             Entry { path: ".github", kind: Directory }
             Entry { path: ".travis.yml", kind: File }
@@ -328,7 +330,8 @@ mod tests {
             EntryKind::File
         ));
         assert!(listing.entries.iter().all(|entry| depth(&entry.path) <= 2));
-        assert_eq!(listing.truncated_after, None);
+        assert!(!listing.truncated);
+        assert_path_ordered(&listing);
         expect![[r#"
             Entry { path: ".github", kind: Directory }
             Entry { path: ".github/release-drafter.yml", kind: File }
@@ -384,7 +387,7 @@ mod tests {
                         kind: File,
                     },
                 ],
-                truncated_after: None,
+                truncated: false,
             }
         "#]]
         .assert_debug_eq(&listing);
@@ -422,10 +425,14 @@ mod tests {
             include_str!("../../tests/list/submodules.json"),
         ));
         assert_eq!(listing.entries.len(), 47);
-        let EntryKind::Submodule(cargo) = entry(&listing, "src/tools/cargo")
+        assert!(!listing.truncated);
+        assert_path_ordered(&listing);
+        let EntryKind::Submodule { url, target: Some(cargo) } =
+            entry(&listing, "src/tools/cargo")
         else {
-            panic!("src/tools/cargo is not a submodule");
+            panic!("src/tools/cargo is not a resolved submodule");
         };
+        assert_eq!(url, "https://github.com/rust-lang/cargo.git");
         assert_eq!(
             cargo.to_string(),
             "github.com/rust-lang/cargo@37629051518c"
@@ -438,50 +445,36 @@ mod tests {
             entry(&listing, "src/tools/cherry-pick.sh"),
             EntryKind::File
         ));
-        let last: Vec<_> = listing.entries.iter().skip(42).collect();
+        let around: Vec<_> = listing.entries.iter().skip(2).take(3).collect();
         expect![[r#"
             [
                 Entry {
-                    path: "src/tools/x",
+                    path: "src/tools/bump-stage0",
                     kind: Directory,
                 },
                 Entry {
                     path: "src/tools/cargo",
-                    kind: Submodule(
-                        Pinned {
-                            repo: RepoName(
-                                "github.com/rust-lang/cargo",
-                            ),
-                            commit: CommitId(
-                                "37629051518c3df9ac2c1744589362a02ecafa99",
-                            ),
-                        },
-                    ),
+                    kind: Submodule {
+                        url: "https://github.com/rust-lang/cargo.git",
+                        target: Some(
+                            Pinned {
+                                repo: RepoName(
+                                    "github.com/rust-lang/cargo",
+                                ),
+                                commit: CommitId(
+                                    "37629051518c3df9ac2c1744589362a02ecafa99",
+                                ),
+                            },
+                        ),
+                    },
                 },
                 Entry {
-                    path: "src/tools/cherry-pick.sh",
-                    kind: File,
-                },
-                Entry {
-                    path: "src/tools/publish_toolstate.py",
-                    kind: File,
-                },
-                Entry {
-                    path: "src/tools/rustc-perf",
-                    kind: Submodule(
-                        Pinned {
-                            repo: RepoName(
-                                "github.com/rust-lang/rustc-perf",
-                            ),
-                            commit: CommitId(
-                                "72daa50ce2350f5a9b5ae6dc3ad6babccd14ec0a",
-                            ),
-                        },
-                    ),
+                    path: "src/tools/cargotest",
+                    kind: Directory,
                 },
             ]
         "#]]
-        .assert_debug_eq(&last);
+        .assert_debug_eq(&around);
     }
 
     #[test]
@@ -500,9 +493,10 @@ mod tests {
                 "src/tools/cargo"
             )
         );
+        assert_eq!(submodule.url, "https://github.com/rust-lang/cargo.git");
         assert_eq!(
-            submodule.target.to_string(),
-            "github.com/rust-lang/cargo@37629051518c"
+            submodule.target.as_ref().map(ToString::to_string).as_deref(),
+            Some("github.com/rust-lang/cargo@37629051518c")
         );
         expect![[r#"
             Submodule {
@@ -515,14 +509,17 @@ mod tests {
                     ),
                 },
                 path: "src/tools/cargo",
-                target: Pinned {
-                    repo: RepoName(
-                        "github.com/rust-lang/cargo",
-                    ),
-                    commit: CommitId(
-                        "37629051518c3df9ac2c1744589362a02ecafa99",
-                    ),
-                },
+                url: "https://github.com/rust-lang/cargo.git",
+                target: Some(
+                    Pinned {
+                        repo: RepoName(
+                            "github.com/rust-lang/cargo",
+                        ),
+                        commit: CommitId(
+                            "37629051518c3df9ac2c1744589362a02ecafa99",
+                        ),
+                    },
+                ),
             }
         "#]]
         .assert_debug_eq(&submodule);
@@ -536,9 +533,10 @@ mod tests {
         ));
         assert!(listing.entries.len() <= LIST_ENTRY_CAP as usize);
         assert!(listing.entries.iter().all(|entry| depth(&entry.path) <= 3));
-        assert_eq!(listing.truncated_after.as_deref(), Some("src/math/cmplx"));
-        // Every directory comes before any file, so a cut listing can hold
-        // no files at all.
+        assert!(listing.truncated);
+        assert_path_ordered(&listing);
+        // The upstream sends every directory before any file, so this cut
+        // listing has no files at all.
         assert!(
             listing
                 .entries
@@ -562,15 +560,13 @@ mod tests {
                         kind: Directory,
                     },
                 ],
-                Some(
-                    "src/math/cmplx",
-                ),
+                true,
             )
         "#]]
         .assert_debug_eq(&(
             listing.entries.len(),
             &listing.entries[..3],
-            &listing.truncated_after,
+            listing.truncated,
         ));
     }
 
@@ -592,6 +588,26 @@ mod tests {
             location: None,
         };
         decode(reply).unwrap()
+    }
+
+    #[test]
+    fn entries_are_sorted_by_path() {
+        let request = ListRequest { depth: 2, ..case("root") };
+        let entry = |path: &str, is_directory| {
+            serde_json::json!({"path": path, "isDirectory": is_directory,
+                "submodule": null})
+        };
+        let entries = serde_json::json!([
+            entry("a", true),
+            entry("a/b", true),
+            entry("z", true),
+            entry("a/c.go", false),
+            entry("m.go", false),
+        ]);
+        let listing = listing(answer(&request, tree("", &entries)));
+        let paths: Vec<_> =
+            listing.entries.iter().map(|entry| entry.path.as_str()).collect();
+        assert_eq!(paths, ["a", "a/b", "a/c.go", "m.go", "z"]);
     }
 
     #[test]
@@ -630,17 +646,51 @@ mod tests {
                     "commit": "f3865b2a4d1a6c5bf0aa7ab0b4b4b2a1c1b1d1e1"}}])
         };
         let listing = listing(answer(&request, tree("", &link("../b.git"))));
-        let EntryKind::Submodule(b) = &listing.entries[0].kind else {
-            panic!("b is not a submodule");
+        let EntryKind::Submodule { target: Some(b), .. } =
+            &listing.entries[0].kind
+        else {
+            panic!("b is not a resolved submodule");
         };
         assert_eq!(b.to_string(), "github.com/x/b@f3865b2a4d1a");
-        let result = answer(&request, tree("", &link("/srv/git/b.git")));
+    }
+
+    #[test]
+    fn unresolvable_submodule_urls_keep_the_entry() {
+        let body = br#"{"data":{"repository":{
+            "name":"github.com/gorilla/mux",
+            "commit":{
+                "oid":"a7962380ca08b5a188038c69871b8d3fbdf31e89",
+                "node":{"__typename":"GitTree","path":"","entries":[
+                    {"path":"x","isDirectory":false,"submodule":{
+                        "url":"/srv/git/x",
+                        "commit":"f3865b2a4d1a6c5bf0aa7ab0b4b4b2a1c1b1d1e1"}}
+                ]}
+            }
+        }}}"#;
+        let reply = Reply {
+            status: 200,
+            body: body.to_vec(),
+            trace: None,
+            location: None,
+        };
+        let listing = listing(answer(&case("root"), decode(reply).unwrap()));
+        let EntryKind::Submodule { url, target } = &listing.entries[0].kind
+        else {
+            panic!("x is not a submodule");
+        };
+        assert_eq!((url.as_str(), target), ("/srv/git/x", &None));
         expect![[r#"
-            [bad_response Unanswered]
-            error: the upstream's answer has missing or unknown fields
-            caused by: a submodule's URL isn't a repository: /srv/git/b.git
+            [
+                Entry {
+                    path: "x",
+                    kind: Submodule {
+                        url: "/srv/git/x",
+                        target: None,
+                    },
+                },
+            ]
         "#]]
-        .assert_eq(&failure(result));
+        .assert_debug_eq(&listing.entries);
     }
 
     #[test]
