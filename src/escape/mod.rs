@@ -3,6 +3,8 @@ mod table;
 use std::borrow::Cow;
 use std::fmt::Write as _;
 
+use unicode_width::UnicodeWidthChar as _;
+
 pub fn is_unsafe(c: char) -> bool {
     let i = table::UNSAFE.partition_point(|&(_, last)| last < c);
     table::UNSAFE.get(i).is_some_and(|&(first, _)| first <= c)
@@ -11,9 +13,22 @@ pub fn is_unsafe(c: char) -> bool {
 /// `raw` with each unsafe character written as `\xHH` below U+0100 and as
 /// `\u{h…}` above. One trailing `\r`, a CRLF line's ending, is dropped.
 pub fn sanitise(raw: &str) -> String {
+    sanitise_marking(raw, None).0
+}
+
+/// `sanitise(raw)` and the byte offset in it of the character at codepoint
+/// index `focus` in `raw`, or of the end when `focus` is past the last one.
+fn sanitise_marking(
+    raw: &str,
+    focus: Option<usize>,
+) -> (String, Option<usize>) {
     let raw = raw.strip_suffix('\r').unwrap_or(raw);
     let mut text = String::with_capacity(raw.len());
-    for c in raw.chars() {
+    let mut marked = None;
+    for (i, c) in raw.chars().enumerate() {
+        if Some(i) == focus {
+            marked = Some(text.len());
+        }
         if !is_unsafe(c) {
             text.push(c);
         } else if let Ok(byte) = u8::try_from(c) {
@@ -22,7 +37,50 @@ pub fn sanitise(raw: &str) -> String {
             text.extend(c.escape_unicode());
         }
     }
-    text
+    let marked = focus.map(|_| marked.unwrap_or(text.len()));
+    (text, marked)
+}
+
+/// The widest content line, in display columns, printed whole.
+pub const CLIP_COLUMNS: usize = 500;
+
+/// `raw` sanitised, then, if wider than `CLIP_COLUMNS`, cut to a window that
+/// wide: centred on the character at codepoint index `focus` in `raw` but
+/// kept inside the line, or from the start without a focus. `…` marks each
+/// cut, and a closing note counts the columns dropped.
+pub fn content_line(raw: &str, focus: Option<usize>) -> String {
+    // The only control character `sanitise` keeps is tab, which
+    // `UnicodeWidthStr` also counts as one column.
+    fn width(c: char) -> usize {
+        c.width().unwrap_or(1)
+    }
+    let (text, focus) = sanitise_marking(raw, focus);
+    let total: usize = text.chars().map(width).sum();
+    if total <= CLIP_COLUMNS {
+        return text;
+    }
+    let start = focus.map_or(0, |at| {
+        let column: usize = text[..at].chars().map(width).sum();
+        column.saturating_sub(CLIP_COLUMNS / 2).min(total - CLIP_COLUMNS)
+    });
+    let end = start + CLIP_COLUMNS;
+    let (mut first, mut last, mut kept, mut column) = (None, 0, 0, 0);
+    for (i, c) in text.char_indices() {
+        let w = width(c);
+        if column >= start && column + w <= end {
+            first.get_or_insert(i);
+            last = i + c.len_utf8();
+            kept += w;
+        }
+        column += w;
+    }
+    let first = first.unwrap_or(last);
+    let lead = if first > 0 { "…" } else { "" };
+    format!(
+        "{lead}{}… (+{} more columns; --json has the full line)",
+        &text[first..last],
+        total - kept
+    )
 }
 
 /// `s` as one POSIX shell word that delivers its exact bytes: bare when
@@ -152,6 +210,52 @@ mod tests {
     fn sanitise_strips_one_trailing_carriage_return() {
         assert_eq!(sanitise("crlf\r"), "crlf");
         assert_eq!(sanitise("mid\rline"), r"mid\x0dline");
+    }
+
+    #[test]
+    fn short_lines_are_untouched() {
+        assert_eq!(content_line("let x = 1;", Some(4)), "let x = 1;");
+    }
+
+    #[test]
+    fn long_lines_keep_a_window_and_say_so() {
+        let line = "x".repeat(600);
+        assert_eq!(
+            content_line(&line, None),
+            format!(
+                "{}… (+100 more columns; --json has the full line)",
+                "x".repeat(500)
+            )
+        );
+        let clipped = content_line(
+            &format!("{}NEEDLE{}", "a".repeat(550), "b".repeat(300)),
+            Some(550),
+        );
+        assert!(clipped.starts_with('…') && clipped.contains("NEEDLE"));
+    }
+
+    #[test]
+    fn focus_centres_the_window() {
+        assert_eq!(
+            content_line(&"x".repeat(1000), Some(500)),
+            format!(
+                "…{}… (+500 more columns; --json has the full line)",
+                "x".repeat(500)
+            )
+        );
+    }
+
+    #[test]
+    fn wide_characters_count_two_columns() {
+        let clipped = content_line(&"汉".repeat(300), None);
+        assert!(clipped.starts_with(&format!("{}…", "汉".repeat(250))));
+    }
+
+    #[test]
+    fn focus_survives_escapes_before_it() {
+        let line = format!("{}NEEDLE", "\u{202e}".repeat(400));
+        let clipped = content_line(&line, Some(400));
+        assert!(clipped.starts_with('…') && clipped.contains("NEEDLE"));
     }
 
     #[test]
