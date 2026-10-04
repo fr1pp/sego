@@ -118,9 +118,9 @@ pub fn run(
 
 /// A file's lines; `capped` when no range was given, so the line cap
 /// applies.
-struct Read {
-    file: File,
-    capped: bool,
+pub struct Read {
+    pub file: File,
+    pub capped: bool,
 }
 
 impl Read {

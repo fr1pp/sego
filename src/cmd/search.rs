@@ -115,8 +115,8 @@ pub fn run(
     Ok(Box::new(Search { report }))
 }
 
-struct Search {
-    report: SearchReport,
+pub struct Search {
+    pub report: SearchReport,
 }
 
 /// The kinds of suggested filter that narrow a search: each keeps a subset

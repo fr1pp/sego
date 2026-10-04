@@ -110,9 +110,9 @@ pub fn run(
 }
 
 /// A listing or a submodule, and the depth it was asked for.
-struct List {
-    tree: Tree,
-    depth: u32,
+pub struct List {
+    pub tree: Tree,
+    pub depth: u32,
 }
 
 /// `path` as a directory operand: with a trailing `/`, or none for the
