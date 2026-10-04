@@ -213,6 +213,29 @@ fn directories_json() {
 }
 
 #[test]
+fn select_file_hits_are_paths() {
+    let args = [MUX_TAG, "NewRouter", "select:file"];
+    expect![[r#"
+        exit 0
+        --- stdout
+        5+ matches • 5 results
+        notice: results may be missing: it hit a limit
+        narrow: lang:go (4) • -file:_test\.\w+$ (3) • lang:markdown (1)
+
+        github.com/gorilla/mux@a7962380ca08
+        example_route_test.go
+        example_authentication_middleware_test.go
+        README.md
+        context_test.go
+        doc.go
+        [EOF]
+        --- stderr
+        [EOF]
+    "#]]
+    .assert_eq(&search("search/select-file.json", &args));
+}
+
+#[test]
 fn paths_starting_with_a_dash_print_with_a_leading_slash() {
     let directory =
         server::capture("search/directories.json")["response"]["body"]["data"]

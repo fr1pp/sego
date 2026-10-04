@@ -593,6 +593,7 @@ mod tests {
     const MUX: &str = r"repo:^github\.com/gorilla/mux$";
     const MUX_TAG: &str = r"repo:^github\.com/gorilla/mux$@v1.7.0";
     const GO_TAG: &str = r"repo:^github\.com/golang/go$@go1.23.0";
+    const LINUX: &str = r"repo:^github\.com/torvalds/linux$";
 
     /// The capture cases, by name: each is `tests/search/<name>.json`.
     fn cases() -> Vec<(&'static str, String)> {
@@ -616,6 +617,11 @@ mod tests {
             ),
             ("timed-out", format!("{MUX_TAG} NewRouter timeout:1ms")),
             ("limit-hit", format!("{GO_TAG} context.WithTimeout count:5")),
+            ("select-file", format!("{MUX_TAG} NewRouter select:file")),
+            (
+                "timed-out-repos",
+                format!("{LINUX} type:diff zqxjkvbqwz timeout:5s"),
+            ),
         ]
     }
 
@@ -1233,6 +1239,60 @@ mod tests {
             ]
         "#]]
         .assert_debug_eq(&&report.filters[..3]);
+    }
+
+    #[test]
+    fn select_file() {
+        let report = answered(search(
+            "select-file",
+            include_str!("../../tests/search/select-file.json"),
+        ));
+        let files = files(&report);
+        assert!(!files.is_empty());
+        assert!(files.iter().all(|file| !file.path_match
+            && file.lines.is_empty()
+            && file.symbols.is_empty()
+            && !file.binary));
+        let paths: Vec<_> = files.iter().map(|file| &file.path).collect();
+        expect![[r#"
+            [
+                "example_route_test.go",
+                "example_authentication_middleware_test.go",
+                "README.md",
+                "context_test.go",
+                "doc.go",
+            ]
+        "#]]
+        .assert_debug_eq(&paths);
+        expect![[r#"
+            Some(
+                CutShort {
+                    reasons: [
+                        "it hit a limit",
+                    ],
+                    retry: None,
+                },
+            )
+        "#]]
+        .assert_debug_eq(&report.cut_short);
+    }
+
+    #[test]
+    fn timed_out_repos() {
+        let capture = include_str!("../../tests/search/timed-out-repos.json");
+        let Data { search: Some(Search { results }) } =
+            testing::envelope(capture).into_data().unwrap()
+        else {
+            panic!("no search");
+        };
+        let report = super::report(&case("timed-out-repos"), results).unwrap();
+        assert_eq!(report.skipped.timed_out, ["github.com/torvalds/linux"]);
+        let failure = failure(search("timed-out-repos", capture));
+        expect![[r#"
+            [incomplete Unanswered]
+            error: the search was cut short with no hits: 1 repository timed out, it ran for its whole timeout:5s
+            hint: sego search 'repo:^github\.com/torvalds/linux$ type:diff zqxjkvbqwz timeout:10s'
+        "#]].assert_eq(&failure);
     }
 
     #[test]
