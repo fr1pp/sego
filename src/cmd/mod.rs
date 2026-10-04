@@ -665,63 +665,63 @@ mod tests {
         all
     }
 
-    /// Every variant of the diagnostic enums the fixtures above cover.
-    const VARIANTS: &[&str] = &[
-        "FetchError::Transport",
-        "FetchError::Status",
-        "FetchError::NotJson",
-        "FetchError::Empty",
-        "FetchError::Field",
-        "FetchError::Server",
-        "FetchError::Schema",
-        "Unavailable::RepoNotFound",
-        "Unavailable::RevisionNotFound",
-        "Unavailable::PathNotFound",
-        "Unavailable::NotAFile",
-        "Unavailable::NotADirectory",
-        "Unavailable::TooLarge",
-        "Unavailable::OutOfRange",
-        "SearchProblem::BadQuery",
-        "SearchProblem::Incomplete",
-    ];
+    /// `$names`, the names of `$enum`'s variants, and `$variant`, a
+    /// value's variant name, from one list. `$variant`'s match is
+    /// exhaustive, so a new variant doesn't compile until it is listed,
+    /// which also puts it in `$names`; `every_variant_has_a_fixture` then
+    /// fails until the fixtures have one.
+    macro_rules! variants {
+        (
+            $names:ident,
+            $variant:ident,
+            $enum:ident { $($v:ident),+ $(,)? }
+        ) => {
+            const $names: &[&str] =
+                &[$(concat!(stringify!($enum), "::", stringify!($v))),+];
 
-    /// The name of `error`'s variant. The match is exhaustive, so a new
-    /// variant doesn't compile until it is named here and in `VARIANTS`,
-    /// and `every_variant_has_a_fixture` fails until it has a fixture.
-    fn fetch_error_variant(error: &FetchError) -> &'static str {
-        match error {
-            FetchError::Transport { .. } => "FetchError::Transport",
-            FetchError::Status { .. } => "FetchError::Status",
-            FetchError::NotJson { .. } => "FetchError::NotJson",
-            FetchError::Empty { .. } => "FetchError::Empty",
-            FetchError::Field { .. } => "FetchError::Field",
-            FetchError::Server { .. } => "FetchError::Server",
-            FetchError::Schema { .. } => "FetchError::Schema",
-        }
-    }
-
-    /// The name of `unavailable`'s variant, as `fetch_error_variant`.
-    fn unavailable_variant(unavailable: &Unavailable) -> &'static str {
-        match unavailable {
-            Unavailable::RepoNotFound { .. } => "Unavailable::RepoNotFound",
-            Unavailable::RevisionNotFound { .. } => {
-                "Unavailable::RevisionNotFound"
+            fn $variant(value: &$enum) -> &'static str {
+                match value {
+                    $($enum::$v { .. } => {
+                        concat!(stringify!($enum), "::", stringify!($v))
+                    })+
+                }
             }
-            Unavailable::PathNotFound { .. } => "Unavailable::PathNotFound",
-            Unavailable::NotAFile { .. } => "Unavailable::NotAFile",
-            Unavailable::NotADirectory { .. } => "Unavailable::NotADirectory",
-            Unavailable::TooLarge { .. } => "Unavailable::TooLarge",
-            Unavailable::OutOfRange { .. } => "Unavailable::OutOfRange",
-        }
+        };
     }
 
-    /// The name of `problem`'s variant, as `fetch_error_variant`.
-    fn search_problem_variant(problem: &SearchProblem) -> &'static str {
-        match problem {
-            SearchProblem::BadQuery { .. } => "SearchProblem::BadQuery",
-            SearchProblem::Incomplete { .. } => "SearchProblem::Incomplete",
+    variants!(
+        FETCH_ERRORS,
+        fetch_error_variant,
+        FetchError {
+            Transport,
+            Status,
+            NotJson,
+            Empty,
+            Field,
+            Server,
+            Schema,
         }
-    }
+    );
+
+    variants!(
+        UNAVAILABLE,
+        unavailable_variant,
+        Unavailable {
+            RepoNotFound,
+            RevisionNotFound,
+            PathNotFound,
+            NotAFile,
+            NotADirectory,
+            TooLarge,
+            OutOfRange,
+        }
+    );
+
+    variants!(
+        SEARCH_PROBLEMS,
+        search_problem_variant,
+        SearchProblem { BadQuery, Incomplete }
+    );
 
     #[test]
     fn every_variant_has_a_fixture() {
@@ -733,7 +733,8 @@ mod tests {
             .collect();
         seen.sort_unstable();
         seen.dedup();
-        let mut expected = VARIANTS.to_vec();
+        let mut expected =
+            [FETCH_ERRORS, UNAVAILABLE, SEARCH_PROBLEMS].concat();
         expected.sort_unstable();
         assert_eq!(seen, expected);
     }
