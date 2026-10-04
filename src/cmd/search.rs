@@ -14,7 +14,8 @@ use crate::render::json::document;
 use crate::render::text::{Marker, address_line, hint, notice, numbered};
 use crate::sourcegraph::Fetch;
 use crate::sourcegraph::envelope::decode;
-use crate::sourcegraph::search::{self, has_token};
+use crate::sourcegraph::query::has_token;
+use crate::sourcegraph::search;
 
 pub const HELP: Help = Help {
     about: "\

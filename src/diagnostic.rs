@@ -3,7 +3,7 @@ use std::fmt::{self, Display, Write as _};
 use crate::address::{LineRange, Pinned};
 use crate::domain::{Alert, NotAFile, Unavailable};
 use crate::escape::{command_line, sanitise, shell_word};
-use crate::sourcegraph::search::with_longer_timeout;
+use crate::sourcegraph::query::with_longer_timeout;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Outcome {
