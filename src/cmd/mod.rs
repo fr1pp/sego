@@ -738,7 +738,7 @@ mod tests {
         assert_eq!(seen, expected);
     }
 
-    /// Writes nothing, failing with `cause`.
+    /// Writes nothing, failing with its message.
     struct Failing(String);
 
     impl Write for Failing {
