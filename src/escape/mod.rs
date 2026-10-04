@@ -76,8 +76,9 @@ pub fn content_line(raw: &str, focus: Option<usize>) -> String {
     }
     let first = first.unwrap_or(last);
     let lead = if first > 0 { "…" } else { "" };
+    let trail = if last < text.len() { "…" } else { "" };
     format!(
-        "{lead}{}… (+{} more columns; --json has the full line)",
+        "{lead}{}{trail} (+{} more columns; --json has the full line)",
         &text[first..last],
         total - kept
     )
@@ -180,6 +181,8 @@ pub const CORPUS: &[&str] = &[
 mod tests {
     use std::process::Command;
 
+    use expect_test::expect;
+
     use super::*;
 
     #[test]
@@ -263,10 +266,63 @@ mod tests {
         );
     }
 
+    /// `content_line(raw, focus)` and a newline, with each run of four or
+    /// more of one character written as the character, `×` and the run's
+    /// length.
+    fn clipped(raw: &str, focus: Option<usize>) -> String {
+        let mut shown = String::new();
+        let line = content_line(raw, focus);
+        let mut chars = line.chars().peekable();
+        while let Some(c) = chars.next() {
+            let mut n = 1;
+            while chars.next_if_eq(&c).is_some() {
+                n += 1;
+            }
+            if n < 4 {
+                shown.extend(std::iter::repeat_n(c, n));
+            } else {
+                let _ = write!(shown, "{c}×{n}");
+            }
+        }
+        shown.push('\n');
+        shown
+    }
+
     #[test]
     fn wide_characters_count_two_columns() {
-        let clipped = content_line(&"汉".repeat(300), None);
-        assert!(clipped.starts_with(&format!("{}…", "汉".repeat(250))));
+        expect![[r#"
+            汉×250… (+100 more columns; --json has the full line)
+        "#]]
+        .assert_eq(&clipped(&"汉".repeat(300), None));
+    }
+
+    #[test]
+    fn a_focus_near_the_end_keeps_the_end() {
+        let line = format!("{}NEEDLE{}", "a".repeat(900), "b".repeat(20));
+        expect![[r#"
+            …a×474NEEDLEb×20 (+426 more columns; --json has the full line)
+        "#]]
+        .assert_eq(&clipped(&line, Some(900)));
+    }
+
+    #[test]
+    fn a_focus_near_the_start_keeps_the_start() {
+        let line = format!("{}NEEDLE{}", "a".repeat(10), "b".repeat(600));
+        expect![[r#"
+            a×10NEEDLEb×484… (+116 more columns; --json has the full line)
+        "#]]
+        .assert_eq(&clipped(&line, Some(10)));
+    }
+
+    #[test]
+    fn wide_characters_straddling_an_edge_are_dropped_whole() {
+        let end = format!("{}汉{}", "a".repeat(499), "b".repeat(10));
+        let start = format!("{}a", "汉".repeat(300));
+        expect![[r#"
+            a×499… (+12 more columns; --json has the full line)
+            …汉×249a (+102 more columns; --json has the full line)
+        "#]]
+        .assert_eq(&(clipped(&end, None) + &clipped(&start, Some(300))));
     }
 
     #[test]
