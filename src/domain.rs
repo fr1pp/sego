@@ -16,10 +16,6 @@ pub struct File {
 /// The commits that last changed a file's lines, from line `start` to
 /// `end`, the last line shown. A binary or empty file has no hunks; over the
 /// read cap there are no `lines`.
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "used by the blame command in Task 3")
-)]
 #[derive(Debug)]
 pub struct Blame {
     pub at: Pinned,
@@ -36,10 +32,6 @@ pub struct Blame {
 /// Lines `start` to `end`, inclusive, as `commit` left them, at `path` as
 /// it was in that commit. `date` is the author date as the upstream gives
 /// it; `subject` is the commit's summary line.
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "used by the blame command in Task 3")
-)]
 #[derive(Debug)]
 pub struct Hunk {
     pub start: u32,
@@ -51,10 +43,6 @@ pub struct Hunk {
     pub subject: String,
 }
 
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "used by the blame command in Task 3")
-)]
 #[derive(Debug)]
 pub struct Author {
     pub name: String,
@@ -255,10 +243,6 @@ pub enum NotAFile {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LinesCommand {
     Read,
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "used by the blame command in Task 3")
-    )]
     Blame,
 }
 

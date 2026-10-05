@@ -1,7 +1,3 @@
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "used by the blame command in Task 3")
-)]
 pub mod blame;
 pub mod blob;
 pub mod envelope;
@@ -59,10 +55,6 @@ pub enum FetchError {
         /// `GLOBAL_TIMEOUT` ran out while sego waited for the upstream. A
         /// connect timeout is not one: it says nothing of how long the
         /// upstream takes to answer.
-        #[cfg_attr(
-            not(test),
-            expect(dead_code, reason = "used by the blame command in Task 3")
-        )]
         timed_out: bool,
         /// The `x-trace` of the reply a failed retry followed.
         trace: Option<String>,

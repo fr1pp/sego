@@ -1,3 +1,4 @@
+pub mod blame;
 pub mod list;
 pub mod read;
 pub mod search;
@@ -117,6 +118,7 @@ pub enum Command {
     Search,
     List,
     Read,
+    Blame,
 }
 
 impl Command {
@@ -125,6 +127,7 @@ impl Command {
             "search" => Some(Command::Search),
             "list" => Some(Command::List),
             "read" => Some(Command::Read),
+            "blame" => Some(Command::Blame),
             _ => None,
         }
     }
@@ -134,6 +137,7 @@ impl Command {
             Command::Search => "search",
             Command::List => "list",
             Command::Read => "read",
+            Command::Blame => "blame",
         }
     }
 
@@ -142,6 +146,7 @@ impl Command {
             Command::Search => &search::HELP,
             Command::List => &list::HELP,
             Command::Read => &read::HELP,
+            Command::Blame => &blame::HELP,
         }
     }
 
@@ -169,6 +174,9 @@ impl Command {
             Command::Read => {
                 read::request(cli)?;
             }
+            Command::Blame => {
+                blame::request(cli)?;
+            }
         }
         Ok(())
     }
@@ -182,6 +190,7 @@ impl Command {
             Command::Search => search::run(cli, fetch),
             Command::List => list::run(cli, fetch),
             Command::Read => read::run(cli, fetch),
+            Command::Blame => blame::run(cli, fetch),
         }
     }
 }
@@ -287,17 +296,19 @@ mod tests {
     use crate::args;
     use crate::diagnostic::report;
     use crate::domain::{
-        Alert, CommitHit, CutShort, Entry, EntryKind, File, FileHit, Filter,
-        Hit, Line, LinesCommand, Listing, NotAFile, RepoHit, SearchReport,
-        Skipped, Span, Submodule, Symbol, Term, Tree, Unavailable,
+        self, Alert, Author, CommitHit, CutShort, Entry, EntryKind, File,
+        FileHit, Filter, Hit, Hunk, Line, LinesCommand, Listing, NotAFile,
+        RepoHit, SearchReport, Skipped, Span, Submodule, Symbol, Term, Tree,
+        Unavailable,
     };
     use crate::escape::{CORPUS, is_unsafe};
     use crate::output::Output;
     use crate::render;
+    use crate::sourcegraph::FetchError;
+    use crate::sourcegraph::blame::timed_out;
     use crate::sourcegraph::search::SearchProblem;
     use crate::sourcegraph::transport::{InvalidEndpoint, Transport};
     use crate::sourcegraph::vocabulary::ALERT_BAD_QUERY;
-    use crate::sourcegraph::{FetchError, blame};
 
     /// Spec §3.4: the exit code of each diagnostic code sego has.
     const EXIT_CODES: &[(&str, u8)] = &[
@@ -524,6 +535,12 @@ mod tests {
             &["read", "x/y", "a", "0"],
             &["read", "x/y", "a", "5-1"],
             &["read", "x/y", "a", "z"],
+            &["blame", "x/y", "a"],
+            &["blame", "x/y", "a", "1", "2"],
+            &["blame", "x/y", "/", "1"],
+            &["blame", "x/y", "a", "0"],
+            &["blame", "x/y", "a", "5-1"],
+            &["blame", "x/y", "a", "1", "--depth", "2"],
         ];
         let mut argvs: Vec<Vec<OsString>> = invalid
             .iter()
@@ -642,6 +659,13 @@ mod tests {
                     start: 2,
                     total_lines: 0,
                     command: LinesCommand::Read,
+                },
+                Unavailable::OutOfRange {
+                    at: at(),
+                    path: path(),
+                    start: 700,
+                    total_lines: 601,
+                    command: LinesCommand::Blame,
                 },
             ]);
         }
@@ -782,7 +806,7 @@ mod tests {
         all.extend(search_problems().into_iter().map(Box::from));
         all.push(Box::new(InvalidEndpoint::NotUtf8));
         for &word in CORPUS {
-            all.push(blame::timed_out(FetchError::Transport {
+            all.push(timed_out(FetchError::Transport {
                 url: word.to_owned(),
                 cause: word.to_owned(),
                 timed_out: true,
@@ -883,12 +907,48 @@ mod tests {
         ]
     }
 
-    /// A file, a listing, a submodule and searches with and without hits,
-    /// for each word of the corpus.
+    /// Two hunks over the corpus, one line each, but for the last, which
+    /// has the rest.
+    fn blames(word: &str) -> Vec<domain::Blame> {
+        let text = || word.to_owned();
+        let end = u32::try_from(CORPUS.len()).unwrap();
+        let hunk = |start, end| Hunk {
+            start,
+            end,
+            commit: at().commit,
+            path: text(),
+            date: text(),
+            author: Author { name: text(), email: text() },
+            subject: text(),
+        };
+        let lines = CORPUS.iter().map(|&line| line.to_owned()).collect();
+        let blame = |hunks, lines, binary| domain::Blame {
+            at: at(),
+            path: text(),
+            byte_size: 1,
+            total_lines: end,
+            binary,
+            start: 1,
+            end,
+            hunks,
+            lines,
+        };
+        vec![
+            blame(vec![hunk(1, 1), hunk(2, end)], Some(lines), false),
+            blame(vec![hunk(1, end)], None, false),
+            blame(Vec::new(), Some(Vec::new()), true),
+        ]
+    }
+
+    /// A file, a listing, a submodule, searches with and without hits, and
+    /// blames, for each word of the corpus.
     fn answers() -> Vec<Box<dyn Present>> {
         let mut all: Vec<Box<dyn Present>> = Vec::new();
         for word in words() {
             let text = || word.to_owned();
+            for blame in blames(word) {
+                all.push(Box::new(blame::Blame { blame }));
+            }
             let file = File {
                 at: at(),
                 path: text(),
@@ -966,7 +1026,7 @@ mod tests {
         words.split_terminator('\0').map(str::to_owned).collect()
     }
 
-    /// The command each diagnostic code's hints run, and each answer
+    /// The commands each diagnostic code's hints may run, and each answer
     /// kind's.
     const HINT_COMMANDS: &[(&str, &str)] = &[
         ("repo_not_found", "search"),
@@ -975,6 +1035,7 @@ mod tests {
         ("not_a_file", "list"),
         ("not_a_directory", "read"),
         ("out_of_range", "read"),
+        ("out_of_range", "blame"),
         ("bad_query", "search"),
         ("incomplete", "search"),
         ("file", "read"),
@@ -1006,11 +1067,17 @@ mod tests {
             .filter_map(|(code, hint)| {
                 let words = shell_words(hint);
                 let error = invocation_error(&words).or_else(|| {
-                    let row = HINT_COMMANDS.iter().find(|row| row.0 == code);
-                    let Some(&(_, command)) = row else {
+                    let commands: Vec<&str> = HINT_COMMANDS
+                        .iter()
+                        .filter(|row| row.0 == code)
+                        .map(|row| row.1)
+                        .collect();
+                    if commands.is_empty() {
                         return Some(format!("no command for {code}"));
-                    };
-                    (words[1] != command).then(|| format!("not {command}"))
+                    }
+                    let command = words[1].as_str();
+                    (!commands.contains(&command))
+                        .then(|| format!("not {}", commands.join(" or ")))
                 })?;
                 Some(format!("{code}: {hint}: {error}"))
             })
