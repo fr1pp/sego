@@ -1,0 +1,68 @@
+{
+  "request": {
+    "query": "query CompareRange(\n  $repo: String!, $base: String!, $head: String!, $path: String,\n  $paths: [String!], $commits: Int!, $files: Int!\n) {\n  refs: repository(name: $repo) {\n    name\n    base: commit(rev: $base) {\n      oid\n    }\n    head: commit(rev: $head) {\n      oid\n    }\n    count: commit(rev: $head) {\n      behindAhead(revspec: $base) { behind ahead }\n    }\n  }\n  cmp: repository(name: $repo) {\n    comparison(base: $base, head: $head) {\n      range {\n        base { ... on GitRevSpecExpr { object { oid } } }\n        head { ... on GitRevSpecExpr { object { oid } } }\n      }\n      commits(first: $commits, path: $path) {\n        pageInfo { hasNextPage }\n        nodes { oid subject author { person { name } date } }\n      }\n      totals: fileDiffs(first: 0, paths: $paths) {\n        totalCount diffStat { added deleted }\n      }\n      fileDiffs(first: $files, paths: $paths) {\n        nodes {\n          oldPath newPath stat { added deleted }\n          oldFile { binary } newFile { binary }\n        }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "base": "v1.8.0",
+      "commits": 50,
+      "files": 200,
+      "head": "v1.8.0",
+      "path": null,
+      "paths": null,
+      "repo": "github.com/gorilla/mux"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "cmp": {
+          "comparison": {
+            "commits": {
+              "nodes": [],
+              "pageInfo": {
+                "hasNextPage": false
+              }
+            },
+            "fileDiffs": {
+              "nodes": []
+            },
+            "range": {
+              "base": {
+                "object": {
+                  "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+                }
+              },
+              "head": {
+                "object": {
+                  "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+                }
+              }
+            },
+            "totals": {
+              "diffStat": {
+                "added": 0,
+                "deleted": 0
+              },
+              "totalCount": 0
+            }
+          }
+        },
+        "refs": {
+          "base": {
+            "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+          },
+          "count": {
+            "behindAhead": {
+              "ahead": 0,
+              "behind": 0
+            }
+          },
+          "head": {
+            "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+          },
+          "name": "github.com/gorilla/mux"
+        }
+      }
+    }
+  }
+}

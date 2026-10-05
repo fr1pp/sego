@@ -1,0 +1,145 @@
+{
+  "request": {
+    "query": "query CompareRange(\n  $repo: String!, $base: String!, $head: String!, $path: String,\n  $paths: [String!], $commits: Int!, $files: Int!, $plainPath: String!\n) {\n  refs: repository(name: $repo) {\n    name\n    base: commit(rev: $base) {\n      oid\n      node: path(path: $plainPath) {\n        __typename\n        ... on GitBlob {\n          path byteSize binary contentType submodule { url commit }\n        }\n        ... on GitTree { path }\n      }\n    }\n    head: commit(rev: $head) {\n      oid\n      node: path(path: $plainPath) {\n        __typename\n        ... on GitBlob {\n          path byteSize binary contentType submodule { url commit }\n        }\n        ... on GitTree { path }\n      }\n    }\n    count: commit(rev: $head) {\n      behindAhead(revspec: $base) { behind ahead }\n    }\n  }\n  cmp: repository(name: $repo) {\n    comparison(base: $base, head: $head) {\n      range {\n        base { ... on GitRevSpecExpr { object { oid } } }\n        head { ... on GitRevSpecExpr { object { oid } } }\n      }\n      commits(first: $commits, path: $path) {\n        pageInfo { hasNextPage }\n        nodes { oid subject author { person { name } date } }\n      }\n      totals: fileDiffs(first: 0, paths: $paths) {\n        totalCount diffStat { added deleted }\n      }\n      fileDiffs(first: $files, paths: $paths) {\n        nodes {\n          oldPath newPath stat { added deleted }\n          oldFile { binary } newFile { binary }\n        }\n      }\n      hunks: fileDiffs(first: 1, paths: $paths) {\n        nodes {\n          hunks {\n            oldRange { startLine lines } newRange { startLine lines }\n            oldNoNewlineAt section body\n          }\n        }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "base": "v1.7.0",
+      "commits": 50,
+      "files": 200,
+      "head": "v1.8.0",
+      "path": ":(literal).circleci/config.yml",
+      "paths": [
+        ":(literal).circleci/config.yml"
+      ],
+      "plainPath": ".circleci/config.yml",
+      "repo": "github.com/gorilla/mux"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "cmp": {
+          "comparison": {
+            "commits": {
+              "nodes": [
+                {
+                  "author": {
+                    "date": "2019-07-01T20:26:33Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "d83b6ffe499a29cc05fc977988d0392851779620",
+                  "subject": "Update config.yml (#495)"
+                },
+                {
+                  "author": {
+                    "date": "2019-06-29T20:52:29Z",
+                    "person": {
+                      "name": "Franklin Harding"
+                    }
+                  },
+                  "oid": "05347690167e152b85ece29fdfa9cc12a7b8c385",
+                  "subject": "Improve CORS Method Middleware (#477)"
+                },
+                {
+                  "author": {
+                    "date": "2019-06-24T16:05:39Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "212aa90d7cec051ab29930d5c56f758f6f69a789",
+                  "subject": "[WIP] Create CircleCI config (#484)"
+                }
+              ],
+              "pageInfo": {
+                "hasNextPage": false
+              }
+            },
+            "fileDiffs": {
+              "nodes": [
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": ".circleci/config.yml",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 87,
+                    "deleted": 0
+                  }
+                }
+              ]
+            },
+            "hunks": {
+              "nodes": [
+                {
+                  "hunks": [
+                    {
+                      "body": "+version: 2.0\n+\n+jobs:\n+  # Base test configuration for Go library tests Each distinct version should\n+  # inherit this base, and override (at least) the container image used.\n+  \"test\": &test\n+    docker:\n+      - image: circleci/golang:latest\n+    working_directory: /go/src/github.com/gorilla/mux\n+    steps: &steps\n+      # Our build steps: we checkout the repo, fetch our deps, lint, and finally\n+      # run \"go test\" on the package.\n+      - checkout\n+      # Logs the version in our build logs, for posterity\n+      - run: go version\n+      - run:\n+          name: \"Fetch dependencies\"\n+          command: >\n+            go get -t -v ./...\n+      # Only run gofmt, vet & lint against the latest Go version\n+      - run:\n+          name: \"Run golint\"\n+          command: >\n+            if [ \"${LATEST}\" = true ] && [ -z \"${SKIP_GOLINT}\" ]; then\n+              go get -u golang.org/x/lint/golint\n+              golint ./...\n+            fi\n+      - run:\n+          name: \"Run gofmt\"\n+          command: >\n+            if [[ \"${LATEST}\" = true ]]; then\n+              diff -u <(echo -n) <(gofmt -d -e .)\n+            fi\n+      - run:\n+          name: \"Run go vet\"\n+          command:  >\n+            if [[ \"${LATEST}\" = true ]]; then\n+              go vet -v ./...\n+            fi\n+      - run: go test -v -race ./...\n+\n+  \"latest\":\n+    <<: *test\n+    environment:\n+      LATEST: true\n+\n+  \"1.12\":\n+    <<: *test\n+    docker:\n+      - image: circleci/golang:1.12\n+\n+  \"1.11\":\n+    <<: *test\n+    docker:\n+      - image: circleci/golang:1.11\n+\n+  \"1.10\":\n+    <<: *test\n+    docker:\n+      - image: circleci/golang:1.10\n+\n+  \"1.9\":\n+    <<: *test\n+    docker:\n+      - image: circleci/golang:1.9\n+\n+  \"1.8\":\n+    <<: *test\n+    docker:\n+      - image: circleci/golang:1.8\n+\n+  \"1.7\":\n+    <<: *test\n+    docker:\n+      - image: circleci/golang:1.7\n+\n+workflows:\n+  version: 2\n+  build:\n+    jobs:\n+      - \"latest\"\n+      - \"1.12\"\n+      - \"1.11\"\n+      - \"1.10\"\n+      - \"1.9\"\n+      - \"1.8\"\n+      - \"1.7\"\n",
+                      "newRange": {
+                        "lines": 87,
+                        "startLine": 1
+                      },
+                      "oldNoNewlineAt": false,
+                      "oldRange": {
+                        "lines": 0,
+                        "startLine": 0
+                      },
+                      "section": null
+                    }
+                  ]
+                }
+              ]
+            },
+            "range": {
+              "base": {
+                "object": {
+                  "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+                }
+              },
+              "head": {
+                "object": {
+                  "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+                }
+              }
+            },
+            "totals": {
+              "diffStat": {
+                "added": 87,
+                "deleted": 0
+              },
+              "totalCount": 1
+            }
+          }
+        },
+        "refs": {
+          "base": {
+            "node": null,
+            "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+          },
+          "count": {
+            "behindAhead": {
+              "ahead": 30,
+              "behind": 0
+            }
+          },
+          "head": {
+            "node": {
+              "__typename": "GitBlob",
+              "binary": false,
+              "byteSize": 1926,
+              "contentType": "text/plain; charset=utf-8",
+              "path": ".circleci/config.yml",
+              "submodule": null
+            },
+            "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+          },
+          "name": "github.com/gorilla/mux"
+        }
+      }
+    }
+  }
+}

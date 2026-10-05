@@ -1,0 +1,90 @@
+{
+  "request": {
+    "query": "query CompareRange(\n  $repo: String!, $base: String!, $head: String!, $path: String,\n  $paths: [String!], $commits: Int!, $files: Int!, $plainPath: String!\n) {\n  refs: repository(name: $repo) {\n    name\n    base: commit(rev: $base) {\n      oid\n      node: path(path: $plainPath) {\n        __typename\n        ... on GitBlob {\n          path byteSize binary contentType submodule { url commit }\n        }\n        ... on GitTree { path }\n      }\n    }\n    head: commit(rev: $head) {\n      oid\n      node: path(path: $plainPath) {\n        __typename\n        ... on GitBlob {\n          path byteSize binary contentType submodule { url commit }\n        }\n        ... on GitTree { path }\n      }\n    }\n    count: commit(rev: $head) {\n      behindAhead(revspec: $base) { behind ahead }\n    }\n  }\n  cmp: repository(name: $repo) {\n    comparison(base: $base, head: $head) {\n      range {\n        base { ... on GitRevSpecExpr { object { oid } } }\n        head { ... on GitRevSpecExpr { object { oid } } }\n      }\n      commits(first: $commits, path: $path) {\n        pageInfo { hasNextPage }\n        nodes { oid subject author { person { name } date } }\n      }\n      totals: fileDiffs(first: 0, paths: $paths) {\n        totalCount diffStat { added deleted }\n      }\n      fileDiffs(first: $files, paths: $paths) {\n        nodes {\n          oldPath newPath stat { added deleted }\n          oldFile { binary } newFile { binary }\n        }\n      }\n      hunks: fileDiffs(first: 1, paths: $paths) {\n        nodes {\n          hunks {\n            oldRange { startLine lines } newRange { startLine lines }\n            oldNoNewlineAt section body\n          }\n        }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "base": "v1.7.0",
+      "commits": 50,
+      "files": 200,
+      "head": "v1.8.0",
+      "path": ":(literal)LICENSE",
+      "paths": [
+        ":(literal)LICENSE"
+      ],
+      "plainPath": "LICENSE",
+      "repo": "github.com/gorilla/mux"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "cmp": {
+          "comparison": {
+            "commits": {
+              "nodes": [],
+              "pageInfo": {
+                "hasNextPage": false
+              }
+            },
+            "fileDiffs": {
+              "nodes": []
+            },
+            "hunks": {
+              "nodes": []
+            },
+            "range": {
+              "base": {
+                "object": {
+                  "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+                }
+              },
+              "head": {
+                "object": {
+                  "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+                }
+              }
+            },
+            "totals": {
+              "diffStat": {
+                "added": 0,
+                "deleted": 0
+              },
+              "totalCount": 0
+            }
+          }
+        },
+        "refs": {
+          "base": {
+            "node": {
+              "__typename": "GitBlob",
+              "binary": false,
+              "byteSize": 1486,
+              "contentType": "text/plain; charset=utf-8",
+              "path": "LICENSE",
+              "submodule": null
+            },
+            "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+          },
+          "count": {
+            "behindAhead": {
+              "ahead": 30,
+              "behind": 0
+            }
+          },
+          "head": {
+            "node": {
+              "__typename": "GitBlob",
+              "binary": false,
+              "byteSize": 1486,
+              "contentType": "text/plain; charset=utf-8",
+              "path": "LICENSE",
+              "submodule": null
+            },
+            "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+          },
+          "name": "github.com/gorilla/mux"
+        }
+      }
+    }
+  }
+}

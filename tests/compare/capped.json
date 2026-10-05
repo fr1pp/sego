@@ -1,0 +1,3244 @@
+{
+  "request": {
+    "query": "query CompareRange(\n  $repo: String!, $base: String!, $head: String!, $path: String,\n  $paths: [String!], $commits: Int!, $files: Int!, $plainPath: String!\n) {\n  refs: repository(name: $repo) {\n    name\n    base: commit(rev: $base) {\n      oid\n      node: path(path: $plainPath) {\n        __typename\n        ... on GitBlob {\n          path byteSize binary contentType submodule { url commit }\n        }\n        ... on GitTree { path }\n      }\n    }\n    head: commit(rev: $head) {\n      oid\n      node: path(path: $plainPath) {\n        __typename\n        ... on GitBlob {\n          path byteSize binary contentType submodule { url commit }\n        }\n        ... on GitTree { path }\n      }\n    }\n    count: commit(rev: $head) {\n      behindAhead(revspec: $base) { behind ahead }\n    }\n  }\n  cmp: repository(name: $repo) {\n    comparison(base: $base, head: $head) {\n      range {\n        base { ... on GitRevSpecExpr { object { oid } } }\n        head { ... on GitRevSpecExpr { object { oid } } }\n      }\n      commits(first: $commits, path: $path) {\n        pageInfo { hasNextPage }\n        nodes { oid subject author { person { name } date } }\n      }\n      totals: fileDiffs(first: 0, paths: $paths) {\n        totalCount diffStat { added deleted }\n      }\n      fileDiffs(first: $files, paths: $paths) {\n        nodes {\n          oldPath newPath stat { added deleted }\n          oldFile { binary } newFile { binary }\n        }\n      }\n      hunks: fileDiffs(first: 1, paths: $paths) {\n        nodes {\n          hunks {\n            oldRange { startLine lines } newRange { startLine lines }\n            oldNoNewlineAt section body\n          }\n        }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "base": "go1.22.0",
+      "commits": 50,
+      "files": 200,
+      "head": "go1.23.0",
+      "path": ":(literal)src/runtime",
+      "paths": [
+        ":(literal)src/runtime"
+      ],
+      "plainPath": "src/runtime",
+      "repo": "github.com/golang/go"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "cmp": {
+          "comparison": {
+            "commits": {
+              "nodes": [
+                {
+                  "author": {
+                    "date": "2024-07-19T17:55:15Z",
+                    "person": {
+                      "name": "Cuong Manh Le"
+                    }
+                  },
+                  "oid": "3959d54c0bd5c92fe0a5e33fedb0595723efc23b",
+                  "subject": "runtime: mark lockWithRankMayAcquire as nosplit"
+                },
+                {
+                  "author": {
+                    "date": "2024-07-16T11:15:22Z",
+                    "person": {
+                      "name": "Nick Ripley"
+                    }
+                  },
+                  "oid": "87abb4afb63918d3e5ee5d7ebd196386fa22e368",
+                  "subject": "runtime: avoid multiple records with identical stacks from MutexProfile"
+                },
+                {
+                  "author": {
+                    "date": "2024-07-15T19:49:44Z",
+                    "person": {
+                      "name": "Cherry Mui"
+                    }
+                  },
+                  "oid": "6948b4df8c5ec9f249960ea60dba6349d1975c0e",
+                  "subject": "Revert \"runtime: avoid multiple records with identical stacks from MutexProfile\""
+                },
+                {
+                  "author": {
+                    "date": "2024-07-04T06:10:55Z",
+                    "person": {
+                      "name": "cuishuang"
+                    }
+                  },
+                  "oid": "a71bb570d064f6d0c1cf59cef4b7a044be7a39d3",
+                  "subject": "all: make struct comments match struct names"
+                },
+                {
+                  "author": {
+                    "date": "2024-07-02T16:53:36Z",
+                    "person": {
+                      "name": "Nick Ripley"
+                    }
+                  },
+                  "oid": "183a40db6def2780478053b3cd14f3f5c355d999",
+                  "subject": "runtime: avoid multiple records with identical stacks from MutexProfile"
+                },
+                {
+                  "author": {
+                    "date": "2024-07-03T18:14:34Z",
+                    "person": {
+                      "name": "Cherry Mui"
+                    }
+                  },
+                  "oid": "82c14346d89ec0eeca114f9ca0e88516b2cda454",
+                  "subject": "cmd/link: don't disable memory profiling when pprof.WriteHeapProfile is used"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-13T04:10:34Z",
+                    "person": {
+                      "name": "Tom Levy"
+                    }
+                  },
+                  "oid": "c33144c47cbee5506df404553c3769867972f889",
+                  "subject": "runtime: fix nil pointer in TestGoroutineParallelism2 when offline"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-02T18:29:16Z",
+                    "person": {
+                      "name": "Russ Cox"
+                    }
+                  },
+                  "oid": "20b79fd5775c39061d949569743912ad5e58b0e7",
+                  "subject": "time: provide non-default metric for asynctimerchan"
+                },
+                {
+                  "author": {
+                    "date": "2024-06-17T19:30:19Z",
+                    "person": {
+                      "name": "Damien Neil"
+                    }
+                  },
+                  "oid": "879ace143490dba75a8499c7f4cea43926423c0f",
+                  "subject": "net/http: keep Content-Encoding in Error, add GODEBUG for ServeContent"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-31T15:08:45Z",
+                    "person": {
+                      "name": "Roland Shoemaker"
+                    }
+                  },
+                  "oid": "b691da9f788f27eb3d5035f3dbdc15c107d71ef9",
+                  "subject": "Revert \"crypto/x509: reject serial numbers longer than 20 octets\""
+                },
+                {
+                  "author": {
+                    "date": "2024-06-11T16:36:49Z",
+                    "person": {
+                      "name": "Ian Lance Taylor"
+                    }
+                  },
+                  "oid": "ee4a42bd583b8594e97f1833c4b4c6e6428d9227",
+                  "subject": "net: add GODEBUG=netedns0=0 to disable sending EDNS0 header"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-31T20:22:32Z",
+                    "person": {
+                      "name": "Michael Anthony Knyszek"
+                    }
+                  },
+                  "oid": "9d2aeae72d34880510c7221f35ab61171cec1ffd",
+                  "subject": "iter: propagate runtime.Goexit from iterator passed to Pull"
+                },
+                {
+                  "author": {
+                    "date": "2024-06-06T04:24:26Z",
+                    "person": {
+                      "name": "Anuraag Agrawal"
+                    }
+                  },
+                  "oid": "f7c330eac7777612574d8a1652fd415391f6095e",
+                  "subject": "runtime: add a note on SetFinalizer doc about method receiver"
+                },
+                {
+                  "author": {
+                    "date": "2024-06-04T21:54:55Z",
+                    "person": {
+                      "name": "Keith Randall"
+                    }
+                  },
+                  "oid": "45967bb18e04fa6dc62c2786c87ce120443c64f6",
+                  "subject": "runtime: soften up the GCTestIsReachable test a bit"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-31T03:51:15Z",
+                    "person": {
+                      "name": "Ian Lance Taylor"
+                    }
+                  },
+                  "oid": "639cc0dcc0948dd02c9d5fc12fbed730a21ebebc",
+                  "subject": "runtime: remove zhangyunhao116/fastrand from cheaprand linkname comment"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-29T16:43:38Z",
+                    "person": {
+                      "name": "Rhys Hiltner"
+                    }
+                  },
+                  "oid": "9114c51521c641ff6c33648da03774dc3eb86b79",
+                  "subject": "Revert \"runtime: prepare for extensions to waiting M list\""
+                },
+                {
+                  "author": {
+                    "date": "2024-05-29T16:42:57Z",
+                    "person": {
+                      "name": "Rhys Hiltner"
+                    }
+                  },
+                  "oid": "3f4be127bcd6a45ae8d91d7363f56461c80b75fb",
+                  "subject": "Revert \"runtime: use semaphore structure for futex locks\""
+                },
+                {
+                  "author": {
+                    "date": "2024-05-29T16:42:23Z",
+                    "person": {
+                      "name": "Rhys Hiltner"
+                    }
+                  },
+                  "oid": "afbbc2894b4af076d7f171fd6e83541d35b7b5a3",
+                  "subject": "Revert \"runtime: double-link list of waiting Ms\""
+                },
+                {
+                  "author": {
+                    "date": "2024-05-29T16:41:51Z",
+                    "person": {
+                      "name": "Rhys Hiltner"
+                    }
+                  },
+                  "oid": "5dead59add1f11e98de155860aa86175e893ac01",
+                  "subject": "Revert \"runtime: profile mutex contention during unlock\""
+                },
+                {
+                  "author": {
+                    "date": "2024-05-29T16:41:10Z",
+                    "person": {
+                      "name": "Rhys Hiltner"
+                    }
+                  },
+                  "oid": "ca7d300509626e2071f3f5babc2e9c121d806fec",
+                  "subject": "Revert \"runtime: remove GODEBUG=runtimecontentionstacks\""
+                },
+                {
+                  "author": {
+                    "date": "2024-05-29T16:39:34Z",
+                    "person": {
+                      "name": "Rhys Hiltner"
+                    }
+                  },
+                  "oid": "e6b8b2f3e236e8646962c68e172c304e11e9a8f0",
+                  "subject": "Revert \"runtime: improve runtime-internal mutex profile tests\""
+                },
+                {
+                  "author": {
+                    "date": "2024-05-29T16:36:36Z",
+                    "person": {
+                      "name": "Rhys Hiltner"
+                    }
+                  },
+                  "oid": "1be701a344d1f1819dc08d78259684de1da6f923",
+                  "subject": "Revert \"runtime: split mutex profile clocks\""
+                },
+                {
+                  "author": {
+                    "date": "2024-05-23T03:06:30Z",
+                    "person": {
+                      "name": "Russ Cox"
+                    }
+                  },
+                  "oid": "2a7ca156b8189c68c0a29b4c66194a42c5ce3c9b",
+                  "subject": "all: document legacy //go:linkname for final round of modules"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T21:09:02Z",
+                    "person": {
+                      "name": "Russ Cox"
+                    }
+                  },
+                  "oid": "9a8995b8b6a08d5fe01122771f962b36336f8aec",
+                  "subject": "all: document legacy //go:linkname for modules with ≥100 dependents"
+                },
+                {
+                  "author": {
+                    "date": "2024-04-13T04:51:37Z",
+                    "person": {
+                      "name": "Andy Pan"
+                    }
+                  },
+                  "oid": "1c924572d07df9c267028a20ee8934a94bfd7f8c",
+                  "subject": "runtime: fix the inconsistency of kq parameter of addWakeupEvent"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-24T13:33:45Z",
+                    "person": {
+                      "name": "Russ Cox"
+                    }
+                  },
+                  "oid": "f85c40438fea862be03d2de4b58ed3afe7cfe033",
+                  "subject": "internal/runtime/exithook: make safe for concurrent os.Exit"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-23T21:12:10Z",
+                    "person": {
+                      "name": "kolyshkin"
+                    }
+                  },
+                  "oid": "35ef4a9f330fdff870ff637558ec2fd03a93fd9c",
+                  "subject": "runtime: x_cgo_getstackbound: initialize pthread attr"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-23T14:47:36Z",
+                    "person": {
+                      "name": "alandonovan"
+                    }
+                  },
+                  "oid": "bf91eb3a8bb057a620f3823e4d6b74a529c0a44d",
+                  "subject": "std: fix calls to Printf(s) with non-constant s"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-23T03:09:56Z",
+                    "person": {
+                      "name": "Cherry Mui"
+                    }
+                  },
+                  "oid": "f109bdd1278d59fc6c506d1db50c52f0e969348e",
+                  "subject": "runtime: update TestExitHooks error strings"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-17T16:07:15Z",
+                    "person": {
+                      "name": "Russ Cox"
+                    }
+                  },
+                  "oid": "ff2070d9398aff1c44691a90761eb35ea3cd4601",
+                  "subject": "runtime: move exit hooks into internal/runtime/exithook"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T19:46:02Z",
+                    "person": {
+                      "name": "Russ Cox"
+                    }
+                  },
+                  "oid": "4cac885741b845bd7f4aaad5bc9844b44eb23136",
+                  "subject": "all: document legacy //go:linkname for modules with ≥200 dependents"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T19:03:13Z",
+                    "person": {
+                      "name": "Russ Cox"
+                    }
+                  },
+                  "oid": "05cbbf985fed823a174bf95cc78a7d44f948fdab",
+                  "subject": "all: document legacy //go:linkname for modules with ≥500 dependents"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T04:14:42Z",
+                    "person": {
+                      "name": "Russ Cox"
+                    }
+                  },
+                  "oid": "1d3d6ae725697c5b224b26cb3aa1325ac37f72d7",
+                  "subject": "all: document legacy //go:linkname for modules with ≥1,000 dependents"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T04:05:04Z",
+                    "person": {
+                      "name": "Russ Cox"
+                    }
+                  },
+                  "oid": "519b0116a15d80042a0ab1a35c14d98c47093109",
+                  "subject": "all: document legacy //go:linkname for modules with ≥2,000 dependents"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T03:50:52Z",
+                    "person": {
+                      "name": "Russ Cox"
+                    }
+                  },
+                  "oid": "9a3ef861732031dc70794531452922d70855e27a",
+                  "subject": "all: document legacy //go:linkname for modules with ≥5,000 dependents"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T20:00:29Z",
+                    "person": {
+                      "name": "David Chase"
+                    }
+                  },
+                  "oid": "997b6969fd7be64a03255ef998981de716aa4313",
+                  "subject": "internal/abi, cmd/compile, runtime: deduplicate rangefunc consts"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T20:38:40Z",
+                    "person": {
+                      "name": "Ian Lance Taylor"
+                    }
+                  },
+                  "oid": "b0b1d42db32a992150dd26681d3bda222e108303",
+                  "subject": "all: change from sort functions to slices functions where feasible"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T03:39:35Z",
+                    "person": {
+                      "name": "Russ Cox"
+                    }
+                  },
+                  "oid": "5fc5555feb059baaf6d3c2f0a9229b3a020716a9",
+                  "subject": "all: document legacy //go:linkname for modules with ≥10,000 dependents"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T03:24:47Z",
+                    "person": {
+                      "name": "Russ Cox"
+                    }
+                  },
+                  "oid": "bde905af5b11e3e34bc1f5d4846d7767f7197236",
+                  "subject": "all: document legacy //go:linkname for modules with ≥20,000 dependents"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-15T20:46:38Z",
+                    "person": {
+                      "name": "Roland Shoemaker"
+                    }
+                  },
+                  "oid": "56ec5d96bce06b70895ce2816fd59a4e0c4db21c",
+                  "subject": "crypto/tls: populate Leaf in X509KeyPair"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T20:00:02Z",
+                    "person": {
+                      "name": "Michael Anthony Knyszek"
+                    }
+                  },
+                  "oid": "ca1d2ead5d3fb2dccbc93f5c29a17da4bdf30ea3",
+                  "subject": "runtime: skip tracing events that would cause reentrancy"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T19:39:03Z",
+                    "person": {
+                      "name": "David Chase"
+                    }
+                  },
+                  "oid": "6dd79d02f8b39639dbf9e2d667722245d7345ba8",
+                  "subject": "runtime,cmd/compile: fix wording of rangefunc panic messages"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T09:39:41Z",
+                    "person": {
+                      "name": "Filippo Valsorda"
+                    }
+                  },
+                  "oid": "032660573c5d82c0f44c9259a352e411606e1d2f",
+                  "subject": "crypto/tls: disable 3-DES by default"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T03:02:51Z",
+                    "person": {
+                      "name": "Russ Cox"
+                    }
+                  },
+                  "oid": "5fee159bc2e60736ce967560ee5be738fe5d5bd2",
+                  "subject": "all: document legacy //go:linkname for modules with ≥50,000 dependents"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T03:04:21Z",
+                    "person": {
+                      "name": "Russ Cox"
+                    }
+                  },
+                  "oid": "4c589d93ad6f77e31cccc237c20133f0d8d8492f",
+                  "subject": "runtime: revert \"move zeroVal to internal/abi\""
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T18:53:36Z",
+                    "person": {
+                      "name": "Rhys Hiltner"
+                    }
+                  },
+                  "oid": "ac6dea7aa1ccc3fa2b07be05ba71714e686f928a",
+                  "subject": "runtime: lower mutex contention test expectations"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-21T04:15:40Z",
+                    "person": {
+                      "name": "Michael Anthony Knyszek"
+                    }
+                  },
+                  "oid": "b6fa505c4a3508600a4e4d7834228046b0310873",
+                  "subject": "runtime: move goroutine stack exists events after span events"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-20T20:31:36Z",
+                    "person": {
+                      "name": "Michael Anthony Knyszek"
+                    }
+                  },
+                  "oid": "efe7a1f5d3ccdef5c25cb4d8386492a7b1785600",
+                  "subject": "runtime: write out a batch with alignment info for traceallocfree"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-22T02:38:02Z",
+                    "person": {
+                      "name": "Russ Cox"
+                    }
+                  },
+                  "oid": "ef225d1c57a97af984af114ee52005314530bbe2",
+                  "subject": "all: document legacy //go:linkname for modules with ≥100,000 dependents"
+                },
+                {
+                  "author": {
+                    "date": "2024-05-20T20:18:02Z",
+                    "person": {
+                      "name": "Michael Anthony Knyszek"
+                    }
+                  },
+                  "oid": "197101a84a563ee8fb6ac58bb91ab2de49f0cbce",
+                  "subject": "runtime: correctly account for allocated objects in allocfree trace"
+                }
+              ],
+              "pageInfo": {
+                "hasNextPage": true
+              }
+            },
+            "fileDiffs": {
+              "nodes": [
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/HACKING.md",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/HACKING.md",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/abi_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/abi_test.go",
+                  "stat": {
+                    "added": 19,
+                    "deleted": 14
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/alg.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/alg.go",
+                  "stat": {
+                    "added": 106,
+                    "deleted": 18
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/align_runtime_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/align_runtime_test.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/arena.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/arena.go",
+                  "stat": {
+                    "added": 227,
+                    "deleted": 40
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/arena_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/arena_test.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/asan.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/asan.go",
+                  "stat": {
+                    "added": 2,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/asm.s",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/asm.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 19
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/asm_386.s",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/asm_386.s",
+                  "stat": {
+                    "added": 40,
+                    "deleted": 10
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/asm_amd64.s",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/asm_amd64.s",
+                  "stat": {
+                    "added": 6,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/asm_arm.s",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/asm_arm.s",
+                  "stat": {
+                    "added": 32,
+                    "deleted": 7
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/asm_arm64.s",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/asm_arm64.s",
+                  "stat": {
+                    "added": 2,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/asm_loong64.s",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/asm_loong64.s",
+                  "stat": {
+                    "added": 30,
+                    "deleted": 105
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/asm_mipsx.s",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/asm_mipsx.s",
+                  "stat": {
+                    "added": 30,
+                    "deleted": 7
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/asm_ppc64x.s",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/asm_ppc64x.s",
+                  "stat": {
+                    "added": 18,
+                    "deleted": 14
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/asm_s390x.s",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/asm_s390x.s",
+                  "stat": {
+                    "added": 31,
+                    "deleted": 8
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/atomic_pointer.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/atomic_pointer.go",
+                  "stat": {
+                    "added": 13,
+                    "deleted": 3
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/badlinkname.go",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 22,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/badlinkname_linux.go",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 17,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/cgo.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/cgo.go",
+                  "stat": {
+                    "added": 19,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/cgo/gcc_libinit.c",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/cgo/gcc_libinit.c",
+                  "stat": {
+                    "added": 7,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/cgo/gcc_signal_ios_arm64.c",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/cgo/gcc_signal_ios_arm64.c",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/cgo/gcc_stack_darwin.c",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/cgo/gcc_stack_darwin.c",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/cgo/gcc_stack_unix.c",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/cgo/gcc_stack_unix.c",
+                  "stat": {
+                    "added": 9,
+                    "deleted": 2
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/cgo/libcgo.h",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/cgo/libcgo.h",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/cgocall.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/cgocall.go",
+                  "stat": {
+                    "added": 77,
+                    "deleted": 58
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/cgocheck.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/cgocheck.go",
+                  "stat": {
+                    "added": 17,
+                    "deleted": 31
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/chan.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/chan.go",
+                  "stat": {
+                    "added": 96,
+                    "deleted": 12
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/chanbarrier_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/chanbarrier_test.go",
+                  "stat": {
+                    "added": 9,
+                    "deleted": 5
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/checkptr.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/checkptr.go",
+                  "stat": {
+                    "added": 11,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/coro.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/coro.go",
+                  "stat": {
+                    "added": 77,
+                    "deleted": 11
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/coro_test.go",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 73,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/coverage/apis.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 178
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/coverage/coverage.go",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 66,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/coverage/dummy.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 8
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/coverage/emit.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 609
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/coverage/emitdata_test.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 550
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/coverage/hooks.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 42
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/coverage/testdata/harness.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 259
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/coverage/testdata/issue56006/repro.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 26
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/coverage/testdata/issue56006/repro_test.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 8
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/coverage/testdata/issue59563/repro.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 823
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/coverage/testdata/issue59563/repro_test.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 14
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/coverage/testsupport.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 323
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/coverage/ts_test.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 207
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/covercounter.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/covercounter.go",
+                  "stat": {
+                    "added": 2,
+                    "deleted": 2
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/covermeta.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/covermeta.go",
+                  "stat": {
+                    "added": 7,
+                    "deleted": 59
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/cpuprof.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/cpuprof.go",
+                  "stat": {
+                    "added": 19,
+                    "deleted": 2
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/crash_cgo_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/crash_cgo_test.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 39
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/crash_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/crash_test.go",
+                  "stat": {
+                    "added": 141,
+                    "deleted": 4
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/debug.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/debug.go",
+                  "stat": {
+                    "added": 20,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/debug/example_monitor_test.go",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 99,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/debug/garbage.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/debug/garbage.go",
+                  "stat": {
+                    "added": 3,
+                    "deleted": 5
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/debug/stack.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/debug/stack.go",
+                  "stat": {
+                    "added": 63,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/debug/stack_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/debug/stack_test.go",
+                  "stat": {
+                    "added": 79,
+                    "deleted": 2
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/debugcall.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/debugcall.go",
+                  "stat": {
+                    "added": 13,
+                    "deleted": 3
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/debuglog.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/debuglog.go",
+                  "stat": {
+                    "added": 4,
+                    "deleted": 3
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs1_netbsd_386.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs1_netbsd_386.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs1_netbsd_amd64.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs1_netbsd_amd64.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs1_netbsd_arm.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs1_netbsd_arm.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs1_netbsd_arm64.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs1_netbsd_arm64.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs_darwin.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs_darwin.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs_darwin_amd64.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs_darwin_amd64.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs_darwin_arm64.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs_darwin_arm64.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs_dragonfly.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs_dragonfly.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs_dragonfly_amd64.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs_dragonfly_amd64.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs_freebsd.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs_freebsd.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs_freebsd_386.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs_freebsd_386.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs_freebsd_amd64.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs_freebsd_amd64.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs_freebsd_arm.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs_freebsd_arm.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs_freebsd_arm64.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs_freebsd_arm64.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs_freebsd_riscv64.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs_freebsd_riscv64.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs_netbsd.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs_netbsd.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/defs_windows.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/defs_windows.go",
+                  "stat": {
+                    "added": 10,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/ehooks_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/ehooks_test.go",
+                  "stat": {
+                    "added": 24,
+                    "deleted": 22
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/env_posix.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/env_posix.go",
+                  "stat": {
+                    "added": 20,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/error.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/error.go",
+                  "stat": {
+                    "added": 50,
+                    "deleted": 24
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/exithook.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 69
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/export_debug_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/export_debug_test.go",
+                  "stat": {
+                    "added": 4,
+                    "deleted": 3
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/export_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/export_test.go",
+                  "stat": {
+                    "added": 24,
+                    "deleted": 137
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/export_windows_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/export_windows_test.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 6
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/extern.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/extern.go",
+                  "stat": {
+                    "added": 13,
+                    "deleted": 7
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/gc_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/gc_test.go",
+                  "stat": {
+                    "added": 14,
+                    "deleted": 172
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/hash64.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/hash64.go",
+                  "stat": {
+                    "added": 8,
+                    "deleted": 12
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/hash_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/hash_test.go",
+                  "stat": {
+                    "added": 84,
+                    "deleted": 39
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/heapdump.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/heapdump.go",
+                  "stat": {
+                    "added": 11,
+                    "deleted": 27
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/histogram.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/histogram.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/iface.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/iface.go",
+                  "stat": {
+                    "added": 72,
+                    "deleted": 23
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_386.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 121
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_386.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 366
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_amd64.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 135
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_amd64.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 289
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_andor_generic.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 67
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_andor_test.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 246
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_arm.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 248
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_arm.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 310
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_arm64.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 112
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_arm64.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 411
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_loong64.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 89
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_loong64.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 306
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_mips64x.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 89
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_mips64x.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 359
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_mipsx.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 162
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_mipsx.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 262
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_ppc64x.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 107
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_ppc64x.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 424
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_riscv64.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 103
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_riscv64.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 324
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_s390x.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 123
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_s390x.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 248
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_test.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 386
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_wasm.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 341
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/atomic_wasm.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 10
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/bench_test.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 195
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/doc.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 18
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/stubs.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 59
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/sys_linux_arm.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 134
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/sys_nonlinux_arm.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 79
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/types.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 587
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/types_64bit.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 33
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/atomic/unaligned.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 9
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/asm_linux_386.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 34
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/asm_linux_amd64.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 47
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/asm_linux_arm.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 32
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/asm_linux_arm64.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 29
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/asm_linux_loong64.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 68
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/asm_linux_mips64x.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 30
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/asm_linux_mipsx.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 35
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/asm_linux_ppc64x.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 23
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/asm_linux_riscv64.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 43
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/asm_linux_s390x.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 28
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/defs_linux_386.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 29
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/defs_linux_amd64.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 29
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/defs_linux_arm.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 30
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/defs_linux_arm64.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 30
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/defs_linux_loong64.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 30
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/defs_linux_mips64x.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 32
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/defs_linux_mipsx.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 32
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/defs_linux_ppc64x.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 32
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/defs_linux_riscv64.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 30
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/defs_linux_s390x.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 30
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/syscall_linux.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 62
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/syscall/syscall_linux_test.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 19
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/internal/wasitest/tcpecho_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/internal/wasitest/tcpecho_test.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 5
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/lfstack.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/lfstack.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/linkname.go",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 34,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/linkname_unix.go",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 12,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/lock_futex.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/lock_futex.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/lock_sema.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/lock_sema.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/lockrank.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/lockrank.go",
+                  "stat": {
+                    "added": 47,
+                    "deleted": 35
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/lockrank_off.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/lockrank_off.go",
+                  "stat": {
+                    "added": 7,
+                    "deleted": 2
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/lockrank_on.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/lockrank_on.go",
+                  "stat": {
+                    "added": 13,
+                    "deleted": 5
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/malloc.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/malloc.go",
+                  "stat": {
+                    "added": 104,
+                    "deleted": 71
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/map.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/map.go",
+                  "stat": {
+                    "added": 234,
+                    "deleted": 69
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/map_fast32.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/map_fast32.go",
+                  "stat": {
+                    "added": 54,
+                    "deleted": 25
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/map_fast64.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/map_fast64.go",
+                  "stat": {
+                    "added": 56,
+                    "deleted": 25
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/map_faststr.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/map_faststr.go",
+                  "stat": {
+                    "added": 56,
+                    "deleted": 36
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/map_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/map_test.go",
+                  "stat": {
+                    "added": 83,
+                    "deleted": 3
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mbarrier.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mbarrier.go",
+                  "stat": {
+                    "added": 66,
+                    "deleted": 6
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mbitmap.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mbitmap.go",
+                  "stat": {
+                    "added": 1139,
+                    "deleted": 2
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mbitmap_allocheaders.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 1376
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mbitmap_noallocheaders.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 938
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mcache.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mcache.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mcentral.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mcentral.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mcheckmark.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mcheckmark.go",
+                  "stat": {
+                    "added": 2,
+                    "deleted": 4
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mem_linux.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mem_linux.go",
+                  "stat": {
+                    "added": 3,
+                    "deleted": 2
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/memclr_loong64.s",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/memclr_loong64.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 4
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/memmove_loong64.s",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/memmove_loong64.s",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 5
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/memmove_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/memmove_test.go",
+                  "stat": {
+                    "added": 2,
+                    "deleted": 6
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/metrics.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/metrics.go",
+                  "stat": {
+                    "added": 11,
+                    "deleted": 11
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/metrics/doc.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/metrics/doc.go",
+                  "stat": {
+                    "added": 35,
+                    "deleted": 5
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/metrics_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/metrics_test.go",
+                  "stat": {
+                    "added": 109,
+                    "deleted": 19
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mfinal.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mfinal.go",
+                  "stat": {
+                    "added": 15,
+                    "deleted": 14
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mgc.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mgc.go",
+                  "stat": {
+                    "added": 115,
+                    "deleted": 38
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mgclimit.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mgclimit.go",
+                  "stat": {
+                    "added": 15,
+                    "deleted": 14
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mgcmark.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mgcmark.go",
+                  "stat": {
+                    "added": 45,
+                    "deleted": 73
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mgcpacer.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mgcpacer.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mgcscavenge.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mgcscavenge.go",
+                  "stat": {
+                    "added": 12,
+                    "deleted": 14
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mgcscavenge_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mgcscavenge_test.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mgcsweep.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mgcsweep.go",
+                  "stat": {
+                    "added": 52,
+                    "deleted": 34
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mgcwork.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mgcwork.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mheap.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mheap.go",
+                  "stat": {
+                    "added": 191,
+                    "deleted": 17
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/minmax_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/minmax_test.go",
+                  "stat": {
+                    "added": 20,
+                    "deleted": 2
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mklockrank.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mklockrank.go",
+                  "stat": {
+                    "added": 16,
+                    "deleted": 13
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mksizeclasses.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mksizeclasses.go",
+                  "stat": {
+                    "added": 3,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mpagealloc.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mpagealloc.go",
+                  "stat": {
+                    "added": 2,
+                    "deleted": 5
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mpallocbits.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mpallocbits.go",
+                  "stat": {
+                    "added": 2,
+                    "deleted": 7
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mprof.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mprof.go",
+                  "stat": {
+                    "added": 362,
+                    "deleted": 159
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mranges.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mranges.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/msan.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/msan.go",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/msize.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/msize_allocheaders.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 2
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/msize_noallocheaders.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 29
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mspanset.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mspanset.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mstats.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mstats.go",
+                  "stat": {
+                    "added": 32,
+                    "deleted": 22
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/mwbbuf.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/mwbbuf.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/netpoll.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/netpoll.go",
+                  "stat": {
+                    "added": 34,
+                    "deleted": 30
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/netpoll_aix.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/netpoll_aix.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/netpoll_epoll.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/netpoll_epoll.go",
+                  "stat": {
+                    "added": 26,
+                    "deleted": 26
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/netpoll_kqueue.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "src/runtime/netpoll_kqueue.go",
+                  "stat": {
+                    "added": 8,
+                    "deleted": 48
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "src/runtime/netpoll_kqueue_event.go",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 80,
+                    "deleted": 0
+                  }
+                }
+              ]
+            },
+            "hunks": {
+              "nodes": [
+                {
+                  "hunks": [
+                    {
+                      "body": " Atomics\n =======\n \n-The runtime uses its own atomics package at `runtime/internal/atomic`.\n+The runtime uses its own atomics package at `internal/runtime/atomic`.\n This corresponds to `sync/atomic`, but functions have different names\n for historical reasons and there are a few additional functions needed\n by the runtime.\n",
+                      "newRange": {
+                        "lines": 7,
+                        "startLine": 173
+                      },
+                      "oldNoNewlineAt": false,
+                      "oldRange": {
+                        "lines": 7,
+                        "startLine": 173
+                      },
+                      "section": "In summary,"
+                    }
+                  ]
+                }
+              ]
+            },
+            "range": {
+              "base": {
+                "object": {
+                  "oid": "a10e42f219abb9c5bc4e7d86d9464700a42c7d57"
+                }
+              },
+              "head": {
+                "object": {
+                  "oid": "6885bad7dd86880be6929c02085e5c7a67ff2887"
+                }
+              }
+            },
+            "totals": {
+              "diffStat": {
+                "added": 11534,
+                "deleted": 21469
+              },
+              "totalCount": 320
+            }
+          }
+        },
+        "refs": {
+          "base": {
+            "node": {
+              "__typename": "GitTree",
+              "path": "src/runtime"
+            },
+            "oid": "a10e42f219abb9c5bc4e7d86d9464700a42c7d57"
+          },
+          "count": {
+            "behindAhead": {
+              "ahead": 1550,
+              "behind": 24
+            }
+          },
+          "head": {
+            "node": {
+              "__typename": "GitTree",
+              "path": "src/runtime"
+            },
+            "oid": "6885bad7dd86880be6929c02085e5c7a67ff2887"
+          },
+          "name": "github.com/golang/go"
+        }
+      }
+    }
+  }
+}

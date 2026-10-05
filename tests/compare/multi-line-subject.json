@@ -1,0 +1,67 @@
+{
+  "request": {
+    "query": "query CompareCommit(\n  $repo: String!, $rev: String!, $paths: [String!], $files: Int!\n) {\n  commit: repository(name: $repo) {\n    name\n    commit(rev: $rev) {\n      oid message author { person { name } date }\n      parents {\n        oid\n      }\n    }\n  }\n  diff: repository(name: $repo) {\n    commit(rev: $rev) { diff {\n      totals: fileDiffs(first: 0, paths: $paths) {\n        totalCount diffStat { added deleted }\n      }\n      fileDiffs(first: $files, paths: $paths) {\n        nodes {\n          oldPath newPath stat { added deleted }\n          oldFile { binary } newFile { binary }\n        }\n      }\n    } }\n  }\n}\n",
+    "variables": {
+      "files": 200,
+      "paths": null,
+      "repo": "github.com/gorilla/mux",
+      "rev": "e48e440e4c92"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "commit": {
+          "commit": {
+            "author": {
+              "date": "2018-08-07T07:52:56Z",
+              "person": {
+                "name": "Kamil Kisiel"
+              }
+            },
+            "message": "Add test for multiple calls to Name().\nFixes #394",
+            "oid": "e48e440e4c92e3251d812f8ce7858944dfa3331c",
+            "parents": [
+              {
+                "oid": "815b8c6a2641cd336000b3fb159b5741d0dc0113"
+              }
+            ]
+          },
+          "name": "github.com/gorilla/mux"
+        },
+        "diff": {
+          "commit": {
+            "diff": {
+              "fileDiffs": {
+                "nodes": [
+                  {
+                    "newFile": {
+                      "binary": false
+                    },
+                    "newPath": "mux_test.go",
+                    "oldFile": {
+                      "binary": false
+                    },
+                    "oldPath": "mux_test.go",
+                    "stat": {
+                      "added": 9,
+                      "deleted": 0
+                    }
+                  }
+                ]
+              },
+              "totals": {
+                "diffStat": {
+                  "added": 9,
+                  "deleted": 0
+                },
+                "totalCount": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

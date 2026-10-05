@@ -1,0 +1,193 @@
+{
+  "request": {
+    "query": "query CompareCommit(\n  $repo: String!, $rev: String!, $paths: [String!], $files: Int!\n) {\n  commit: repository(name: $repo) {\n    name\n    commit(rev: $rev) {\n      oid message author { person { name } date }\n      parents {\n        oid\n      }\n    }\n  }\n  diff: repository(name: $repo) {\n    commit(rev: $rev) { diff {\n      totals: fileDiffs(first: 0, paths: $paths) {\n        totalCount diffStat { added deleted }\n      }\n      fileDiffs(first: $files, paths: $paths) {\n        nodes {\n          oldPath newPath stat { added deleted }\n          oldFile { binary } newFile { binary }\n        }\n      }\n    } }\n  }\n}\n",
+    "variables": {
+      "files": 200,
+      "paths": null,
+      "repo": "github.com/golang/go",
+      "rev": "b8efc006f2cb"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "commit": {
+          "commit": {
+            "author": {
+              "date": "2015-09-04T01:34:36Z",
+              "person": {
+                "name": "Andrew Gerrand"
+              }
+            },
+            "message": "all: remove executable bit from several files\n\nChange-Id: Iab669b2a9dd0510c0e54f9ec1cbe2b83b991bceb\nReviewed-on: https://go-review.googlesource.com/14283\nReviewed-by: Minux Ma <minux@golang.org>",
+            "oid": "b8efc006f2cb08a559e2aeea4f0561b0a696c3a8",
+            "parents": [
+              {
+                "oid": "06da8fd84afc4694d4dbab9316ae701bd4dfaa8d"
+              }
+            ]
+          },
+          "name": "github.com/golang/go"
+        },
+        "diff": {
+          "commit": {
+            "diff": {
+              "fileDiffs": {
+                "nodes": [
+                  {
+                    "newFile": {
+                      "binary": false
+                    },
+                    "newPath": "doc/progs/run.go",
+                    "oldFile": {
+                      "binary": false
+                    },
+                    "oldPath": "doc/progs/run.go",
+                    "stat": {
+                      "added": 0,
+                      "deleted": 0
+                    }
+                  },
+                  {
+                    "newFile": {
+                      "binary": false
+                    },
+                    "newPath": "src/cmd/dist/test.go",
+                    "oldFile": {
+                      "binary": false
+                    },
+                    "oldPath": "src/cmd/dist/test.go",
+                    "stat": {
+                      "added": 0,
+                      "deleted": 0
+                    }
+                  },
+                  {
+                    "newFile": {
+                      "binary": true
+                    },
+                    "newPath": "src/debug/dwarf/testdata/line-clang.elf",
+                    "oldFile": {
+                      "binary": true
+                    },
+                    "oldPath": "src/debug/dwarf/testdata/line-clang.elf",
+                    "stat": {
+                      "added": 0,
+                      "deleted": 0
+                    }
+                  },
+                  {
+                    "newFile": {
+                      "binary": true
+                    },
+                    "newPath": "src/debug/dwarf/testdata/line-gcc.elf",
+                    "oldFile": {
+                      "binary": true
+                    },
+                    "oldPath": "src/debug/dwarf/testdata/line-gcc.elf",
+                    "stat": {
+                      "added": 0,
+                      "deleted": 0
+                    }
+                  },
+                  {
+                    "newFile": {
+                      "binary": true
+                    },
+                    "newPath": "src/debug/elf/testdata/gcc-386-freebsd-exec",
+                    "oldFile": {
+                      "binary": true
+                    },
+                    "oldPath": "src/debug/elf/testdata/gcc-386-freebsd-exec",
+                    "stat": {
+                      "added": 0,
+                      "deleted": 0
+                    }
+                  },
+                  {
+                    "newFile": {
+                      "binary": true
+                    },
+                    "newPath": "src/debug/elf/testdata/gcc-amd64-linux-exec",
+                    "oldFile": {
+                      "binary": true
+                    },
+                    "oldPath": "src/debug/elf/testdata/gcc-amd64-linux-exec",
+                    "stat": {
+                      "added": 0,
+                      "deleted": 0
+                    }
+                  },
+                  {
+                    "newFile": {
+                      "binary": true
+                    },
+                    "newPath": "src/debug/macho/testdata/gcc-386-darwin-exec",
+                    "oldFile": {
+                      "binary": true
+                    },
+                    "oldPath": "src/debug/macho/testdata/gcc-386-darwin-exec",
+                    "stat": {
+                      "added": 0,
+                      "deleted": 0
+                    }
+                  },
+                  {
+                    "newFile": {
+                      "binary": true
+                    },
+                    "newPath": "src/debug/macho/testdata/gcc-amd64-darwin-exec",
+                    "oldFile": {
+                      "binary": true
+                    },
+                    "oldPath": "src/debug/macho/testdata/gcc-amd64-darwin-exec",
+                    "stat": {
+                      "added": 0,
+                      "deleted": 0
+                    }
+                  },
+                  {
+                    "newFile": {
+                      "binary": true
+                    },
+                    "newPath": "src/debug/plan9obj/testdata/386-plan9-exec",
+                    "oldFile": {
+                      "binary": true
+                    },
+                    "oldPath": "src/debug/plan9obj/testdata/386-plan9-exec",
+                    "stat": {
+                      "added": 0,
+                      "deleted": 0
+                    }
+                  },
+                  {
+                    "newFile": {
+                      "binary": true
+                    },
+                    "newPath": "src/debug/plan9obj/testdata/amd64-plan9-exec",
+                    "oldFile": {
+                      "binary": true
+                    },
+                    "oldPath": "src/debug/plan9obj/testdata/amd64-plan9-exec",
+                    "stat": {
+                      "added": 0,
+                      "deleted": 0
+                    }
+                  }
+                ]
+              },
+              "totals": {
+                "diffStat": {
+                  "added": 0,
+                  "deleted": 0
+                },
+                "totalCount": 10
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "request": {
+    "query": "query CompareCommit(\n  $repo: String!, $rev: String!, $paths: [String!], $files: Int!\n) {\n  commit: repository(name: $repo) {\n    name\n    commit(rev: $rev) {\n      oid message author { person { name } date }\n      parents {\n        oid\n      }\n    }\n  }\n  diff: repository(name: $repo) {\n    commit(rev: $rev) { diff {\n      totals: fileDiffs(first: 0, paths: $paths) {\n        totalCount diffStat { added deleted }\n      }\n      fileDiffs(first: $files, paths: $paths) {\n        nodes {\n          oldPath newPath stat { added deleted }\n          oldFile { binary } newFile { binary }\n        }\n      }\n    } }\n  }\n}\n",
+    "variables": {
+      "files": 200,
+      "paths": null,
+      "repo": "github.com/golang/go",
+      "rev": "620058f867b2"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "commit": {
+          "commit": {
+            "author": {
+              "date": "2026-08-25T21:41:25Z",
+              "person": {
+                "name": "Ian Lance Taylor"
+              }
+            },
+            "message": "debug/elf: use addend when applying ppc relocations\n\nCL 705075 accidentally dropped the addend value when applying\nppc relocations. This CL restores it.\n\nFor #75516\nFixes #81112\n\nChange-Id: I4313325647f9315ce77cae6548aff3c38e66815f\nReviewed-on: https://go-review.googlesource.com/c/go/+/821720\nAuto-Submit: Ian Lance Taylor <iant@golang.org>\nReviewed-by: Tobias Klauser <tobias.klauser@gmail.com>\nReviewed-by: Cherry Mui <cherryyz@google.com>\nReviewed-by: David Chase <drchase@google.com>\nLUCI-TryBot-Result: golang-scoped@luci-project-accounts.iam.gserviceaccount.com <golang-scoped@luci-project-accounts.iam.gserviceaccount.com>\nSLSA-Policy-Verified: SLSA Policy Verification Service <devtools-gerritcodereview-exitgate@google.com>",
+            "oid": "620058f867b26c29f76198b170e816004ecd4144",
+            "parents": [
+              {
+                "oid": "f30a9b3490f8c6ffa6e2a492dcc4523df9769adc"
+              }
+            ]
+          },
+          "name": "github.com/golang/go"
+        },
+        "diff": {
+          "commit": {
+            "diff": {
+              "fileDiffs": {
+                "nodes": [
+                  {
+                    "newFile": {
+                      "binary": false
+                    },
+                    "newPath": "src/debug/elf/file.go",
+                    "oldFile": {
+                      "binary": false
+                    },
+                    "oldPath": "src/debug/elf/file.go",
+                    "stat": {
+                      "added": 1,
+                      "deleted": 1
+                    }
+                  },
+                  {
+                    "newFile": {
+                      "binary": false
+                    },
+                    "newPath": "src/debug/elf/file_test.go",
+                    "oldFile": {
+                      "binary": false
+                    },
+                    "oldPath": "src/debug/elf/file_test.go",
+                    "stat": {
+                      "added": 24,
+                      "deleted": 0
+                    }
+                  },
+                  {
+                    "newFile": {
+                      "binary": true
+                    },
+                    "newPath": "src/debug/elf/testdata/go-relocation-test-gcc133-ppc.obj",
+                    "oldFile": null,
+                    "oldPath": null,
+                    "stat": {
+                      "added": 0,
+                      "deleted": 0
+                    }
+                  }
+                ]
+              },
+              "totals": {
+                "diffStat": {
+                  "added": 25,
+                  "deleted": 1
+                },
+                "totalCount": 3
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,868 @@
+{
+  "request": {
+    "query": "query CompareRange(\n  $repo: String!, $base: String!, $head: String!, $path: String,\n  $paths: [String!], $commits: Int!, $files: Int!\n) {\n  refs: repository(name: $repo) {\n    name\n    base: commit(rev: $base) {\n      oid\n    }\n    head: commit(rev: $head) {\n      oid\n    }\n    count: commit(rev: $head) {\n      behindAhead(revspec: $base) { behind ahead }\n    }\n  }\n  cmp: repository(name: $repo) {\n    comparison(base: $base, head: $head) {\n      range {\n        base { ... on GitRevSpecExpr { object { oid } } }\n        head { ... on GitRevSpecExpr { object { oid } } }\n      }\n      commits(first: $commits, path: $path) {\n        pageInfo { hasNextPage }\n        nodes { oid subject author { person { name } date } }\n      }\n      totals: fileDiffs(first: 0, paths: $paths) {\n        totalCount diffStat { added deleted }\n      }\n      fileDiffs(first: $files, paths: $paths) {\n        nodes {\n          oldPath newPath stat { added deleted }\n          oldFile { binary } newFile { binary }\n        }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "base": "v1.6.0",
+      "commits": 50,
+      "files": 200,
+      "head": "v1.7.0",
+      "path": null,
+      "paths": null,
+      "repo": "github.com/gorilla/mux"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "cmp": {
+          "comparison": {
+            "commits": {
+              "nodes": [
+                {
+                  "author": {
+                    "date": "2019-01-25T16:05:53Z",
+                    "person": {
+                      "name": "moeryomenko"
+                    }
+                  },
+                  "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+                  "subject": "replace rr.HeaderMap by rr.Header() (#443)"
+                },
+                {
+                  "author": {
+                    "date": "2019-01-25T11:41:49Z",
+                    "person": {
+                      "name": "Tim"
+                    }
+                  },
+                  "oid": "797e653da60e4619dcb0ae703714147b5a7454c6",
+                  "subject": "Call WriteHeader after setting other header(s) in the example (#442)"
+                },
+                {
+                  "author": {
+                    "date": "2019-01-08T14:29:30Z",
+                    "person": {
+                      "name": "Gregor Weckbecker"
+                    }
+                  },
+                  "oid": "08e7f807d38d6a870193019bb439056118661505",
+                  "subject": "Ignore ErrNotFound while matching Subrouters (#438)"
+                },
+                {
+                  "author": {
+                    "date": "2019-01-04T15:08:45Z",
+                    "person": {
+                      "name": "santsai"
+                    }
+                  },
+                  "oid": "f3ff42f93a451d7ffb2ff11cb9485f3f88089c83",
+                  "subject": "getHost() now returns full host & port information (#383)"
+                },
+                {
+                  "author": {
+                    "date": "2018-12-28T00:42:16Z",
+                    "person": {
+                      "name": "tomare"
+                    }
+                  },
+                  "oid": "ef912dd76ebe9d9848c6e0fd80eaebccc9a11631",
+                  "subject": "[bugfix] Clear matchErr when traversing subrouters."
+                },
+                {
+                  "author": {
+                    "date": "2018-12-25T16:41:17Z",
+                    "person": {
+                      "name": "Raees"
+                    }
+                  },
+                  "oid": "a31c1782bfb10b7b3799d5ec06b5ccbd98c4ec7e",
+                  "subject": "Replace domain.com with example.com (#434)"
+                },
+                {
+                  "author": {
+                    "date": "2018-12-17T14:42:43Z",
+                    "person": {
+                      "name": "alimy"
+                    }
+                  },
+                  "oid": "6137e193cdcba2725f16de84eaf0db2b769d9668",
+                  "subject": "remove redundant code that remove support gorilla/context (#427)"
+                },
+                {
+                  "author": {
+                    "date": "2018-12-08T20:40:53Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "d2b5d13b9260193b5a5649e9f47fda645bd2bd1d",
+                  "subject": "Update and rename stale to stale.yml (#425)"
+                },
+                {
+                  "author": {
+                    "date": "2018-12-07T16:41:48Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "419fd9fe2a07c30b927f0183d6a99408d187b812",
+                  "subject": "Add stalebot config (#424)"
+                },
+                {
+                  "author": {
+                    "date": "2018-12-07T15:48:26Z",
+                    "person": {
+                      "name": "Joe Wilner"
+                    }
+                  },
+                  "oid": "758eb64354aa27cda6c1b026822c788cc755f06f",
+                  "subject": "Improve subroute configuration propagation #422"
+                },
+                {
+                  "author": {
+                    "date": "2018-10-30T15:25:28Z",
+                    "person": {
+                      "name": "kanozec"
+                    }
+                  },
+                  "oid": "3d80bc801bb034e17cae38591335b3b1110f1c47",
+                  "subject": "Use subtests in mux_test.go (#415)"
+                },
+                {
+                  "author": {
+                    "date": "2018-10-24T02:08:00Z",
+                    "person": {
+                      "name": "trungnn"
+                    }
+                  },
+                  "oid": "521ea7b17d02faf8d3afea6737573942ceac59c5",
+                  "subject": "Use constant for 301 status code in regexp.go (#412)"
+                },
+                {
+                  "author": {
+                    "date": "2018-10-12T15:31:51Z",
+                    "person": {
+                      "name": "Kamil Kisiel"
+                    }
+                  },
+                  "oid": "deb579d6e030503f430978ee229008b9bc912d40",
+                  "subject": "README.md: Update site URL"
+                },
+                {
+                  "author": {
+                    "date": "2018-09-03T15:43:05Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "9e1f5955c0d22b55d9e20d6faa28589f83b2faca",
+                  "subject": "Always run on the latest stable Go version. (#402)"
+                },
+                {
+                  "author": {
+                    "date": "2018-09-02T22:36:45Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "cf6680bc62d81bcd52bbf1c991bfe8b7ec98e270",
+                  "subject": "Create release-drafter.yml (#399)"
+                },
+                {
+                  "author": {
+                    "date": "2018-09-02T22:22:40Z",
+                    "person": {
+                      "name": "Franklin Harding"
+                    }
+                  },
+                  "oid": "8771f97498c6be5fe95d2eb5fb882c18bbf7f361",
+                  "subject": "Drop support for Go < 1.7: remove gorilla/context (#391)"
+                },
+                {
+                  "author": {
+                    "date": "2018-08-30T14:23:24Z",
+                    "person": {
+                      "name": "Shalom Yerushalmy"
+                    }
+                  },
+                  "oid": "962c5bed0721b50f2ba42684e9600dfde174770f",
+                  "subject": "Add 1.11 to build in travis (#398)"
+                },
+                {
+                  "author": {
+                    "date": "2018-08-07T07:52:56Z",
+                    "person": {
+                      "name": "Kamil Kisiel"
+                    }
+                  },
+                  "oid": "e48e440e4c92e3251d812f8ce7858944dfa3331c",
+                  "subject": "Add test for multiple calls to Name()."
+                },
+                {
+                  "author": {
+                    "date": "2018-08-07T07:50:18Z",
+                    "person": {
+                      "name": "Kamil Kisiel"
+                    }
+                  },
+                  "oid": "815b8c6a2641cd336000b3fb159b5741d0dc0113",
+                  "subject": "Clarify behaviour of Name method if called multiple times."
+                },
+                {
+                  "author": {
+                    "date": "2018-06-05T21:15:56Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "cb4698366aa625048f3b815af6a0dea8aef9280a",
+                  "subject": "Update LICENSE & AUTHORS files. (#386)"
+                },
+                {
+                  "author": {
+                    "date": "2018-05-26T22:17:21Z",
+                    "person": {
+                      "name": "Jim Kalafut"
+                    }
+                  },
+                  "oid": "e0b5abaaae35242fa74372f26c24107711702a4e",
+                  "subject": "Initialize user map (#371)"
+                },
+                {
+                  "author": {
+                    "date": "2018-05-17T17:36:23Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "c85619274f5d55a67491010f883a91f568b3a9b0",
+                  "subject": "[deps] Add go.mod for versioned Go (#376)"
+                },
+                {
+                  "author": {
+                    "date": "2018-05-13T03:22:33Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf",
+                  "subject": "[docs] Improve docstrings for middleware, skipclean (#375)"
+                },
+                {
+                  "author": {
+                    "date": "2018-05-13T03:09:30Z",
+                    "person": {
+                      "name": "Sean Walberg"
+                    }
+                  },
+                  "oid": "fdeb7bc314fecece4e261b048f5fee1cb80208fe",
+                  "subject": "[docs] Doc fix for testing variables in path (#374)"
+                },
+                {
+                  "author": {
+                    "date": "2018-05-12T01:30:14Z",
+                    "person": {
+                      "name": "Franklin Harding"
+                    }
+                  },
+                  "oid": "5e55a4adb89fb64e8b13bbd302eeedac7a4ba5d8",
+                  "subject": "Add CORSMethodMiddleware (#366)"
+                },
+                {
+                  "author": {
+                    "date": "2018-05-01T03:11:36Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "ded0c29b24f96f46cf349e6701b099db601cf8ec",
+                  "subject": "Fix linter issues (docs) (#370)"
+                },
+                {
+                  "author": {
+                    "date": "2018-04-16T20:45:19Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "b57cb1605fd11ba2ecfa7f68992b4b9cc791934d",
+                  "subject": "[build] Update Go versions; add 1.10.x (#364)"
+                },
+                {
+                  "author": {
+                    "date": "2018-04-03T18:23:30Z",
+                    "person": {
+                      "name": "brandon-height"
+                    }
+                  },
+                  "oid": "94231ffd98496cbcb1c15b7bf2a9edfd5f852cd4",
+                  "subject": "Fix table-driven example documentation (#363)"
+                },
+                {
+                  "author": {
+                    "date": "2018-03-14T16:31:26Z",
+                    "person": {
+                      "name": "Johan Svensson"
+                    }
+                  },
+                  "oid": "4dbd923b0c9e99ff63ad54b0e9705ff92d3cdb06",
+                  "subject": "Make Use() variadic (#355)"
+                },
+                {
+                  "author": {
+                    "date": "2018-02-26T05:11:51Z",
+                    "person": {
+                      "name": "KimMachineGun"
+                    }
+                  },
+                  "oid": "07ba1fd60e210dc5cc6f86ec25dc9ecc7c95c295",
+                  "subject": "Modify http status code to variable in README (#350)"
+                },
+                {
+                  "author": {
+                    "date": "2018-02-25T16:08:54Z",
+                    "person": {
+                      "name": "KimMachineGun"
+                    }
+                  },
+                  "oid": "d284fd84214eaf533d13ee880d2ab978ef81d7a2",
+                  "subject": "Modify 403 status code to const variable (#349)"
+                },
+                {
+                  "author": {
+                    "date": "2018-01-20T07:58:19Z",
+                    "person": {
+                      "name": "Kamil Kisiel"
+                    }
+                  },
+                  "oid": "c0091a029979286890368b4c7b301261e448e242",
+                  "subject": "Create authentication middleware example. (#340)"
+                },
+                {
+                  "author": {
+                    "date": "2018-01-20T06:28:49Z",
+                    "person": {
+                      "name": "Franklin Harding"
+                    }
+                  },
+                  "oid": "0fdf828bb28a79b519024e2e29915e851b73e580",
+                  "subject": "[docs] Clarify SetURLVars (#335)"
+                },
+                {
+                  "author": {
+                    "date": "2018-01-20T04:51:41Z",
+                    "person": {
+                      "name": "Kamil Kisiel"
+                    }
+                  },
+                  "oid": "077b44c2cf82958550c79f5885ee64900cdcee22",
+                  "subject": "[docs] Document route.Get* methods consistently (#338)"
+                },
+                {
+                  "author": {
+                    "date": "2018-01-20T04:47:48Z",
+                    "person": {
+                      "name": "Kamil Kisiel"
+                    }
+                  },
+                  "oid": "dc835075986d1932ee5495f32e3631770715fd6c",
+                  "subject": "[docs] README.md: Improve \"walking routes\" example. (#337) (#323)"
+                },
+                {
+                  "author": {
+                    "date": "2018-01-20T04:20:16Z",
+                    "person": {
+                      "name": "safeoy"
+                    }
+                  },
+                  "oid": "3dbb9ed96e4b25ec143f9d484ad5695179f10d47",
+                  "subject": "README.md: add miss \"time\" (#336)"
+                },
+                {
+                  "author": {
+                    "date": "2018-01-18T17:53:57Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "ad8790881febb89da2b487073a57e079fa4aaa6f",
+                  "subject": "[docs] Fix doc.go (#333)"
+                },
+                {
+                  "author": {
+                    "date": "2018-01-17T07:16:36Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "69dae3b874ba34bcaa563d5e5b1680334bfd9b73",
+                  "subject": "[docs] Add testing example (#331)"
+                },
+                {
+                  "author": {
+                    "date": "2018-01-17T07:16:06Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "63c5c2f1f01d8151addc1b09edc9f39a8a217993",
+                  "subject": "[docs] Fix Middleware docs typos (#332)"
+                },
+                {
+                  "author": {
+                    "date": "2018-01-17T01:18:53Z",
+                    "person": {
+                      "name": "Kamil Kisiel"
+                    }
+                  },
+                  "oid": "85e6bfff1ae85ae9c2db46ea91ce093c0abca066",
+                  "subject": "Update doc.go: r.AddMiddleware(...) -> r.Use(...)"
+                },
+                {
+                  "author": {
+                    "date": "2018-01-16T22:43:47Z",
+                    "person": {
+                      "name": "Kush Mansingh"
+                    }
+                  },
+                  "oid": "0b74e3d0fe68bbe7c66e693df167074f7f527e86",
+                  "subject": "Make shutdown docs compilable (#330)"
+                },
+                {
+                  "author": {
+                    "date": "2018-01-16T17:23:47Z",
+                    "person": {
+                      "name": "Roberto Santalla"
+                    }
+                  },
+                  "oid": "53c1911da2b537f792e7cafcb446b05ffe33b996",
+                  "subject": "[feat] Add middleware support as discussed in #293 (#294)"
+                },
+                {
+                  "author": {
+                    "date": "2018-01-07T15:57:08Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "5bbbb5b2b5729b132181cc7f4aa3b3c973e9a0ed",
+                  "subject": "[docs] Add graceful shutdown example (#329)"
+                },
+                {
+                  "author": {
+                    "date": "2018-01-05T18:40:59Z",
+                    "person": {
+                      "name": "Kamil Kisiel"
+                    }
+                  },
+                  "oid": "512169e5d707b96d6306216743bb7884a2b3a3c9",
+                  "subject": "refactor routeRegexp, particularily newRouteRegexp. (#328)"
+                },
+                {
+                  "author": {
+                    "date": "2017-12-08T16:08:15Z",
+                    "person": {
+                      "name": "Zak Chitty"
+                    }
+                  },
+                  "oid": "5ab525f4fb1678e197ae59401e9050fa0b6cb5fd",
+                  "subject": "Public test API to set URL params (#322)"
+                },
+                {
+                  "author": {
+                    "date": "2017-12-04T16:11:14Z",
+                    "person": {
+                      "name": "Matthew"
+                    }
+                  },
+                  "oid": "7904d2e42e7ebbdb4a6eb3e57eb201b11df25c57",
+                  "subject": "[docs] Add example usage for Route.HeadersRegexp (#320)"
+                },
+                {
+                  "author": {
+                    "date": "2017-12-02T20:38:52Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "c572efe4294d5a0e354e01f2ddaa8b1f0c3cb3dd",
+                  "subject": "[docs] Note StrictSlash re-direct behaviour #308 (#321)"
+                },
+                {
+                  "author": {
+                    "date": "2017-11-29T00:00:09Z",
+                    "person": {
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "65ec7248c53f499f6b480655e019e0b9d7a6ce11",
+                  "subject": "Create ISSUE_TEMPLATE.md (#318)"
+                },
+                {
+                  "author": {
+                    "date": "2017-11-28T19:51:17Z",
+                    "person": {
+                      "name": "Matthew"
+                    }
+                  },
+                  "oid": "4a3d4f3dd2a7b32b26dc262a143440e75767f94d",
+                  "subject": "[bugfix] Fix method subrouter handler matching (#300) (#317)"
+                },
+                {
+                  "author": {
+                    "date": "2017-11-09T03:54:02Z",
+                    "person": {
+                      "name": "Chris Dostert"
+                    }
+                  },
+                  "oid": "2d5fef06b891c971b14aa6f71ca5ab6c03a36e0e",
+                  "subject": "[docs] fix outdated UseEncodedPath method docs (#314)"
+                }
+              ],
+              "pageInfo": {
+                "hasNextPage": false
+              }
+            },
+            "fileDiffs": {
+              "nodes": [
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": ".github/release-drafter.yml",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 8,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": ".github/stale.yml",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 12,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": ".travis.yml",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": ".travis.yml",
+                  "stat": {
+                    "added": 8,
+                    "deleted": 6
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "AUTHORS",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 8,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "ISSUE_TEMPLATE.md",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 11,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "LICENSE",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "LICENSE",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "README.md",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "README.md",
+                  "stat": {
+                    "added": 360,
+                    "deleted": 126
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "context.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "context_native.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 6
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "context_gorilla.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 26
+                  }
+                },
+                {
+                  "newFile": null,
+                  "newPath": null,
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "context_gorilla_test.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 40
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "context_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "context_native_test.go",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 2
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "doc.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "doc.go",
+                  "stat": {
+                    "added": 64,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "example_authentication_middleware_test.go",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 46,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "example_route_test.go",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 51,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "go.mod",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 1,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "middleware.go",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 72,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "middleware_test.go",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 437,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "mux.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "mux.go",
+                  "stat": {
+                    "added": 87,
+                    "deleted": 61
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "mux_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "mux_test.go",
+                  "stat": {
+                    "added": 877,
+                    "deleted": 67
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "old_test.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "old_test.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "regexp.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "regexp.go",
+                  "stat": {
+                    "added": 45,
+                    "deleted": 43
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "route.go",
+                  "oldFile": {
+                    "binary": false
+                  },
+                  "oldPath": "route.go",
+                  "stat": {
+                    "added": 65,
+                    "deleted": 110
+                  }
+                },
+                {
+                  "newFile": {
+                    "binary": false
+                  },
+                  "newPath": "test_helpers.go",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 19,
+                    "deleted": 0
+                  }
+                }
+              ]
+            },
+            "range": {
+              "base": {
+                "object": {
+                  "oid": "7f08801859139f86dfafd1c296e2cba9a80d292e"
+                }
+              },
+              "head": {
+                "object": {
+                  "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+                }
+              }
+            },
+            "totals": {
+              "diffStat": {
+                "added": 2173,
+                "deleted": 489
+              },
+              "totalCount": 23
+            }
+          }
+        },
+        "refs": {
+          "base": {
+            "oid": "7f08801859139f86dfafd1c296e2cba9a80d292e"
+          },
+          "count": {
+            "behindAhead": {
+              "ahead": 50,
+              "behind": 0
+            }
+          },
+          "head": {
+            "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+          },
+          "name": "github.com/gorilla/mux"
+        }
+      }
+    }
+  }
+}

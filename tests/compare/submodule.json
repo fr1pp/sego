@@ -1,0 +1,67 @@
+{
+  "request": {
+    "query": "query CompareCommit(\n  $repo: String!, $rev: String!, $paths: [String!], $files: Int!\n) {\n  commit: repository(name: $repo) {\n    name\n    commit(rev: $rev) {\n      oid message author { person { name } date }\n      parents {\n        oid\n      }\n    }\n  }\n  diff: repository(name: $repo) {\n    commit(rev: $rev) { diff {\n      totals: fileDiffs(first: 0, paths: $paths) {\n        totalCount diffStat { added deleted }\n      }\n      fileDiffs(first: $files, paths: $paths) {\n        nodes {\n          oldPath newPath stat { added deleted }\n          oldFile { binary } newFile { binary }\n        }\n      }\n    } }\n  }\n}\n",
+    "variables": {
+      "files": 200,
+      "paths": null,
+      "repo": "github.com/rust-lang/rust",
+      "rev": "4b0bbb5bd087"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "commit": {
+          "commit": {
+            "author": {
+              "date": "2026-09-29T22:15:03Z",
+              "person": {
+                "name": "Weihang Lo"
+              }
+            },
+            "message": "Update cargo submodule",
+            "oid": "4b0bbb5bd0876e5c0dc77a0b75f8813c2468c6a4",
+            "parents": [
+              {
+                "oid": "4853db6f65c9edf8e52fdf3f4eb711d188d15fc6"
+              }
+            ]
+          },
+          "name": "github.com/rust-lang/rust"
+        },
+        "diff": {
+          "commit": {
+            "diff": {
+              "fileDiffs": {
+                "nodes": [
+                  {
+                    "newFile": {
+                      "binary": false
+                    },
+                    "newPath": "src/tools/cargo",
+                    "oldFile": {
+                      "binary": false
+                    },
+                    "oldPath": "src/tools/cargo",
+                    "stat": {
+                      "added": 1,
+                      "deleted": 1
+                    }
+                  }
+                ]
+              },
+              "totals": {
+                "diffStat": {
+                  "added": 1,
+                  "deleted": 1
+                },
+                "totalCount": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
