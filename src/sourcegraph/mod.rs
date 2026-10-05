@@ -51,8 +51,9 @@ pub enum FetchError {
     Transport {
         url: String,
         cause: String,
-        /// The request ran out of time: `GLOBAL_TIMEOUT`, or the connect
-        /// timeout.
+        /// `GLOBAL_TIMEOUT` ran out while sego waited for the upstream. A
+        /// connect timeout is not one: it says nothing of how long the
+        /// upstream takes to answer.
         #[cfg_attr(
             not(test),
             expect(dead_code, reason = "only the tests read it")

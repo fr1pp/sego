@@ -34,20 +34,21 @@ impl Transport {
         if !valid {
             return Err(InvalidEndpoint::NotHttp(endpoint.to_owned()));
         }
-        let agent = agent(GLOBAL_TIMEOUT);
+        let agent = agent(CONNECT_TIMEOUT, GLOBAL_TIMEOUT);
         let url = format!("{}/.api/graphql", endpoint.trim_end_matches('/'));
         Ok(Transport { url, agent })
     }
 
-    /// A transport whose requests may take `timeout` instead of
-    /// `GLOBAL_TIMEOUT`.
+    /// A transport with `connect` and `global` in place of
+    /// `CONNECT_TIMEOUT` and `GLOBAL_TIMEOUT`.
     #[cfg(test)]
-    fn with_timeout(
+    fn with_timeouts(
         endpoint: &str,
-        timeout: Duration,
+        connect: Duration,
+        global: Duration,
     ) -> Result<Transport, InvalidEndpoint> {
         let url = Transport::new(endpoint)?.url;
-        Ok(Transport { url, agent: agent(timeout) })
+        Ok(Transport { url, agent: agent(connect, global) })
     }
 
     #[cfg(test)]
@@ -87,7 +88,10 @@ impl Transport {
             }
             Err(Failure::Transport(error)) => Err(FetchError::Transport {
                 url: self.url.clone(),
-                timed_out: matches!(error, ureq::Error::Timeout(_)),
+                timed_out: matches!(
+                    error,
+                    ureq::Error::Timeout(ureq::Timeout::Global)
+                ),
                 cause: match error {
                     // io::Error's own text, without ureq's `io: ` prefix.
                     ureq::Error::Io(error) => error.to_string(),
@@ -133,14 +137,14 @@ impl Transport {
     }
 }
 
-/// An agent whose requests may take `timeout`, from connecting to the end
-/// of the body.
-fn agent(timeout: Duration) -> Agent {
+/// An agent whose requests may take `connect` to connect and `global` from
+/// connecting to the end of the body.
+fn agent(connect: Duration, global: Duration) -> Agent {
     Agent::config_builder()
         .http_status_as_error(false)
         .max_redirects(0)
-        .timeout_connect(Some(CONNECT_TIMEOUT))
-        .timeout_global(Some(timeout))
+        .timeout_connect(Some(connect))
+        .timeout_global(Some(global))
         .user_agent(concat!("sego/", env!("CARGO_PKG_VERSION")))
         .build()
         .new_agent()
@@ -217,7 +221,7 @@ impl Diagnostic for InvalidEndpoint {
 #[cfg(test)]
 mod tests {
     use std::io;
-    use std::net::TcpListener;
+    use std::net::{SocketAddr, TcpListener, TcpStream};
 
     use expect_test::expect;
 
@@ -303,32 +307,64 @@ mod tests {
         );
     }
 
-    /// Whether fetching from `endpoint` within `timeout` failed by timing
-    /// out.
-    fn timed_out(endpoint: &str, timeout: Duration) -> bool {
-        let transport = Transport::with_timeout(endpoint, timeout).unwrap();
+    /// The failure of a fetch from `address` with `connect` and `global`
+    /// timeouts: whether it is marked as timed out, and its cause.
+    fn failure(
+        address: SocketAddr,
+        connect: Duration,
+        global: Duration,
+    ) -> (bool, String) {
+        let endpoint = format!("http://{address}");
+        let transport =
+            Transport::with_timeouts(&endpoint, connect, global).unwrap();
         let plan = Plan { query: "{x}", variables: serde_json::json!({}) };
         match transport.fetch(&plan) {
-            Err(FetchError::Transport { timed_out, .. }) => timed_out,
+            Err(FetchError::Transport { timed_out, cause, .. }) => {
+                (timed_out, cause)
+            }
             other => panic!("{other:?}"),
         }
     }
 
     #[test]
     fn a_timeout_is_marked() {
+        let short = Duration::from_millis(200);
+        let long = Duration::from_secs(10);
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-        let endpoint = format!("http://{}", listener.local_addr().unwrap());
+        let address = listener.local_addr().unwrap();
         // Holds the connection, reading until sego closes it.
         let server = thread::spawn(move || {
             let (mut stream, _) = listener.accept().unwrap();
             let _ = io::copy(&mut stream, &mut io::sink());
         });
-        assert!(timed_out(&endpoint, Duration::from_millis(200)));
+        assert_eq!(
+            failure(address, long, short),
+            (true, "timeout: global".to_owned())
+        );
         server.join().unwrap();
         let closed = TcpListener::bind("127.0.0.1:0").unwrap();
-        let endpoint = format!("http://{}", closed.local_addr().unwrap());
+        let address = closed.local_addr().unwrap();
         drop(closed);
-        assert!(!timed_out(&endpoint, Duration::from_millis(200)));
+        assert!(!failure(address, long, short).0);
+    }
+
+    #[test]
+    fn a_connect_timeout_is_not_marked() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        // Connections nobody accepts fill the listener's queue, after which
+        // the kernel drops new connection attempts unanswered.
+        let mut queued = Vec::new();
+        while let Ok(stream) =
+            TcpStream::connect_timeout(&address, Duration::from_millis(50))
+        {
+            queued.push(stream);
+        }
+        let connect = Duration::from_millis(100);
+        assert_eq!(
+            failure(address, connect, Duration::from_secs(10)),
+            (false, "timeout: connect".to_owned())
+        );
     }
 
     #[test]
