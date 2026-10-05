@@ -8,7 +8,7 @@ use crate::domain::File;
 use crate::escape::{command_line, content_line};
 use crate::render::json::{Partial, document};
 use crate::render::text::{
-    Marker, address_line, hint, notice, numbered, path_word,
+    Marker, address_line, hint, notice, numbered_up_to, path_word,
 };
 use crate::sourcegraph::Fetch;
 use crate::sourcegraph::blob::{self, ReadRequest};
@@ -185,13 +185,18 @@ pub(super) fn file_line(
     address_line(&words, &meta)
 }
 
-/// `lines`, numbered from `start`, each cut as a content line.
-pub(super) fn numbered_lines(start: u32, lines: &[String]) -> String {
+/// `lines`, numbered from `start` in a column as wide as `largest` needs,
+/// each cut as a content line.
+pub(super) fn numbered_lines(
+    start: u32,
+    lines: &[String],
+    largest: u32,
+) -> String {
     let lines: Vec<_> = (start..)
         .zip(lines)
         .map(|(n, line)| (n, Marker::Match, content_line(line, None)))
         .collect();
-    numbered(&lines)
+    numbered_up_to(largest, &lines)
 }
 
 /// `lines`, numbered from `start`, whole.
@@ -217,7 +222,8 @@ impl Present for Read {
             file.byte_size,
             file.total_lines,
         );
-        text.push_str(&numbered_lines(file.start, &file.lines));
+        let largest = self.end().unwrap_or(0);
+        text.push_str(&numbered_lines(file.start, &file.lines, largest));
         if let Some(Partial { reason, hints }) = self.partial() {
             text.push_str(&notice(&reason));
             for command in hints {

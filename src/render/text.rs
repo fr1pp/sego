@@ -43,6 +43,15 @@ pub enum Marker {
 /// already be a content line. `--` separates numbers that aren't adjacent.
 pub fn numbered(lines: &[(u32, Marker, String)]) -> String {
     let largest = lines.iter().map(|&(n, ..)| n).max().unwrap_or(0);
+    numbered_up_to(largest, lines)
+}
+
+/// `numbered`, with the column as wide as `largest` needs, so that lines
+/// numbered in separate blocks of one answer align.
+pub fn numbered_up_to(
+    largest: u32,
+    lines: &[(u32, Marker, String)],
+) -> String {
     let width = largest.to_string().len().max(4);
     let mut text = String::new();
     let mut previous = None;

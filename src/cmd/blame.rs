@@ -193,7 +193,9 @@ impl Present for Blame {
             text.push('\n');
             text.push_str(&hunk_line(blame, hunk));
             if let Some(lines) = self.lines(hunk) {
-                text.push_str(&numbered_lines(hunk.start, lines));
+                // One column width for every hunk: the last line shown is
+                // the largest number.
+                text.push_str(&numbered_lines(hunk.start, lines, blame.end));
             }
         }
         if let Some(Partial { reason, .. }) = self.partial() {
@@ -280,6 +282,8 @@ struct AuthorJson<'a> {
 mod tests {
     use std::ffi::OsString;
 
+    use expect_test::expect;
+
     use super::*;
     use crate::address::{CommitId, RepoName};
     use crate::args;
@@ -294,22 +298,28 @@ mod tests {
         }
     }
 
-    /// A blame of `path`, lines 1 to `lines.len()`, in one hunk whose path
-    /// at its commit is `hunk_path`.
-    fn blame(path: &str, hunk_path: &str, lines: Vec<String>) -> Blame {
-        let end = u32::try_from(lines.len()).unwrap();
-        let hunk = Hunk {
-            start: 1,
+    /// Lines `start` to `end` of `path`, as the commit of `digit`s left
+    /// them.
+    fn hunk(start: u32, end: u32, digit: &str, path: &str) -> Hunk {
+        Hunk {
+            start,
             end,
-            commit: at("b").commit,
-            path: hunk_path.to_owned(),
+            commit: at(digit).commit,
+            path: path.to_owned(),
             date: "2012-10-03T04:48:17Z".to_owned(),
             author: Author {
                 name: "moraes".to_owned(),
                 email: "moraes@noreply.sourcegraph.com".to_owned(),
             },
             subject: "Initial files.".to_owned(),
-        };
+        }
+    }
+
+    /// A blame of `path`, lines 1 to `lines.len()`, in one hunk whose path
+    /// at its commit is `hunk_path`.
+    fn blame(path: &str, hunk_path: &str, lines: Vec<String>) -> Blame {
+        let end = u32::try_from(lines.len()).unwrap();
+        let hunk = hunk(1, end, "b", hunk_path);
         Blame {
             blame: domain::Blame {
                 at: at("a"),
@@ -341,6 +351,29 @@ mod tests {
         assert_eq!(request.address.rev_or_head(), "bbbbbbbbbbbb");
         assert_eq!(request.path.upstream(), "--x.go");
         assert_eq!((request.start, request.end), (1, Some(2)));
+    }
+
+    #[test]
+    fn every_numbered_line_of_an_answer_aligns() {
+        let lines = ["a", "b", "c", "d"].map(str::to_owned).to_vec();
+        let mut blame = blame("x.go", "x.go", lines);
+        let answer = &mut blame.blame;
+        (answer.start, answer.end, answer.total_lines) = (9998, 10001, 10001);
+        answer.hunks = vec![
+            hunk(9998, 9999, "b", "x.go"),
+            hunk(10000, 10001, "c", "x.go"),
+        ];
+        expect![[r#"
+            github.com/gorilla/mux@aaaaaaaaaaaa x.go 9998-10001 • 10001 lines
+
+            github.com/gorilla/mux@bbbbbbbbbbbb x.go 9998-9999 • 2012-10-03 • moraes • Initial files.
+             9998: a
+             9999: b
+
+            github.com/gorilla/mux@cccccccccccc x.go 10000-10001 • 2012-10-03 • moraes • Initial files.
+            10000: c
+            10001: d
+        "#]].assert_eq(&blame.text());
     }
 
     #[test]
