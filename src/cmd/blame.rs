@@ -7,7 +7,7 @@ use crate::args::Cli;
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::domain::{self, Hunk};
 use crate::render::json::{Partial, document};
-use crate::render::text::{address_line, notice, path_word};
+use crate::render::text::{address_line, day, notice, path_word};
 use crate::sourcegraph::Fetch;
 use crate::sourcegraph::blame::{self, BlameRequest};
 use crate::sourcegraph::envelope::decode;
@@ -169,10 +169,9 @@ fn hunk_line(blame: &domain::Blame, hunk: &Hunk) -> String {
     let address = at.to_string();
     let path = path_word(&hunk.path);
     let range = LineRange { start: hunk.start, end: Some(hunk.end) };
-    let day = hunk.date.get(..10).unwrap_or(&hunk.date);
     let meta = [
         format!("lines {range}"),
-        day.to_owned(),
+        day(&hunk.date).to_owned(),
         hunk.author.name.clone(),
         hunk.subject.clone(),
     ];

@@ -31,6 +31,11 @@ pub fn path_word(path: &str) -> Cow<'_, str> {
     }
 }
 
+/// The day of `date`, an ISO 8601 timestamp as the upstream gives it.
+pub fn day(date: &str) -> &str {
+    date.get(..10).unwrap_or(date)
+}
+
 /// How a numbered line relates to the question: grep's `:` and `-`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Marker {

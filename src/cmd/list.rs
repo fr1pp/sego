@@ -172,14 +172,19 @@ fn target(url: &str, pinned: Option<&Pinned>) -> String {
     }
 }
 
+/// An entry line: `path` as a word, with a leading `/` when it starts with
+/// `-`, then `meta`.
+pub(super) fn path_line(path: &str, meta: &[String]) -> String {
+    address_line(&[&path_word(path)], meta)
+}
+
 fn entry_line(Entry { path, kind }: &Entry) -> String {
-    let path = path_word(path);
     match kind {
-        EntryKind::Directory => address_line(&[&format!("{path}/")], &[]),
-        EntryKind::File => address_line(&[&path], &[]),
+        EntryKind::Directory => path_line(&format!("{path}/"), &[]),
+        EntryKind::File => path_line(path, &[]),
         EntryKind::Submodule { url, target: pinned } => {
             let meta = format!("submodule {}", target(url, pinned.as_ref()));
-            address_line(&[&path], &[meta])
+            path_line(path, &[meta])
         }
     }
 }

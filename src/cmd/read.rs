@@ -155,7 +155,7 @@ impl Read {
 }
 
 /// `n` and `unit`, plural unless `n` is 1.
-fn count(n: u64, unit: &str) -> String {
+pub(super) fn count(n: u64, unit: &str) -> String {
     match n {
         1 => format!("1 {unit}"),
         n => format!("{n} {unit}s"),
