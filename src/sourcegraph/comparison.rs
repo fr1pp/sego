@@ -1464,11 +1464,15 @@ mod tests {
     fn missing_sides() {
         let mut both = envelope!("missing-base");
         data(&mut both)["refs"]["head"] = serde_json::Value::Null;
+        let mut unknown = envelope!("commit");
+        data(&mut unknown)["commit"]["commit"] = serde_json::Value::Null;
+        data(&mut unknown)["diff"]["commit"] = serde_json::Value::Null;
         let mut text = String::new();
         for result in [
             compare!("missing-base"),
             compare!("missing-head"),
             answer(&case("missing-base"), both),
+            answer(&case("commit"), unknown),
             compare!("missing-repo"),
         ] {
             text.push_str(&failure(result));
@@ -1483,6 +1487,9 @@ mod tests {
             hint: sego list github.com/gorilla/mux
             [revision_not_found AnsweredNo]
             revisions v9.9.9 and v1.8.0 not found in github.com/gorilla/mux
+            hint: sego list github.com/gorilla/mux
+            [revision_not_found AnsweredNo]
+            revision 98cb6bf42e08 not found in github.com/gorilla/mux
             hint: sego list github.com/gorilla/mux
             [repo_not_found AnsweredNo]
             repository github.com/gorilla/doesnotexist not found
