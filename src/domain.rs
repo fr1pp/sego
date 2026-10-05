@@ -255,9 +255,24 @@ impl LinesCommand {
     }
 }
 
+/// The revision of a range a `RevisionNotFound` is about.
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "used by compare in a later task")
+)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Side {
+    Base,
+    Head,
+    Both,
+}
+
 /// A definitive answer that the thing asked for isn't there. Names and
 /// paths are as the upstream returned them, or as the caller sent them.
-/// An `OutOfRange` carries the command whose range it was, for its hint.
+/// A `RevisionNotFound` has a side only when its revision is from a range,
+/// and for `Both`, `rev` is `base...head`. An `OutOfRange` carries the
+/// command whose range it was, for its hint. A `NoParent` is a root commit
+/// asked to be compared with its parent.
 #[derive(Debug)]
 pub enum Unavailable {
     RepoNotFound {
@@ -266,6 +281,7 @@ pub enum Unavailable {
     RevisionNotFound {
         repo: String,
         rev: String,
+        side: Option<Side>,
     },
     PathNotFound {
         at: Pinned,
@@ -291,5 +307,12 @@ pub enum Unavailable {
         start: u32,
         total_lines: u32,
         command: LinesCommand,
+    },
+    #[cfg_attr(
+        not(test),
+        expect(dead_code, reason = "used by compare in a later task")
+    )]
+    NoParent {
+        at: Pinned,
     },
 }

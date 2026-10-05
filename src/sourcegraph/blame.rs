@@ -164,7 +164,12 @@ pub fn answer(
     };
     let Some(Commit { oid, node, lines, blame, body }) = commit else {
         let rev = request.address.rev_or_head().to_owned();
-        return Err(Unavailable::RevisionNotFound { repo: name, rev }.into());
+        return Err(Unavailable::RevisionNotFound {
+            repo: name,
+            rev,
+            side: None,
+        }
+        .into());
     };
     let repo =
         RepoName::parse(&name).map_err(|error| drift(error.to_string()))?;

@@ -449,7 +449,12 @@ fn classify(
         }
         Some((vocabulary::ALERT_MISSING_REVISION, Some(description))) => {
             if let Some((repo, rev)) = missing_revision(description) {
-                return Err(Unavailable::RevisionNotFound { repo, rev }.into());
+                return Err(Unavailable::RevisionNotFound {
+                    repo,
+                    rev,
+                    side: None,
+                }
+                .into());
             }
         }
         _ => {}

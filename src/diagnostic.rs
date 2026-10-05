@@ -1,7 +1,7 @@
 use std::fmt::{self, Display, Write as _};
 
 use crate::address::LineRange;
-use crate::domain::{NotAFile, Unavailable};
+use crate::domain::{NotAFile, Side, Unavailable};
 use crate::escape::{command_line, sanitise, shell_word};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -80,12 +80,33 @@ impl fmt::Display for Unavailable {
             Unavailable::RepoNotFound { repo } => {
                 write!(f, "repository {} not found", shell_word(repo))
             }
-            Unavailable::RevisionNotFound { repo, rev } => write!(
-                f,
-                "revision {} not found in {}",
-                shell_word(rev),
-                shell_word(repo)
-            ),
+            Unavailable::RevisionNotFound { repo, rev, side } => {
+                let repo = shell_word(repo);
+                let both = rev.split_once("...");
+                match (side, both) {
+                    (Some(Side::Both), Some((base, head))) => write!(
+                        f,
+                        "revisions {} and {} not found in {repo}",
+                        shell_word(base),
+                        shell_word(head)
+                    ),
+                    (None | Some(Side::Both), _) => write!(
+                        f,
+                        "revision {} not found in {repo}",
+                        shell_word(rev)
+                    ),
+                    (Some(Side::Base), _) => write!(
+                        f,
+                        "base revision {} not found in {repo}",
+                        shell_word(rev)
+                    ),
+                    (Some(Side::Head), _) => write!(
+                        f,
+                        "head revision {} not found in {repo}",
+                        shell_word(rev)
+                    ),
+                }
+            }
             Unavailable::PathNotFound { at, path } => {
                 write!(f, "{} not found in {}", shell_word(path), at.word())
             }
@@ -122,6 +143,11 @@ impl fmt::Display for Unavailable {
                     at.word()
                 )
             }
+            Unavailable::NoParent { at } => write!(
+                f,
+                "{} is a root commit, with no parent to compare with",
+                at.word()
+            ),
         }
     }
 }
@@ -136,6 +162,7 @@ impl Diagnostic for Unavailable {
             Unavailable::NotADirectory { .. } => "not_a_directory",
             Unavailable::TooLarge { .. } => "too_large",
             Unavailable::OutOfRange { .. } => "out_of_range",
+            Unavailable::NoParent { .. } => "no_parent",
         }
     }
 
@@ -187,6 +214,9 @@ impl Diagnostic for Unavailable {
                     &[&at.to_string(), path, &lines.to_string()],
                 )
             }
+            Unavailable::NoParent { at } => {
+                command_line(&list, &[&at.to_string()])
+            }
         };
         vec![hint]
     }
@@ -200,7 +230,7 @@ mod tests {
 
     use super::*;
     use crate::address::{CommitId, Pinned, RepoName};
-    use crate::domain::LinesCommand;
+    use crate::domain::{LinesCommand, Side};
 
     struct Sample {
         outcome: Outcome,
@@ -351,6 +381,7 @@ mod tests {
             Unavailable::RevisionNotFound {
                 repo: "github.com/gorilla/mux".into(),
                 rev: "it's".into(),
+                side: None,
             },
             Unavailable::PathNotFound { at: at(), path: path("nope.go") },
             Unavailable::PathNotFound { at: at(), path: path("a b/c/d.go") },
@@ -431,6 +462,64 @@ mod tests {
             [out_of_range]
             empty in github.com/gorilla/mux@a7962380ca08 has 0 lines, so line 2 is past its end
         "#]].assert_eq(&text);
+    }
+
+    #[test]
+    fn revision_errors_name_the_side() {
+        let not_found = |side, rev: &str| Unavailable::RevisionNotFound {
+            repo: "github.com/gorilla/mux".into(),
+            rev: rev.into(),
+            side,
+        };
+        let all = [
+            not_found(None, "it's"),
+            not_found(Some(Side::Base), "v0"),
+            not_found(Some(Side::Head), "it's"),
+            not_found(Some(Side::Both), "v0...it's"),
+        ];
+        let mut text = String::new();
+        for unavailable in &all {
+            assert_eq!(unavailable.outcome(), Outcome::AnsweredNo);
+            let _ = writeln!(text, "[{}]", unavailable.code());
+            text.push_str(&report(unavailable));
+        }
+        expect![[r#"
+            [revision_not_found]
+            revision 'it'\''s' not found in github.com/gorilla/mux
+            hint: sego list github.com/gorilla/mux
+            [revision_not_found]
+            base revision v0 not found in github.com/gorilla/mux
+            hint: sego list github.com/gorilla/mux
+            [revision_not_found]
+            head revision 'it'\''s' not found in github.com/gorilla/mux
+            hint: sego list github.com/gorilla/mux
+            [revision_not_found]
+            revisions v0 and 'it'\''s' not found in github.com/gorilla/mux
+            hint: sego list github.com/gorilla/mux
+        "#]]
+        .assert_eq(&text);
+    }
+
+    #[test]
+    fn no_parent_hints_list() {
+        let no_parent = Unavailable::NoParent {
+            at: Pinned {
+                repo: RepoName::parse("github.com/gorilla/mux").unwrap(),
+                commit: CommitId(
+                    "a7962380ca08b5a188038c69871b8d3fbdf31e89".into(),
+                ),
+            },
+        };
+        assert_eq!(no_parent.outcome(), Outcome::AnsweredNo);
+        expect![[r#"
+            [no_parent]
+            github.com/gorilla/mux@a7962380ca08 is a root commit, with no parent to compare with
+            hint: sego list github.com/gorilla/mux@a7962380ca08
+        "#]].assert_eq(&format!(
+            "[{}]\n{}",
+            no_parent.code(),
+            report(&no_parent)
+        ));
     }
 
     #[test]

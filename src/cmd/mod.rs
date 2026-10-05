@@ -299,8 +299,8 @@ mod tests {
     use crate::domain::{
         self, Alert, Author, CommitHit, CutShort, Entry, EntryKind, File,
         FileHit, Filter, Hit, Hunk, Line, LinesCommand, Listing, NotAFile,
-        RepoHit, SearchReport, Skipped, Span, Submodule, Symbol, Term, Tree,
-        Unavailable,
+        RepoHit, SearchReport, Side, Skipped, Span, Submodule, Symbol, Term,
+        Tree, Unavailable,
     };
     use crate::escape::{CORPUS, is_unsafe};
     use crate::output::Output;
@@ -320,6 +320,7 @@ mod tests {
         ("not_a_directory", 1),
         ("too_large", 1),
         ("out_of_range", 1),
+        ("no_parent", 1),
         ("usage", 2),
         ("bad_query", 2),
         ("incomplete", 3),
@@ -629,6 +630,22 @@ mod tests {
                 Unavailable::RevisionNotFound {
                     repo: "github.com/gorilla/mux".into(),
                     rev: path(),
+                    side: None,
+                },
+                Unavailable::RevisionNotFound {
+                    repo: "github.com/gorilla/mux".into(),
+                    rev: path(),
+                    side: Some(Side::Base),
+                },
+                Unavailable::RevisionNotFound {
+                    repo: "github.com/gorilla/mux".into(),
+                    rev: path(),
+                    side: Some(Side::Head),
+                },
+                Unavailable::RevisionNotFound {
+                    repo: "github.com/gorilla/mux".into(),
+                    rev: format!("{word}...{word}"),
+                    side: Some(Side::Both),
                 },
                 Unavailable::PathNotFound { at: at(), path: path() },
                 Unavailable::PathNotFound {
@@ -672,6 +689,7 @@ mod tests {
                     total_lines: 601,
                     command: LinesCommand::Blame,
                 },
+                Unavailable::NoParent { at: at() },
             ]);
         }
         all
@@ -758,6 +776,7 @@ mod tests {
             NotADirectory,
             TooLarge,
             OutOfRange,
+            NoParent,
         }
     );
 
@@ -1042,6 +1061,7 @@ mod tests {
         ("not_a_directory", "read"),
         ("out_of_range", "read"),
         ("out_of_range", "blame"),
+        ("no_parent", "list"),
         ("bad_query", "search"),
         ("incomplete", "search"),
         ("file", "read"),
@@ -1124,6 +1144,7 @@ mod tests {
         "not_a_directory",
         "too_large",
         "out_of_range",
+        "no_parent",
         "bad_query",
         "incomplete",
     ];
