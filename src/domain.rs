@@ -232,6 +232,127 @@ pub struct SearchReport {
     pub hits: Vec<Hit>,
 }
 
+/// What changed from `base` to `head`, or in the single commit `head`
+/// against its first parent, when `base` is `None` and `commit` is set. The
+/// diff is from the merge base; `behind` counts the commits on `base` that
+/// aren't on `head`. `commits`, newest first, and `files`, in path byte
+/// order, are cut at their caps; the totals are exact. With a `path`, every
+/// list is narrowed to it, and a file's `hunks` are given.
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "used by compare in a later task")
+)]
+#[derive(Debug)]
+pub struct Comparison {
+    pub repo: RepoName,
+    pub base: Option<CommitId>,
+    pub head: CommitId,
+    pub commit: Option<CommitDetail>,
+    pub behind: u32,
+    pub commits: Vec<CommitSummary>,
+    pub commit_count: CommitCount,
+    pub files_changed: u32,
+    pub added: u32,
+    pub deleted: u32,
+    pub files: Vec<FileChange>,
+    pub files_truncated: bool,
+    pub path: Option<String>,
+    pub path_is_file: bool,
+    pub hunks: Vec<DiffHunk>,
+}
+
+/// A single commit: its author date as the upstream gives it, and its whole
+/// message, line endings `\n`. The first parent is the one diffed against.
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "used by compare in a later task")
+)]
+#[derive(Debug)]
+pub struct CommitDetail {
+    pub date: String,
+    pub author: String,
+    pub message: String,
+    pub parents: Vec<CommitId>,
+}
+
+/// A commit in a comparison's list. `date` is the author date as the
+/// upstream gives it; `subject` is the message's first line.
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "used by compare in a later task")
+)]
+#[derive(Debug)]
+pub struct CommitSummary {
+    pub commit: CommitId,
+    pub date: String,
+    pub author: String,
+    pub subject: String,
+}
+
+/// How many commits a comparison has. A list narrowed to a path and cut at
+/// its cap has no exact count.
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "used by compare in a later task")
+)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CommitCount {
+    Exact(u32),
+    MoreThan(u32),
+}
+
+/// A changed file. `path` is its new path, or its old one for a deletion;
+/// `old_path` is set only for a rename. A binary file counts no lines.
+/// `readable_at` is a commit that holds the file as `path` names it, if the
+/// comparison gives one.
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "used by compare in a later task")
+)]
+#[derive(Debug)]
+pub struct FileChange {
+    pub path: String,
+    pub old_path: Option<String>,
+    pub status: FileStatus,
+    pub binary: bool,
+    pub added: u32,
+    pub deleted: u32,
+    pub readable_at: Option<CommitId>,
+}
+
+/// A mode-only change and a submodule bump are `Modified`.
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "used by compare in a later task")
+)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FileStatus {
+    Added,
+    Deleted,
+    Renamed,
+    Modified,
+}
+
+/// A unified-diff hunk: its `@@` ranges, git's function context as
+/// `section`, and its lines, each with its ` `, `+` or `-` prefix. The
+/// no-newline flags say the old or new side's last line has no newline at
+/// the end of the file.
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "used by compare in a later task")
+)]
+#[derive(Debug)]
+pub struct DiffHunk {
+    pub old_start: u32,
+    pub old_lines: u32,
+    pub new_start: u32,
+    pub new_lines: u32,
+    pub section: Option<String>,
+    pub lines: Vec<String>,
+    pub no_newline_old: bool,
+    pub no_newline_new: bool,
+}
+
 /// What a path is when a file was asked for.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NotAFile {
