@@ -3,6 +3,7 @@
 #[macro_use]
 mod command;
 mod blame;
+mod compare;
 mod list;
 mod live;
 mod read;

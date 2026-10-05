@@ -54,3 +54,15 @@ fn search_live() {
     let run = run.run();
     assert_eq!(run.code, 0, "{}", run.transcript());
 }
+
+#[test]
+#[ignore = "network: run by just live"]
+fn compare_live() {
+    let run = live().args([
+        "compare",
+        "github.com/gorilla/mux@v1.7.0...v1.8.0",
+        "mux.go",
+    ]);
+    let run = run.run();
+    assert_eq!(run.code, 0, "{}", run.transcript());
+}
