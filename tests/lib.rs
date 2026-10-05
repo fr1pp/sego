@@ -66,10 +66,11 @@ fn help() {
         Sourcegraph's GraphQL API.
 
         Usage:
-          sego search [--json] <query>...
-          sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]
-          sego read   [--json] <repo>[@<rev>] <path> [<lines>]
-          sego blame  [--json] <repo>[@<rev>] <path> <lines>
+          sego search  [--json] <query>...
+          sego list    [--json] [--depth N] <repo>[@<rev>] [<path>]
+          sego read    [--json] <repo>[@<rev>] <path> [<lines>]
+          sego blame   [--json] <repo>[@<rev>] <path> <lines>
+          sego compare [--json] <repo>@[<base>...]<head> [<path>]
           sego <command> --help
 
         Commands:
@@ -77,6 +78,7 @@ fn help() {
           list     what is here? The entries of a directory
           read     what does it say? The lines of a file
           blame    why, and when? The commits that last changed a file's lines
+          compare  what changed? The commits and files changed in a range or a commit
 
         Options:
           --json       write the outcome as one JSON document on stdout
@@ -124,11 +126,12 @@ fn no_command() {
         --- stdout
         [EOF]
         --- stderr
-        error: missing command; expected search, list, read or blame
-        usage: sego search [--json] <query>...
-               sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]
-               sego read   [--json] <repo>[@<rev>] <path> [<lines>]
-               sego blame  [--json] <repo>[@<rev>] <path> <lines>
+        error: missing command; expected search, list, read, blame or compare
+        usage: sego search  [--json] <query>...
+               sego list    [--json] [--depth N] <repo>[@<rev>] [<path>]
+               sego read    [--json] <repo>[@<rev>] <path> [<lines>]
+               sego blame   [--json] <repo>[@<rev>] <path> <lines>
+               sego compare [--json] <repo>@[<base>...]<head> [<path>]
         [EOF]
     "#]]
     );
@@ -144,10 +147,11 @@ fn unknown_command_shows_every_synopsis() {
         [EOF]
         --- stderr
         error: unknown command serch
-        usage: sego search [--json] <query>...
-               sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]
-               sego read   [--json] <repo>[@<rev>] <path> [<lines>]
-               sego blame  [--json] <repo>[@<rev>] <path> <lines>
+        usage: sego search  [--json] <query>...
+               sego list    [--json] [--depth N] <repo>[@<rev>] [<path>]
+               sego read    [--json] <repo>[@<rev>] <path> [<lines>]
+               sego blame   [--json] <repo>[@<rev>] <path> <lines>
+               sego compare [--json] <repo>@[<base>...]<head> [<path>]
         [EOF]
     "#]]
     );
@@ -160,14 +164,15 @@ fn json_usage_errors_go_to_both_streams() {
         expect![[r#"
         exit 2
         --- stdout
-        {"version":1,"kind":"error","code":"usage","message":"unknown command serch","hints":[],"usage":["sego search [--json] <query>...","sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]","sego read   [--json] <repo>[@<rev>] <path> [<lines>]","sego blame  [--json] <repo>[@<rev>] <path> <lines>"]}
+        {"version":1,"kind":"error","code":"usage","message":"unknown command serch","hints":[],"usage":["sego search  [--json] <query>...","sego list    [--json] [--depth N] <repo>[@<rev>] [<path>]","sego read    [--json] <repo>[@<rev>] <path> [<lines>]","sego blame   [--json] <repo>[@<rev>] <path> <lines>","sego compare [--json] <repo>@[<base>...]<head> [<path>]"]}
         [EOF]
         --- stderr
         error: unknown command serch
-        usage: sego search [--json] <query>...
-               sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]
-               sego read   [--json] <repo>[@<rev>] <path> [<lines>]
-               sego blame  [--json] <repo>[@<rev>] <path> <lines>
+        usage: sego search  [--json] <query>...
+               sego list    [--json] [--depth N] <repo>[@<rev>] [<path>]
+               sego read    [--json] <repo>[@<rev>] <path> [<lines>]
+               sego blame   [--json] <repo>[@<rev>] <path> <lines>
+               sego compare [--json] <repo>@[<base>...]<head> [<path>]
         [EOF]
     "#]]
     );

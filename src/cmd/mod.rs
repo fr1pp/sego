@@ -11,7 +11,7 @@ use crate::diagnostic::{Diagnostic, Outcome};
 use crate::escape::shell_word;
 use crate::sourcegraph::Fetch;
 
-pub const COMMANDS: &[&str] = &["search", "list", "read", "blame"];
+pub const COMMANDS: &[&str] = &["search", "list", "read", "blame", "compare"];
 
 /// A command's help, split around its synopsis, which usage errors show
 /// too.
@@ -35,6 +35,7 @@ Commands:
   list     what is here? The entries of a directory
   read     what does it say? The lines of a file
   blame    why, and when? The commits that last changed a file's lines
+  compare  what changed? The commits and files changed in a range or a commit
 
 Options:
   --json       write the outcome as one JSON document on stdout
@@ -285,7 +286,8 @@ pub fn action(cli: &Cli) -> Result<Action, UsageError> {
         match command {
             Some(command) => Ok(Action::Run(command)),
             None => Err(UsageError::new(
-                "missing command; expected search, list, read or blame",
+                "missing command; expected search, list, read, blame or \
+                 compare",
                 None,
             )),
         }
@@ -367,7 +369,7 @@ mod tests {
     #[test]
     fn synopses_align_only_when_there_are_several() {
         let commands =
-            [Some("search"), Some("list"), Some("read"), Some("blame")];
+            ["search", "list", "read", "blame", "compare"].map(Some);
         let mut text = String::new();
         for command in commands.into_iter().chain([None, Some("serch")]) {
             for line in synopsis(command.and_then(Command::parse)) {
@@ -380,14 +382,17 @@ mod tests {
             sego list [--json] [--depth N] <repo>[@<rev>] [<path>]
             sego read [--json] <repo>[@<rev>] <path> [<lines>]
             sego blame [--json] <repo>[@<rev>] <path> <lines>
-            sego search [--json] <query>...
-            sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]
-            sego read   [--json] <repo>[@<rev>] <path> [<lines>]
-            sego blame  [--json] <repo>[@<rev>] <path> <lines>
-            sego search [--json] <query>...
-            sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]
-            sego read   [--json] <repo>[@<rev>] <path> [<lines>]
-            sego blame  [--json] <repo>[@<rev>] <path> <lines>
+            sego compare [--json] <repo>@[<base>...]<head> [<path>]
+            sego search  [--json] <query>...
+            sego list    [--json] [--depth N] <repo>[@<rev>] [<path>]
+            sego read    [--json] <repo>[@<rev>] <path> [<lines>]
+            sego blame   [--json] <repo>[@<rev>] <path> <lines>
+            sego compare [--json] <repo>@[<base>...]<head> [<path>]
+            sego search  [--json] <query>...
+            sego list    [--json] [--depth N] <repo>[@<rev>] [<path>]
+            sego read    [--json] <repo>[@<rev>] <path> [<lines>]
+            sego blame   [--json] <repo>[@<rev>] <path> <lines>
+            sego compare [--json] <repo>@[<base>...]<head> [<path>]
         "#]]
         .assert_eq(&text);
     }
@@ -415,14 +420,14 @@ mod tests {
             })
             .collect();
         expect![[r#"
-            unknown command serch | search list read blame
-            unknown command serch | search list read blame
-            unknown command serch | search list read blame
-            unknown command serch | search list read blame
+            unknown command serch | search list read blame compare
+            unknown command serch | search list read blame compare
+            unknown command serch | search list read blame compare
+            unknown command serch | search list read blame compare
             --depth applies only to list | read
             --depth applies only to list | read
             --depth applies only to list | search
-            missing command; expected search, list, read or blame | search list read blame
+            missing command; expected search, list, read, blame or compare | search list read blame compare
         "#]]
         .assert_eq(&errors.concat());
     }
@@ -454,7 +459,7 @@ mod tests {
             .collect();
         expect![[r#"
             unknown option --jsno | read
-            unknown option --jsno | search list read blame
+            unknown option --jsno | search list read blame compare
             unknown option --weird.go | read
             unknown option --weird | search
             unknown option '--a b' | search
@@ -462,8 +467,8 @@ mod tests {
             --depth needs a value | list
             invalid --depth 0; expected a number from 1 to 4294967295 | list
             invalid --depth x; expected a number from 1 to 4294967295 | read
-            invalid --depth 99999999999; expected a number from 1 to 4294967295 | search list read blame
-            --json takes no value | search list read blame
+            invalid --depth 99999999999; expected a number from 1 to 4294967295 | search list read blame compare
+            --json takes no value | search list read blame compare
             --help takes no value | search
         "#]]
         .assert_eq(&errors.concat());
