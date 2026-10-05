@@ -107,7 +107,9 @@ impl fmt::Display for Unavailable {
                 shell_word(path),
                 at.word()
             ),
-            Unavailable::OutOfRange { at, path, start, total_lines } => {
+            Unavailable::OutOfRange {
+                at, path, start, total_lines, ..
+            } => {
                 let lines = match total_lines {
                     1 => "line",
                     _ => "lines",
@@ -173,13 +175,15 @@ impl Diagnostic for Unavailable {
                 command_line(&read, &[&at.to_string(), path])
             }
             Unavailable::TooLarge { .. } => return Vec::new(),
-            Unavailable::OutOfRange { at, path, total_lines, .. } => {
+            Unavailable::OutOfRange {
+                at, path, total_lines, command, ..
+            } => {
                 if *total_lines == 0 {
                     return Vec::new();
                 }
                 let lines = LineRange { start: 1, end: Some(*total_lines) };
                 command_line(
-                    &read,
+                    &["sego", command.name()],
                     &[&at.to_string(), path, &lines.to_string()],
                 )
             }
@@ -196,6 +200,7 @@ mod tests {
 
     use super::*;
     use crate::address::{CommitId, Pinned, RepoName};
+    use crate::domain::LinesCommand;
 
     struct Sample {
         outcome: Outcome,
@@ -370,18 +375,21 @@ mod tests {
                 path: path("mux.go"),
                 start: 700,
                 total_lines: 601,
+                command: LinesCommand::Read,
             },
             Unavailable::OutOfRange {
                 at: at(),
                 path: path("one"),
                 start: 2,
                 total_lines: 1,
+                command: LinesCommand::Read,
             },
             Unavailable::OutOfRange {
                 at: at(),
                 path: path("empty"),
                 start: 2,
                 total_lines: 0,
+                command: LinesCommand::Read,
             },
         ];
         let mut text = String::new();
@@ -423,6 +431,31 @@ mod tests {
             [out_of_range]
             empty in github.com/gorilla/mux@a7962380ca08 has 0 lines, so line 2 is past its end
         "#]].assert_eq(&text);
+    }
+
+    #[test]
+    fn out_of_range_hints_name_their_command() {
+        let out_of_range = |command| Unavailable::OutOfRange {
+            at: Pinned {
+                repo: RepoName::parse("github.com/x/a").unwrap(),
+                commit: CommitId(
+                    "a7962380ca08b5a188038c69871b8d3fbdf31e89".into(),
+                ),
+            },
+            path: "mux.go".into(),
+            start: 700,
+            total_lines: 601,
+            command,
+        };
+        let hints = [LinesCommand::Blame, LinesCommand::Read]
+            .map(|command| out_of_range(command).hints());
+        assert_eq!(
+            hints,
+            [
+                ["sego blame github.com/x/a@a7962380ca08 mux.go 1-601"],
+                ["sego read github.com/x/a@a7962380ca08 mux.go 1-601"],
+            ]
+        );
     }
 
     #[test]

@@ -203,15 +203,61 @@ pub enum NotAFile {
     Submodule,
 }
 
+/// A command that takes a file's line range.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LinesCommand {
+    Read,
+    #[cfg_attr(
+        not(test),
+        expect(dead_code, reason = "only the tests construct it")
+    )]
+    Blame,
+}
+
+impl LinesCommand {
+    pub fn name(self) -> &'static str {
+        match self {
+            LinesCommand::Read => "read",
+            LinesCommand::Blame => "blame",
+        }
+    }
+}
+
 /// A definitive answer that the thing asked for isn't there. Names and
 /// paths are as the upstream returned them, or as the caller sent them.
+/// An `OutOfRange` carries the command whose range it was, for its hint.
 #[derive(Debug)]
 pub enum Unavailable {
-    RepoNotFound { repo: String },
-    RevisionNotFound { repo: String, rev: String },
-    PathNotFound { at: Pinned, path: String },
-    NotAFile { at: Pinned, path: String, what: NotAFile },
-    NotADirectory { at: Pinned, path: String },
-    TooLarge { at: Pinned, path: String, byte_size: u64 },
-    OutOfRange { at: Pinned, path: String, start: u32, total_lines: u32 },
+    RepoNotFound {
+        repo: String,
+    },
+    RevisionNotFound {
+        repo: String,
+        rev: String,
+    },
+    PathNotFound {
+        at: Pinned,
+        path: String,
+    },
+    NotAFile {
+        at: Pinned,
+        path: String,
+        what: NotAFile,
+    },
+    NotADirectory {
+        at: Pinned,
+        path: String,
+    },
+    TooLarge {
+        at: Pinned,
+        path: String,
+        byte_size: u64,
+    },
+    OutOfRange {
+        at: Pinned,
+        path: String,
+        start: u32,
+        total_lines: u32,
+        command: LinesCommand,
+    },
 }

@@ -4,7 +4,7 @@ use serde::Deserialize;
 
 use crate::address::{Address, CommitId, Pinned, RepoName, RepoPath};
 use crate::diagnostic::Diagnostic;
-use crate::domain::{File, Unavailable};
+use crate::domain::{File, LinesCommand, Unavailable};
 
 use super::envelope::Envelope;
 use super::node::{self, Blob, Node};
@@ -154,9 +154,15 @@ pub fn answer(
     let lines = if binary {
         Vec::new()
     } else if start > total_lines.max(1) {
-        return Err(
-            Unavailable::OutOfRange { at, path, start, total_lines }.into()
-        );
+        let command = LinesCommand::Read;
+        return Err(Unavailable::OutOfRange {
+            at,
+            path,
+            start,
+            total_lines,
+            command,
+        }
+        .into());
     } else {
         let content = body
             .and_then(|body| body.content)

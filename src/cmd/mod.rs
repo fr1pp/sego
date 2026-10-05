@@ -288,8 +288,8 @@ mod tests {
     use crate::diagnostic::report;
     use crate::domain::{
         Alert, CommitHit, CutShort, Entry, EntryKind, File, FileHit, Filter,
-        Hit, Line, Listing, NotAFile, RepoHit, SearchReport, Skipped, Span,
-        Submodule, Symbol, Term, Tree, Unavailable,
+        Hit, Line, LinesCommand, Listing, NotAFile, RepoHit, SearchReport,
+        Skipped, Span, Submodule, Symbol, Term, Tree, Unavailable,
     };
     use crate::escape::{CORPUS, is_unsafe};
     use crate::output::Output;
@@ -627,12 +627,14 @@ mod tests {
                     path: path(),
                     start: 700,
                     total_lines: 601,
+                    command: LinesCommand::Read,
                 },
                 Unavailable::OutOfRange {
                     at: at(),
                     path: path(),
                     start: 2,
                     total_lines: 0,
+                    command: LinesCommand::Read,
                 },
             ]);
         }
