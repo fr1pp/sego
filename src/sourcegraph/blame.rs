@@ -15,8 +15,8 @@ use super::envelope::Envelope;
 use super::node::{self, Blob, Node};
 use super::{FetchError, GLOBAL_TIMEOUT, Plan};
 
-/// The largest GraphQL `Int`, sent as the end of an open range: the
-/// upstream clamps an end past the last line to it.
+/// The largest GraphQL `Int`, sent as the end of an open range, which the
+/// upstream clamps to the file's last line.
 pub const LAST_LINE: u32 = 2_147_483_647;
 
 /// `node`, `lines` and `body` are read's; `blame` gives the hunks. Each is

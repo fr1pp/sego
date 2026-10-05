@@ -137,8 +137,8 @@ impl Transport {
     }
 }
 
-/// An agent whose requests may take `connect` to connect and `global` from
-/// connecting to the end of the body.
+/// An agent whose requests may take `connect` to connect and `global` for
+/// the whole call: DNS, connecting, the request and the response.
 fn agent(connect: Duration, global: Duration) -> Agent {
     Agent::config_builder()
         .http_status_as_error(false)

@@ -912,8 +912,9 @@ mod tests {
         ]
     }
 
-    /// Two hunks over the corpus, one line each, but for the last, which
-    /// has the rest.
+    /// Blames of the corpus: one with its lines, in two hunks, the first
+    /// of one line and the second of the rest; one over the read cap, in
+    /// one hunk without lines; and one of a binary file, with no hunks.
     fn blames(word: &str) -> Vec<domain::Blame> {
         let text = || word.to_owned();
         let end = u32::try_from(CORPUS.len()).unwrap();

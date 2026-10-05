@@ -93,7 +93,7 @@ live:
     just escape-table
     git diff --exit-code -- src/escape/table.rs
 
-# Fail if a re-captured response changed beyond server times, star counts and blame's temp-file names.
+# Fail if a re-capture changed beyond times, stars and blame's temp names.
 drift:
     #!/usr/bin/env bash
     set -euo pipefail
