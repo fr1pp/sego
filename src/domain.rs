@@ -234,10 +234,12 @@ pub struct SearchReport {
 
 /// What changed from `base` to `head`, or in the single commit `head`
 /// against its first parent, when `base` is `None` and `commit` is set. The
-/// diff is from the merge base; `behind` counts the commits on `base` that
-/// aren't on `head`. `commits`, newest first, and `files`, in path byte
-/// order, are cut at their caps; the totals are exact. With a `path`, every
-/// list is narrowed to it, and a file's `hunks` are given.
+/// diff is from the merge base; `ahead` counts the commits on `head` that
+/// aren't on `base`, and `behind` those on `base` that aren't on `head`,
+/// whatever the path; a single commit is 1 ahead. `commits`, newest first,
+/// and `files`, in path byte order, are cut at their caps; the totals are
+/// exact. With a `path`, `commit_count` and every list are narrowed to it,
+/// and a file's `hunks` are given.
 #[cfg_attr(
     not(test),
     expect(dead_code, reason = "used by compare in a later task")
@@ -248,6 +250,7 @@ pub struct Comparison {
     pub base: Option<CommitId>,
     pub head: CommitId,
     pub commit: Option<CommitDetail>,
+    pub ahead: u32,
     pub behind: u32,
     pub commits: Vec<CommitSummary>,
     pub commit_count: CommitCount,

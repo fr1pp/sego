@@ -567,6 +567,7 @@ fn compare_range(
         base: Some(base_commit),
         head: head_commit,
         commit: None,
+        ahead,
         behind,
         commits,
         commit_count,
@@ -642,6 +643,7 @@ fn compare_commit(
             message: message.replace("\r\n", "\n"),
             parents,
         }),
+        ahead: 1,
         behind: 0,
         commits: Vec::new(),
         commit_count: CommitCount::Exact(1),
@@ -923,7 +925,7 @@ mod tests {
         let mut text = String::new();
         let _ = writeln!(
             text,
-            "{}@{}{} | behind {} | {:?} | {} files{} +{} -{}",
+            "{}@{}{} | ahead {} behind {} | {:?} | {} files{} +{} -{}",
             comparison.repo.as_str(),
             comparison
                 .base
@@ -931,6 +933,7 @@ mod tests {
                 .map(|base| short(base) + "...")
                 .unwrap_or_default(),
             short(&comparison.head),
+            comparison.ahead,
             comparison.behind,
             comparison.commit_count,
             comparison.files_changed,
@@ -1060,11 +1063,20 @@ mod tests {
             CommitId("98cb6bf42e086f6af920b965c38cacc07402d51b".into())
         );
         assert_eq!(range.commit_count, CommitCount::Exact(30));
+        assert_eq!((range.ahead, range.behind), (30, 0));
         assert!(range.commit.is_none() && range.path.is_none());
+        let mut more = envelope!("range");
+        data(&mut more)["refs"]["count"]["behindAhead"]["ahead"] = 31.into();
+        let more = answered(answer(&case("range"), more));
+        assert_eq!(more.commits.len(), 30);
+        assert_eq!(
+            (more.ahead, more.commit_count),
+            (31, CommitCount::Exact(31))
+        );
         assert_eq!(range.commits.len(), 30);
         let commits = range.commits.into_iter().take(3).collect();
         expect![[r#"
-            github.com/gorilla/mux@a7962380ca08...98cb6bf42e08 | behind 0 | Exact(30) | 20 files +1033 -378
+            github.com/gorilla/mux@a7962380ca08...98cb6bf42e08 | ahead 30 behind 0 | Exact(30) | 20 files +1033 -378
             98cb6bf42e08 2020-07-11T20:05:21Z Harshavardhana | fix: regression in vars extract for wildcard host (#579)
             948bec34b516 2020-05-17T04:02:54Z Eric Skoglund | docs: Remove stale text from comment. (#568)
             75dcda0896e1 2020-01-12T19:17:43Z Klaus Post | perf: reduce allocations in (*routeRegexp).getURLQuery (#544)
@@ -1163,25 +1175,25 @@ mod tests {
             }));
         }
         expect![[r#"
-            github.com/gorilla/mux@a7962380ca08...98cb6bf42e08 | behind 0 | Exact(3) | 1 files +87 -0
+            github.com/gorilla/mux@a7962380ca08...98cb6bf42e08 | ahead 30 behind 0 | Exact(3) | 1 files +87 -0
             path .circleci/config.yml | file: true
             Added .circleci/config.yml +87 -0 @98cb6bf42e08
-            github.com/gorilla/mux@a7962380ca08...98cb6bf42e08 | behind 0 | Exact(1) | 1 files +0 -18
+            github.com/gorilla/mux@a7962380ca08...98cb6bf42e08 | ahead 30 behind 0 | Exact(1) | 1 files +0 -18
             path context.go | file: true
             Deleted context.go +0 -18 @a7962380ca08
-            github.com/gorilla/mux@7f0880185913...a7962380ca08 | behind 0 | Exact(50) | 23 files +2173 -489
+            github.com/gorilla/mux@7f0880185913...a7962380ca08 | ahead 50 behind 0 | Exact(50) | 23 files +2173 -489
             Renamed context.go from context_native.go +0 -6 @a7962380ca08
             Deleted context_gorilla.go +0 -26 @7f0880185913
             Deleted context_gorilla_test.go +0 -40 @7f0880185913
             Renamed context_test.go from context_native_test.go +0 -2 @a7962380ca08
-            github.com/golang/go@620058f867b2 | behind 0 | Exact(1) | 3 files +25 -1
+            github.com/golang/go@620058f867b2 | ahead 1 behind 0 | Exact(1) | 3 files +25 -1
             Modified src/debug/elf/file.go +1 -1 @620058f867b2
             Modified src/debug/elf/file_test.go +24 -0 @620058f867b2
             Added src/debug/elf/testdata/go-relocation-test-gcc133-ppc.obj +0 -0 binary @620058f867b2
-            github.com/golang/go@b8efc006f2cb | behind 0 | Exact(1) | 10 files +0 -0
+            github.com/golang/go@b8efc006f2cb | ahead 1 behind 0 | Exact(1) | 10 files +0 -0
             Modified doc/progs/run.go +0 -0 @b8efc006f2cb
             Modified src/debug/dwarf/testdata/line-clang.elf +0 -0 binary @b8efc006f2cb
-            github.com/rust-lang/rust@4b0bbb5bd087 | behind 0 | Exact(1) | 1 files +1 -1
+            github.com/rust-lang/rust@4b0bbb5bd087 | ahead 1 behind 0 | Exact(1) | 1 files +1 -1
             Modified src/tools/cargo +1 -1 @4b0bbb5bd087
         "#]].assert_eq(&text);
     }
@@ -1238,9 +1250,23 @@ mod tests {
         let reversed = answered(compare!("reversed"));
         assert!(reversed.commits.is_empty() && reversed.files.is_empty());
         assert_eq!(reversed.commit_count, CommitCount::Exact(0));
+        assert_eq!((reversed.ahead, reversed.behind), (0, 30));
+        // Narrowed to a path the range didn't touch, a comparison lists no
+        // more than a reversed one; `ahead` tells them apart.
+        let untouched = answered(compare!("unchanged-path"));
+        assert!(untouched.commits.is_empty() && untouched.files.is_empty());
+        assert_eq!(untouched.commit_count, CommitCount::Exact(0));
+        assert_eq!(untouched.ahead, 30);
+        let mut reversed_at_path = envelope!("unchanged-path");
+        data(&mut reversed_at_path)["refs"]["count"]["behindAhead"] =
+            serde_json::json!({"behind": 30, "ahead": 0});
+        let reversed_at_path =
+            answered(answer(&case("unchanged-path"), reversed_at_path));
+        assert_eq!(reversed_at_path.commit_count, CommitCount::Exact(0));
+        assert_eq!((reversed_at_path.ahead, reversed_at_path.behind), (0, 30));
         expect![[r#"
-            github.com/gorilla/mux@98cb6bf42e08...98cb6bf42e08 | behind 0 | Exact(0) | 0 files +0 -0
-            github.com/gorilla/mux@98cb6bf42e08...a7962380ca08 | behind 30 | Exact(0) | 0 files +0 -0
+            github.com/gorilla/mux@98cb6bf42e08...98cb6bf42e08 | ahead 0 behind 0 | Exact(0) | 0 files +0 -0
+            github.com/gorilla/mux@98cb6bf42e08...a7962380ca08 | ahead 0 behind 30 | Exact(0) | 0 files +0 -0
         "#]].assert_eq(&(summary(&equal) + &summary(&reversed)));
     }
 
@@ -1255,7 +1281,7 @@ mod tests {
             .map(|hunk| DiffHunk { lines: Vec::new(), ..hunk })
             .collect();
         expect![[r#"
-            github.com/gorilla/mux@a7962380ca08...98cb6bf42e08 | behind 0 | Exact(4) | 1 files +21 -16
+            github.com/gorilla/mux@a7962380ca08...98cb6bf42e08 | ahead 30 behind 0 | Exact(4) | 1 files +21 -16
             path mux.go | file: true
             948bec34b516 2020-05-17T04:02:54Z Eric Skoglund | docs: Remove stale text from comment. (#568)
             f395758b854c 2019-10-24T12:12:56Z Franklin Harding | Remove/cleanup request context helpers (#525)
@@ -1273,7 +1299,7 @@ mod tests {
         let directory = answered(compare!("directory"));
         assert!(!directory.path_is_file && directory.hunks.is_empty());
         expect![[r#"
-            github.com/gorilla/mux@a7962380ca08...98cb6bf42e08 | behind 0 | Exact(1) | 1 files +5 -5
+            github.com/gorilla/mux@a7962380ca08...98cb6bf42e08 | ahead 30 behind 0 | Exact(1) | 1 files +5 -5
             path .github | file: false
             00bdffe0f3c7 2019-06-30T04:17:52Z Matt Silverlock | Update stale.yml (#494)
             Modified .github/stale.yml +5 -5 @98cb6bf42e08
@@ -1291,7 +1317,7 @@ mod tests {
         let renamed = answered(compare!("renamed-file"));
         assert!(renamed.path_is_file);
         expect![[r#"
-            github.com/gorilla/mux@7f0880185913...a7962380ca08 | behind 0 | Exact(2) | 1 files +18 -0
+            github.com/gorilla/mux@7f0880185913...a7962380ca08 | ahead 50 behind 0 | Exact(2) | 1 files +18 -0
             path context.go | file: true
             6137e193cdcb 2018-12-17T14:42:43Z alimy | remove redundant code that remove support gorilla/context (#427)
             8771f97498c6 2018-09-02T22:22:40Z Franklin Harding | Drop support for Go < 1.7: remove gorilla/context (#391)
@@ -1310,7 +1336,7 @@ mod tests {
         );
         assert!(commit.commits.is_empty());
         expect![[r#"
-            github.com/gorilla/mux@98cb6bf42e08 | behind 0 | Exact(1) | 2 files +28 -1
+            github.com/gorilla/mux@98cb6bf42e08 | ahead 1 behind 0 | Exact(1) | 2 files +28 -1
             2020-07-11T20:05:21Z | Harshavardhana | parents 948bec34b516
                 "fix: regression in vars extract for wildcard host (#579)"
                 ""
@@ -1323,7 +1349,7 @@ mod tests {
         "#]].assert_eq(&summary(&commit));
         let merge = answered(compare!("merge"));
         expect![[r#"
-            github.com/gorilla/mux@2854a05fd3e2 | behind 0 | Exact(1) | 2 files +30 -15
+            github.com/gorilla/mux@2854a05fd3e2 | ahead 1 behind 0 | Exact(1) | 2 files +30 -15
             2019-11-17T01:33:21Z | Matt Silverlock | parents f395758b854c 946b6237eb8d
                 "Merge pull request #535 from fharding1/cors-subrouter-bug"
                 ""
@@ -1341,12 +1367,12 @@ mod tests {
             text.push_str(&summary(&comparison));
         }
         expect![[r#"
-            github.com/gorilla/mux@e48e440e4c92 | behind 0 | Exact(1) | 1 files +9 -0
+            github.com/gorilla/mux@e48e440e4c92 | ahead 1 behind 0 | Exact(1) | 1 files +9 -0
             2018-08-07T07:52:56Z | Kamil Kisiel | parents 815b8c6a2641
                 "Add test for multiple calls to Name()."
                 "Fixes #394"
             Modified mux_test.go +9 -0 @e48e440e4c92
-            github.com/gorilla/mux@ed099d423848 | behind 0 | Exact(1) | 1 files +27 -10
+            github.com/gorilla/mux@ed099d423848 | ahead 1 behind 0 | Exact(1) | 1 files +27 -10
             2019-05-17T00:20:44Z | M@ | parents c5c6c98bc253
                 "host:port matching does not require a :port to be specified."
                 ""
@@ -1356,7 +1382,7 @@ mod tests {
             Modified regexp.go +27 -10 @ed099d423848
         "#]].assert_eq(&text);
         expect![[r#"
-            github.com/gorilla/mux@98cb6bf42e08 | behind 0 | Exact(1) | 1 files +6 -0
+            github.com/gorilla/mux@98cb6bf42e08 | ahead 1 behind 0 | Exact(1) | 1 files +6 -0
             path regexp.go | file: true
             Modified regexp.go +6 -0 @98cb6bf42e08
             @@ -325,6 +325,12 @@ func (v routeRegexpGroup) setMatch(req *http.Request, m *RouteMatch, r *Route) {
@@ -1413,7 +1439,7 @@ mod tests {
         assert_eq!(crlf.hunks[0].lines.len(), 20);
         new.hunks[0].lines.drain(..18);
         expect![[r#"
-            github.com/golang/go@48469a2c866c | behind 0 | Exact(1) | 1 files +1 -1
+            github.com/golang/go@48469a2c866c | ahead 1 behind 0 | Exact(1) | 1 files +1 -1
             path src/cmd/ld/lib.h | file: true
             Modified src/cmd/ld/lib.h +1 -1 @48469a2c866c
             @@ -346,4 +346,4 @@ void	ldmain(int, char**); [old: no newline]
@@ -1422,7 +1448,7 @@ mod tests {
             " "
             "-#define\tSYMDEF\t\"__.GOSYMDEF\""
             "+#define\tSYMDEF\t\"__.GOSYMDEF\""
-            github.com/gorilla/mux@1fa2ee87bf61 | behind 0 | Exact(1) | 1 files +20 -0
+            github.com/gorilla/mux@1fa2ee87bf61 | ahead 1 behind 0 | Exact(1) | 1 files +20 -0
             path .editorconfig | file: true
             Added .editorconfig +20 -0 @1fa2ee87bf61
             @@ -0,0 +1,20 @@ [new: no newline]
