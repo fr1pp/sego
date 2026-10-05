@@ -1,7 +1,7 @@
 use serde::Serialize;
 
 use super::{Command, Help, Present, UsageError};
-use crate::address::{Address, AddressError, LineRange, RepoPath};
+use crate::address::{Address, AddressError, LineRange, Pinned, RepoPath};
 use crate::args::Cli;
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::domain::File;
@@ -162,6 +162,43 @@ fn count(n: u64, unit: &str) -> String {
     }
 }
 
+/// The address line of `path` at `at`: the lines `shown`, if any; then
+/// `binary` and the size of a binary file, or the line count of any other.
+pub(super) fn file_line(
+    at: &Pinned,
+    path: &str,
+    shown: Option<LineRange>,
+    binary: bool,
+    byte_size: u64,
+    total_lines: u32,
+) -> String {
+    let address = at.to_string();
+    let range = shown.map(|range| range.to_string());
+    let path = path_word(path);
+    let mut words = vec![address.as_str(), &path];
+    words.extend(range.as_deref());
+    let meta = if binary {
+        vec!["binary".to_owned(), count(byte_size, "byte")]
+    } else {
+        vec![count(u64::from(total_lines), "line")]
+    };
+    address_line(&words, &meta)
+}
+
+/// `lines`, numbered from `start`, each cut as a content line.
+pub(super) fn numbered_lines(start: u32, lines: &[String]) -> String {
+    let lines: Vec<_> = (start..)
+        .zip(lines)
+        .map(|(n, line)| (n, Marker::Match, content_line(line, None)))
+        .collect();
+    numbered(&lines)
+}
+
+/// `lines`, numbered from `start`, whole.
+pub(super) fn json_lines(start: u32, lines: &[String]) -> Vec<LineJson<'_>> {
+    (start..).zip(lines).map(|(n, text)| LineJson { n, text }).collect()
+}
+
 impl Present for Read {
     fn outcome(&self) -> Outcome {
         Outcome::Answered
@@ -169,24 +206,18 @@ impl Present for Read {
 
     fn text(&self) -> String {
         let file = &self.file;
-        let address = file.at.to_string();
-        let range = self.end().map(|end| {
-            LineRange { start: file.start, end: Some(end) }.to_string()
-        });
-        let path = path_word(&file.path);
-        let mut words = vec![address.as_str(), &path];
-        words.extend(range.as_deref());
-        let meta = if file.binary {
-            vec!["binary".to_owned(), count(file.byte_size, "byte")]
-        } else {
-            vec![count(u64::from(file.total_lines), "line")]
-        };
-        let mut text = address_line(&words, &meta);
-        let lines: Vec<_> = (file.start..)
-            .zip(&file.lines)
-            .map(|(n, line)| (n, Marker::Match, content_line(line, None)))
-            .collect();
-        text.push_str(&numbered(&lines));
+        let shown = self
+            .end()
+            .map(|end| LineRange { start: file.start, end: Some(end) });
+        let mut text = file_line(
+            &file.at,
+            &file.path,
+            shown,
+            file.binary,
+            file.byte_size,
+            file.total_lines,
+        );
+        text.push_str(&numbered_lines(file.start, &file.lines));
         if let Some(Partial { reason, hints }) = self.partial() {
             text.push_str(&notice(&reason));
             for command in hints {
@@ -208,10 +239,7 @@ impl Present for Read {
             binary: file.binary,
             start: file.start,
             end: self.end(),
-            lines: (file.start..)
-                .zip(&file.lines)
-                .map(|(n, text)| LineJson { n, text })
-                .collect(),
+            lines: json_lines(file.start, &file.lines),
             partial: self.partial(),
         };
         document("file", &body)
@@ -235,7 +263,7 @@ struct FileJson<'a> {
 }
 
 #[derive(Serialize)]
-struct LineJson<'a> {
+pub(super) struct LineJson<'a> {
     n: u32,
     text: &'a str,
 }
@@ -243,7 +271,7 @@ struct LineJson<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::address::{CommitId, Pinned, RepoName};
+    use crate::address::{CommitId, RepoName};
     use crate::diagnostic::Diagnostic;
     use crate::escape::CLIP_COLUMNS;
 
