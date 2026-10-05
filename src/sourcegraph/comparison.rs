@@ -1512,14 +1512,28 @@ mod tests {
             serde_json::json!({"data": commit.data, "errors": [diff]})
                 .to_string(),
         );
+        let count = serde_json::json!({
+            "message": secret, "path": ["refs", "count", "behindAhead"]
+        });
+        let mut counted = envelope!("range");
+        data(&mut counted)["refs"]["count"] = serde_json::Value::Null;
+        let counted = decoded(
+            serde_json::json!({"data": counted.data, "errors": [count]})
+                .to_string(),
+        );
         let mut text = String::new();
-        for (request, envelope) in
-            [(case("range"), range), (case("commit"), commit)]
-        {
+        for (request, envelope) in [
+            (case("range"), range),
+            (case("range"), counted),
+            (case("commit"), commit),
+        ] {
             text.push_str(&failure(answer(&request, envelope)));
         }
         assert!(!text.contains("1700"), "{text}");
         expect![[r#"
+            [server_error Unanswered]
+            error: the upstream answered with an error
+            caused by: the upstream couldn't compare these revisions
             [server_error Unanswered]
             error: the upstream answered with an error
             caused by: the upstream couldn't compare these revisions
