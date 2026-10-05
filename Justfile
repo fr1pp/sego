@@ -93,11 +93,13 @@ live:
     just escape-table
     git diff --exit-code -- src/escape/table.rs
 
-# Fail if a re-capture changed beyond times, stars and blame's temp names.
+# Fail if a re-capture changed beyond times, stars, temp names, error order.
 drift:
     #!/usr/bin/env bash
     set -euo pipefail
     strip='walk(if type == "object" then del(.elapsedMilliseconds, .stars)
+        | if (.errors | type) == "array"
+          then .errors |= sort_by((.path | tostring), .message) else . end
       elif type == "string" then gsub("git-blame-ignore-revs[0-9]+"; "git-blame-ignore-revs")
       else . end)'
     status=0
