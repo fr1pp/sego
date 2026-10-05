@@ -10,7 +10,7 @@ use crate::diagnostic::{Diagnostic, Outcome};
 use crate::escape::shell_word;
 use crate::sourcegraph::Fetch;
 
-pub const COMMANDS: &[&str] = &["search", "list", "read"];
+pub const COMMANDS: &[&str] = &["search", "list", "read", "blame"];
 
 /// A command's help, split around its synopsis, which usage errors show
 /// too.
@@ -33,6 +33,7 @@ Commands:
   search   where is it? Matching code, paths, symbols, commits and repos
   list     what is here? The entries of a directory
   read     what does it say? The lines of a file
+  blame    why, and when? The commits that last changed a file's lines
 
 Options:
   --json       write the outcome as one JSON document on stdout
@@ -275,7 +276,7 @@ pub fn action(cli: &Cli) -> Result<Action, UsageError> {
         match command {
             Some(command) => Ok(Action::Run(command)),
             None => Err(UsageError::new(
-                "missing command; expected search, list or read",
+                "missing command; expected search, list, read or blame",
                 None,
             )),
         }
@@ -354,7 +355,8 @@ mod tests {
 
     #[test]
     fn synopses_align_only_when_there_are_several() {
-        let commands = [Some("search"), Some("list"), Some("read")];
+        let commands =
+            [Some("search"), Some("list"), Some("read"), Some("blame")];
         let mut text = String::new();
         for command in commands.into_iter().chain([None, Some("serch")]) {
             for line in synopsis(command.and_then(Command::parse)) {
@@ -366,12 +368,15 @@ mod tests {
             sego search [--json] <query>...
             sego list [--json] [--depth N] <repo>[@<rev>] [<path>]
             sego read [--json] <repo>[@<rev>] <path> [<lines>]
+            sego blame [--json] <repo>[@<rev>] <path> <lines>
             sego search [--json] <query>...
             sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]
             sego read   [--json] <repo>[@<rev>] <path> [<lines>]
+            sego blame  [--json] <repo>[@<rev>] <path> <lines>
             sego search [--json] <query>...
             sego list   [--json] [--depth N] <repo>[@<rev>] [<path>]
             sego read   [--json] <repo>[@<rev>] <path> [<lines>]
+            sego blame  [--json] <repo>[@<rev>] <path> <lines>
         "#]]
         .assert_eq(&text);
     }
@@ -399,14 +404,14 @@ mod tests {
             })
             .collect();
         expect![[r#"
-            unknown command serch | search list read
-            unknown command serch | search list read
-            unknown command serch | search list read
-            unknown command serch | search list read
+            unknown command serch | search list read blame
+            unknown command serch | search list read blame
+            unknown command serch | search list read blame
+            unknown command serch | search list read blame
             --depth applies only to list | read
             --depth applies only to list | read
             --depth applies only to list | search
-            missing command; expected search, list or read | search list read
+            missing command; expected search, list, read or blame | search list read blame
         "#]]
         .assert_eq(&errors.concat());
     }
@@ -438,7 +443,7 @@ mod tests {
             .collect();
         expect![[r#"
             unknown option --jsno | read
-            unknown option --jsno | search list read
+            unknown option --jsno | search list read blame
             unknown option --weird.go | read
             unknown option --weird | search
             unknown option '--a b' | search
@@ -446,8 +451,8 @@ mod tests {
             --depth needs a value | list
             invalid --depth 0; expected a number from 1 to 4294967295 | list
             invalid --depth x; expected a number from 1 to 4294967295 | read
-            invalid --depth 99999999999; expected a number from 1 to 4294967295 | search list read
-            --json takes no value | search list read
+            invalid --depth 99999999999; expected a number from 1 to 4294967295 | search list read blame
+            --json takes no value | search list read blame
             --help takes no value | search
         "#]]
         .assert_eq(&errors.concat());
