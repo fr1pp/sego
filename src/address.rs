@@ -169,19 +169,63 @@ impl Address {
     /// `s` split at the first `@` after the host, so a URL's user is not
     /// read as the separator.
     pub fn parse(s: &str) -> Result<Address, AddressError> {
-        let (rest, form) = host_onwards(s);
-        let (repo, rev) = match rest.split_once('@') {
-            Some((repo, rev)) => (repo, Some(rev)),
-            None => (rest.as_str(), None),
-        };
-        Ok(Address {
-            repo: RepoName::checked(tidy(repo, form))?,
-            rev: rev.map(Rev::parse).transpose()?,
-        })
+        let (repo, rev) = split_at_sign(s)?;
+        Ok(Address { repo, rev: rev.as_deref().map(Rev::parse).transpose()? })
     }
 
     pub fn rev_or_head(&self) -> &str {
         self.rev.as_ref().map_or("HEAD", Rev::as_str)
+    }
+}
+
+/// `s`'s repository, and the text after the first `@` after its host.
+fn split_at_sign(s: &str) -> Result<(RepoName, Option<String>), AddressError> {
+    let (rest, form) = host_onwards(s);
+    let (repo, rev) = match rest.split_once('@') {
+        Some((repo, rev)) => (repo, Some(rev.to_owned())),
+        None => (rest.as_str(), None),
+    };
+    Ok((RepoName::checked(tidy(repo, form))?, rev))
+}
+
+/// `repo@head` or `repo@base...head`.
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "used by compare in a later task")
+)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Range {
+    pub repo: RepoName,
+    pub base: Option<Rev>,
+    pub head: Rev,
+}
+
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "used by compare in a later task")
+)]
+impl Range {
+    /// `s` split as `Address::parse` splits it, then its revision at the
+    /// first `...`; without a revision it is `EmptyRev`.
+    pub fn parse(s: &str) -> Result<Range, AddressError> {
+        let (repo, rev) = split_at_sign(s)?;
+        let rev = rev.ok_or(AddressError::EmptyRev)?;
+        let (base, head) = match rev.split_once("...") {
+            Some((base, head)) => (Some(Rev::parse(base)?), head),
+            None => (None, rev.as_str()),
+        };
+        Ok(Range { repo, base, head: Rev::parse(head)? })
+    }
+}
+
+/// `repo@head` or `repo@base...head`, unquoted.
+impl fmt::Display for Range {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}@", self.repo.as_str())?;
+        if let Some(base) = &self.base {
+            write!(f, "{}...", base.as_str())?;
+        }
+        f.write_str(self.head.as_str())
     }
 }
 
@@ -446,6 +490,45 @@ mod tests {
                 Address::parse(bad),
                 Err(AddressError::BadRev(_))
             ));
+        }
+    }
+
+    #[test]
+    fn ranges_split_at_three_dots() {
+        let range = Range::parse("github.com/x/y@v1...v2").unwrap();
+        assert_eq!(
+            (
+                range.repo.as_str(),
+                range.base.as_ref().map(Rev::as_str),
+                range.head.as_str()
+            ),
+            ("github.com/x/y", Some("v1"), "v2")
+        );
+        let single = Range::parse("github.com/x/y@abc").unwrap();
+        assert_eq!((single.base, single.head.as_str()), (None, "abc"));
+        let url =
+            Range::parse("https://git@github.com/x/y.git@a...b").unwrap();
+        assert_eq!(url.to_string(), "github.com/x/y@a...b");
+        for bad in ["github.com/x/y@a..b", "github.com/x/y@a...b..c"] {
+            assert!(
+                matches!(Range::parse(bad), Err(AddressError::TwoDots(_))),
+                "{bad}"
+            );
+        }
+        for bad in [
+            "github.com/x/y",
+            "github.com/x/y@",
+            "github.com/x/y@...v2",
+            "github.com/x/y@v1...",
+        ] {
+            assert!(
+                matches!(Range::parse(bad), Err(AddressError::EmptyRev)),
+                "{bad}"
+            );
+        }
+        assert!(matches!(Range::parse("@v1"), Err(AddressError::EmptyRepo)));
+        for shown in ["github.com/x/y@v1...v2", "github.com/x/y@abc"] {
+            assert_eq!(Range::parse(shown).unwrap().to_string(), shown);
         }
     }
 
