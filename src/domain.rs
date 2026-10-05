@@ -1,4 +1,4 @@
-use crate::address::{Pinned, RepoName};
+use crate::address::{CommitId, Pinned, RepoName};
 
 /// Lines of a file, from line `start`. A binary file has no lines.
 #[derive(Debug)]
@@ -11,6 +11,54 @@ pub struct File {
     pub binary: bool,
     pub start: u32,
     pub lines: Vec<String>,
+}
+
+/// The commits that last changed a file's lines, from line `start` to
+/// `end`, the last line shown. A binary or empty file has no hunks; over the
+/// read cap there are no `lines`.
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "used by the blame command in Task 3")
+)]
+#[derive(Debug)]
+pub struct Blame {
+    pub at: Pinned,
+    pub path: String,
+    pub byte_size: u64,
+    pub total_lines: u32,
+    pub binary: bool,
+    pub start: u32,
+    pub end: u32,
+    pub hunks: Vec<Hunk>,
+    pub lines: Option<Vec<String>>,
+}
+
+/// Lines `start` to `end`, inclusive, as `commit` left them, at `path` as
+/// it was in that commit. `date` is the author date as the upstream gives
+/// it; `subject` is the commit's summary line.
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "used by the blame command in Task 3")
+)]
+#[derive(Debug)]
+pub struct Hunk {
+    pub start: u32,
+    pub end: u32,
+    pub commit: CommitId,
+    pub path: String,
+    pub date: String,
+    pub author: Author,
+    pub subject: String,
+}
+
+#[cfg_attr(
+    not(test),
+    expect(dead_code, reason = "used by the blame command in Task 3")
+)]
+#[derive(Debug)]
+pub struct Author {
+    pub name: String,
+    pub email: String,
 }
 
 /// A directory's entries, in path order. A truncated listing is missing
@@ -209,7 +257,7 @@ pub enum LinesCommand {
     Read,
     #[cfg_attr(
         not(test),
-        expect(dead_code, reason = "only the tests construct it")
+        expect(dead_code, reason = "used by the blame command in Task 3")
     )]
     Blame,
 }

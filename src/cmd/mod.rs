@@ -294,10 +294,10 @@ mod tests {
     use crate::escape::{CORPUS, is_unsafe};
     use crate::output::Output;
     use crate::render;
-    use crate::sourcegraph::FetchError;
     use crate::sourcegraph::search::SearchProblem;
     use crate::sourcegraph::transport::{InvalidEndpoint, Transport};
     use crate::sourcegraph::vocabulary::ALERT_BAD_QUERY;
+    use crate::sourcegraph::{FetchError, blame};
 
     /// Spec §3.4: the exit code of each diagnostic code sego has.
     const EXIT_CODES: &[(&str, u8)] = &[
@@ -782,6 +782,12 @@ mod tests {
         all.extend(search_problems().into_iter().map(Box::from));
         all.push(Box::new(InvalidEndpoint::NotUtf8));
         for &word in CORPUS {
+            all.push(blame::timed_out(FetchError::Transport {
+                url: word.to_owned(),
+                cause: word.to_owned(),
+                timed_out: true,
+                trace: Some(word.to_owned()),
+            }));
             let endpoint = Transport::new(word).err().unwrap();
             all.push(Box::new(endpoint));
             let mut output = Output::new(Failing(word.to_owned()));

@@ -167,12 +167,7 @@ pub fn answer(
         let content = body
             .and_then(|body| body.content)
             .ok_or_else(|| missing("content"))?;
-        let mut lines: Vec<String> =
-            content.split('\n').map(str::to_owned).collect();
-        if lines.last().is_some_and(String::is_empty) {
-            lines.pop();
-        }
-        lines
+        split_lines(&content)
     };
     Ok(File {
         at,
@@ -184,6 +179,17 @@ pub fn answer(
         start,
         lines,
     })
+}
+
+/// `content`'s lines, without their newlines; a final newline ends the last
+/// line rather than starting another.
+pub fn split_lines(content: &str) -> Vec<String> {
+    let mut lines: Vec<String> =
+        content.split('\n').map(str::to_owned).collect();
+    if lines.last().is_some_and(String::is_empty) {
+        lines.pop();
+    }
+    lines
 }
 
 #[cfg(test)]
