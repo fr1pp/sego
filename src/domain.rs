@@ -240,10 +240,6 @@ pub struct SearchReport {
 /// and `files`, in path byte order, are cut at their caps; the totals are
 /// exact. With a `path`, `commit_count` and every list are narrowed to it,
 /// and a file's `hunks` are given.
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "used by compare in a later task")
-)]
 #[derive(Debug)]
 pub struct Comparison {
     pub repo: RepoName,
@@ -266,10 +262,6 @@ pub struct Comparison {
 
 /// A single commit: its author date as the upstream gives it, and its whole
 /// message, line endings `\n`. The first parent is the one diffed against.
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "used by compare in a later task")
-)]
 #[derive(Debug)]
 pub struct CommitDetail {
     pub date: String,
@@ -280,10 +272,6 @@ pub struct CommitDetail {
 
 /// A commit in a comparison's list. `date` is the author date as the
 /// upstream gives it; `subject` is the message's first line.
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "used by compare in a later task")
-)]
 #[derive(Debug)]
 pub struct CommitSummary {
     pub commit: CommitId,
@@ -294,10 +282,6 @@ pub struct CommitSummary {
 
 /// How many commits a comparison has. A list narrowed to a path and cut at
 /// its cap has no exact count.
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "used by compare in a later task")
-)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CommitCount {
     Exact(u32),
@@ -308,10 +292,6 @@ pub enum CommitCount {
 /// `old_path` is set only for a rename. A binary file counts no lines.
 /// `readable_at` is a commit that holds the file as `path` names it, if the
 /// comparison gives one.
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "used by compare in a later task")
-)]
 #[derive(Debug)]
 pub struct FileChange {
     pub path: String,
@@ -324,10 +304,6 @@ pub struct FileChange {
 }
 
 /// A mode-only change and a submodule bump are `Modified`.
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "used by compare in a later task")
-)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FileStatus {
     Added,
@@ -340,10 +316,6 @@ pub enum FileStatus {
 /// `section`, and its lines, each with its ` `, `+` or `-` prefix. The
 /// no-newline flags say the old or new side's last line has no newline at
 /// the end of the file.
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "used by compare in a later task")
-)]
 #[derive(Debug)]
 pub struct DiffHunk {
     pub old_start: u32,
@@ -380,10 +352,6 @@ impl LinesCommand {
 }
 
 /// The revision of a range a `RevisionNotFound` is about.
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "used by compare in a later task")
-)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Side {
     Base,
@@ -432,10 +400,6 @@ pub enum Unavailable {
         total_lines: u32,
         command: LinesCommand,
     },
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "used by compare in a later task")
-    )]
     NoParent {
         at: Pinned,
     },

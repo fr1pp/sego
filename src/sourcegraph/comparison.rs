@@ -681,7 +681,7 @@ fn classify(
 }
 
 /// A list's length as a count; no list is near `u32::MAX` long.
-fn listed(len: usize) -> u32 {
+pub fn listed(len: usize) -> u32 {
     u32::try_from(len).unwrap_or(u32::MAX)
 }
 

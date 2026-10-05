@@ -1,4 +1,5 @@
 pub mod blame;
+pub mod compare;
 pub mod list;
 pub mod read;
 pub mod search;
@@ -120,6 +121,7 @@ pub enum Command {
     List,
     Read,
     Blame,
+    Compare,
 }
 
 impl Command {
@@ -129,6 +131,7 @@ impl Command {
             "list" => Some(Command::List),
             "read" => Some(Command::Read),
             "blame" => Some(Command::Blame),
+            "compare" => Some(Command::Compare),
             _ => None,
         }
     }
@@ -139,6 +142,7 @@ impl Command {
             Command::List => "list",
             Command::Read => "read",
             Command::Blame => "blame",
+            Command::Compare => "compare",
         }
     }
 
@@ -148,6 +152,7 @@ impl Command {
             Command::List => &list::HELP,
             Command::Read => &read::HELP,
             Command::Blame => &blame::HELP,
+            Command::Compare => &compare::HELP,
         }
     }
 
@@ -178,6 +183,9 @@ impl Command {
             Command::Blame => {
                 blame::request(cli)?;
             }
+            Command::Compare => {
+                compare::request(cli)?;
+            }
         }
         Ok(())
     }
@@ -192,6 +200,7 @@ impl Command {
             Command::List => list::run(cli, fetch),
             Command::Read => read::run(cli, fetch),
             Command::Blame => blame::run(cli, fetch),
+            Command::Compare => compare::run(cli, fetch),
         }
     }
 }
@@ -293,14 +302,15 @@ mod tests {
     use serde_json::Value;
 
     use super::*;
-    use crate::address::{CommitId, Pinned, RepoName};
+    use crate::address::{CommitId, Pinned, Range, RepoName};
     use crate::args;
     use crate::diagnostic::report;
     use crate::domain::{
-        self, Alert, Author, CommitHit, CutShort, Entry, EntryKind, File,
-        FileHit, Filter, Hit, Hunk, Line, LinesCommand, Listing, NotAFile,
-        RepoHit, SearchReport, Side, Skipped, Span, Submodule, Symbol, Term,
-        Tree, Unavailable,
+        self, Alert, Author, CommitCount, CommitDetail, CommitHit,
+        CommitSummary, Comparison, CutShort, DiffHunk, Entry, EntryKind, File,
+        FileChange, FileHit, FileStatus, Filter, Hit, Hunk, Line,
+        LinesCommand, Listing, NotAFile, RepoHit, SearchReport, Side, Skipped,
+        Span, Submodule, Symbol, Term, Tree, Unavailable,
     };
     use crate::escape::{CORPUS, is_unsafe};
     use crate::output::Output;
@@ -547,6 +557,14 @@ mod tests {
             &["blame", "x/y", "a", "0"],
             &["blame", "x/y", "a", "5-1"],
             &["blame", "x/y", "a", "1", "--depth", "2"],
+            &["compare"],
+            &["compare", "x/y"],
+            &["compare", "x/y@"],
+            &["compare", "x/y@a..b"],
+            &["compare", "x/y@...b"],
+            &["compare", "x/y@a..."],
+            &["compare", "x/y@a...b", "c", "d"],
+            &["compare", "x/y@a", "--depth", "2"],
         ];
         let mut argvs: Vec<Vec<OsString>> = invalid
             .iter()
@@ -564,6 +582,7 @@ mod tests {
             argvs.extend([
                 vec!["list".into(), "x/y".into(), option()],
                 vec!["read".into(), "x/y".into(), option(), "1".into()],
+                vec!["compare".into(), "x/y@a...b".into(), option()],
             ]);
         }
         #[cfg(unix)]
@@ -965,14 +984,100 @@ mod tests {
         ]
     }
 
-    /// A file, a listing, a submodule, searches with and without hits, and
-    /// blames, for each word of the corpus.
+    /// Comparisons of the corpus: a range narrowed to a file, with a file
+    /// of each status, a hunk of the corpus and both lists cut; a single
+    /// commit with the corpus as its message; and a range with no commits,
+    /// whose reverse has some.
+    fn comparisons(word: &str) -> Vec<Comparison> {
+        let text = || word.to_owned();
+        let file = |status, old_path, readable_at| FileChange {
+            path: text(),
+            old_path,
+            status,
+            binary: status == FileStatus::Modified,
+            added: 1,
+            deleted: 1,
+            readable_at,
+        };
+        let lines = CORPUS.iter().map(|&line| format!("+{line}")).collect();
+        let comparison = |commit, ahead, behind| Comparison {
+            repo: at().repo,
+            base: Some(at().commit),
+            head: at().commit,
+            commit,
+            ahead,
+            behind,
+            commits: vec![CommitSummary {
+                commit: at().commit,
+                date: text(),
+                author: text(),
+                subject: text(),
+            }],
+            commit_count: CommitCount::MoreThan(1),
+            files_changed: 5,
+            added: 1,
+            deleted: 1,
+            files: vec![
+                file(FileStatus::Added, None, Some(at().commit)),
+                file(FileStatus::Deleted, None, Some(at().commit)),
+                file(FileStatus::Deleted, None, None),
+                file(FileStatus::Renamed, Some(text()), Some(at().commit)),
+                file(FileStatus::Modified, None, Some(at().commit)),
+            ],
+            files_truncated: true,
+            path: Some(text()),
+            path_is_file: true,
+            hunks: Vec::new(),
+        };
+        let range = Comparison {
+            hunks: vec![DiffHunk {
+                old_start: 1,
+                old_lines: 0,
+                new_start: 1,
+                new_lines: u32::try_from(CORPUS.len()).unwrap(),
+                section: Some(text()),
+                lines,
+                no_newline_old: true,
+                no_newline_new: true,
+            }],
+            ..comparison(None, 2, 0)
+        };
+        let detail = CommitDetail {
+            date: text(),
+            author: text(),
+            message: CORPUS.join("\n"),
+            parents: vec![at().commit, at().commit],
+        };
+        let single = Comparison {
+            base: None,
+            commits: Vec::new(),
+            commit_count: CommitCount::Exact(1),
+            ..comparison(Some(detail), 1, 0)
+        };
+        let empty = Comparison {
+            commits: Vec::new(),
+            commit_count: CommitCount::Exact(0),
+            files_changed: 0,
+            files: Vec::new(),
+            files_truncated: false,
+            ..comparison(None, 0, 1)
+        };
+        vec![range, single, empty]
+    }
+
+    /// A file, a listing, a submodule, searches with and without hits,
+    /// blames and comparisons, for each word of the corpus.
     fn answers() -> Vec<Box<dyn Present>> {
         let mut all: Vec<Box<dyn Present>> = Vec::new();
         for word in words() {
             let text = || word.to_owned();
             for blame in blames(word) {
                 all.push(Box::new(blame::Blame { blame }));
+            }
+            for comparison in comparisons(word) {
+                let range = Range::parse("github.com/gorilla/mux@a...b");
+                let range = range.unwrap();
+                all.push(Box::new(compare::Compare { comparison, range }));
             }
             let file = File {
                 at: at(),
@@ -1067,6 +1172,7 @@ mod tests {
         ("file", "read"),
         ("listing", "list"),
         ("search", "search"),
+        ("comparison", "compare"),
     ];
 
     #[test]

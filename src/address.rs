@@ -189,10 +189,6 @@ fn split_at_sign(s: &str) -> Result<(RepoName, Option<String>), AddressError> {
 }
 
 /// `repo@head` or `repo@base...head`.
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "used by compare in a later task")
-)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Range {
     pub repo: RepoName,
@@ -200,10 +196,6 @@ pub struct Range {
     pub head: Rev,
 }
 
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "used by compare in a later task")
-)]
 impl Range {
     /// `s` split as `Address::parse` splits it, then its revision at the
     /// first `...`.

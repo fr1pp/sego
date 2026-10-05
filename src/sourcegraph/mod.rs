@@ -1,9 +1,5 @@
 pub mod blame;
 pub mod blob;
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "used by compare in a later task")
-)]
 pub mod comparison;
 pub mod envelope;
 pub mod node;
