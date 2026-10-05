@@ -789,6 +789,22 @@ mod tests {
             caused by: the blame repeats line 3
         "#]]
         .assert_eq(&failure(result));
+        let past = [(1, 3, ONE, "mux.go"), (3, 7, TWO, "mux.go")];
+        let result = answer(&lines(1, 5), synthetic(6, &past, None));
+        expect![[r#"
+            [bad_response Unanswered]
+            error: the upstream's answer has missing or unknown fields
+            caused by: the blame runs past line 5
+        "#]]
+        .assert_eq(&failure(result));
+        let empty = [(1, 3, ONE, "mux.go"), (3, 3, TWO, "mux.go")];
+        let result = answer(&lines(1, 2), synthetic(5, &empty, None));
+        expect![[r#"
+            [bad_response Unanswered]
+            error: the upstream's answer has missing or unknown fields
+            caused by: a blame hunk has endLine 3, not after its startLine 3
+        "#]]
+        .assert_eq(&failure(result));
     }
 
     #[test]
@@ -819,6 +835,13 @@ mod tests {
             mux.go in github.com/gorilla/mux@a7962380ca08 has 601 lines, so line 700 is past its end
             hint: sego blame github.com/gorilla/mux@a7962380ca08 mux.go 1-601
         "#]].assert_eq(&failure(blame!("past-end")));
+        let error = Some("git blame failed");
+        let result = answer(&lines(602, 602), synthetic(601, &[], error));
+        expect![[r#"
+            [out_of_range AnsweredNo]
+            mux.go in github.com/gorilla/mux@a7962380ca08 has 601 lines, so line 602 is past its end
+            hint: sego blame github.com/gorilla/mux@a7962380ca08 mux.go 1-601
+        "#]].assert_eq(&failure(result));
         let last = BlameRequest { start: 601, end: None, ..case("range") };
         let hunk = [(601, 602, ONE, "mux.go")];
         let blame = answered(answer(&last, synthetic(601, &hunk, None)));

@@ -293,9 +293,10 @@ mod tests {
     use crate::address::{CommitId, RepoName};
     use crate::args;
     use crate::cmd::read;
+    use crate::diagnostic::report;
     use crate::domain::Author;
     use crate::escape::CLIP_COLUMNS;
-    use crate::sourcegraph::GLOBAL_TIMEOUT;
+    use crate::sourcegraph::{FetchError, GLOBAL_TIMEOUT, Plan};
 
     fn at(commit: &str) -> Pinned {
         Pinned {
@@ -356,6 +357,43 @@ mod tests {
         assert_eq!(request.address.repo.as_str(), "github.com/gorilla/mux");
         assert_eq!(request.address.rev_or_head(), "bbbbbbbbbbbb");
         assert_eq!(request.path.upstream(), "--x.go");
+    }
+
+    /// The report of `run` on a blame whose request fails in transport,
+    /// timed out or not.
+    fn transport_report(timed_out: bool) -> String {
+        let cli = Cli {
+            command: Some("blame".to_owned()),
+            operands: ["x/y", "a.go", "1"].map(str::to_owned).to_vec(),
+            ..Cli::default()
+        };
+        let fetch = |_: &Plan| {
+            Err(FetchError::Transport {
+                url: "https://sourcegraph.com/.api/graphql".to_owned(),
+                cause: "timeout".to_owned(),
+                timed_out,
+                trace: None,
+            })
+        };
+        match run(&cli, &fetch) {
+            Ok(_) => panic!("an answer"),
+            Err(diagnostic) => report(&*diagnostic),
+        }
+    }
+
+    #[test]
+    fn only_a_timed_out_transport_error_is_a_slow_blame() {
+        expect![[r#"
+            error: the upstream gave no blame within 95 s
+            caused by: a blame's cost follows its lines' history, not the range's width
+            caused by: the same request will take as long again
+        "#]]
+        .assert_eq(&transport_report(true));
+        expect![[r#"
+            error: the request to https://sourcegraph.com/.api/graphql failed
+            caused by: timeout
+        "#]]
+        .assert_eq(&transport_report(false));
     }
 
     #[test]
