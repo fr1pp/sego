@@ -1,0 +1,20 @@
+{
+  "request": {
+    "query": "query Blame(\n  $repo: String!, $rev: String!, $path: String!, $start: Int!, $end: Int!\n) {\n  repository(name: $repo) {\n    name\n    commit(rev: $rev) {\n      oid\n      node: path(path: $path) {\n        __typename\n        ... on GitBlob {\n          path byteSize binary contentType submodule { url commit }\n        }\n        ... on GitTree { path }\n      }\n      lines: path(path: $path) { ... on GitBlob { totalLines } }\n      blame: path(path: $path) {\n        ... on GitBlob {\n          blame(startLine: $start, endLine: $end) {\n            startLine endLine rev filename message\n            author { person { name email } date }\n          }\n        }\n      }\n      body: path(path: $path) {\n        ... on GitBlob {\n          content(startLine: $start, endLine: $end, textOnly: true)\n        }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "end": 1,
+      "path": "x",
+      "repo": "github.com/gorilla/doesnotexist",
+      "rev": "HEAD",
+      "start": 1
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "repository": null
+      }
+    }
+  }
+}

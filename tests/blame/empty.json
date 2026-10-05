@@ -1,0 +1,51 @@
+{
+  "request": {
+    "query": "query Blame(\n  $repo: String!, $rev: String!, $path: String!, $start: Int!, $end: Int!\n) {\n  repository(name: $repo) {\n    name\n    commit(rev: $rev) {\n      oid\n      node: path(path: $path) {\n        __typename\n        ... on GitBlob {\n          path byteSize binary contentType submodule { url commit }\n        }\n        ... on GitTree { path }\n      }\n      lines: path(path: $path) { ... on GitBlob { totalLines } }\n      blame: path(path: $path) {\n        ... on GitBlob {\n          blame(startLine: $start, endLine: $end) {\n            startLine endLine rev filename message\n            author { person { name email } date }\n          }\n        }\n      }\n      body: path(path: $path) {\n        ... on GitBlob {\n          content(startLine: $start, endLine: $end, textOnly: true)\n        }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "end": 2147483647,
+      "path": "test/typeparam/issue47740.out",
+      "repo": "github.com/golang/go",
+      "rev": "go1.23.0",
+      "start": 1
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "repository": {
+          "commit": {
+            "blame": null,
+            "body": {
+              "content": ""
+            },
+            "lines": {
+              "totalLines": 1
+            },
+            "node": {
+              "__typename": "GitBlob",
+              "binary": false,
+              "byteSize": 0,
+              "contentType": "application/octet-stream",
+              "path": "test/typeparam/issue47740.out",
+              "submodule": null
+            },
+            "oid": "6885bad7dd86880be6929c02085e5c7a67ff2887"
+          },
+          "name": "github.com/golang/go"
+        }
+      },
+      "errors": [
+        {
+          "message": "rpc error: code = Unknown desc = git command [git -c gc.auto=0 -c maintenance.auto=0 blame --porcelain --incremental --ignore-revs-file /data/repos/tenants/1/.tmp/git-blame-ignore-revs303374849 -L1,2147483647 6885bad7dd86880be6929c02085e5c7a67ff2887 -- test/typeparam/issue47740.out] failed with status code 128",
+          "path": [
+            "repository",
+            "commit",
+            "blame",
+            "blame"
+          ]
+        }
+      ]
+    }
+  }
+}

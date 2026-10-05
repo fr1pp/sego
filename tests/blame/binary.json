@@ -1,0 +1,57 @@
+{
+  "request": {
+    "query": "query Blame(\n  $repo: String!, $rev: String!, $path: String!, $start: Int!, $end: Int!\n) {\n  repository(name: $repo) {\n    name\n    commit(rev: $rev) {\n      oid\n      node: path(path: $path) {\n        __typename\n        ... on GitBlob {\n          path byteSize binary contentType submodule { url commit }\n        }\n        ... on GitTree { path }\n      }\n      lines: path(path: $path) { ... on GitBlob { totalLines } }\n      blame: path(path: $path) {\n        ... on GitBlob {\n          blame(startLine: $start, endLine: $end) {\n            startLine endLine rev filename message\n            author { person { name email } date }\n          }\n        }\n      }\n      body: path(path: $path) {\n        ... on GitBlob {\n          content(startLine: $start, endLine: $end, textOnly: true)\n        }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "end": 8,
+      "path": "src/archive/zip/testdata/gophercolor16x16.png",
+      "repo": "github.com/golang/go",
+      "rev": "go1.23.0",
+      "start": 1
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "repository": {
+          "commit": {
+            "blame": {
+              "blame": [
+                {
+                  "author": {
+                    "date": "2010-09-30T01:59:46Z",
+                    "person": {
+                      "email": "andrewgerrand@noreply.sourcegraph.com",
+                      "name": "Andrew Gerrand"
+                    }
+                  },
+                  "endLine": 9,
+                  "filename": "src/pkg/archive/zip/testdata/gophercolor16x16.png",
+                  "message": "archive/zip: new package for reading ZIP files",
+                  "rev": "a00b98ec3f181c2e1940bdb312615024c17d75ef",
+                  "startLine": 1
+                }
+              ]
+            },
+            "body": {
+              "content": ""
+            },
+            "lines": {
+              "totalLines": 8
+            },
+            "node": {
+              "__typename": "GitBlob",
+              "binary": true,
+              "byteSize": 785,
+              "contentType": "image/png",
+              "path": "src/archive/zip/testdata/gophercolor16x16.png",
+              "submodule": null
+            },
+            "oid": "6885bad7dd86880be6929c02085e5c7a67ff2887"
+          },
+          "name": "github.com/golang/go"
+        }
+      }
+    }
+  }
+}

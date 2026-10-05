@@ -1,0 +1,85 @@
+{
+  "request": {
+    "query": "query Blame(\n  $repo: String!, $rev: String!, $path: String!, $start: Int!, $end: Int!\n) {\n  repository(name: $repo) {\n    name\n    commit(rev: $rev) {\n      oid\n      node: path(path: $path) {\n        __typename\n        ... on GitBlob {\n          path byteSize binary contentType submodule { url commit }\n        }\n        ... on GitTree { path }\n      }\n      lines: path(path: $path) { ... on GitBlob { totalLines } }\n      blame: path(path: $path) {\n        ... on GitBlob {\n          blame(startLine: $start, endLine: $end) {\n            startLine endLine rev filename message\n            author { person { name email } date }\n          }\n        }\n      }\n      body: path(path: $path) {\n        ... on GitBlob {\n          content(startLine: $start, endLine: $end, textOnly: true)\n        }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "end": 221,
+      "path": "mux.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.7.0",
+      "start": 214
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "repository": {
+          "commit": {
+            "blame": {
+              "blame": [
+                {
+                  "author": {
+                    "date": "2018-12-07T15:48:26Z",
+                    "person": {
+                      "email": "joewilner@noreply.sourcegraph.com",
+                      "name": "Joe Wilner"
+                    }
+                  },
+                  "endLine": 218,
+                  "filename": "mux.go",
+                  "message": "Improve subroute configuration propagation #422",
+                  "rev": "758eb64354aa27cda6c1b026822c788cc755f06f",
+                  "startLine": 217
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 217,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 214
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 222,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 218
+                }
+              ]
+            },
+            "body": {
+              "content": "\n// Get returns a route registered with the given name.\nfunc (r *Router) Get(name string) *Route {\n\treturn r.namedRoutes[name]\n}\n\n// GetRoute returns a route registered with the given name. This method\n// was renamed to Get() and remains here for backwards compatibility.\n"
+            },
+            "lines": {
+              "totalLines": 601
+            },
+            "node": {
+              "__typename": "GitBlob",
+              "binary": false,
+              "byteSize": 17526,
+              "contentType": "text/plain; charset=utf-8",
+              "path": "mux.go",
+              "submodule": null
+            },
+            "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+          },
+          "name": "github.com/gorilla/mux"
+        }
+      }
+    }
+  }
+}

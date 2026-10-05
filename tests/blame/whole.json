@@ -1,0 +1,1905 @@
+{
+  "request": {
+    "query": "query Blame(\n  $repo: String!, $rev: String!, $path: String!, $start: Int!, $end: Int!\n) {\n  repository(name: $repo) {\n    name\n    commit(rev: $rev) {\n      oid\n      node: path(path: $path) {\n        __typename\n        ... on GitBlob {\n          path byteSize binary contentType submodule { url commit }\n        }\n        ... on GitTree { path }\n      }\n      lines: path(path: $path) { ... on GitBlob { totalLines } }\n      blame: path(path: $path) {\n        ... on GitBlob {\n          blame(startLine: $start, endLine: $end) {\n            startLine endLine rev filename message\n            author { person { name email } date }\n          }\n        }\n      }\n      body: path(path: $path) {\n        ... on GitBlob {\n          content(startLine: $start, endLine: $end, textOnly: true)\n        }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "end": 2147483647,
+      "path": "mux.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.7.0",
+      "start": 1
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "repository": {
+          "commit": {
+            "blame": {
+              "blame": [
+                {
+                  "author": {
+                    "date": "2018-12-17T14:42:43Z",
+                    "person": {
+                      "email": "alimy@noreply.sourcegraph.com",
+                      "name": "alimy"
+                    }
+                  },
+                  "endLine": 26,
+                  "filename": "mux.go",
+                  "message": "remove redundant code that remove support gorilla/context (#427)",
+                  "rev": "6137e193cdcba2725f16de84eaf0db2b769d9668",
+                  "startLine": 25
+                },
+                {
+                  "author": {
+                    "date": "2018-12-17T14:42:43Z",
+                    "person": {
+                      "email": "alimy@noreply.sourcegraph.com",
+                      "name": "alimy"
+                    }
+                  },
+                  "endLine": 62,
+                  "filename": "mux.go",
+                  "message": "remove redundant code that remove support gorilla/context (#427)",
+                  "rev": "6137e193cdcba2725f16de84eaf0db2b769d9668",
+                  "startLine": 60
+                },
+                {
+                  "author": {
+                    "date": "2018-12-07T15:48:26Z",
+                    "person": {
+                      "email": "joewilner@noreply.sourcegraph.com",
+                      "name": "Joe Wilner"
+                    }
+                  },
+                  "endLine": 56,
+                  "filename": "mux.go",
+                  "message": "Improve subroute configuration propagation #422",
+                  "rev": "758eb64354aa27cda6c1b026822c788cc755f06f",
+                  "startLine": 55
+                },
+                {
+                  "author": {
+                    "date": "2018-12-07T15:48:26Z",
+                    "person": {
+                      "email": "joewilner@noreply.sourcegraph.com",
+                      "name": "Joe Wilner"
+                    }
+                  },
+                  "endLine": 59,
+                  "filename": "mux.go",
+                  "message": "Improve subroute configuration propagation #422",
+                  "rev": "758eb64354aa27cda6c1b026822c788cc755f06f",
+                  "startLine": 58
+                },
+                {
+                  "author": {
+                    "date": "2018-12-07T15:48:26Z",
+                    "person": {
+                      "email": "joewilner@noreply.sourcegraph.com",
+                      "name": "Joe Wilner"
+                    }
+                  },
+                  "endLine": 65,
+                  "filename": "mux.go",
+                  "message": "Improve subroute configuration propagation #422",
+                  "rev": "758eb64354aa27cda6c1b026822c788cc755f06f",
+                  "startLine": 64
+                },
+                {
+                  "author": {
+                    "date": "2018-12-07T15:48:26Z",
+                    "person": {
+                      "email": "joewilner@noreply.sourcegraph.com",
+                      "name": "Joe Wilner"
+                    }
+                  },
+                  "endLine": 125,
+                  "filename": "mux.go",
+                  "message": "Improve subroute configuration propagation #422",
+                  "rev": "758eb64354aa27cda6c1b026822c788cc755f06f",
+                  "startLine": 67
+                },
+                {
+                  "author": {
+                    "date": "2018-12-07T15:48:26Z",
+                    "person": {
+                      "email": "joewilner@noreply.sourcegraph.com",
+                      "name": "Joe Wilner"
+                    }
+                  },
+                  "endLine": 218,
+                  "filename": "mux.go",
+                  "message": "Improve subroute configuration propagation #422",
+                  "rev": "758eb64354aa27cda6c1b026822c788cc755f06f",
+                  "startLine": 217
+                },
+                {
+                  "author": {
+                    "date": "2018-12-07T15:48:26Z",
+                    "person": {
+                      "email": "joewilner@noreply.sourcegraph.com",
+                      "name": "Joe Wilner"
+                    }
+                  },
+                  "endLine": 224,
+                  "filename": "mux.go",
+                  "message": "Improve subroute configuration propagation #422",
+                  "rev": "758eb64354aa27cda6c1b026822c788cc755f06f",
+                  "startLine": 223
+                },
+                {
+                  "author": {
+                    "date": "2018-12-07T15:48:26Z",
+                    "person": {
+                      "email": "joewilner@noreply.sourcegraph.com",
+                      "name": "Joe Wilner"
+                    }
+                  },
+                  "endLine": 282,
+                  "filename": "mux.go",
+                  "message": "Improve subroute configuration propagation #422",
+                  "rev": "758eb64354aa27cda6c1b026822c788cc755f06f",
+                  "startLine": 280
+                },
+                {
+                  "author": {
+                    "date": "2018-05-13T03:22:33Z",
+                    "person": {
+                      "email": "mattsilverlock@noreply.sourcegraph.com",
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "endLine": 17,
+                  "filename": "mux.go",
+                  "message": "[docs] Improve docstrings for middleware, skipclean (#375)",
+                  "rev": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf",
+                  "startLine": 16
+                },
+                {
+                  "author": {
+                    "date": "2018-05-01T03:11:36Z",
+                    "person": {
+                      "email": "mattsilverlock@noreply.sourcegraph.com",
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "endLine": 18,
+                  "filename": "mux.go",
+                  "message": "Fix linter issues (docs) (#370)",
+                  "rev": "ded0c29b24f96f46cf349e6701b099db601cf8ec",
+                  "startLine": 17
+                },
+                {
+                  "author": {
+                    "date": "2018-05-01T03:11:36Z",
+                    "person": {
+                      "email": "mattsilverlock@noreply.sourcegraph.com",
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "endLine": 21,
+                  "filename": "mux.go",
+                  "message": "Fix linter issues (docs) (#370)",
+                  "rev": "ded0c29b24f96f46cf349e6701b099db601cf8ec",
+                  "startLine": 19
+                },
+                {
+                  "author": {
+                    "date": "2018-05-01T03:11:36Z",
+                    "person": {
+                      "email": "mattsilverlock@noreply.sourcegraph.com",
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "endLine": 158,
+                  "filename": "mux.go",
+                  "message": "Fix linter issues (docs) (#370)",
+                  "rev": "ded0c29b24f96f46cf349e6701b099db601cf8ec",
+                  "startLine": 156
+                },
+                {
+                  "author": {
+                    "date": "2018-01-16T17:23:47Z",
+                    "person": {
+                      "email": "robertosantalla@noreply.sourcegraph.com",
+                      "name": "Roberto Santalla"
+                    }
+                  },
+                  "endLine": 67,
+                  "filename": "mux.go",
+                  "message": "[feat] Add middleware support as discussed in #293 (#294)",
+                  "rev": "53c1911da2b537f792e7cafcb446b05ffe33b996",
+                  "startLine": 65
+                },
+                {
+                  "author": {
+                    "date": "2018-01-16T17:23:47Z",
+                    "person": {
+                      "email": "robertosantalla@noreply.sourcegraph.com",
+                      "name": "Roberto Santalla"
+                    }
+                  },
+                  "endLine": 147,
+                  "filename": "mux.go",
+                  "message": "[feat] Add middleware support as discussed in #293 (#294)",
+                  "rev": "53c1911da2b537f792e7cafcb446b05ffe33b996",
+                  "startLine": 141
+                },
+                {
+                  "author": {
+                    "date": "2017-12-02T20:38:52Z",
+                    "person": {
+                      "email": "mattsilverlock@noreply.sourcegraph.com",
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "endLine": 230,
+                  "filename": "mux.go",
+                  "message": "[docs] Note StrictSlash re-direct behaviour #308 (#321)",
+                  "rev": "c572efe4294d5a0e354e01f2ddaa8b1f0c3cb3dd",
+                  "startLine": 229
+                },
+                {
+                  "author": {
+                    "date": "2017-12-02T20:38:52Z",
+                    "person": {
+                      "email": "mattsilverlock@noreply.sourcegraph.com",
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "endLine": 241,
+                  "filename": "mux.go",
+                  "message": "[docs] Note StrictSlash re-direct behaviour #308 (#321)",
+                  "rev": "c572efe4294d5a0e354e01f2ddaa8b1f0c3cb3dd",
+                  "startLine": 236
+                },
+                {
+                  "author": {
+                    "date": "2017-11-05T17:23:20Z",
+                    "person": {
+                      "email": "robertosantalla@noreply.sourcegraph.com",
+                      "name": "Roberto Santalla"
+                    }
+                  },
+                  "endLine": 155,
+                  "filename": "mux.go",
+                  "message": "MatchErr is set to ErrNotFound if NotFoundHandler is used (#311)",
+                  "rev": "7f08801859139f86dfafd1c296e2cba9a80d292e",
+                  "startLine": 151
+                },
+                {
+                  "author": {
+                    "date": "2017-11-05T17:23:20Z",
+                    "person": {
+                      "email": "robertosantalla@noreply.sourcegraph.com",
+                      "name": "Roberto Santalla"
+                    }
+                  },
+                  "endLine": 156,
+                  "filename": "mux.go",
+                  "message": "MatchErr is set to ErrNotFound if NotFoundHandler is used (#311)",
+                  "rev": "7f08801859139f86dfafd1c296e2cba9a80d292e",
+                  "startLine": 155
+                },
+                {
+                  "author": {
+                    "date": "2017-11-05T17:23:20Z",
+                    "person": {
+                      "email": "robertosantalla@noreply.sourcegraph.com",
+                      "name": "Roberto Santalla"
+                    }
+                  },
+                  "endLine": 164,
+                  "filename": "mux.go",
+                  "message": "MatchErr is set to ErrNotFound if NotFoundHandler is used (#311)",
+                  "rev": "7f08801859139f86dfafd1c296e2cba9a80d292e",
+                  "startLine": 163
+                },
+                {
+                  "author": {
+                    "date": "2017-11-05T17:23:20Z",
+                    "person": {
+                      "email": "robertosantalla@noreply.sourcegraph.com",
+                      "name": "Roberto Santalla"
+                    }
+                  },
+                  "endLine": 168,
+                  "filename": "mux.go",
+                  "message": "MatchErr is set to ErrNotFound if NotFoundHandler is used (#311)",
+                  "rev": "7f08801859139f86dfafd1c296e2cba9a80d292e",
+                  "startLine": 166
+                },
+                {
+                  "author": {
+                    "date": "2017-11-05T04:08:26Z",
+                    "person": {
+                      "email": "kamilkisiel@noreply.sourcegraph.com",
+                      "name": "Kamil Kisiel"
+                    }
+                  },
+                  "endLine": 138,
+                  "filename": "mux.go",
+                  "message": "[docs] Document router.Match (#313)",
+                  "rev": "9f48112f18a17f59ef17cfd7eea0d8c955504ebc",
+                  "startLine": 127
+                },
+                {
+                  "author": {
+                    "date": "2017-10-20T03:46:20Z",
+                    "person": {
+                      "email": "mikebusch@noreply.sourcegraph.com",
+                      "name": "Mike Busch"
+                    }
+                  },
+                  "endLine": 180,
+                  "filename": "mux.go",
+                  "message": "use req.URL.EscapedPath() instead of getPath(req) (#306)",
+                  "rev": "c9183aaddd2672bdebcc2d2192ed9c788b4af1e8",
+                  "startLine": 179
+                },
+                {
+                  "author": {
+                    "date": "2017-08-30T05:39:17Z",
+                    "person": {
+                      "email": "mayankpatel@noreply.sourcegraph.com",
+                      "name": "Mayank Patel"
+                    }
+                  },
+                  "endLine": 16,
+                  "filename": "mux.go",
+                  "message": "Fix #271:  Return 405 instead of 404 when request method doesn't match the route",
+                  "rev": "a659b61323b075cb38ad03aa43749e52eb4948e0",
+                  "startLine": 15
+                },
+                {
+                  "author": {
+                    "date": "2017-08-30T05:39:17Z",
+                    "person": {
+                      "email": "mayankpatel@noreply.sourcegraph.com",
+                      "name": "Mayank Patel"
+                    }
+                  },
+                  "endLine": 19,
+                  "filename": "mux.go",
+                  "message": "Fix #271:  Return 405 instead of 404 when request method doesn't match the route",
+                  "rev": "a659b61323b075cb38ad03aa43749e52eb4948e0",
+                  "startLine": 18
+                },
+                {
+                  "author": {
+                    "date": "2017-08-30T05:39:17Z",
+                    "person": {
+                      "email": "mayankpatel@noreply.sourcegraph.com",
+                      "name": "Mayank Patel"
+                    }
+                  },
+                  "endLine": 23,
+                  "filename": "mux.go",
+                  "message": "Fix #271:  Return 405 instead of 404 when request method doesn't match the route",
+                  "rev": "a659b61323b075cb38ad03aa43749e52eb4948e0",
+                  "startLine": 21
+                },
+                {
+                  "author": {
+                    "date": "2017-08-30T05:39:17Z",
+                    "person": {
+                      "email": "mayankpatel@noreply.sourcegraph.com",
+                      "name": "Mayank Patel"
+                    }
+                  },
+                  "endLine": 53,
+                  "filename": "mux.go",
+                  "message": "Fix #271:  Return 405 instead of 404 when request method doesn't match the route",
+                  "rev": "a659b61323b075cb38ad03aa43749e52eb4948e0",
+                  "startLine": 49
+                },
+                {
+                  "author": {
+                    "date": "2017-08-30T05:39:17Z",
+                    "person": {
+                      "email": "mayankpatel@noreply.sourcegraph.com",
+                      "name": "Mayank Patel"
+                    }
+                  },
+                  "endLine": 160,
+                  "filename": "mux.go",
+                  "message": "Fix #271:  Return 405 instead of 404 when request method doesn't match the route",
+                  "rev": "a659b61323b075cb38ad03aa43749e52eb4948e0",
+                  "startLine": 158
+                },
+                {
+                  "author": {
+                    "date": "2017-08-30T05:39:17Z",
+                    "person": {
+                      "email": "mayankpatel@noreply.sourcegraph.com",
+                      "name": "Mayank Patel"
+                    }
+                  },
+                  "endLine": 208,
+                  "filename": "mux.go",
+                  "message": "Fix #271:  Return 405 instead of 404 when request method doesn't match the route",
+                  "rev": "a659b61323b075cb38ad03aa43749e52eb4948e0",
+                  "startLine": 203
+                },
+                {
+                  "author": {
+                    "date": "2017-08-30T05:39:17Z",
+                    "person": {
+                      "email": "mayankpatel@noreply.sourcegraph.com",
+                      "name": "Mayank Patel"
+                    }
+                  },
+                  "endLine": 212,
+                  "filename": "mux.go",
+                  "message": "Fix #271:  Return 405 instead of 404 when request method doesn't match the route",
+                  "rev": "a659b61323b075cb38ad03aa43749e52eb4948e0",
+                  "startLine": 211
+                },
+                {
+                  "author": {
+                    "date": "2017-08-30T05:39:17Z",
+                    "person": {
+                      "email": "mayankpatel@noreply.sourcegraph.com",
+                      "name": "Mayank Patel"
+                    }
+                  },
+                  "endLine": 414,
+                  "filename": "mux.go",
+                  "message": "Fix #271:  Return 405 instead of 404 when request method doesn't match the route",
+                  "rev": "a659b61323b075cb38ad03aa43749e52eb4948e0",
+                  "startLine": 409
+                },
+                {
+                  "author": {
+                    "date": "2017-08-30T05:39:17Z",
+                    "person": {
+                      "email": "mayankpatel@noreply.sourcegraph.com",
+                      "name": "Mayank Patel"
+                    }
+                  },
+                  "endLine": 602,
+                  "filename": "mux.go",
+                  "message": "Fix #271:  Return 405 instead of 404 when request method doesn't match the route",
+                  "rev": "a659b61323b075cb38ad03aa43749e52eb4948e0",
+                  "startLine": 593
+                },
+                {
+                  "author": {
+                    "date": "2017-06-21T21:27:26Z",
+                    "person": {
+                      "email": "codyoss@noreply.sourcegraph.com",
+                      "name": "Cody Oss"
+                    }
+                  },
+                  "endLine": 512,
+                  "filename": "mux.go",
+                  "message": "Fix typo",
+                  "rev": "8c683ee571b6ee7ffc9f1cafd13103c422e71cbf",
+                  "startLine": 511
+                },
+                {
+                  "author": {
+                    "date": "2017-05-19T18:22:54Z",
+                    "person": {
+                      "email": "nickmiyake@noreply.sourcegraph.com",
+                      "name": "Nick Miyake"
+                    }
+                  },
+                  "endLine": 381,
+                  "filename": "mux.go",
+                  "message": "Update ancestors parameter for WalkFunc for matcher subrouters",
+                  "rev": "4d814f7650d4fb90c7f13da96d37831f6c11f86e",
+                  "startLine": 380
+                },
+                {
+                  "author": {
+                    "date": "2017-05-19T18:22:54Z",
+                    "person": {
+                      "email": "nickmiyake@noreply.sourcegraph.com",
+                      "name": "Nick Miyake"
+                    }
+                  },
+                  "endLine": 386,
+                  "filename": "mux.go",
+                  "message": "Update ancestors parameter for WalkFunc for matcher subrouters",
+                  "rev": "4d814f7650d4fb90c7f13da96d37831f6c11f86e",
+                  "startLine": 385
+                },
+                {
+                  "author": {
+                    "date": "2016-09-02T15:33:43Z",
+                    "person": {
+                      "email": "kushmansingh@noreply.sourcegraph.com",
+                      "name": "Kush Mansingh"
+                    }
+                  },
+                  "endLine": 179,
+                  "filename": "mux.go",
+                  "message": "Add useEncodedPath option to router and routes (#190)",
+                  "rev": "0a192a193177452756c362c20087ddafcf6829c4",
+                  "startLine": 177
+                },
+                {
+                  "author": {
+                    "date": "2016-09-02T15:33:43Z",
+                    "person": {
+                      "email": "kushmansingh@noreply.sourcegraph.com",
+                      "name": "Kush Mansingh"
+                    }
+                  },
+                  "endLine": 181,
+                  "filename": "mux.go",
+                  "message": "Add useEncodedPath option to router and routes (#190)",
+                  "rev": "0a192a193177452756c362c20087ddafcf6829c4",
+                  "startLine": 180
+                },
+                {
+                  "author": {
+                    "date": "2016-09-02T15:33:43Z",
+                    "person": {
+                      "email": "kushmansingh@noreply.sourcegraph.com",
+                      "name": "Kush Mansingh"
+                    }
+                  },
+                  "endLine": 266,
+                  "filename": "mux.go",
+                  "message": "Add useEncodedPath option to router and routes (#190)",
+                  "rev": "0a192a193177452756c362c20087ddafcf6829c4",
+                  "startLine": 263
+                },
+                {
+                  "author": {
+                    "date": "2016-09-02T15:33:43Z",
+                    "person": {
+                      "email": "kushmansingh@noreply.sourcegraph.com",
+                      "name": "Kush Mansingh"
+                    }
+                  },
+                  "endLine": 274,
+                  "filename": "mux.go",
+                  "message": "Add useEncodedPath option to router and routes (#190)",
+                  "rev": "0a192a193177452756c362c20087ddafcf6829c4",
+                  "startLine": 266
+                },
+                {
+                  "author": {
+                    "date": "2016-08-24T13:45:17Z",
+                    "person": {
+                      "email": "kushmansingh@noreply.sourcegraph.com",
+                      "name": "Kush Mansingh"
+                    }
+                  },
+                  "endLine": 183,
+                  "filename": "mux.go",
+                  "message": "Add mechanism to route based on the escaped path (#184)",
+                  "rev": "674ef1c28022f33fa7200f59db45e604557f0380",
+                  "startLine": 182
+                },
+                {
+                  "author": {
+                    "date": "2016-07-25T16:05:24Z",
+                    "person": {
+                      "email": "martinhamrle@noreply.sourcegraph.com",
+                      "name": "Martin Hamrle"
+                    }
+                  },
+                  "endLine": 378,
+                  "filename": "mux.go",
+                  "message": "Fix error handling in  Router.Walk",
+                  "rev": "cf57124f1d4afc95248c663c559ef789ee099087",
+                  "startLine": 375
+                },
+                {
+                  "author": {
+                    "date": "2016-06-04T08:04:23Z",
+                    "person": {
+                      "email": "ericj.holmes@noreply.sourcegraph.com",
+                      "name": "Eric J. Holmes"
+                    }
+                  },
+                  "endLine": 60,
+                  "filename": "mux.go",
+                  "message": "Support native context.Context when go1.7 is used.",
+                  "rev": "fdfca9f9173962ed22bc63adc02a1589e43c1405",
+                  "startLine": 59
+                },
+                {
+                  "author": {
+                    "date": "2016-06-04T08:04:23Z",
+                    "person": {
+                      "email": "ericj.holmes@noreply.sourcegraph.com",
+                      "name": "Eric J. Holmes"
+                    }
+                  },
+                  "endLine": 63,
+                  "filename": "mux.go",
+                  "message": "Support native context.Context when go1.7 is used.",
+                  "rev": "fdfca9f9173962ed22bc63adc02a1589e43c1405",
+                  "startLine": 62
+                },
+                {
+                  "author": {
+                    "date": "2016-06-04T08:04:23Z",
+                    "person": {
+                      "email": "ericj.holmes@noreply.sourcegraph.com",
+                      "name": "Eric J. Holmes"
+                    }
+                  },
+                  "endLine": 202,
+                  "filename": "mux.go",
+                  "message": "Support native context.Context when go1.7 is used.",
+                  "rev": "fdfca9f9173962ed22bc63adc02a1589e43c1405",
+                  "startLine": 200
+                },
+                {
+                  "author": {
+                    "date": "2016-06-04T08:04:23Z",
+                    "person": {
+                      "email": "ericj.holmes@noreply.sourcegraph.com",
+                      "name": "Eric J. Holmes"
+                    }
+                  },
+                  "endLine": 426,
+                  "filename": "mux.go",
+                  "message": "Support native context.Context when go1.7 is used.",
+                  "rev": "fdfca9f9173962ed22bc63adc02a1589e43c1405",
+                  "startLine": 425
+                },
+                {
+                  "author": {
+                    "date": "2016-06-04T08:04:23Z",
+                    "person": {
+                      "email": "ericj.holmes@noreply.sourcegraph.com",
+                      "name": "Eric J. Holmes"
+                    }
+                  },
+                  "endLine": 438,
+                  "filename": "mux.go",
+                  "message": "Support native context.Context when go1.7 is used.",
+                  "rev": "fdfca9f9173962ed22bc63adc02a1589e43c1405",
+                  "startLine": 437
+                },
+                {
+                  "author": {
+                    "date": "2016-06-04T08:04:23Z",
+                    "person": {
+                      "email": "ericj.holmes@noreply.sourcegraph.com",
+                      "name": "Eric J. Holmes"
+                    }
+                  },
+                  "endLine": 445,
+                  "filename": "mux.go",
+                  "message": "Support native context.Context when go1.7 is used.",
+                  "rev": "fdfca9f9173962ed22bc63adc02a1589e43c1405",
+                  "startLine": 443
+                },
+                {
+                  "author": {
+                    "date": "2016-06-04T08:04:23Z",
+                    "person": {
+                      "email": "ericj.holmes@noreply.sourcegraph.com",
+                      "name": "Eric J. Holmes"
+                    }
+                  },
+                  "endLine": 449,
+                  "filename": "mux.go",
+                  "message": "Support native context.Context when go1.7 is used.",
+                  "rev": "fdfca9f9173962ed22bc63adc02a1589e43c1405",
+                  "startLine": 447
+                },
+                {
+                  "author": {
+                    "date": "2016-05-02T17:24:09Z",
+                    "person": {
+                      "email": "jingweno@noreply.sourcegraph.com",
+                      "name": "jingweno"
+                    }
+                  },
+                  "endLine": 252,
+                  "filename": "mux.go",
+                  "message": "Clarify more of `SkipClean`",
+                  "rev": "a41434aac388acdf2aa28ba41cde5cd998feedd3",
+                  "startLine": 251
+                },
+                {
+                  "author": {
+                    "date": "2016-03-07T19:42:43Z",
+                    "person": {
+                      "email": "jingweno@noreply.sourcegraph.com",
+                      "name": "jingweno"
+                    }
+                  },
+                  "endLine": 190,
+                  "filename": "mux.go",
+                  "message": "`go fmt`",
+                  "rev": "786d36e5ab042d67efe94022439cf6c91ee711dc",
+                  "startLine": 184
+                },
+                {
+                  "author": {
+                    "date": "2014-05-20T21:59:54Z",
+                    "person": {
+                      "email": "davenewman@noreply.sourcegraph.com",
+                      "name": "Dave Newman"
+                    }
+                  },
+                  "endLine": 177,
+                  "filename": "mux.go",
+                  "message": "Add SkipClean option",
+                  "rev": "8ac5cf967fbadf2522625826070379e0fd6e2f98",
+                  "startLine": 176
+                },
+                {
+                  "author": {
+                    "date": "2014-05-20T21:59:54Z",
+                    "person": {
+                      "email": "davenewman@noreply.sourcegraph.com",
+                      "name": "Dave Newman"
+                    }
+                  },
+                  "endLine": 182,
+                  "filename": "mux.go",
+                  "message": "Add SkipClean option",
+                  "rev": "8ac5cf967fbadf2522625826070379e0fd6e2f98",
+                  "startLine": 181
+                },
+                {
+                  "author": {
+                    "date": "2014-05-20T21:59:54Z",
+                    "person": {
+                      "email": "davenewman@noreply.sourcegraph.com",
+                      "name": "Dave Newman"
+                    }
+                  },
+                  "endLine": 195,
+                  "filename": "mux.go",
+                  "message": "Add SkipClean option",
+                  "rev": "8ac5cf967fbadf2522625826070379e0fd6e2f98",
+                  "startLine": 191
+                },
+                {
+                  "author": {
+                    "date": "2014-05-20T21:59:54Z",
+                    "person": {
+                      "email": "davenewman@noreply.sourcegraph.com",
+                      "name": "Dave Newman"
+                    }
+                  },
+                  "endLine": 251,
+                  "filename": "mux.go",
+                  "message": "Add SkipClean option",
+                  "rev": "8ac5cf967fbadf2522625826070379e0fd6e2f98",
+                  "startLine": 250
+                },
+                {
+                  "author": {
+                    "date": "2014-05-20T21:59:54Z",
+                    "person": {
+                      "email": "davenewman@noreply.sourcegraph.com",
+                      "name": "Dave Newman"
+                    }
+                  },
+                  "endLine": 263,
+                  "filename": "mux.go",
+                  "message": "Add SkipClean option",
+                  "rev": "8ac5cf967fbadf2522625826070379e0fd6e2f98",
+                  "startLine": 252
+                },
+                {
+                  "author": {
+                    "date": "2014-05-20T21:59:54Z",
+                    "person": {
+                      "email": "davenewman@noreply.sourcegraph.com",
+                      "name": "Dave Newman"
+                    }
+                  },
+                  "endLine": 471,
+                  "filename": "mux.go",
+                  "message": "Add SkipClean option",
+                  "rev": "8ac5cf967fbadf2522625826070379e0fd6e2f98",
+                  "startLine": 470
+                },
+                {
+                  "author": {
+                    "date": "2016-02-29T03:31:51Z",
+                    "person": {
+                      "email": "mattsilverlock@noreply.sourcegraph.com",
+                      "name": "Matt Silverlock"
+                    }
+                  },
+                  "endLine": 348,
+                  "filename": "mux.go",
+                  "message": "[docs] Satisfied golint.",
+                  "rev": "02c98b3f736c94c45d11bef7b60023f752c2d21d",
+                  "startLine": 347
+                },
+                {
+                  "author": {
+                    "date": "2015-12-25T20:16:04Z",
+                    "person": {
+                      "email": "bign8@noreply.sourcegraph.com",
+                      "name": "bign8"
+                    }
+                  },
+                  "endLine": 151,
+                  "filename": "mux.go",
+                  "message": "Potential fix for #20",
+                  "rev": "c329c7d193285eb0aeac7892896766be20a84c4c",
+                  "startLine": 150
+                },
+                {
+                  "author": {
+                    "date": "2015-12-25T20:16:04Z",
+                    "person": {
+                      "email": "bign8@noreply.sourcegraph.com",
+                      "name": "bign8"
+                    }
+                  },
+                  "endLine": 163,
+                  "filename": "mux.go",
+                  "message": "Potential fix for #20",
+                  "rev": "c329c7d193285eb0aeac7892896766be20a84c4c",
+                  "startLine": 160
+                },
+                {
+                  "author": {
+                    "date": "2015-12-25T20:16:04Z",
+                    "person": {
+                      "email": "bign8@noreply.sourcegraph.com",
+                      "name": "bign8"
+                    }
+                  },
+                  "endLine": 166,
+                  "filename": "mux.go",
+                  "message": "Potential fix for #20",
+                  "rev": "c329c7d193285eb0aeac7892896766be20a84c4c",
+                  "startLine": 164
+                },
+                {
+                  "author": {
+                    "date": "2015-12-25T20:16:04Z",
+                    "person": {
+                      "email": "bign8@noreply.sourcegraph.com",
+                      "name": "bign8"
+                    }
+                  },
+                  "endLine": 210,
+                  "filename": "mux.go",
+                  "message": "Potential fix for #20",
+                  "rev": "c329c7d193285eb0aeac7892896766be20a84c4c",
+                  "startLine": 209
+                },
+                {
+                  "author": {
+                    "date": "2015-10-03T07:21:00Z",
+                    "person": {
+                      "email": "mattcasper@noreply.sourcegraph.com",
+                      "name": "Matt Casper"
+                    }
+                  },
+                  "endLine": 488,
+                  "filename": "mux.go",
+                  "message": "Fix a typo in the comments, add a few comment docs",
+                  "rev": "ac3897eae3767628df9a43b55c53fca226870a27",
+                  "startLine": 486
+                },
+                {
+                  "author": {
+                    "date": "2015-10-03T07:21:00Z",
+                    "person": {
+                      "email": "mattcasper@noreply.sourcegraph.com",
+                      "name": "Matt Casper"
+                    }
+                  },
+                  "endLine": 499,
+                  "filename": "mux.go",
+                  "message": "Fix a typo in the comments, add a few comment docs",
+                  "rev": "ac3897eae3767628df9a43b55c53fca226870a27",
+                  "startLine": 497
+                },
+                {
+                  "author": {
+                    "date": "2015-10-03T07:21:00Z",
+                    "person": {
+                      "email": "mattcasper@noreply.sourcegraph.com",
+                      "name": "Matt Casper"
+                    }
+                  },
+                  "endLine": 513,
+                  "filename": "mux.go",
+                  "message": "Fix a typo in the comments, add a few comment docs",
+                  "rev": "ac3897eae3767628df9a43b55c53fca226870a27",
+                  "startLine": 512
+                },
+                {
+                  "author": {
+                    "date": "2015-08-05T08:24:37Z",
+                    "person": {
+                      "email": "ornebrocaar@noreply.sourcegraph.com",
+                      "name": "Orne Brocaar"
+                    }
+                  },
+                  "endLine": 436,
+                  "filename": "mux.go",
+                  "message": "Update comment and specify KeepContext option.",
+                  "rev": "13c8226081008f7ade9c619da744ed14e78eb8de",
+                  "startLine": 432
+                },
+                {
+                  "author": {
+                    "date": "2015-07-19T08:57:47Z",
+                    "person": {
+                      "email": "clintryan@noreply.sourcegraph.com",
+                      "name": "Clint Ryan"
+                    }
+                  },
+                  "endLine": 524,
+                  "filename": "mux.go",
+                  "message": "Issue 16: Return the regexp compile error",
+                  "rev": "98fb535d771e43021d337c156c78ab13d1a7f506",
+                  "startLine": 520
+                },
+                {
+                  "author": {
+                    "date": "2015-07-09T18:46:53Z",
+                    "person": {
+                      "email": "djgilcrease@noreply.sourcegraph.com",
+                      "name": "Dj Gilcrease"
+                    }
+                  },
+                  "endLine": 9,
+                  "filename": "mux.go",
+                  "message": "Update the walk method to walk matchers so it walks the full list of routers and child routers",
+                  "rev": "92ae1d67265b4cf52d659a340435398e8da2ad05",
+                  "startLine": 8
+                },
+                {
+                  "author": {
+                    "date": "2015-07-09T18:46:53Z",
+                    "person": {
+                      "email": "djgilcrease@noreply.sourcegraph.com",
+                      "name": "Dj Gilcrease"
+                    }
+                  },
+                  "endLine": 371,
+                  "filename": "mux.go",
+                  "message": "Update the walk method to walk matchers so it walks the full list of routers and child routers",
+                  "rev": "92ae1d67265b4cf52d659a340435398e8da2ad05",
+                  "startLine": 353
+                },
+                {
+                  "author": {
+                    "date": "2015-07-09T18:46:53Z",
+                    "person": {
+                      "email": "djgilcrease@noreply.sourcegraph.com",
+                      "name": "Dj Gilcrease"
+                    }
+                  },
+                  "endLine": 375,
+                  "filename": "mux.go",
+                  "message": "Update the walk method to walk matchers so it walks the full list of routers and child routers",
+                  "rev": "92ae1d67265b4cf52d659a340435398e8da2ad05",
+                  "startLine": 371
+                },
+                {
+                  "author": {
+                    "date": "2015-07-09T18:46:53Z",
+                    "person": {
+                      "email": "djgilcrease@noreply.sourcegraph.com",
+                      "name": "Dj Gilcrease"
+                    }
+                  },
+                  "endLine": 380,
+                  "filename": "mux.go",
+                  "message": "Update the walk method to walk matchers so it walks the full list of routers and child routers",
+                  "rev": "92ae1d67265b4cf52d659a340435398e8da2ad05",
+                  "startLine": 378
+                },
+                {
+                  "author": {
+                    "date": "2015-07-09T18:46:53Z",
+                    "person": {
+                      "email": "djgilcrease@noreply.sourcegraph.com",
+                      "name": "Dj Gilcrease"
+                    }
+                  },
+                  "endLine": 385,
+                  "filename": "mux.go",
+                  "message": "Update the walk method to walk matchers so it walks the full list of routers and child routers",
+                  "rev": "92ae1d67265b4cf52d659a340435398e8da2ad05",
+                  "startLine": 381
+                },
+                {
+                  "author": {
+                    "date": "2015-07-09T18:46:53Z",
+                    "person": {
+                      "email": "djgilcrease@noreply.sourcegraph.com",
+                      "name": "Dj Gilcrease"
+                    }
+                  },
+                  "endLine": 400,
+                  "filename": "mux.go",
+                  "message": "Update the walk method to walk matchers so it walks the full list of routers and child routers",
+                  "rev": "92ae1d67265b4cf52d659a340435398e8da2ad05",
+                  "startLine": 386
+                },
+                {
+                  "author": {
+                    "date": "2015-07-05T10:18:38Z",
+                    "person": {
+                      "email": "clintryan@noreply.sourcegraph.com",
+                      "name": "Clint Ryan"
+                    }
+                  },
+                  "endLine": 540,
+                  "filename": "mux.go",
+                  "message": "Fixed up commenting and removed unused code",
+                  "rev": "c21431a6cd004f2e4ac692b2ec8c56f3a4ebd036",
+                  "startLine": 539
+                },
+                {
+                  "author": {
+                    "date": "2015-07-05T10:18:38Z",
+                    "person": {
+                      "email": "clintryan@noreply.sourcegraph.com",
+                      "name": "Clint Ryan"
+                    }
+                  },
+                  "endLine": 568,
+                  "filename": "mux.go",
+                  "message": "Fixed up commenting and removed unused code",
+                  "rev": "c21431a6cd004f2e4ac692b2ec8c56f3a4ebd036",
+                  "startLine": 566
+                },
+                {
+                  "author": {
+                    "date": "2015-05-29T21:16:30Z",
+                    "person": {
+                      "email": "craigjellick@noreply.sourcegraph.com",
+                      "name": "Craig Jellick"
+                    }
+                  },
+                  "endLine": 13,
+                  "filename": "mux.go",
+                  "message": "Fix typo",
+                  "rev": "c0a5cbce5acc7d44030541b8b383b1ebcdfcc96f",
+                  "startLine": 12
+                },
+                {
+                  "author": {
+                    "date": "2015-05-29T21:16:30Z",
+                    "person": {
+                      "email": "craigjellick@noreply.sourcegraph.com",
+                      "name": "Craig Jellick"
+                    }
+                  },
+                  "endLine": 489,
+                  "filename": "mux.go",
+                  "message": "Fix typo",
+                  "rev": "c0a5cbce5acc7d44030541b8b383b1ebcdfcc96f",
+                  "startLine": 488
+                },
+                {
+                  "author": {
+                    "date": "2015-05-29T21:16:30Z",
+                    "person": {
+                      "email": "craigjellick@noreply.sourcegraph.com",
+                      "name": "Craig Jellick"
+                    }
+                  },
+                  "endLine": 492,
+                  "filename": "mux.go",
+                  "message": "Fix typo",
+                  "rev": "c0a5cbce5acc7d44030541b8b383b1ebcdfcc96f",
+                  "startLine": 491
+                },
+                {
+                  "author": {
+                    "date": "2015-05-29T21:16:30Z",
+                    "person": {
+                      "email": "craigjellick@noreply.sourcegraph.com",
+                      "name": "Craig Jellick"
+                    }
+                  },
+                  "endLine": 497,
+                  "filename": "mux.go",
+                  "message": "Fix typo",
+                  "rev": "c0a5cbce5acc7d44030541b8b383b1ebcdfcc96f",
+                  "startLine": 494
+                },
+                {
+                  "author": {
+                    "date": "2015-05-29T21:16:30Z",
+                    "person": {
+                      "email": "craigjellick@noreply.sourcegraph.com",
+                      "name": "Craig Jellick"
+                    }
+                  },
+                  "endLine": 504,
+                  "filename": "mux.go",
+                  "message": "Fix typo",
+                  "rev": "c0a5cbce5acc7d44030541b8b383b1ebcdfcc96f",
+                  "startLine": 499
+                },
+                {
+                  "author": {
+                    "date": "2015-05-29T21:16:30Z",
+                    "person": {
+                      "email": "craigjellick@noreply.sourcegraph.com",
+                      "name": "Craig Jellick"
+                    }
+                  },
+                  "endLine": 520,
+                  "filename": "mux.go",
+                  "message": "Fix typo",
+                  "rev": "c0a5cbce5acc7d44030541b8b383b1ebcdfcc96f",
+                  "startLine": 513
+                },
+                {
+                  "author": {
+                    "date": "2015-05-29T21:16:30Z",
+                    "person": {
+                      "email": "craigjellick@noreply.sourcegraph.com",
+                      "name": "Craig Jellick"
+                    }
+                  },
+                  "endLine": 529,
+                  "filename": "mux.go",
+                  "message": "Fix typo",
+                  "rev": "c0a5cbce5acc7d44030541b8b383b1ebcdfcc96f",
+                  "startLine": 524
+                },
+                {
+                  "author": {
+                    "date": "2015-05-29T21:16:30Z",
+                    "person": {
+                      "email": "craigjellick@noreply.sourcegraph.com",
+                      "name": "Craig Jellick"
+                    }
+                  },
+                  "endLine": 541,
+                  "filename": "mux.go",
+                  "message": "Fix typo",
+                  "rev": "c0a5cbce5acc7d44030541b8b383b1ebcdfcc96f",
+                  "startLine": 540
+                },
+                {
+                  "author": {
+                    "date": "2015-05-29T21:16:30Z",
+                    "person": {
+                      "email": "craigjellick@noreply.sourcegraph.com",
+                      "name": "Craig Jellick"
+                    }
+                  },
+                  "endLine": 566,
+                  "filename": "mux.go",
+                  "message": "Fix typo",
+                  "rev": "c0a5cbce5acc7d44030541b8b383b1ebcdfcc96f",
+                  "startLine": 565
+                },
+                {
+                  "author": {
+                    "date": "2015-05-29T21:16:30Z",
+                    "person": {
+                      "email": "craigjellick@noreply.sourcegraph.com",
+                      "name": "Craig Jellick"
+                    }
+                  },
+                  "endLine": 593,
+                  "filename": "mux.go",
+                  "message": "Fix typo",
+                  "rev": "c0a5cbce5acc7d44030541b8b383b1ebcdfcc96f",
+                  "startLine": 568
+                },
+                {
+                  "author": {
+                    "date": "2014-04-17T08:17:15Z",
+                    "person": {
+                      "email": "sqs@noreply.sourcegraph.com",
+                      "name": "sqs"
+                    }
+                  },
+                  "endLine": 353,
+                  "filename": "mux.go",
+                  "message": "Add BuildVarsFunc to allow modifying route variables before generating a route's URL",
+                  "rev": "cef3b0cd6d468434914c21146d6e400436f2d0e3",
+                  "startLine": 348
+                },
+                {
+                  "author": {
+                    "date": "2014-04-23T17:53:35Z",
+                    "person": {
+                      "email": "thomastencate@noreply.sourcegraph.com",
+                      "name": "Thomas ten Cate"
+                    }
+                  },
+                  "endLine": 245,
+                  "filename": "mux.go",
+                  "message": "Propagate StrictSlash to subrouters instead of rudely turning it off",
+                  "rev": "b864f07c539c7abc16652d65350d070d8e2810de",
+                  "startLine": 241
+                },
+                {
+                  "author": {
+                    "date": "2014-04-23T16:19:14Z",
+                    "person": {
+                      "email": "thomastencate@noreply.sourcegraph.com",
+                      "name": "Thomas ten Cate"
+                    }
+                  },
+                  "endLine": 228,
+                  "filename": "mux.go",
+                  "message": "Document behaviour of StrictSlash and PathPrefix better, and add tests to nail this down",
+                  "rev": "033224c12ed48938d1815f4851103f86abcf6201",
+                  "startLine": 226
+                },
+                {
+                  "author": {
+                    "date": "2014-04-23T16:19:14Z",
+                    "person": {
+                      "email": "thomastencate@noreply.sourcegraph.com",
+                      "name": "Thomas ten Cate"
+                    }
+                  },
+                  "endLine": 235,
+                  "filename": "mux.go",
+                  "message": "Document behaviour of StrictSlash and PathPrefix better, and add tests to nail this down",
+                  "rev": "033224c12ed48938d1815f4851103f86abcf6201",
+                  "startLine": 230
+                },
+                {
+                  "author": {
+                    "date": "2013-11-15T02:27:38Z",
+                    "person": {
+                      "email": "philipschlump@noreply.sourcegraph.com",
+                      "name": "Philip Schlump"
+                    }
+                  },
+                  "endLine": 184,
+                  "filename": "mux.go",
+                  "message": "Fixed problem with droping query string.",
+                  "rev": "d10d5466f2db2758bb616f627775692d2f69fe8a",
+                  "startLine": 183
+                },
+                {
+                  "author": {
+                    "date": "2013-11-15T02:27:38Z",
+                    "person": {
+                      "email": "philipschlump@noreply.sourcegraph.com",
+                      "name": "Philip Schlump"
+                    }
+                  },
+                  "endLine": 191,
+                  "filename": "mux.go",
+                  "message": "Fixed problem with droping query string.",
+                  "rev": "d10d5466f2db2758bb616f627775692d2f69fe8a",
+                  "startLine": 190
+                },
+                {
+                  "author": {
+                    "date": "2013-06-05T23:07:27Z",
+                    "person": {
+                      "email": "johnnadratowski@noreply.sourcegraph.com",
+                      "name": "John Nadratowski"
+                    }
+                  },
+                  "endLine": 64,
+                  "filename": "mux.go",
+                  "message": "Add KeepContext flag to Router to disable clearing of context data.",
+                  "rev": "e718e932ee606838744df844eb75064959eb74bc",
+                  "startLine": 63
+                },
+                {
+                  "author": {
+                    "date": "2013-02-03T02:48:19Z",
+                    "person": {
+                      "email": "sergeyshepelev@noreply.sourcegraph.com",
+                      "name": "Sergey Shepelev"
+                    }
+                  },
+                  "endLine": 141,
+                  "filename": "mux.go",
+                  "message": "Removed excess bool variable assignment in `if`s",
+                  "rev": "38545dbae82fbb96b45986dcda1fcb87114904e2",
+                  "startLine": 140
+                },
+                {
+                  "author": {
+                    "date": "2013-02-03T02:48:19Z",
+                    "person": {
+                      "email": "sergeyshepelev@noreply.sourcegraph.com",
+                      "name": "Sergey Shepelev"
+                    }
+                  },
+                  "endLine": 199,
+                  "filename": "mux.go",
+                  "message": "Removed excess bool variable assignment in `if`s",
+                  "rev": "38545dbae82fbb96b45986dcda1fcb87114904e2",
+                  "startLine": 198
+                },
+                {
+                  "author": {
+                    "date": "2013-01-17T08:52:41Z",
+                    "person": {
+                      "email": "jongminkim@noreply.sourcegraph.com",
+                      "name": "Jongmin Kim"
+                    }
+                  },
+                  "endLine": 296,
+                  "filename": "mux.go",
+                  "message": "Update mux.go",
+                  "rev": "78f60492585e9f21942b155e870e019a401937ef",
+                  "startLine": 295
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 8,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 1
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 12,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 9
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 15,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 13
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 25,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 23
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 49,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 26
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 55,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 53
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 58,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 56
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 127,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 125
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 140,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 138
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 150,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 147
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 176,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 168
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 198,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 195
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 200,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 199
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 203,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 202
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 209,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 208
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 211,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 210
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 217,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 212
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 223,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 218
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 226,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 224
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 229,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 228
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 236,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 235
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 250,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 245
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 280,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 274
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 295,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 282
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 347,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 296
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 409,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 400
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 425,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 414
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 432,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 426
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 437,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 436
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 443,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 438
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 447,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 445
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 455,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 449
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 470,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 455
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 486,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 471
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 491,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 489
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 494,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 492
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 511,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 504
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 539,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 529
+                },
+                {
+                  "author": {
+                    "date": "2012-10-03T04:48:17Z",
+                    "person": {
+                      "email": "moraes@noreply.sourcegraph.com",
+                      "name": "moraes"
+                    }
+                  },
+                  "endLine": 565,
+                  "filename": "mux.go",
+                  "message": "Initial files.",
+                  "rev": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+                  "startLine": 541
+                }
+              ]
+            },
+            "body": {
+              "content": "// Copyright 2012 The Gorilla Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style\n// license that can be found in the LICENSE file.\n\npackage mux\n\nimport (\n\t\"errors\"\n\t\"fmt\"\n\t\"net/http\"\n\t\"path\"\n\t\"regexp\"\n)\n\nvar (\n\t// ErrMethodMismatch is returned when the method in the request does not match\n\t// the method defined against the route.\n\tErrMethodMismatch = errors.New(\"method is not allowed\")\n\t// ErrNotFound is returned when no route match is found.\n\tErrNotFound = errors.New(\"no matching route was found\")\n)\n\n// NewRouter returns a new router instance.\nfunc NewRouter() *Router {\n\treturn &Router{namedRoutes: make(map[string]*Route)}\n}\n\n// Router registers routes to be matched and dispatches a handler.\n//\n// It implements the http.Handler interface, so it can be registered to serve\n// requests:\n//\n//     var router = mux.NewRouter()\n//\n//     func main() {\n//         http.Handle(\"/\", router)\n//     }\n//\n// Or, for Google App Engine, register it in a init() function:\n//\n//     func init() {\n//         http.Handle(\"/\", router)\n//     }\n//\n// This will send all incoming requests to the router.\ntype Router struct {\n\t// Configurable Handler to be used when no route matches.\n\tNotFoundHandler http.Handler\n\n\t// Configurable Handler to be used when the request method does not match the route.\n\tMethodNotAllowedHandler http.Handler\n\n\t// Routes to be matched, in order.\n\troutes []*Route\n\n\t// Routes by name for URL building.\n\tnamedRoutes map[string]*Route\n\n\t// If true, do not clear the request context after handling the request.\n\t//\n\t// Deprecated: No effect when go1.7+ is used, since the context is stored\n\t// on the request itself.\n\tKeepContext bool\n\n\t// Slice of middlewares to be called after a match is found\n\tmiddlewares []middleware\n\n\t// configuration shared with `Route`\n\trouteConf\n}\n\n// common route configuration shared between `Router` and `Route`\ntype routeConf struct {\n\t// If true, \"/path/foo%2Fbar/to\" will match the path \"/path/{var}/to\"\n\tuseEncodedPath bool\n\n\t// If true, when the path pattern is \"/path/\", accessing \"/path\" will\n\t// redirect to the former and vice versa.\n\tstrictSlash bool\n\n\t// If true, when the path pattern is \"/path//to\", accessing \"/path//to\"\n\t// will not redirect\n\tskipClean bool\n\n\t// Manager for the variables from host and path.\n\tregexp routeRegexpGroup\n\n\t// List of matchers.\n\tmatchers []matcher\n\n\t// The scheme used when building URLs.\n\tbuildScheme string\n\n\tbuildVarsFunc BuildVarsFunc\n}\n\n// returns an effective deep copy of `routeConf`\nfunc copyRouteConf(r routeConf) routeConf {\n\tc := r\n\n\tif r.regexp.path != nil {\n\t\tc.regexp.path = copyRouteRegexp(r.regexp.path)\n\t}\n\n\tif r.regexp.host != nil {\n\t\tc.regexp.host = copyRouteRegexp(r.regexp.host)\n\t}\n\n\tc.regexp.queries = make([]*routeRegexp, 0, len(r.regexp.queries))\n\tfor _, q := range r.regexp.queries {\n\t\tc.regexp.queries = append(c.regexp.queries, copyRouteRegexp(q))\n\t}\n\n\tc.matchers = make([]matcher, 0, len(r.matchers))\n\tfor _, m := range r.matchers {\n\t\tc.matchers = append(c.matchers, m)\n\t}\n\n\treturn c\n}\n\nfunc copyRouteRegexp(r *routeRegexp) *routeRegexp {\n\tc := *r\n\treturn &c\n}\n\n// Match attempts to match the given request against the router's registered routes.\n//\n// If the request matches a route of this router or one of its subrouters the Route,\n// Handler, and Vars fields of the the match argument are filled and this function\n// returns true.\n//\n// If the request does not match any of this router's or its subrouters' routes\n// then this function returns false. If available, a reason for the match failure\n// will be filled in the match argument's MatchErr field. If the match failure type\n// (eg: not found) has a registered handler, the handler is assigned to the Handler\n// field of the match argument.\nfunc (r *Router) Match(req *http.Request, match *RouteMatch) bool {\n\tfor _, route := range r.routes {\n\t\tif route.Match(req, match) {\n\t\t\t// Build middleware chain if no error was found\n\t\t\tif match.MatchErr == nil {\n\t\t\t\tfor i := len(r.middlewares) - 1; i >= 0; i-- {\n\t\t\t\t\tmatch.Handler = r.middlewares[i].Middleware(match.Handler)\n\t\t\t\t}\n\t\t\t}\n\t\t\treturn true\n\t\t}\n\t}\n\n\tif match.MatchErr == ErrMethodMismatch {\n\t\tif r.MethodNotAllowedHandler != nil {\n\t\t\tmatch.Handler = r.MethodNotAllowedHandler\n\t\t\treturn true\n\t\t}\n\n\t\treturn false\n\t}\n\n\t// Closest match for a router (includes sub-routers)\n\tif r.NotFoundHandler != nil {\n\t\tmatch.Handler = r.NotFoundHandler\n\t\tmatch.MatchErr = ErrNotFound\n\t\treturn true\n\t}\n\n\tmatch.MatchErr = ErrNotFound\n\treturn false\n}\n\n// ServeHTTP dispatches the handler registered in the matched route.\n//\n// When there is a match, the route variables can be retrieved calling\n// mux.Vars(request).\nfunc (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {\n\tif !r.skipClean {\n\t\tpath := req.URL.Path\n\t\tif r.useEncodedPath {\n\t\t\tpath = req.URL.EscapedPath()\n\t\t}\n\t\t// Clean path to canonical form and redirect.\n\t\tif p := cleanPath(path); p != path {\n\n\t\t\t// Added 3 lines (Philip Schlump) - It was dropping the query string and #whatever from query.\n\t\t\t// This matches with fix in go 1.2 r.c. 4 for same problem.  Go Issue:\n\t\t\t// http://code.google.com/p/go/issues/detail?id=5252\n\t\t\turl := *req.URL\n\t\t\turl.Path = p\n\t\t\tp = url.String()\n\n\t\t\tw.Header().Set(\"Location\", p)\n\t\t\tw.WriteHeader(http.StatusMovedPermanently)\n\t\t\treturn\n\t\t}\n\t}\n\tvar match RouteMatch\n\tvar handler http.Handler\n\tif r.Match(req, &match) {\n\t\thandler = match.Handler\n\t\treq = setVars(req, match.Vars)\n\t\treq = setCurrentRoute(req, match.Route)\n\t}\n\n\tif handler == nil && match.MatchErr == ErrMethodMismatch {\n\t\thandler = methodNotAllowedHandler()\n\t}\n\n\tif handler == nil {\n\t\thandler = http.NotFoundHandler()\n\t}\n\n\thandler.ServeHTTP(w, req)\n}\n\n// Get returns a route registered with the given name.\nfunc (r *Router) Get(name string) *Route {\n\treturn r.namedRoutes[name]\n}\n\n// GetRoute returns a route registered with the given name. This method\n// was renamed to Get() and remains here for backwards compatibility.\nfunc (r *Router) GetRoute(name string) *Route {\n\treturn r.namedRoutes[name]\n}\n\n// StrictSlash defines the trailing slash behavior for new routes. The initial\n// value is false.\n//\n// When true, if the route path is \"/path/\", accessing \"/path\" will perform a redirect\n// to the former and vice versa. In other words, your application will always\n// see the path as specified in the route.\n//\n// When false, if the route path is \"/path\", accessing \"/path/\" will not match\n// this route and vice versa.\n//\n// The re-direct is a HTTP 301 (Moved Permanently). Note that when this is set for\n// routes with a non-idempotent method (e.g. POST, PUT), the subsequent re-directed\n// request will be made as a GET by most clients. Use middleware or client settings\n// to modify this behaviour as needed.\n//\n// Special case: when a route sets a path prefix using the PathPrefix() method,\n// strict slash is ignored for that route because the redirect behavior can't\n// be determined from a prefix alone. However, any subrouters created from that\n// route inherit the original StrictSlash setting.\nfunc (r *Router) StrictSlash(value bool) *Router {\n\tr.strictSlash = value\n\treturn r\n}\n\n// SkipClean defines the path cleaning behaviour for new routes. The initial\n// value is false. Users should be careful about which routes are not cleaned\n//\n// When true, if the route path is \"/path//to\", it will remain with the double\n// slash. This is helpful if you have a route like: /fetch/http://xkcd.com/534/\n//\n// When false, the path will be cleaned, so /fetch/http://xkcd.com/534/ will\n// become /fetch/http/xkcd.com/534\nfunc (r *Router) SkipClean(value bool) *Router {\n\tr.skipClean = value\n\treturn r\n}\n\n// UseEncodedPath tells the router to match the encoded original path\n// to the routes.\n// For eg. \"/path/foo%2Fbar/to\" will match the path \"/path/{var}/to\".\n//\n// If not called, the router will match the unencoded path to the routes.\n// For eg. \"/path/foo%2Fbar/to\" will match the path \"/path/foo/bar/to\"\nfunc (r *Router) UseEncodedPath() *Router {\n\tr.useEncodedPath = true\n\treturn r\n}\n\n// ----------------------------------------------------------------------------\n// Route factories\n// ----------------------------------------------------------------------------\n\n// NewRoute registers an empty route.\nfunc (r *Router) NewRoute() *Route {\n\t// initialize a route with a copy of the parent router's configuration\n\troute := &Route{routeConf: copyRouteConf(r.routeConf), namedRoutes: r.namedRoutes}\n\tr.routes = append(r.routes, route)\n\treturn route\n}\n\n// Handle registers a new route with a matcher for the URL path.\n// See Route.Path() and Route.Handler().\nfunc (r *Router) Handle(path string, handler http.Handler) *Route {\n\treturn r.NewRoute().Path(path).Handler(handler)\n}\n\n// HandleFunc registers a new route with a matcher for the URL path.\n// See Route.Path() and Route.HandlerFunc().\nfunc (r *Router) HandleFunc(path string, f func(http.ResponseWriter,\n\t*http.Request)) *Route {\n\treturn r.NewRoute().Path(path).HandlerFunc(f)\n}\n\n// Headers registers a new route with a matcher for request header values.\n// See Route.Headers().\nfunc (r *Router) Headers(pairs ...string) *Route {\n\treturn r.NewRoute().Headers(pairs...)\n}\n\n// Host registers a new route with a matcher for the URL host.\n// See Route.Host().\nfunc (r *Router) Host(tpl string) *Route {\n\treturn r.NewRoute().Host(tpl)\n}\n\n// MatcherFunc registers a new route with a custom matcher function.\n// See Route.MatcherFunc().\nfunc (r *Router) MatcherFunc(f MatcherFunc) *Route {\n\treturn r.NewRoute().MatcherFunc(f)\n}\n\n// Methods registers a new route with a matcher for HTTP methods.\n// See Route.Methods().\nfunc (r *Router) Methods(methods ...string) *Route {\n\treturn r.NewRoute().Methods(methods...)\n}\n\n// Path registers a new route with a matcher for the URL path.\n// See Route.Path().\nfunc (r *Router) Path(tpl string) *Route {\n\treturn r.NewRoute().Path(tpl)\n}\n\n// PathPrefix registers a new route with a matcher for the URL path prefix.\n// See Route.PathPrefix().\nfunc (r *Router) PathPrefix(tpl string) *Route {\n\treturn r.NewRoute().PathPrefix(tpl)\n}\n\n// Queries registers a new route with a matcher for URL query values.\n// See Route.Queries().\nfunc (r *Router) Queries(pairs ...string) *Route {\n\treturn r.NewRoute().Queries(pairs...)\n}\n\n// Schemes registers a new route with a matcher for URL schemes.\n// See Route.Schemes().\nfunc (r *Router) Schemes(schemes ...string) *Route {\n\treturn r.NewRoute().Schemes(schemes...)\n}\n\n// BuildVarsFunc registers a new route with a custom function for modifying\n// route variables before building a URL.\nfunc (r *Router) BuildVarsFunc(f BuildVarsFunc) *Route {\n\treturn r.NewRoute().BuildVarsFunc(f)\n}\n\n// Walk walks the router and all its sub-routers, calling walkFn for each route\n// in the tree. The routes are walked in the order they were added. Sub-routers\n// are explored depth-first.\nfunc (r *Router) Walk(walkFn WalkFunc) error {\n\treturn r.walk(walkFn, []*Route{})\n}\n\n// SkipRouter is used as a return value from WalkFuncs to indicate that the\n// router that walk is about to descend down to should be skipped.\nvar SkipRouter = errors.New(\"skip this router\")\n\n// WalkFunc is the type of the function called for each route visited by Walk.\n// At every invocation, it is given the current route, and the current router,\n// and a list of ancestor routes that lead to the current route.\ntype WalkFunc func(route *Route, router *Router, ancestors []*Route) error\n\nfunc (r *Router) walk(walkFn WalkFunc, ancestors []*Route) error {\n\tfor _, t := range r.routes {\n\t\terr := walkFn(t, r, ancestors)\n\t\tif err == SkipRouter {\n\t\t\tcontinue\n\t\t}\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\t\tfor _, sr := range t.matchers {\n\t\t\tif h, ok := sr.(*Router); ok {\n\t\t\t\tancestors = append(ancestors, t)\n\t\t\t\terr := h.walk(walkFn, ancestors)\n\t\t\t\tif err != nil {\n\t\t\t\t\treturn err\n\t\t\t\t}\n\t\t\t\tancestors = ancestors[:len(ancestors)-1]\n\t\t\t}\n\t\t}\n\t\tif h, ok := t.handler.(*Router); ok {\n\t\t\tancestors = append(ancestors, t)\n\t\t\terr := h.walk(walkFn, ancestors)\n\t\t\tif err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\t\t\tancestors = ancestors[:len(ancestors)-1]\n\t\t}\n\t}\n\treturn nil\n}\n\n// ----------------------------------------------------------------------------\n// Context\n// ----------------------------------------------------------------------------\n\n// RouteMatch stores information about a matched route.\ntype RouteMatch struct {\n\tRoute   *Route\n\tHandler http.Handler\n\tVars    map[string]string\n\n\t// MatchErr is set to appropriate matching error\n\t// It is set to ErrMethodMismatch if there is a mismatch in\n\t// the request method and route method\n\tMatchErr error\n}\n\ntype contextKey int\n\nconst (\n\tvarsKey contextKey = iota\n\trouteKey\n)\n\n// Vars returns the route variables for the current request, if any.\nfunc Vars(r *http.Request) map[string]string {\n\tif rv := contextGet(r, varsKey); rv != nil {\n\t\treturn rv.(map[string]string)\n\t}\n\treturn nil\n}\n\n// CurrentRoute returns the matched route for the current request, if any.\n// This only works when called inside the handler of the matched route\n// because the matched route is stored in the request context which is cleared\n// after the handler returns, unless the KeepContext option is set on the\n// Router.\nfunc CurrentRoute(r *http.Request) *Route {\n\tif rv := contextGet(r, routeKey); rv != nil {\n\t\treturn rv.(*Route)\n\t}\n\treturn nil\n}\n\nfunc setVars(r *http.Request, val interface{}) *http.Request {\n\treturn contextSet(r, varsKey, val)\n}\n\nfunc setCurrentRoute(r *http.Request, val interface{}) *http.Request {\n\treturn contextSet(r, routeKey, val)\n}\n\n// ----------------------------------------------------------------------------\n// Helpers\n// ----------------------------------------------------------------------------\n\n// cleanPath returns the canonical path for p, eliminating . and .. elements.\n// Borrowed from the net/http package.\nfunc cleanPath(p string) string {\n\tif p == \"\" {\n\t\treturn \"/\"\n\t}\n\tif p[0] != '/' {\n\t\tp = \"/\" + p\n\t}\n\tnp := path.Clean(p)\n\t// path.Clean removes trailing slash except for root;\n\t// put the trailing slash back if necessary.\n\tif p[len(p)-1] == '/' && np != \"/\" {\n\t\tnp += \"/\"\n\t}\n\n\treturn np\n}\n\n// uniqueVars returns an error if two slices contain duplicated strings.\nfunc uniqueVars(s1, s2 []string) error {\n\tfor _, v1 := range s1 {\n\t\tfor _, v2 := range s2 {\n\t\t\tif v1 == v2 {\n\t\t\t\treturn fmt.Errorf(\"mux: duplicated route variable %q\", v2)\n\t\t\t}\n\t\t}\n\t}\n\treturn nil\n}\n\n// checkPairs returns the count of strings passed in, and an error if\n// the count is not an even number.\nfunc checkPairs(pairs ...string) (int, error) {\n\tlength := len(pairs)\n\tif length%2 != 0 {\n\t\treturn length, fmt.Errorf(\n\t\t\t\"mux: number of parameters must be multiple of 2, got %v\", pairs)\n\t}\n\treturn length, nil\n}\n\n// mapFromPairsToString converts variadic string parameters to a\n// string to string map.\nfunc mapFromPairsToString(pairs ...string) (map[string]string, error) {\n\tlength, err := checkPairs(pairs...)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\tm := make(map[string]string, length/2)\n\tfor i := 0; i < length; i += 2 {\n\t\tm[pairs[i]] = pairs[i+1]\n\t}\n\treturn m, nil\n}\n\n// mapFromPairsToRegex converts variadic string parameters to a\n// string to regex map.\nfunc mapFromPairsToRegex(pairs ...string) (map[string]*regexp.Regexp, error) {\n\tlength, err := checkPairs(pairs...)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\tm := make(map[string]*regexp.Regexp, length/2)\n\tfor i := 0; i < length; i += 2 {\n\t\tregex, err := regexp.Compile(pairs[i+1])\n\t\tif err != nil {\n\t\t\treturn nil, err\n\t\t}\n\t\tm[pairs[i]] = regex\n\t}\n\treturn m, nil\n}\n\n// matchInArray returns true if the given string value is in the array.\nfunc matchInArray(arr []string, value string) bool {\n\tfor _, v := range arr {\n\t\tif v == value {\n\t\t\treturn true\n\t\t}\n\t}\n\treturn false\n}\n\n// matchMapWithString returns true if the given key/value pairs exist in a given map.\nfunc matchMapWithString(toCheck map[string]string, toMatch map[string][]string, canonicalKey bool) bool {\n\tfor k, v := range toCheck {\n\t\t// Check if key exists.\n\t\tif canonicalKey {\n\t\t\tk = http.CanonicalHeaderKey(k)\n\t\t}\n\t\tif values := toMatch[k]; values == nil {\n\t\t\treturn false\n\t\t} else if v != \"\" {\n\t\t\t// If value was defined as an empty string we only check that the\n\t\t\t// key exists. Otherwise we also check for equality.\n\t\t\tvalueExists := false\n\t\t\tfor _, value := range values {\n\t\t\t\tif v == value {\n\t\t\t\t\tvalueExists = true\n\t\t\t\t\tbreak\n\t\t\t\t}\n\t\t\t}\n\t\t\tif !valueExists {\n\t\t\t\treturn false\n\t\t\t}\n\t\t}\n\t}\n\treturn true\n}\n\n// matchMapWithRegex returns true if the given key/value pairs exist in a given map compiled against\n// the given regex\nfunc matchMapWithRegex(toCheck map[string]*regexp.Regexp, toMatch map[string][]string, canonicalKey bool) bool {\n\tfor k, v := range toCheck {\n\t\t// Check if key exists.\n\t\tif canonicalKey {\n\t\t\tk = http.CanonicalHeaderKey(k)\n\t\t}\n\t\tif values := toMatch[k]; values == nil {\n\t\t\treturn false\n\t\t} else if v != nil {\n\t\t\t// If value was defined as an empty string we only check that the\n\t\t\t// key exists. Otherwise we also check for equality.\n\t\t\tvalueExists := false\n\t\t\tfor _, value := range values {\n\t\t\t\tif v.MatchString(value) {\n\t\t\t\t\tvalueExists = true\n\t\t\t\t\tbreak\n\t\t\t\t}\n\t\t\t}\n\t\t\tif !valueExists {\n\t\t\t\treturn false\n\t\t\t}\n\t\t}\n\t}\n\treturn true\n}\n\n// methodNotAllowed replies to the request with an HTTP status code 405.\nfunc methodNotAllowed(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusMethodNotAllowed)\n}\n\n// methodNotAllowedHandler returns a simple request handler\n// that replies to each request with a status code 405.\nfunc methodNotAllowedHandler() http.Handler { return http.HandlerFunc(methodNotAllowed) }\n"
+            },
+            "lines": {
+              "totalLines": 601
+            },
+            "node": {
+              "__typename": "GitBlob",
+              "binary": false,
+              "byteSize": 17526,
+              "contentType": "text/plain; charset=utf-8",
+              "path": "mux.go",
+              "submodule": null
+            },
+            "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+          },
+          "name": "github.com/gorilla/mux"
+        }
+      }
+    }
+  }
+}
