@@ -91,16 +91,30 @@ struct Commit {
 /// `totalLines` is absent unless the path is a blob, and never null.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
-struct Lines {
-    total_lines: Option<u32>,
+pub struct Lines {
+    pub total_lines: Option<u32>,
 }
 
 /// `content` is absent unless the path is a blob, and never null: over the
 /// read cap, the error nulls the whole `body` alias instead.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-struct Body {
-    content: Option<String>,
+pub struct Body {
+    pub content: Option<String>,
+}
+
+/// Removes the read cap's error, at the `body` alias's content, from
+/// `envelope` and says whether there was one. Another error there stays
+/// for `into_data` to report.
+pub fn take_read_cap(envelope: &mut Envelope) -> bool {
+    match envelope.take_error(CONTENT) {
+        Some(error) if error.message.contains("exceeded size limit") => true,
+        Some(error) => {
+            envelope.errors.push(error);
+            false
+        }
+        None => false,
+    }
 }
 
 /// The file `envelope` answers `request` with, or why there is none.
@@ -108,14 +122,7 @@ pub fn answer(
     request: &ReadRequest,
     mut envelope: Envelope,
 ) -> Result<File, Box<dyn Diagnostic>> {
-    let too_large = match envelope.take_error(CONTENT) {
-        Some(error) if error.message.contains("exceeded size limit") => true,
-        Some(error) => {
-            envelope.errors.push(error);
-            false
-        }
-        None => false,
-    };
+    let too_large = take_read_cap(&mut envelope);
     let trace = envelope.trace.clone();
     // A blob's `lines` or `body` alias is null only with an error at its
     // path: the read cap's, handled before either alias is read, or another,

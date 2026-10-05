@@ -10,7 +10,7 @@ use crate::address::{Address, CommitId, Pinned, RepoName, RepoPath};
 use crate::diagnostic::{Diagnostic, Outcome};
 use crate::domain::{Author, Blame, Hunk, LinesCommand, Unavailable};
 
-use super::blob::split_lines;
+use super::blob::{Body, Lines, split_lines, take_read_cap};
 use super::envelope::Envelope;
 use super::node::{self, Blob, Node};
 use super::{FetchError, GLOBAL_TIMEOUT, Plan};
@@ -80,9 +80,6 @@ pub fn plan(request: &BlameRequest) -> Plan {
     }
 }
 
-/// The path of the read cap's error.
-const CONTENT: &[&str] = &["repository", "commit", "body", "content"];
-
 /// The path of the blame's own error.
 const BLAME: &[&str] = &["repository", "commit", "blame", "blame"];
 
@@ -107,13 +104,6 @@ struct Commit {
     lines: Option<Lines>,
     blame: Option<BlameField>,
     body: Option<Body>,
-}
-
-/// `totalLines` is absent unless the path is a blob, and never null.
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields, rename_all = "camelCase")]
-struct Lines {
-    total_lines: Option<u32>,
 }
 
 /// `blame` is absent unless the path is a blob, and never null: when the
@@ -151,14 +141,6 @@ struct Person {
     email: String,
 }
 
-/// `content` is absent unless the path is a blob, and never null: over the
-/// read cap, the error nulls the whole `body` alias instead.
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Body {
-    content: Option<String>,
-}
-
 /// The blame `envelope` answers `request` with, or why there is none. An
 /// error at the blame is classified from the other aliases, never from its
 /// text, which leaks git command lines and server paths.
@@ -166,14 +148,7 @@ pub fn answer(
     request: &BlameRequest,
     mut envelope: Envelope,
 ) -> Result<Blame, Box<dyn Diagnostic>> {
-    let too_large = match envelope.take_error(CONTENT) {
-        Some(error) if error.message.contains("exceeded size limit") => true,
-        Some(error) => {
-            envelope.errors.push(error);
-            false
-        }
-        None => false,
-    };
+    let too_large = take_read_cap(&mut envelope);
     let failed = envelope.take_error(BLAME).is_some();
     let trace = envelope.trace.clone();
     let drift =
@@ -237,7 +212,18 @@ pub fn answer(
         let content = body
             .and_then(|body| body.content)
             .ok_or_else(|| missing("content"))?;
-        Some(split_lines(&content))
+        let lines = split_lines(&content);
+        // Each hunk's lines are sliced from these by its range.
+        let range = end.saturating_add(1).saturating_sub(start);
+        if u32::try_from(lines.len()) != Ok(range) {
+            return Err(drift(format!(
+                "the content has {} lines, not the {range} of lines \
+                 {start}-{end}",
+                lines.len()
+            ))
+            .into());
+        }
+        Some(lines)
     };
     Ok(Blame {
         at,
@@ -801,6 +787,21 @@ mod tests {
             [bad_response Unanswered]
             error: the upstream's answer has missing or unknown fields
             caused by: the blame repeats line 3
+        "#]]
+        .assert_eq(&failure(result));
+    }
+
+    #[test]
+    fn content_short_of_the_range_is_bad_response() {
+        let hunk = [(1, 6, ONE, "mux.go")];
+        let mut envelope = synthetic(5, &hunk, None);
+        let data = envelope.data.as_mut().unwrap();
+        data["repository"]["commit"]["body"]["content"] = "1\n2\n".into();
+        let result = answer(&lines(1, 5), envelope);
+        expect![[r#"
+            [bad_response Unanswered]
+            error: the upstream's answer has missing or unknown fields
+            caused by: the content has 2 lines, not the 5 of lines 1-5
         "#]]
         .assert_eq(&failure(result));
     }
