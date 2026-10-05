@@ -104,7 +104,9 @@ drift:
       else . end)'
     status=0
     for f in $(git diff --name-only -- 'tests/*/*.json'); do
-        if cmp -s <(git show "HEAD:$f" | jq -S "$strip") <(jq -S "$strip" "$f"); then
+        a=$(git show "HEAD:$f" | jq -S "$strip")
+        b=$(jq -S "$strip" "$f")
+        if [[ "$a" == "$b" ]]; then
             git checkout -- "$f"
         else
             echo "drift: $f" >&2; status=1
