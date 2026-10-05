@@ -93,11 +93,13 @@ live:
     just escape-table
     git diff --exit-code -- src/escape/table.rs
 
-# Fail if a re-captured response changed beyond server times and star counts.
+# Fail if a re-captured response changed beyond server times, star counts and blame's temp-file names.
 drift:
     #!/usr/bin/env bash
     set -euo pipefail
-    strip='walk(if type == "object" then del(.elapsedMilliseconds, .stars) else . end)'
+    strip='walk(if type == "object" then del(.elapsedMilliseconds, .stars)
+      elif type == "string" then gsub("git-blame-ignore-revs[0-9]+"; "git-blame-ignore-revs")
+      else . end)'
     status=0
     for f in $(git diff --name-only -- 'tests/*/*.json'); do
         if cmp -s <(git show "HEAD:$f" | jq -S "$strip") <(jq -S "$strip" "$f"); then
