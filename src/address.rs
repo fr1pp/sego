@@ -206,11 +206,13 @@ pub struct Range {
 )]
 impl Range {
     /// `s` split as `Address::parse` splits it, then its revision at the
-    /// first `...`; without a revision it is `EmptyRev`.
+    /// first `...`.
     pub fn parse(s: &str) -> Result<Range, AddressError> {
         let (repo, rev) = split_at_sign(s)?;
-        let rev = rev.ok_or(AddressError::EmptyRev)?;
+        let rev = rev.ok_or(AddressError::NoRev)?;
         let (base, head) = match rev.split_once("...") {
+            Some(("", _)) => return Err(AddressError::EmptyBase(rev)),
+            Some((_, "")) => return Err(AddressError::EmptyHead(rev)),
             Some((base, head)) => (Some(Rev::parse(base)?), head),
             None => (None, rev.as_str()),
         };
@@ -331,6 +333,9 @@ impl fmt::Display for Pinned {
 pub enum AddressError {
     EmptyRepo,
     EmptyRev,
+    NoRev,
+    EmptyBase(String),
+    EmptyHead(String),
     TwoDots(String),
     LineZero(String),
     Inverted(String),
@@ -344,6 +349,16 @@ impl fmt::Display for AddressError {
         match self {
             AddressError::EmptyRepo => write!(f, "empty repository name"),
             AddressError::EmptyRev => write!(f, "empty revision after @"),
+            AddressError::NoRev => write!(
+                f,
+                "missing revision; expected <repo>@[<base>...]<head>"
+            ),
+            AddressError::EmptyBase(rev) => {
+                write!(f, "empty base revision in {}", shell_word(rev))
+            }
+            AddressError::EmptyHead(rev) => {
+                write!(f, "empty head revision in {}", shell_word(rev))
+            }
             AddressError::TwoDots(rev) => write!(
                 f,
                 r#"invalid revision {}; a revision cannot contain "..""#,
@@ -515,21 +530,46 @@ mod tests {
                 "{bad}"
             );
         }
-        for bad in [
-            "github.com/x/y",
-            "github.com/x/y@",
-            "github.com/x/y@...v2",
-            "github.com/x/y@v1...",
+        for (bad, error) in [
+            ("github.com/x/y", AddressError::NoRev),
+            ("github.com/x/y@", AddressError::EmptyRev),
+            ("github.com/x/y@...v2", AddressError::EmptyBase("...v2".into())),
+            ("github.com/x/y@v1...", AddressError::EmptyHead("v1...".into())),
+            ("github.com/x/y@...", AddressError::EmptyBase("...".into())),
         ] {
-            assert!(
-                matches!(Range::parse(bad), Err(AddressError::EmptyRev)),
-                "{bad}"
-            );
+            assert_eq!(Range::parse(bad), Err(error), "{bad}");
         }
         assert!(matches!(Range::parse("@v1"), Err(AddressError::EmptyRepo)));
         for shown in ["github.com/x/y@v1...v2", "github.com/x/y@abc"] {
             assert_eq!(Range::parse(shown).unwrap().to_string(), shown);
         }
+    }
+
+    #[test]
+    fn range_errors_say_what_is_wrong() {
+        let messages: String = [
+            "github.com/x/y",
+            "github.com/x/y@",
+            "github.com/x/y@...v2",
+            "github.com/x/y@v1...",
+            "github.com/x/y@it's...",
+            "github.com/x/y@v1..v2",
+            "github.com/x/y@v1...v2..v3",
+            "github.com/x/y@v1...a b",
+        ]
+        .into_iter()
+        .map(|input| Range::parse(input).unwrap_err().to_string() + "\n")
+        .collect();
+        expect![[r#"
+            missing revision; expected <repo>@[<base>...]<head>
+            empty revision after @
+            empty base revision in ...v2
+            empty head revision in v1...
+            empty head revision in 'it'\''s...'
+            invalid revision v1..v2; a revision cannot contain ".."
+            invalid revision v2..v3; a revision cannot contain ".."
+            invalid revision 'a b'; a revision cannot contain whitespace, control or invisible characters
+        "#]].assert_eq(&messages);
     }
 
     #[test]
@@ -633,6 +673,18 @@ mod tests {
         for (error, shown) in [
             (AddressError::EmptyRepo, "empty repository name"),
             (AddressError::EmptyRev, "empty revision after @"),
+            (
+                AddressError::NoRev,
+                "missing revision; expected <repo>@[<base>...]<head>",
+            ),
+            (
+                AddressError::EmptyBase("...v2".to_owned()),
+                "empty base revision in ...v2",
+            ),
+            (
+                AddressError::EmptyHead("v1...".to_owned()),
+                "empty head revision in v1...",
+            ),
             (
                 AddressError::TwoDots("a..b".to_owned()),
                 r#"invalid revision a..b; a revision cannot contain "..""#,
