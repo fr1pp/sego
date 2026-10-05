@@ -1,5 +1,6 @@
 pub mod blob;
 pub mod envelope;
+pub mod node;
 pub mod query;
 pub mod search;
 #[cfg(test)]

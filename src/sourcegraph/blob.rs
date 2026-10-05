@@ -4,9 +4,10 @@ use serde::Deserialize;
 
 use crate::address::{Address, CommitId, Pinned, RepoName, RepoPath};
 use crate::diagnostic::Diagnostic;
-use crate::domain::{File, NotAFile, Unavailable};
+use crate::domain::{File, Unavailable};
 
 use super::envelope::Envelope;
+use super::node::{self, Blob, Node};
 use super::{FetchError, Plan};
 
 /// `node` gives the path's type and metadata, `lines` its line count and
@@ -87,32 +88,6 @@ struct Commit {
     body: Option<Body>,
 }
 
-#[derive(Deserialize)]
-#[serde(tag = "__typename", deny_unknown_fields)]
-enum Node {
-    #[serde(rename_all = "camelCase")]
-    GitBlob {
-        path: String,
-        byte_size: u64,
-        binary: bool,
-        content_type: String,
-        submodule: Option<Submodule>,
-    },
-    GitTree {
-        path: String,
-    },
-}
-
-/// Only its presence matters here.
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Submodule {
-    #[serde(rename = "url")]
-    _url: String,
-    #[serde(rename = "commit")]
-    _commit: String,
-}
-
 /// `totalLines` is absent unless the path is a blob, and never null.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
@@ -163,27 +138,8 @@ pub fn answer(
         trace: trace.clone(),
     })?;
     let at = Pinned { repo, commit: CommitId(oid) };
-    let (path, byte_size, binary, content_type) = match node {
-        None => {
-            let path = request.path.upstream().to_owned();
-            return Err(Unavailable::PathNotFound { at, path }.into());
-        }
-        Some(Node::GitTree { path }) => {
-            let what = NotAFile::Directory;
-            return Err(Unavailable::NotAFile { at, path, what }.into());
-        }
-        Some(Node::GitBlob { path, submodule: Some(_), .. }) => {
-            let what = NotAFile::Submodule;
-            return Err(Unavailable::NotAFile { at, path, what }.into());
-        }
-        Some(Node::GitBlob {
-            path,
-            byte_size,
-            binary,
-            content_type,
-            submodule: None,
-        }) => (path, byte_size, binary, content_type),
-    };
+    let Blob { path, byte_size, binary, content_type } =
+        node::blob(&at, &request.path, node)?;
     // A binary file answers with its metadata alone, so the read cap,
     // which only withholds the content, doesn't stop it.
     if too_large && !binary {
