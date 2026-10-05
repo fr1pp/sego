@@ -628,6 +628,29 @@ mod tests {
     }
 
     #[test]
+    fn reversed_ranges_hint_the_swapped_command() {
+        let reversed = compare(Comparison {
+            ahead: 0,
+            behind: 3,
+            commits: Vec::new(),
+            commit_count: CommitCount::Exact(0),
+            path: Some("-x".to_owned()),
+            ..comparison()
+        });
+        expect![[r#"
+            github.com/gorilla/mux@aaaaaaaaaaaa...bbbbbbbbbbbb /-x • no commits
+            hint: sego compare github.com/gorilla/mux@v2...v1 '-x'
+        "#]]
+        .assert_eq(&reversed.text());
+        let document: serde_json::Value =
+            serde_json::from_str(&reversed.json()).unwrap();
+        assert_eq!(
+            document["hints"],
+            serde_json::json!([reversed.swapped().unwrap()])
+        );
+    }
+
+    #[test]
     fn json_lines_are_never_clipped() {
         let wide = format!("+{}", "x".repeat(CLIP_COLUMNS + 100));
         let compare = compare(Comparison {
