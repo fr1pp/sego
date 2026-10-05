@@ -51,6 +51,13 @@ pub enum FetchError {
     Transport {
         url: String,
         cause: String,
+        /// The request ran out of time: `GLOBAL_TIMEOUT`, or the connect
+        /// timeout.
+        #[cfg_attr(
+            not(test),
+            expect(dead_code, reason = "only the tests read it")
+        )]
+        timed_out: bool,
         /// The `x-trace` of the reply a failed retry followed.
         trace: Option<String>,
     },
@@ -256,6 +263,7 @@ mod tests {
             FetchError::Transport {
                 url: "https://sourcegraph.com/.api/graphql".into(),
                 cause: "Connection refused (os error 111)".into(),
+                timed_out: false,
                 trace: trace(),
             },
             FetchError::Status {

@@ -34,16 +34,20 @@ impl Transport {
         if !valid {
             return Err(InvalidEndpoint::NotHttp(endpoint.to_owned()));
         }
-        let agent = Agent::config_builder()
-            .http_status_as_error(false)
-            .max_redirects(0)
-            .timeout_connect(Some(CONNECT_TIMEOUT))
-            .timeout_global(Some(GLOBAL_TIMEOUT))
-            .user_agent(concat!("sego/", env!("CARGO_PKG_VERSION")))
-            .build()
-            .new_agent();
+        let agent = agent(GLOBAL_TIMEOUT);
         let url = format!("{}/.api/graphql", endpoint.trim_end_matches('/'));
         Ok(Transport { url, agent })
+    }
+
+    /// A transport whose requests may take `timeout` instead of
+    /// `GLOBAL_TIMEOUT`.
+    #[cfg(test)]
+    fn with_timeout(
+        endpoint: &str,
+        timeout: Duration,
+    ) -> Result<Transport, InvalidEndpoint> {
+        let url = Transport::new(endpoint)?.url;
+        Ok(Transport { url, agent: agent(timeout) })
     }
 
     #[cfg(test)]
@@ -83,6 +87,7 @@ impl Transport {
             }
             Err(Failure::Transport(error)) => Err(FetchError::Transport {
                 url: self.url.clone(),
+                timed_out: matches!(error, ureq::Error::Timeout(_)),
                 cause: match error {
                     // io::Error's own text, without ureq's `io: ` prefix.
                     ureq::Error::Io(error) => error.to_string(),
@@ -126,6 +131,19 @@ impl Transport {
             })?;
         Ok((Reply { status, body, trace, location }, retry_after))
     }
+}
+
+/// An agent whose requests may take `timeout`, from connecting to the end
+/// of the body.
+fn agent(timeout: Duration) -> Agent {
+    Agent::config_builder()
+        .http_status_as_error(false)
+        .max_redirects(0)
+        .timeout_connect(Some(CONNECT_TIMEOUT))
+        .timeout_global(Some(timeout))
+        .user_agent(concat!("sego/", env!("CARGO_PKG_VERSION")))
+        .build()
+        .new_agent()
 }
 
 /// Why an exchange has no reply.
@@ -198,6 +216,9 @@ impl Diagnostic for InvalidEndpoint {
 
 #[cfg(test)]
 mod tests {
+    use std::io;
+    use std::net::TcpListener;
+
     use expect_test::expect;
 
     use super::*;
@@ -280,6 +301,34 @@ mod tests {
                 "http://localhost:3080/.api/graphql",
             ]
         );
+    }
+
+    /// Whether fetching from `endpoint` within `timeout` failed by timing
+    /// out.
+    fn timed_out(endpoint: &str, timeout: Duration) -> bool {
+        let transport = Transport::with_timeout(endpoint, timeout).unwrap();
+        let plan = Plan { query: "{x}", variables: serde_json::json!({}) };
+        match transport.fetch(&plan) {
+            Err(FetchError::Transport { timed_out, .. }) => timed_out,
+            other => panic!("{other:?}"),
+        }
+    }
+
+    #[test]
+    fn a_timeout_is_marked() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let endpoint = format!("http://{}", listener.local_addr().unwrap());
+        // Holds the connection, reading until sego closes it.
+        let server = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            let _ = io::copy(&mut stream, &mut io::sink());
+        });
+        assert!(timed_out(&endpoint, Duration::from_millis(200)));
+        server.join().unwrap();
+        let closed = TcpListener::bind("127.0.0.1:0").unwrap();
+        let endpoint = format!("http://{}", closed.local_addr().unwrap());
+        drop(closed);
+        assert!(!timed_out(&endpoint, Duration::from_millis(200)));
     }
 
     #[test]

@@ -561,7 +561,14 @@ mod tests {
                 FetchError::Transport {
                     url: text(),
                     cause: text(),
+                    timed_out: false,
                     trace: Some(text()),
+                },
+                FetchError::Transport {
+                    url: text(),
+                    cause: text(),
+                    timed_out: true,
+                    trace: None,
                 },
                 FetchError::Status {
                     status: 302,
