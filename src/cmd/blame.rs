@@ -34,13 +34,14 @@ Output:
   An address line: the repository at the commit the revision resolved to,
   the path and the lines blamed, then the file's line count. Then each
   hunk, after a blank line: an address line with the commit that last
-  changed its lines, the path as it was in that commit and the hunk's
-  lines, then the day of the author date (UTC), the author's name and the
-  commit's subject; then the hunk's numbered lines:
+  changed its lines and the path as it was in that commit, then the
+  hunk's lines, the day of the author date (UTC), the author's name and
+  the commit's subject; then the hunk's numbered lines. A hunk's line
+  numbers are the blamed revision's, not its commit's:
 
     github.com/gorilla/mux@a7962380ca08 mux.go 214-221 • 601 lines
 
-    github.com/gorilla/mux@eac83ba2c004 mux.go 214-216 • 2012-10-03 • …
+    github.com/gorilla/mux@eac83ba2c004 mux.go • lines 214-216 • 2012-10-03 • …
      214:
      215: // Get returns a route registered with the given name.
      216: func (r *Router) Get(name string) *Route {
@@ -58,10 +59,11 @@ Output:
   With --json, one document of kind \"blame\": repo, commit (40 hex digits),
   path, start, end (null without hunks), total_lines, byte_size, binary,
   and hunks [{start, end, commit, path, date, author {name, email},
-  subject, lines [{n, text}]}]. Over the read cap, the hunks have no lines
-  and partial {reason, hints} says why. Anything else is reported on
-  stderr, and its document, of kind \"unavailable\" or \"error\", also goes
-  to stdout.
+  subject, lines [{n, text}]}]; a hunk's start and end number the blamed
+  revision's lines. Over the read cap, the hunks have no lines and
+  partial {reason, hints} says why. Anything else is reported on stderr,
+  and its document, of kind \"unavailable\" or \"error\", also goes to
+  stdout.
 
 Exit codes:
   0  answered      the hunks; a binary file's size
@@ -158,20 +160,23 @@ impl Blame {
     }
 }
 
-/// `hunk`'s address line: the blamed repository at the hunk's commit, its
-/// path then, and its lines; then the day of its date, its author and its
-/// subject.
+/// `hunk`'s address line: the blamed repository at the hunk's commit and
+/// its path then, which read that file; then the hunk's lines, numbered in
+/// the blamed revision, the day of its date, its author and its subject.
 fn hunk_line(blame: &domain::Blame, hunk: &Hunk) -> String {
     let at =
         Pinned { repo: blame.at.repo.clone(), commit: hunk.commit.clone() };
     let address = at.to_string();
     let path = path_word(&hunk.path);
     let range = LineRange { start: hunk.start, end: Some(hunk.end) };
-    let range = range.to_string();
     let day = hunk.date.get(..10).unwrap_or(&hunk.date);
-    let meta =
-        [day.to_owned(), hunk.author.name.clone(), hunk.subject.clone()];
-    address_line(&[&address, &path, &range], &meta)
+    let meta = [
+        format!("lines {range}"),
+        day.to_owned(),
+        hunk.author.name.clone(),
+        hunk.subject.clone(),
+    ];
+    address_line(&[&address, &path], &meta)
 }
 
 impl Present for Blame {
@@ -287,6 +292,7 @@ mod tests {
     use super::*;
     use crate::address::{CommitId, RepoName};
     use crate::args;
+    use crate::cmd::read;
     use crate::domain::Author;
     use crate::escape::CLIP_COLUMNS;
     use crate::sourcegraph::GLOBAL_TIMEOUT;
@@ -341,16 +347,15 @@ mod tests {
         let text = blame("--x.go", "--x.go", lines).text();
         let header = text.lines().nth(2).unwrap();
         let (address, meta) = header.split_once(" • ").unwrap();
-        assert_eq!(address, "github.com/gorilla/mux@bbbbbbbbbbbb /--x.go 1-2");
-        assert_eq!(meta, "2012-10-03 • moraes • Initial files.");
-        let argv = ["blame"].into_iter().chain(address.split(' '));
+        assert_eq!(address, "github.com/gorilla/mux@bbbbbbbbbbbb /--x.go");
+        assert_eq!(meta, "lines 1-2 • 2012-10-03 • moraes • Initial files.");
+        let argv = ["read"].into_iter().chain(address.split(' '));
         let cli = args::parse(argv.map(OsString::from)).unwrap();
-        assert_eq!(cli.command.as_deref(), Some("blame"));
-        let request = request(&cli).unwrap();
+        assert_eq!(cli.command.as_deref(), Some("read"));
+        let request = read::request(&cli).unwrap();
         assert_eq!(request.address.repo.as_str(), "github.com/gorilla/mux");
         assert_eq!(request.address.rev_or_head(), "bbbbbbbbbbbb");
         assert_eq!(request.path.upstream(), "--x.go");
-        assert_eq!((request.start, request.end), (1, Some(2)));
     }
 
     #[test]
@@ -366,11 +371,11 @@ mod tests {
         expect![[r#"
             github.com/gorilla/mux@aaaaaaaaaaaa x.go 9998-10001 • 10001 lines
 
-            github.com/gorilla/mux@bbbbbbbbbbbb x.go 9998-9999 • 2012-10-03 • moraes • Initial files.
+            github.com/gorilla/mux@bbbbbbbbbbbb x.go • lines 9998-9999 • 2012-10-03 • moraes • Initial files.
              9998: a
              9999: b
 
-            github.com/gorilla/mux@cccccccccccc x.go 10000-10001 • 2012-10-03 • moraes • Initial files.
+            github.com/gorilla/mux@cccccccccccc x.go • lines 10000-10001 • 2012-10-03 • moraes • Initial files.
             10000: c
             10001: d
         "#]].assert_eq(&blame.text());

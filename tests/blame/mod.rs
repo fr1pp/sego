@@ -28,15 +28,15 @@ fn range() {
         --- stdout
         github.com/gorilla/mux@a7962380ca08 mux.go 214-221 • 601 lines
 
-        github.com/gorilla/mux@eac83ba2c004 mux.go 214-216 • 2012-10-03 • moraes • Initial files.
+        github.com/gorilla/mux@eac83ba2c004 mux.go • lines 214-216 • 2012-10-03 • moraes • Initial files.
          214:
          215: // Get returns a route registered with the given name.
          216: func (r *Router) Get(name string) *Route {
 
-        github.com/gorilla/mux@758eb64354aa mux.go 217 • 2018-12-07 • Joe Wilner • Improve subroute configuration propagation #422
+        github.com/gorilla/mux@758eb64354aa mux.go • lines 217 • 2018-12-07 • Joe Wilner • Improve subroute configuration propagation #422
          217: 	return r.namedRoutes[name]
 
-        github.com/gorilla/mux@eac83ba2c004 mux.go 218-221 • 2012-10-03 • moraes • Initial files.
+        github.com/gorilla/mux@eac83ba2c004 mux.go • lines 218-221 • 2012-10-03 • moraes • Initial files.
          218: }
          219:
          220: // GetRoute returns a route registered with the given name. This method
@@ -80,7 +80,7 @@ fn whole() {
     expect![[r#"
         github.com/gorilla/mux@a7962380ca08 mux.go 1-601 • 601 lines
 
-        github.com/gorilla/mux@eac83ba2c004 mux.go 1-7 • 2012-10-03 • moraes • Initial files.
+        github.com/gorilla/mux@eac83ba2c004 mux.go • lines 1-7 • 2012-10-03 • moraes • Initial files.
            1: // Copyright 2012 The Gorilla Authors. All rights reserved.
            2: // Use of this source code is governed by a BSD-style
            3: // license that can be found in the LICENSE file.
@@ -99,7 +99,7 @@ fn end_clamped() {
         --- stdout
         github.com/gorilla/mux@a7962380ca08 mux.go 595-601 • 601 lines
 
-        github.com/gorilla/mux@a659b61323b0 mux.go 595-601 • 2017-08-30 • Mayank Patel • Fix #271:  Return 405 instead of 404 when request method doesn't match the route
+        github.com/gorilla/mux@a659b61323b0 mux.go • lines 595-601 • 2017-08-30 • Mayank Patel • Fix #271:  Return 405 instead of 404 when request method doesn't match the route
          595: func methodNotAllowed(w http.ResponseWriter, r *http.Request) {
          596: 	w.WriteHeader(http.StatusMethodNotAllowed)
          597: }
@@ -121,7 +121,7 @@ fn end_past() {
         --- stdout
         github.com/gorilla/mux@a7962380ca08 mux.go 595-601 • 601 lines
 
-        github.com/gorilla/mux@a659b61323b0 mux.go 595-601 • 2017-08-30 • Mayank Patel • Fix #271:  Return 405 instead of 404 when request method doesn't match the route
+        github.com/gorilla/mux@a659b61323b0 mux.go • lines 595-601 • 2017-08-30 • Mayank Patel • Fix #271:  Return 405 instead of 404 when request method doesn't match the route
          595: func methodNotAllowed(w http.ResponseWriter, r *http.Request) {
          596: 	w.WriteHeader(http.StatusMethodNotAllowed)
          597: }
@@ -144,7 +144,7 @@ fn too_large() {
         --- stdout
         github.com/golang/go@6885bad7dd86 api/go1.txt 1-5 • 30871 lines
 
-        github.com/golang/go@f69132d7ad89 api/go1.txt 1-5 • 2012-03-17 • Brad Fitzpatrick • build: catch API changes during build
+        github.com/golang/go@f69132d7ad89 api/go1.txt • lines 1-5 • 2012-03-17 • Brad Fitzpatrick • build: catch API changes during build
         notice: the file is over the upstream's 1.5 MiB read cap, so its lines aren't shown
         [EOF]
         --- stderr
@@ -235,7 +235,7 @@ fn renamed() {
         --- stdout
         github.com/golang/go@6885bad7dd86 src/fmt/print.go 1-20 • 1223 lines
 
-        github.com/golang/go@418b97c67013 src/lib/fmt/print.go 1-7 • 2008-10-24 • Rob Pike • add printf to fmt.
+        github.com/golang/go@418b97c67013 src/lib/fmt/print.go • lines 1-7 • 2008-10-24 • Rob Pike • add printf to fmt.
            1: // Copyright 2009 The Go Authors. All rights reserved.
            2: // Use of this source code is governed by a BSD-style
            3: // license that can be found in the LICENSE file.
@@ -244,28 +244,28 @@ fn renamed() {
            6:
            7: import (
 
-        github.com/golang/go@a440cc0d702e src/fmt/print.go 8 • 2018-10-16 • Rob Pike • fmt: print maps in key-sorted order
+        github.com/golang/go@a440cc0d702e src/fmt/print.go • lines 8 • 2018-10-16 • Rob Pike • fmt: print maps in key-sorted order
            8: 	"internal/fmtsort"
 
-        github.com/golang/go@1c729599996c src/pkg/fmt/print.go 9-11 • 2009-12-15 • Robert Griesemer • 1) Change default gofmt default settings for
+        github.com/golang/go@1c729599996c src/pkg/fmt/print.go • lines 9-11 • 2009-12-15 • Robert Griesemer • 1) Change default gofmt default settings for
            9: 	"io"
           10: 	"os"
           11: 	"reflect"
 
-        github.com/golang/go@d75e186e2c01 src/fmt/print.go 12 • 2022-04-19 • Rob Pike • fmt: add a function to recover the original format string given a State
+        github.com/golang/go@d75e186e2c01 src/fmt/print.go • lines 12 • 2022-04-19 • Rob Pike • fmt: add a function to recover the original format string given a State
           12: 	"strconv"
 
-        github.com/golang/go@12ad9b4315cc src/pkg/fmt/print.go 13 • 2011-09-29 • Rob Pike • fmt: replace channel cache with slice.
+        github.com/golang/go@12ad9b4315cc src/pkg/fmt/print.go • lines 13 • 2011-09-29 • Rob Pike • fmt: replace channel cache with slice.
           13: 	"sync"
 
-        github.com/golang/go@30aa701fec9f src/pkg/fmt/print.go 14 • 2011-11-08 • Rob Pike • renaming_2: gofix -r go1pkgrename src/pkg/[a-l]*
+        github.com/golang/go@30aa701fec9f src/pkg/fmt/print.go • lines 14 • 2011-11-08 • Rob Pike • renaming_2: gofix -r go1pkgrename src/pkg/[a-l]*
           14: 	"unicode/utf8"
 
-        github.com/golang/go@418b97c67013 src/lib/fmt/print.go 15-16 • 2008-10-24 • Rob Pike • add printf to fmt.
+        github.com/golang/go@418b97c67013 src/lib/fmt/print.go • lines 15-16 • 2008-10-24 • Rob Pike • add printf to fmt.
           15: )
           16:
 
-        github.com/golang/go@7da4ceddd020 src/fmt/print.go 17-20 • 2016-02-21 • Martin Möhrmann • fmt: simplify buffer write methods and adjust calls to them
+        github.com/golang/go@7da4ceddd020 src/fmt/print.go • lines 17-20 • 2016-02-21 • Martin Möhrmann • fmt: simplify buffer write methods and adjust calls to them
           17: // Strings for use with buffer.WriteString.
           18: // This is less overhead than using buffer.Write with byte arrays.
           19: const (
@@ -415,13 +415,14 @@ fn help() {
               An address line: the repository at the commit the revision resolved to,
               the path and the lines blamed, then the file's line count. Then each
               hunk, after a blank line: an address line with the commit that last
-              changed its lines, the path as it was in that commit and the hunk's
-              lines, then the day of the author date (UTC), the author's name and the
-              commit's subject; then the hunk's numbered lines:
+              changed its lines and the path as it was in that commit, then the
+              hunk's lines, the day of the author date (UTC), the author's name and
+              the commit's subject; then the hunk's numbered lines. A hunk's line
+              numbers are the blamed revision's, not its commit's:
 
                 github.com/gorilla/mux@a7962380ca08 mux.go 214-221 • 601 lines
 
-                github.com/gorilla/mux@eac83ba2c004 mux.go 214-216 • 2012-10-03 • …
+                github.com/gorilla/mux@eac83ba2c004 mux.go • lines 214-216 • 2012-10-03 • …
                  214:
                  215: // Get returns a route registered with the given name.
                  216: func (r *Router) Get(name string) *Route {
@@ -439,10 +440,11 @@ fn help() {
               With --json, one document of kind "blame": repo, commit (40 hex digits),
               path, start, end (null without hunks), total_lines, byte_size, binary,
               and hunks [{start, end, commit, path, date, author {name, email},
-              subject, lines [{n, text}]}]. Over the read cap, the hunks have no lines
-              and partial {reason, hints} says why. Anything else is reported on
-              stderr, and its document, of kind "unavailable" or "error", also goes
-              to stdout.
+              subject, lines [{n, text}]}]; a hunk's start and end number the blamed
+              revision's lines. Over the read cap, the hunks have no lines and
+              partial {reason, hints} says why. Anything else is reported on stderr,
+              and its document, of kind "unavailable" or "error", also goes to
+              stdout.
 
             Exit codes:
               0  answered      the hunks; a binary file's size
