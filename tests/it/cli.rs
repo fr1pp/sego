@@ -3,7 +3,9 @@ use std::fmt::Write as _;
 use std::os::unix::ffi::OsStringExt;
 
 use sego::internal::address::{self, End, LineRange};
-use sego::internal::cli::{Command, SHOW_SYNOPSIS, help, parse};
+use sego::internal::cli::{
+    COMMANDS as TABLE, Command, SHOW_SYNOPSIS, help, parse,
+};
 use sego::internal::error::{Kind, report};
 
 const GENERAL: &str = "sego COMMAND [--json] ...";
@@ -337,6 +339,21 @@ fn show_help_has_the_synopsis_blocks_and_two_facts() {
          --json carries the same lines.\n"
     ));
     assert!(!text.contains("commands:"));
+}
+
+#[test]
+fn every_command_has_its_own_help() {
+    let general = help(None);
+    for entry in TABLE {
+        let text = help(Some(entry.name));
+        assert!(
+            text.starts_with(&format!("usage: {}\n", entry.synopsis)),
+            "{}: {text}",
+            entry.name
+        );
+        assert_ne!(text, general, "{}", entry.name);
+        assert!(!text.contains("commands:"), "{}", entry.name);
+    }
 }
 
 #[test]

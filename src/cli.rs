@@ -13,13 +13,24 @@ pub const LS_SYNOPSIS: &str =
     "sego ls [--json] [--recursive] REPO[@REV][:PATH]";
 pub const REFS_SYNOPSIS: &str = "sego refs [--json] REPO [TEXT]";
 
-/// Every command word with its synopsis. The commands fact, the synopsis
-/// lookup and the help topics all come from this table.
-const COMMANDS: &[(&str, &str)] = &[
-    ("search", SEARCH_SYNOPSIS),
-    ("show", SHOW_SYNOPSIS),
-    ("ls", LS_SYNOPSIS),
-    ("refs", REFS_SYNOPSIS),
+/// A command word, its synopsis and the text of its `--help`.
+pub struct CommandEntry {
+    pub name: &'static str,
+    pub synopsis: &'static str,
+    pub help: fn() -> String,
+}
+
+/// Every command. Parsing, the commands fact, the synopsis lookup and
+/// `help` all read this table, so a command that is listed has a help topic.
+pub const COMMANDS: &[CommandEntry] = &[
+    CommandEntry {
+        name: "search",
+        synopsis: SEARCH_SYNOPSIS,
+        help: search_help,
+    },
+    CommandEntry { name: "show", synopsis: SHOW_SYNOPSIS, help: show_help },
+    CommandEntry { name: "ls", synopsis: LS_SYNOPSIS, help: ls_help },
+    CommandEntry { name: "refs", synopsis: REFS_SYNOPSIS, help: refs_help },
 ];
 
 #[derive(Debug, PartialEq, Eq)]
@@ -101,8 +112,8 @@ pub fn parse(args: &[OsString]) -> Result<Command, Error> {
     }
     let command = match operands.split_first() {
         Some((word, rest)) => {
-            match COMMANDS.iter().find(|(name, _)| name == word) {
-                Some(&(name, _)) => Some((name, rest)),
+            match COMMANDS.iter().find(|entry| entry.name == word) {
+                Some(entry) => Some((entry.name, rest)),
                 None => return Err(unknown_command(word)),
             }
         }
@@ -182,12 +193,12 @@ fn synopsis_before(earlier: &[OsString]) -> &'static str {
 
 fn synopsis_of(command: Option<&str>) -> &'static str {
     command
-        .and_then(|word| COMMANDS.iter().find(|(name, _)| *name == word))
-        .map_or(SYNOPSIS, |&(_, synopsis)| synopsis)
+        .and_then(|word| COMMANDS.iter().find(|entry| entry.name == word))
+        .map_or(SYNOPSIS, |entry| entry.synopsis)
 }
 
 fn commands_fact() -> String {
-    let names: Vec<&str> = COMMANDS.iter().map(|&(name, _)| name).collect();
+    let names: Vec<&str> = COMMANDS.iter().map(|entry| entry.name).collect();
     format!("commands: {}", names.join(", "))
 }
 
@@ -391,28 +402,44 @@ Branches come default first, then newest first; tags newest first.
 Text prints 100 branches and 100 tags; --json carries up to 17000 of each.
 ";
 
+fn search_help() -> String {
+    format!(
+        "usage: {SEARCH_SYNOPSIS}\n\n\
+         QUERY... is joined with single spaces and sent as one \
+         Sourcegraph query,\nwith count:100 appended when the query has \
+         no count:.\n\n{SEARCH_QUERY}\n{OPTIONS}\n\
+         Search prints one line of context around each match.\n\
+         Text prints the first 100 matches; --json carries every result \
+         fetched.\n"
+    )
+}
+
+fn show_help() -> String {
+    format!(
+        "usage: {SHOW_SYNOPSIS}\n\n{ADDRESSES}\n{OPTIONS}\n\
+         A file over 1.5 MiB is read through Sourcegraph's raw route, a \
+         second request.\n\
+         Text shows lines 1-500 when LINES is not given; --json \
+         carries the same lines.\n"
+    )
+}
+
+fn ls_help() -> String {
+    LS_HELP.to_owned()
+}
+
+fn refs_help() -> String {
+    REFS_HELP.to_owned()
+}
+
 pub fn help(topic: Option<&str>) -> String {
-    match topic {
-        Some("search") => format!(
-            "usage: {SEARCH_SYNOPSIS}\n\n\
-             QUERY... is joined with single spaces and sent as one \
-             Sourcegraph query,\nwith count:100 appended when the query has \
-             no count:.\n\n{SEARCH_QUERY}\n{OPTIONS}\n\
-             Search prints one line of context around each match.\n\
-             Text prints the first 100 matches; --json carries every result \
-             fetched.\n"
-        ),
-        Some("show") => format!(
-            "usage: {SHOW_SYNOPSIS}\n\n{ADDRESSES}\n{OPTIONS}\n\
-             A file over 1.5 MiB is read through Sourcegraph's raw route, a \
-             second request.\n\
-             Text shows lines 1-500 when LINES is not given; --json \
-             carries the same lines.\n"
-        ),
-        Some("ls") => LS_HELP.to_owned(),
-        Some("refs") => REFS_HELP.to_owned(),
-        _ => format!(
-            "\
+    if let Some(entry) =
+        topic.and_then(|word| COMMANDS.iter().find(|e| e.name == word))
+    {
+        return (entry.help)();
+    }
+    format!(
+        "\
 sego reads public source code at any revision through sourcegraph.com.
 
 usage: {SYNOPSIS}
@@ -431,6 +458,5 @@ environment:
 
 exit codes: 0 answered, 1 not answered, 2 the command line is wrong
 "
-        ),
-    }
+    )
 }
