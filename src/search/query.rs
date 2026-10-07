@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use super::lint::{Token, tokenize};
+use super::lint::{Token, check, tokenize};
 
 const DEADLINE_MS: u64 = 60_000;
 const PATTERN_TYPES: [&str; 8] = [
@@ -20,6 +20,7 @@ pub struct Prepared {
     pub pattern_type: String,
     pub deadline_ms: u64,
     pub tokens: Vec<Token>,
+    pub notes: Vec<String>,
 }
 
 pub fn prepare(query: &str) -> Prepared {
@@ -32,6 +33,7 @@ pub fn prepare(query: &str) -> Prepared {
     let tokens = tokenize(&sent);
     Prepared {
         pattern_type: pattern_type(&tokens),
+        notes: check(&tokens),
         deadline_ms: deadline_ms(&tokens),
         sent,
         added,

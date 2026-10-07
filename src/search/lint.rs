@@ -1,3 +1,5 @@
+use super::query::pattern_type;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Token {
     Term(String),
@@ -276,4 +278,352 @@ fn classify(text: String) -> Token {
         });
     }
     Token::Term(text)
+}
+
+const KNOWN: &[&str] = &[
+    "repo",
+    "r",
+    "file",
+    "f",
+    "path",
+    "lang",
+    "l",
+    "language",
+    "content",
+    "type",
+    "case",
+    "fork",
+    "archived",
+    "visibility",
+    "rev",
+    "revision",
+    "context",
+    "g",
+    "patterntype",
+    "select",
+    "count",
+    "timeout",
+    "index",
+    "before",
+    "after",
+    "since",
+    "until",
+    "author",
+    "committer",
+    "message",
+    "m",
+    "msg",
+    "repohasfile",
+    "repohascommitafter",
+    "rule",
+];
+const GUESSED: &[&str] =
+    &["repogroup", "ext", "extension", "filename", "branch", "org"];
+const RESULT_TYPES: &[&str] =
+    &["file", "path", "repo", "symbol", "commit", "diff", "structural"];
+const PATTERN_FIELDS: &[&str] =
+    &["file", "f", "path", "lang", "l", "language", "content"];
+
+/// The notes for a query, in check order. Each check fires only on a query
+/// that can't be meant as written.
+pub fn check(tokens: &[Token]) -> Vec<String> {
+    let operands = Operands::of(tokens);
+    let mut notes = Vec::new();
+    unknown_filters(tokens, &mut notes);
+    different_languages(&operands, &mut notes);
+    regex_in_keyword_mode(tokens, &mut notes);
+    escaped_or(tokens, &operands, &mut notes);
+    unknown_types(tokens, &mut notes);
+    path_without_pattern(tokens, &mut notes);
+    revision_ranges(tokens, &mut notes);
+    notes
+}
+
+fn filters(tokens: &[Token]) -> impl Iterator<Item = &Filter> {
+    tokens.iter().filter_map(|token| match token {
+        Token::Filter(filter) => Some(filter),
+        _ => None,
+    })
+}
+
+fn is_field(filter: &Filter, names: &[&str]) -> bool {
+    names.iter().any(|name| filter.field.eq_ignore_ascii_case(name))
+}
+
+/// The filters of each operand of OR, at every depth. A filter inside a
+/// group belongs to the group's operands, not to the enclosing one.
+struct Operands<'a> {
+    all: Vec<Vec<&'a Filter>>,
+    top: Vec<Vec<&'a Filter>>,
+}
+
+impl<'a> Operands<'a> {
+    fn of(tokens: &'a [Token]) -> Self {
+        let mut done = Vec::new();
+        let mut stack: Vec<Vec<Vec<&Filter>>> = vec![vec![vec![]]];
+        for token in tokens {
+            match token {
+                Token::Open => stack.push(vec![vec![]]),
+                Token::Close if stack.len() > 1 => {
+                    done.extend(stack.pop().unwrap_or_default());
+                }
+                Token::Op(Op::Or) => {
+                    if let Some(level) = stack.last_mut() {
+                        level.push(vec![]);
+                    }
+                }
+                Token::Filter(filter) => {
+                    if let Some(operand) =
+                        stack.last_mut().and_then(|level| level.last_mut())
+                    {
+                        operand.push(filter);
+                    }
+                }
+                _ => {}
+            }
+        }
+        let top = stack.into_iter().next().unwrap_or_default();
+        done.extend(top.iter().cloned());
+        Operands { all: done, top }
+    }
+}
+
+fn unknown_filters(tokens: &[Token], notes: &mut Vec<String>) {
+    let mut seen = Vec::new();
+    for filter in filters(tokens) {
+        let field = filter.field.to_ascii_lowercase();
+        if KNOWN.contains(&field.as_str()) {
+            continue;
+        }
+        if !GUESSED.contains(&field.as_str()) && !near_known(&field) {
+            continue;
+        }
+        let raw = Token::Filter(filter.clone()).raw();
+        if seen.contains(&raw) {
+            continue;
+        }
+        notes.push(format!(
+            "'{}:' is not a filter; the server searches `{raw}` as text",
+            filter.field
+        ));
+        seen.push(raw);
+    }
+}
+
+/// One adjacent transposition, insertion or deletion from a known field of
+/// four or more letters.
+fn near_known(field: &str) -> bool {
+    let f: Vec<char> = field.chars().collect();
+    KNOWN.iter().filter(|known| known.len() >= 4).any(|known| {
+        let k: Vec<char> = known.chars().collect();
+        match f.len().cmp(&k.len()) {
+            std::cmp::Ordering::Equal => {
+                (0..f.len().saturating_sub(1)).any(|i| {
+                    let mut swapped = f.clone();
+                    swapped.swap(i, i + 1);
+                    swapped == k
+                })
+            }
+            std::cmp::Ordering::Greater => {
+                f.len() == k.len() + 1 && drops_one(&f, &k)
+            }
+            std::cmp::Ordering::Less => {
+                k.len() == f.len() + 1 && drops_one(&k, &f)
+            }
+        }
+    })
+}
+
+/// Whether removing one character from `long` gives `short`.
+fn drops_one(long: &[char], short: &[char]) -> bool {
+    (0..long.len())
+        .any(|i| long[..i].iter().chain(&long[i + 1..]).eq(short.iter()))
+}
+
+fn different_languages(operands: &Operands, notes: &mut Vec<String>) {
+    let differ = operands.all.iter().any(|operand| {
+        let mut langs = operand
+            .iter()
+            .filter(|f| !f.negated && is_field(f, &["lang", "l", "language"]))
+            .map(|f| f.value.to_ascii_lowercase());
+        langs.next().is_some_and(|first| langs.any(|v| v != first))
+    });
+    if differ {
+        notes.push(
+            "lang: filters intersect: a file must match both".to_owned(),
+        );
+    }
+}
+
+fn regex_in_keyword_mode(tokens: &[Token], notes: &mut Vec<String>) {
+    if pattern_type(tokens) != "keyword" {
+        return;
+    }
+    let first = tokens.iter().find_map(|token| match token {
+        Token::Term(term) if looks_like_regex(term) => Some(term),
+        _ => None,
+    });
+    if let Some(term) = first {
+        notes.push(format!(
+            "keyword mode matches `{term}` literally; a regex goes inside /.../"
+        ));
+    }
+}
+
+fn is_word(c: char) -> bool {
+    c.is_ascii_alphanumeric() || c == '_'
+}
+
+fn looks_like_regex(term: &str) -> bool {
+    let c: Vec<char> = term.chars().collect();
+    let at = |i: usize| c.get(i).copied();
+    if matches!(c.first(), Some('^'))
+        && at(1)
+            .is_some_and(|n| n.is_ascii_alphabetic() || n == '\\' || n == '[')
+    {
+        return true;
+    }
+    (0..c.len()).any(|i| match c[i] {
+        '\\' => at(i + 1).is_some_and(|n| {
+            ".()[]{}|*+?^/".contains(n)
+                || ("wWsSdDbB".contains(n)
+                    && !at(i + 2).is_some_and(|a| a.is_ascii_alphabetic()))
+        }),
+        '.' => {
+            matches!(at(i + 1), Some('*' | '+'))
+                && at(i + 2).is_some_and(|n| n != ';')
+        }
+        '[' => match (at(i + 1), at(i + 2), at(i + 3), at(i + 4)) {
+            (Some(x), Some('-'), Some(y), Some(']')) => {
+                x < y
+                    && ((x.is_ascii_lowercase() && y.is_ascii_lowercase())
+                        || (x.is_ascii_uppercase() && y.is_ascii_uppercase())
+                        || (x.is_ascii_digit() && y.is_ascii_digit()))
+            }
+            _ => false,
+        },
+        '|' => alternation(&c, i),
+        _ => false,
+    })
+}
+
+/// A `|` between two word characters, unless both sides are upper-case
+/// identifiers such as `PROT_READ|PROT_WRITE`.
+fn alternation(c: &[char], bar: usize) -> bool {
+    let left: Vec<char> =
+        c[..bar].iter().rev().take_while(|x| is_word(**x)).copied().collect();
+    let right: Vec<char> =
+        c[bar + 1..].iter().take_while(|x| is_word(**x)).copied().collect();
+    let constant = |side: &[char]| {
+        side.iter()
+            .all(|x| x.is_ascii_uppercase() || x.is_ascii_digit() || *x == '_')
+    };
+    let both = !left.is_empty() && !right.is_empty();
+    both && (!constant(&left) || !constant(&right))
+}
+
+/// The server hoists the filters around a flat run of operands of OR to
+/// apply to all of them.
+fn hoisted(tokens: &[Token]) -> bool {
+    let is_filter = |t: &Token| matches!(t, Token::Filter(_));
+    let lead = tokens.iter().take_while(|t| is_filter(t)).count();
+    let run_end = lead
+        + tokens[lead..]
+            .iter()
+            .take_while(|t| {
+                !is_filter(t) && !matches!(t, Token::Open | Token::Close)
+            })
+            .count();
+    let run = &tokens[lead..run_end];
+    let operand = |t: Option<&Token>| {
+        matches!(
+            t,
+            Some(Token::Term(_) | Token::Quoted(_) | Token::Pattern(_))
+        )
+    };
+    lead > 0
+        && operand(run.first())
+        && operand(run.last())
+        && tokens[run_end..].iter().all(is_filter)
+}
+
+fn escaped_or(tokens: &[Token], operands: &Operands, notes: &mut Vec<String>) {
+    let has_or = tokens
+        .iter()
+        .scan(0usize, |depth, t| {
+            match t {
+                Token::Open => *depth += 1,
+                Token::Close => *depth = depth.saturating_sub(1),
+                _ => {}
+            }
+            Some((*depth, t))
+        })
+        .any(|(depth, t)| depth == 0 && matches!(t, Token::Op(Op::Or)));
+    let has_repo = |operand: &Vec<&Filter>| {
+        operand.iter().any(|f| is_field(f, &["repo", "r"]))
+    };
+    if has_or
+        && operands.top.iter().any(has_repo)
+        && !operands.top.iter().all(has_repo)
+        && !hoisted(tokens)
+    {
+        notes.push(
+            "filters outside parentheses apply only to the operand of OR \
+             they sit in; the other operands search every repository"
+                .to_owned(),
+        );
+    }
+}
+
+fn unknown_types(tokens: &[Token], notes: &mut Vec<String>) {
+    let mut seen: Vec<&str> = Vec::new();
+    for filter in filters(tokens).filter(|f| is_field(f, &["type"])) {
+        let value = filter.value.as_str();
+        let bare = ['"', '\'']
+            .iter()
+            .find_map(|q| value.strip_prefix(*q)?.strip_suffix(*q))
+            .unwrap_or(value);
+        if RESULT_TYPES.contains(&bare) || seen.contains(&value) {
+            continue;
+        }
+        seen.push(value);
+        notes.push(format!(
+            "type:{value} is not a result type; the server returns nothing"
+        ));
+    }
+}
+
+fn path_without_pattern(tokens: &[Token], notes: &mut Vec<String>) {
+    let typed = filters(tokens)
+        .any(|f| !f.negated && is_field(f, &["type"]) && f.value == "path");
+    let only_filters = tokens.iter().all(|t| {
+        matches!(
+            t,
+            Token::Filter(_) | Token::Open | Token::Close | Token::Op(_)
+        )
+    });
+    if typed
+        && only_filters
+        && !filters(tokens).any(|f| is_field(f, PATTERN_FIELDS))
+    {
+        notes.push("type:path with only filters returns nothing".to_owned());
+    }
+}
+
+fn revision_ranges(tokens: &[Token], notes: &mut Vec<String>) {
+    for filter in filters(tokens).filter(|f| is_field(f, &["repo", "r"])) {
+        let Some((_, revisions)) = filter.value.split_once('@') else {
+            continue;
+        };
+        let end = revisions
+            .split(':')
+            .find(|rev| rev.contains(".."))
+            .and_then(|rev| rev.rsplit_once("..").map(|(_, end)| end));
+        if let Some(end) = end.filter(|end| !end.is_empty()) {
+            notes.push(format!(
+                "{} searches {end} only",
+                Token::Filter(filter.clone()).raw()
+            ));
+        }
+    }
 }

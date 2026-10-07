@@ -1,4 +1,5 @@
 use sego::internal::search::lint::{Filter, Op, Token, tokenize};
+use sego::internal::search::query::prepare;
 
 fn term(text: &str) -> Token {
     Token::Term(text.to_owned())
@@ -169,5 +170,129 @@ fn raw_gives_the_token_as_written() {
     ];
     for (token, raw) in rows {
         assert_eq!(token.raw(), raw);
+    }
+}
+
+fn not_a_filter(field: &str, token: &str) -> String {
+    format!(
+        "'{field}:' is not a filter; the server searches `{token}` as text"
+    )
+}
+
+const INTERSECT: &str = "lang: filters intersect: a file must match both";
+const ESCAPES_OR: &str = "filters outside parentheses apply only to the \
+operand of OR they sit in; the other operands search every repository";
+const PATH_ONLY: &str = "type:path with only filters returns nothing";
+
+fn keyword(term: &str) -> String {
+    format!(
+        "keyword mode matches `{term}` literally; a regex goes inside /.../"
+    )
+}
+
+fn bad_type(value: &str) -> String {
+    format!("type:{value} is not a result type; the server returns nothing")
+}
+
+#[test]
+fn checks() {
+    let rows: Vec<(&str, Vec<String>)> = vec![
+        // 1: fire
+        ("fiel:x", vec![not_a_filter("fiel", "fiel:x")]),
+        ("langauge:go", vec![not_a_filter("langauge", "langauge:go")]),
+        ("ext:go", vec![not_a_filter("ext", "ext:go")]),
+        ("-lnag:go", vec![not_a_filter("lnag", "-lnag:go")]),
+        (
+            "fiel:x fiel:x fiel:y",
+            vec![
+                not_a_filter("fiel", "fiel:x"),
+                not_a_filter("fiel", "fiel:y"),
+            ],
+        ),
+        // 1: don't fire
+        ("std::mem", vec![]),
+        ("https://x", vec![]),
+        ("TODO:", vec![]),
+        ("-lang:go", vec![]),
+        ("json:\"name\"", vec![]),
+        ("localhost:8080", vec![]),
+        ("display:none", vec![]),
+        ("key:value", vec![]),
+        // 2
+        ("lang:go lang:rust", vec![INTERSECT.to_owned()]),
+        ("repo:a or repo:b", vec![]),
+        ("file:^mux file:\\.go$", vec![]),
+        ("repo:^github\\.com/gorilla/ repo:mux$", vec![]),
+        ("lang:go lang:Go", vec![]),
+        // 3: fire
+        ("Subrouter|NewRouter", vec![keyword("Subrouter|NewRouter")]),
+        ("\\.go", vec![keyword("\\.go")]),
+        // 3: don't fire
+        ("\"\\.go\"", vec![]),
+        ("/a.*b/", vec![]),
+        ("file:\\.go$", vec![]),
+        ("patterntype:regexp a.*b", vec![]),
+        ("a?", vec![]),
+        ("a+", vec![]),
+        ("a*", vec![]),
+        ("a||b", vec![]),
+        ("java.util.*", vec![]),
+        ("PROT_READ|PROT_WRITE", vec![]),
+        ("O_RDONLY|O_CREAT", vec![]),
+        ("s[i-1]", vec![]),
+        ("users$", vec![]),
+        ("\\$HOME", vec![]),
+        ("\\begin", vec![]),
+        ("/func \\(r \\*Router\\) \\w+\\(/", vec![]),
+        // 4: fire
+        ("repo:x file:mux.go or file:route.go", vec![ESCAPES_OR.to_owned()]),
+        ("repo:x file:y a or (b and c)", vec![ESCAPES_OR.to_owned()]),
+        ("repo:x (a case:yes) or (b case:no)", vec![ESCAPES_OR.to_owned()]),
+        ("repo:x router or lang:markdown", vec![ESCAPES_OR.to_owned()]),
+        ("foo or bar repo:x", vec![ESCAPES_OR.to_owned()]),
+        ("a repo:x or b", vec![ESCAPES_OR.to_owned()]),
+        // 4: don't fire
+        ("repo:x foo or bar", vec![]),
+        ("repo:x a or b lang:go", vec![]),
+        ("repo:x a or b or c file:y", vec![]),
+        ("repo:a x or repo:b y", vec![]),
+        ("repo:x file:y (a or (b and c))", vec![]),
+        ("(repo:x or repo:y) (\"a\" or \"b\")", vec![]),
+        // 5
+        ("type:File", vec![bad_type("File")]),
+        ("type:structural", vec![]),
+        // 6
+        ("repo:x type:path", vec![PATH_ONLY.to_owned()]),
+        ("type:path NewRouter", vec![]),
+        ("type:path file:\\.go$", vec![]),
+        ("type:path lang:go", vec![]),
+        ("type:path -file:_test", vec![]),
+        // 7
+        (
+            "repo:^github\\.com/gorilla/mux$@v1.8.0..v1.7.4",
+            vec![
+                "repo:^github\\.com/gorilla/mux$@v1.8.0..v1.7.4 searches \
+                 v1.7.4 only"
+                    .to_owned(),
+            ],
+        ),
+        ("repo:x@a:b...c", vec!["repo:x@a:b...c searches c only".to_owned()]),
+        ("repo:x@v1.8.0", vec![]),
+        ("a.*b", vec![keyword("a.*b")]),
+        ("import.*;", vec![]),
+        ("[a-z]+", vec![keyword("[a-z]+")]),
+        ("^foo", vec![keyword("^foo")]),
+        // several
+        (
+            "lnag:go lang:go lang:rust \\.rs$",
+            vec![
+                not_a_filter("lnag", "lnag:go"),
+                INTERSECT.to_owned(),
+                keyword("\\.rs$"),
+            ],
+        ),
+    ];
+    for (query, expected) in rows {
+        assert_eq!(prepare(query).notes, expected, "{query:?}");
     }
 }
