@@ -1,0 +1,11 @@
+# A commit URL names the commit; the body has CRLF line ends.
+args: show https://github.com/gorilla/mux/commit/948bec34b5168796bf3fc4dbb09215baa970351a
+exit: 0
+--- stdout
+github.com/gorilla/mux@948bec34b516  2020-05-17  Eric Skoglund  parents 75dcda0896e1  1 file  +1 -2
+    docs: Remove stale text from comment. (#568)
+
+    Comment for CurrentRoute claimed that setting the KeepContext option would propagate
+    the Route even after the request. The KeepContext option is deprecated and has no effect.
+
+M  +1 -2  mux.go

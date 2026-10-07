@@ -1,0 +1,5 @@
+# JSON carries the commit and its files.
+args: show --json github.com/gorilla/mux@v1.8.0
+exit: 0
+--- stdout
+{"repo":"github.com/gorilla/mux","rev":"v1.8.0","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","author":"Harshavardhana","author_date":"2020-07-11","committer":"GitHub","committer_date":"2020-07-11","parents":["948bec34b5168796bf3fc4dbb09215baa970351a"],"subject":"fix: regression in vars extract for wildcard host (#579)","message":"fix: regression in vars extract for wildcard host (#579)\n\nContinuing from PR #447 we have to add extra\ncheck to ignore the port as well\n\nadd tests to cover this case","files":[{"status":"M","old_path":"old_test.go","new_path":"old_test.go","added":22,"deleted":1},{"status":"M","old_path":"regexp.go","new_path":"regexp.go","added":6,"deleted":0}],"files_total":2,"added":28,"deleted":1}

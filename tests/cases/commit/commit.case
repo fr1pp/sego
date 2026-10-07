@@ -1,0 +1,12 @@
+# A commit shows its message and changed files.
+args: show github.com/ast-grep/agent-skill@affe2b9b7c608f4e354d7e83d0583ed35e845650
+exit: 0
+--- stdout
+github.com/ast-grep/agent-skill@affe2b9b7c60  2026-09-09  Jonathan Davies  parents 6b668aa526af  1 file  +33 -0
+    docs(ast-grep): document run --json output and zero-match debugging (#11)
+
+    * docs: document run --json output schema and jq extraction in ast-grep skill
+
+    * docs: add node-granularity and zero-match debugging tips to ast-grep skill
+
+M  +33 -0  ast-grep/skills/ast-grep/SKILL.md

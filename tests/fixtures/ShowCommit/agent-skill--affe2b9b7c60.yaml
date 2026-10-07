@@ -1,0 +1,67 @@
+operation: ShowCommit
+variables:
+  base: affe2b9b7c608f4e354d7e83d0583ed35e845650^1
+  repo0: github.com/ast-grep/agent-skill
+  rev: affe2b9b7c608f4e354d7e83d0583ed35e845650
+query: |
+  query ShowCommit($repo0: String!, $rev: String!, $base: String!) {
+    m0: repository(name: $repo0) {
+      name
+      defaultBranch { displayName }
+      commit(rev: $rev) { oid subject message author { date person { displayName } } committer { date person { displayName } } parents { oid } }
+    }
+    d0: repository(name: $repo0) {
+      name
+      defaultBranch { displayName }
+      comparison(base: $base, head: $rev) {
+      all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
+      page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
+      }
+    }
+  }
+status: 200
+headers:
+  content-type: application/json
+pinned: true
+response:
+  data:
+    d0:
+      comparison:
+        all:
+          diffStat:
+            added: 33
+            deleted: 0
+          totalCount: 1
+        page:
+          nodes:
+          - newPath: ast-grep/skills/ast-grep/SKILL.md
+            oldPath: ast-grep/skills/ast-grep/SKILL.md
+            stat:
+              added: 33
+              deleted: 0
+      defaultBranch:
+        displayName: main
+      name: github.com/ast-grep/agent-skill
+    m0:
+      commit:
+        author:
+          date: "2026-09-09T20:14:26Z"
+          person:
+            displayName: Jonathan Davies
+        committer:
+          date: "2026-09-09T20:14:26Z"
+          person:
+            displayName: GitHub
+        message: |-
+          docs(ast-grep): document run --json output and zero-match debugging (#11)
+          
+          * docs: document run --json output schema and jq extraction in ast-grep skill
+          
+          * docs: add node-granularity and zero-match debugging tips to ast-grep skill
+        oid: affe2b9b7c608f4e354d7e83d0583ed35e845650
+        parents:
+        - oid: 6b668aa526afdc623c1a9ed1d6ae920e04a717ad
+        subject: "docs(ast-grep): document run --json output and zero-match debugging (#11)"
+      defaultBranch:
+        displayName: main
+      name: github.com/ast-grep/agent-skill

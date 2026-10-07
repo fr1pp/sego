@@ -1,0 +1,5 @@
+# A path at neither end is an error.
+args: diff github.com/gorilla/mux@v1.7.0...v1.7.1 nope.go
+exit: 1
+--- stderr
+sego: error: nope.go not found in github.com/gorilla/mux@a7962380ca08 or @c5c6c98bc253

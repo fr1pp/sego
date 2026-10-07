@@ -1,0 +1,15 @@
+# A range lists its commits with tag marks.
+args: log github.com/evilmartians/lefthook@v2.1.12..v2.1.14
+exit: 0
+--- stdout
+github.com/evilmartians/lefthook@4ad40c3a28bd..1e23553eec23  10 commits  rev v2.1.12..v2.1.14
+1e23553eec23  2026-09-14  Valentin Kiselev  (tag: v2.1.14) 2.1.14: small fixes and spinner improvements
+a2c9d37aab87  2026-09-14  Valentin Kiselev  (tag: v2.1.13) 2.1.13: small fixes and spinner improvements
+c7b498349ffa  2026-09-14  Nityanand Gupta  fix(run): error when --job/--command matches nothing (#1512)
+e4ca4a1d3f3f  2026-09-14  Valentin Kiselev  fix: disable tty things when stdout is not TTY (#1545)
+aa3fa89923c0  2026-09-14  Vladimir Babin  docs: document files inheritance for grouped jobs (#1536)
+250f0283150e  2026-09-14  Yash Lunawat  fix: force colors when colors are explicitly enabled (#1538)
+62f4d5e8e9aa  2026-09-14  Yash Lunawat  fix: resolve file_types paths from the repo root (#1537)
+ef092eb9da06  2026-09-07  Ty Mick  fix(npm) don't force past `core.hooksPath` guard in npm postinstall (#1475)
+3667aeb1ca86  2026-09-07  Hamody We  fix: don't force-install hooks from the npm postinstall (#1510)
+354df23681bd  2026-09-07  Guflly  docs: quote template run examples (#1472)

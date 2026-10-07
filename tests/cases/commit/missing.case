@@ -1,0 +1,5 @@
+# A missing revision is an error.
+args: show github.com/gorilla/mux@deadbeefdeadbeef
+exit: 1
+--- stderr
+sego: error: revision deadbeefdeadbeef not found in github.com/gorilla/mux

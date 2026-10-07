@@ -1,0 +1,20 @@
+# A GitHub compare URL names the comparison.
+args: diff https://github.com/gorilla/mux/compare/v1.7.0...v1.7.1 route.go
+exit: 0
+--- stdout
+github.com/gorilla/mux@a7962380ca08...c5c6c98bc253  1 file  +1 -1  base a7962380ca08  rev v1.7.0...v1.7.1
+M  +1 -1  route.go
+
+    diff --git route.go route.go
+    index 16a7cdf4eadc120fcf92a86cb3c623c6785aa516..8479c68c1df7e866c42981389c610b488a179041 100644
+    --- route.go
+    +++ route.go
+    @@ -383,7 +383,7 @@ func (r *Route) PathPrefix(tpl string) *Route {
+     // The above route will only match if the URL contains the defined queries
+     // values, e.g.: ?foo=bar&id=42.
+     //
+    -// It the value is an empty string, it will match any value if the key is set.
+    +// If the value is an empty string, it will match any value if the key is set.
+     //
+     // Variables can define an optional regexp pattern to be matched:
+     //

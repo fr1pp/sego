@@ -1,0 +1,5 @@
+# An empty range prints 0 commits.
+args: log github.com/gorilla/mux@v1.8.0..v1.7.0
+exit: 0
+--- stdout
+github.com/gorilla/mux@98cb6bf42e08..a7962380ca08  0 commits  rev v1.8.0..v1.7.0

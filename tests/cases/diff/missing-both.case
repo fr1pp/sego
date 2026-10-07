@@ -1,0 +1,5 @@
+# Both missing revisions are named together.
+args: diff github.com/gorilla/mux@v9.9.8...v9.9.9
+exit: 1
+--- stderr
+sego: error: revisions v9.9.8 and v9.9.9 not found in github.com/gorilla/mux

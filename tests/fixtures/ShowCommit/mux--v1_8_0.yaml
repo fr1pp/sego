@@ -1,0 +1,73 @@
+operation: ShowCommit
+variables:
+  base: v1.8.0^1
+  repo0: github.com/gorilla/mux
+  rev: v1.8.0
+query: |
+  query ShowCommit($repo0: String!, $rev: String!, $base: String!) {
+    m0: repository(name: $repo0) {
+      name
+      defaultBranch { displayName }
+      commit(rev: $rev) { oid subject message author { date person { displayName } } committer { date person { displayName } } parents { oid } }
+    }
+    d0: repository(name: $repo0) {
+      name
+      defaultBranch { displayName }
+      comparison(base: $base, head: $rev) {
+      all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
+      page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
+      }
+    }
+  }
+status: 200
+headers:
+  content-type: application/json
+pinned: true
+response:
+  data:
+    d0:
+      comparison:
+        all:
+          diffStat:
+            added: 28
+            deleted: 1
+          totalCount: 2
+        page:
+          nodes:
+          - newPath: old_test.go
+            oldPath: old_test.go
+            stat:
+              added: 22
+              deleted: 1
+          - newPath: regexp.go
+            oldPath: regexp.go
+            stat:
+              added: 6
+              deleted: 0
+      defaultBranch:
+        displayName: main
+      name: github.com/gorilla/mux
+    m0:
+      commit:
+        author:
+          date: "2020-07-11T20:05:21Z"
+          person:
+            displayName: Harshavardhana
+        committer:
+          date: "2020-07-11T20:05:21Z"
+          person:
+            displayName: GitHub
+        message: |-
+          fix: regression in vars extract for wildcard host (#579)
+          
+          Continuing from PR #447 we have to add extra
+          check to ignore the port as well
+          
+          add tests to cover this case
+        oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+        parents:
+        - oid: 948bec34b5168796bf3fc4dbb09215baa970351a
+        subject: "fix: regression in vars extract for wildcard host (#579)"
+      defaultBranch:
+        displayName: main
+      name: github.com/gorilla/mux

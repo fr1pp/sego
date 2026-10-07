@@ -1,0 +1,5 @@
+# A missing head is named.
+args: diff github.com/gorilla/mux@v1.7.0...v9.9.9
+exit: 1
+--- stderr
+sego: error: head revision v9.9.9 not found in github.com/gorilla/mux

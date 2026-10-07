@@ -1,0 +1,5 @@
+# A path that exists nowhere is an error.
+args: log github.com/gorilla/mux@v1.8.0 nope.go
+exit: 1
+--- stderr
+sego: error: nope.go not found in github.com/gorilla/mux@98cb6bf42e08

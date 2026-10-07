@@ -1,0 +1,68 @@
+operation: Diff
+variables:
+  a: v1.7.0
+  b: v1.7.1
+  path0: README.md
+  paths:
+  - README.md
+  repo0: github.com/gorilla/mux
+query: |
+  query Diff($repo0: String!, $a: String!, $b: String!, $paths: [String!], $path0: String!) {
+    a0: repository(name: $repo0) {
+      name
+      defaultBranch { displayName }
+      commit(rev: $a) { oid p0: path(path: $path0) { __typename } }
+    }
+    b0: repository(name: $repo0) {
+      name
+      defaultBranch { displayName }
+      commit(rev: $b) { oid parents { oid } p0: path(path: $path0) { __typename } }
+    }
+    c0: repository(name: $repo0) {
+      name
+      defaultBranch { displayName }
+      comparison(base: $a, head: $b) {
+      all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
+      page: fileDiffs(first: 201, paths: $paths) { nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } } }
+      patch: fileDiffs(paths: $paths) { rawDiff }
+      }
+    }
+  }
+status: 200
+headers:
+  content-type: application/json
+pinned: true
+response:
+  data:
+    a0:
+      commit:
+        oid: a7962380ca08b5a188038c69871b8d3fbdf31e89
+        p0:
+          __typename: GitBlob
+      defaultBranch:
+        displayName: main
+      name: github.com/gorilla/mux
+    b0:
+      commit:
+        oid: c5c6c98bc25355028a63748a498942a6398ccd22
+        p0:
+          __typename: GitBlob
+        parents:
+        - oid: 15a353a636720571d19e37b34a14499c3afa9991
+      defaultBranch:
+        displayName: main
+      name: github.com/gorilla/mux
+    c0:
+      comparison:
+        all:
+          diffStat:
+            added: 0
+            deleted: 0
+          totalCount: 0
+        page:
+          nodes: []
+        patch:
+          rawDiff: ""
+      defaultBranch:
+        displayName: main
+      name: github.com/gorilla/mux

@@ -1,0 +1,15 @@
+# A path with spaces is quoted in the output.
+args: diff github.com/BurntSushi/blog@497748c2d8fbc612fed474940b034f9369c4fab1 'code/rust-regex-syntax-extensions/ Ahead-of-time compiled regular expressions in Rust'
+exit: 0
+--- stdout
+github.com/BurntSushi/blog@e5554cd572c4...497748c2d8fb  1 file  +2 -0
+A  +2 -0  'code/rust-regex-syntax-extensions/ Ahead-of-time compiled regular expressions in Rust'
+
+    diff --git code/rust-regex-syntax-extensions/ Ahead-of-time compiled regular expressions in Rust code/rust-regex-syntax-extensions/ Ahead-of-time compiled regular expressions in Rust
+    new file mode 100644
+    index 0000000000000000000000000000000000000000..cf68bde3261cf4b6ade62f50c57dea8f8ffb50fb
+    --- /dev/null
+    +++ code/rust-regex-syntax-extensions/ Ahead-of-time compiled regular expressions in Rust
+    @@ -0,0 +1,2 @@
+    +Ahead-of-time compiled regular expressions in Rust 
+    +

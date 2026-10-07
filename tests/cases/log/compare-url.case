@@ -1,0 +1,9 @@
+# A compare URL is read as A..B.
+args: log https://github.com/gorilla/mux/compare/v1.7.0...v1.7.1
+exit: 0
+--- stdout
+github.com/gorilla/mux@a7962380ca08..c5c6c98bc253  4 commits  rev v1.7.0..v1.7.1
+c5c6c98bc253  2019-03-16  sekky0905  (tag: v1.7.1) [build] Remove sudo setting from travis.yml (#462)
+15a353a63672  2019-02-28  Benjamin Boudreau  adding Router.Name to create new Route (#457)
+8eaa9f130911  2019-02-28  Benjamin Boudreau  fix go1.12 go vet usage (#458)
+8559a4f775fc  2019-02-17  Souvik Haldar  [docs] typo (#454)

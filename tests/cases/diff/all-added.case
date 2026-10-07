@@ -1,0 +1,40 @@
+# When every file was added there is no base.
+args: diff github.com/gorilla/mux@v1.6.2...v1.7.0 .github
+exit: 0
+--- stdout
+github.com/gorilla/mux@e3702bed27f0...a7962380ca08  2 files  +20 -0  rev v1.6.2...v1.7.0
+A  +8 -0  .github/release-drafter.yml
+A  +12 -0  .github/stale.yml
+
+    diff --git .github/release-drafter.yml .github/release-drafter.yml
+    new file mode 100644
+    index 0000000000000000000000000000000000000000..2db2e1397ec7b63ebe94d7536548cba72f20e7bd
+    --- /dev/null
+    +++ .github/release-drafter.yml
+    @@ -0,0 +1,8 @@
+    +# Config for https://github.com/apps/release-drafter
+    +template: |
+    +  
+    +  <summary of changes here>
+    +  
+    +  ## CHANGELOG
+    +
+    +  $CHANGES
+    diff --git .github/stale.yml .github/stale.yml
+    new file mode 100644
+    index 0000000000000000000000000000000000000000..de8a67804bf3b119c5d4926d2acddd958ae0b5cd
+    --- /dev/null
+    +++ .github/stale.yml
+    @@ -0,0 +1,12 @@
+    +daysUntilStale: 60
+    +daysUntilClose: 7
+    +# Issues with these labels will never be considered stale
+    +exemptLabels:
+    +  - v2
+    +  - needs-review
+    +  - work-required
+    +staleLabel: stale
+    +markComment: >
+    +  This issue has been automatically marked as stale because it hasn't seen
+    +  a recent update. It'll be automatically closed in a few days.
+    +closeComment: false

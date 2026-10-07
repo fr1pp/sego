@@ -1,0 +1,62 @@
+operation: ShowCommit
+variables:
+  base: 306509329bce2152a92040e805ef24fd8e3f877d^1
+  repo0: github.com/gorilla/mux
+  rev: 306509329bce2152a92040e805ef24fd8e3f877d
+query: |
+  query ShowCommit($repo0: String!, $rev: String!, $base: String!) {
+    m0: repository(name: $repo0) {
+      name
+      defaultBranch { displayName }
+      commit(rev: $rev) { oid subject message author { date person { displayName } } committer { date person { displayName } } parents { oid } }
+    }
+    d0: repository(name: $repo0) {
+      name
+      defaultBranch { displayName }
+      comparison(base: $base, head: $rev) {
+      all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
+      page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
+      }
+    }
+  }
+status: 200
+headers:
+  content-type: application/json
+pinned: true
+response:
+  data:
+    d0:
+      comparison:
+        all:
+          diffStat:
+            added: 0
+            deleted: 0
+          totalCount: 0
+        page:
+          nodes: []
+      defaultBranch:
+        displayName: main
+      name: github.com/gorilla/mux
+    m0:
+      commit:
+        author:
+          date: "2015-07-05T10:19:34Z"
+          person:
+            displayName: Clint Ryan
+        committer:
+          date: "2015-07-05T10:19:34Z"
+          person:
+            displayName: Clint Ryan
+        message: |-
+          Merge branch 'master' of https://github.com/eastwood/mux
+          
+          Conflicts:
+          	mux.go
+        oid: 306509329bce2152a92040e805ef24fd8e3f877d
+        parents:
+        - oid: c21431a6cd004f2e4ac692b2ec8c56f3a4ebd036
+        - oid: a063f14812c8ea1ae2a62a8d9b2307afe23348a7
+        subject: Merge branch 'master' of https://github.com/eastwood/mux
+      defaultBranch:
+        displayName: main
+      name: github.com/gorilla/mux
