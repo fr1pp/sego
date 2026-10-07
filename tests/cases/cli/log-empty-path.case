@@ -1,0 +1,7 @@
+# log refuses an empty PATH operand, as diff does, and makes no request.
+args: log github.com/x/y@v1 ''
+exit: 2
+--- stderr
+sego: error: log takes no empty path
+usage: sego log [--json] REPO[@REV][:PATH] [PATH]
+       sego log [--json] REPO@A..B[:PATH] [PATH]

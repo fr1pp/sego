@@ -417,6 +417,9 @@ fn parse_log(operands: &[String], json: bool) -> Result<Command, Error> {
             dots: address::Dots::Two,
         };
     }
+    if rest.iter().any(String::is_empty) {
+        return Err(usage("log takes no empty path"));
+    }
     let in_address = address.path.as_deref().and_then(named_path);
     let operand = rest.first().and_then(|path| named_path(path));
     let path = match (in_address, operand) {
