@@ -11,6 +11,7 @@ pub mod model;
 pub mod outcome;
 pub mod query;
 pub mod response;
+pub mod text;
 
 use query::Prepared;
 

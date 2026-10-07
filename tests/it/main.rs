@@ -19,6 +19,7 @@ mod run;
 mod safety;
 mod search_cli;
 mod search_request;
+mod search_text;
 mod support;
 mod transport;
 mod url;
