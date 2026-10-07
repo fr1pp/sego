@@ -7,22 +7,23 @@ use serde::Serialize;
 use serde_json::{Value, json};
 
 use crate::address::{
-    Address, Rev, is_oid_like, is_plain_path, pinned, rev_field, short,
+    Address, Dots, Rev, is_plain_path, pinned, range_rev_field, rev_field,
+    short,
 };
 use crate::cli::LOG_SYNOPSIS;
 use crate::error::Error;
 use crate::escape::{one_line, render_line};
 use crate::output::text::{header, header_line};
-use crate::output::{Answer, Notes};
+use crate::output::{Answer, Notes, date};
 use crate::quote::shell_word;
 use crate::upstream::{
     GRAPHQL_PATH, RepoPlan, Root, Transport, Var, View, build_repository,
-    classify, locate_repository, missing_revisions,
+    classify, locate_repository, missing_revisions, missing_sides, no_commits,
+    revision_lookup_failed, text_at,
 };
 
 const ROWS: usize = 150;
 const TAG_LIMIT: u64 = 1000;
-const DATE_LEN: usize = 10;
 
 const PAGE: &str = "nodes { oid subject author { date person { displayName } \
                     } parents { oid } } pageInfo { hasNextPage }";
@@ -85,9 +86,7 @@ impl Answer for Logged {
     fn text(&self) -> String {
         let mut fields = vec![self.count()];
         let mut out = if let Some((a, b)) = self.range() {
-            if !is_oid_like(a) || !is_oid_like(b) {
-                fields.push(format!("rev {a}..{b}"));
-            }
+            fields.extend(range_rev_field(a, b, Dots::Two));
             let mut address = format!(
                 "{}@{}..{}",
                 self.repo,
@@ -199,18 +198,6 @@ fn range_plan(a: &str, b: &str, path: Option<&str>, json: bool) -> RepoPlan {
     }
 }
 
-fn lookup_failed() -> Error {
-    Error::failed("the revision lookup")
-}
-
-fn text_at<'a>(value: &'a Value, keys: &[&str]) -> Option<&'a str> {
-    let mut value = value;
-    for key in keys {
-        value = value.get(key)?;
-    }
-    value.as_str()
-}
-
 /// `None` when a node lacks a field the rows need.
 fn entry(node: &Value) -> Option<Entry> {
     let parents = node
@@ -221,10 +208,7 @@ fn entry(node: &Value) -> Option<Entry> {
         .collect::<Option<Vec<_>>>()?;
     Some(Entry {
         commit: text_at(node, &["oid"])?.to_owned(),
-        date: text_at(node, &["author", "date"])?
-            .chars()
-            .take(DATE_LEN)
-            .collect(),
+        date: date(text_at(node, &["author", "date"])?),
         author: text_at(node, &["author", "person", "displayName"])?
             .to_owned(),
         subject: text_at(node, &["subject"])?.to_owned(),
@@ -343,18 +327,13 @@ fn revision(
         return Err(list_failed());
     }
     if r.errored_beneath(&["commit"]) {
-        return Err(lookup_failed());
+        return Err(revision_lookup_failed());
     }
     let Some(commit) = r.get(&["commit"]) else {
-        if r.get(&["defaultBranch"]).is_none() {
-            if r.errored_beneath(&["defaultBranch"]) {
-                return Err(Error::failed("the repository lookup"));
-            }
-            return Err(Error::missing(format!("{repo} has no commits")));
-        }
-        return Err(missing_revisions(repo, &[("", sent)]));
+        return Err(no_commits(repo, &r)
+            .unwrap_or_else(|| missing_revisions(repo, &[("", sent)])));
     };
-    let oid = text_at(commit, &["oid"]).ok_or_else(lookup_failed)?;
+    let oid = text_at(commit, &["oid"]).ok_or_else(revision_lookup_failed)?;
     let (mut commits, has_next) =
         page(commit.get("ancestors")).ok_or_else(list_failed)?;
     if let Some(path) = path.filter(|p| is_plain_path(p))
@@ -407,36 +386,26 @@ fn range(
     let comparison_failed = || Error::failed("the comparison");
 
     if base.errored_beneath(&["commit"]) || head.errored_beneath(&["commit"]) {
-        return Err(lookup_failed());
+        return Err(revision_lookup_failed());
     }
     let oid = |side: &View<'_>| -> Result<Option<String>, Error> {
         side.get(&["commit"])
             .map(|commit| {
                 text_at(commit, &["oid"])
                     .map(str::to_owned)
-                    .ok_or_else(lookup_failed)
+                    .ok_or_else(revision_lookup_failed)
             })
             .transpose()
     };
     let (commit_a, commit_b) = (oid(&base)?, oid(&head)?);
     if commit_a.is_none()
         && commit_b.is_none()
-        && base.get(&["defaultBranch"]).is_none()
+        && let Some(error) = no_commits(repo, &base)
     {
-        if base.errored_beneath(&["defaultBranch"]) {
-            return Err(Error::failed("the repository lookup"));
-        }
-        return Err(Error::missing(format!("{repo} has no commits")));
+        return Err(error);
     }
     let (Some(commit_a), Some(commit_b)) = (commit_a, commit_b) else {
-        let mut missing = Vec::new();
-        if base.get(&["commit"]).is_none() {
-            missing.push(("base", rev_a));
-        }
-        if head.get(&["commit"]).is_none() {
-            missing.push(("head", rev_b));
-        }
-        return Err(missing_revisions(repo, &missing));
+        return Err(missing_sides(repo, (rev_a, &base), (rev_b, &head)));
     };
 
     let commit_list = (!compared.errored_beneath(&[]))

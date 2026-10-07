@@ -9,7 +9,7 @@ use crate::address::{Repo, short};
 use crate::error::Error;
 use crate::escape::one_line;
 use crate::output::text::header_line;
-use crate::output::{Answer, Notes};
+use crate::output::{Answer, Notes, date};
 use crate::upstream::{
     GRAPHQL_PATH, RepoPlan, Root, Transport, Var, View, build_repository,
     classify, locate_repository,
@@ -21,7 +21,6 @@ const TEXT_FIRST: u32 = 101;
 /// The most that two `owner/name` roots allow under the 500,000 field-unit
 /// limit: 4 * 17000 * 7 + 20.
 const JSON_FIRST: u32 = 17000;
-const DATE_LEN: usize = 10;
 
 const PARTS: &[(&str, &str)] = &[
     ("branches", "the branch list"),
@@ -296,7 +295,7 @@ fn listing(
             .and_then(|commit| commit.get("committer"))
             .and_then(|committer| committer.get("date"))
             .and_then(Value::as_str)
-            .map(|date| date.chars().take(DATE_LEN).collect());
+            .map(date);
         rows.push(Ref {
             kind,
             name: name.to_owned(),

@@ -33,6 +33,15 @@ pub enum Dots {
     Three,
 }
 
+impl Dots {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Dots::Two => "..",
+            Dots::Three => "...",
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Rev {
     Default,
@@ -198,6 +207,12 @@ pub fn is_oid_like(rev: &str) -> bool {
 pub fn rev_field(rev: Option<&String>) -> Option<String> {
     let rev = rev?;
     (!is_oid_like(rev)).then(|| format!("rev {rev}"))
+}
+
+/// The header field for a range of which a side was not a commit id.
+pub fn range_rev_field(base: &str, head: &str, dots: Dots) -> Option<String> {
+    (!is_oid_like(base) || !is_oid_like(head))
+        .then(|| format!("rev {base}{}{head}", dots.as_str()))
 }
 
 pub fn pinned(repo: &str, commit: &str, path: Option<&str>) -> Pinned {

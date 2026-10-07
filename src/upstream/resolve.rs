@@ -4,6 +4,7 @@ use serde::Serialize;
 use serde_json::{Map, Value};
 
 use super::envelope::{Envelope, Seg};
+use super::view::{View, text_at};
 use crate::address::{
     Address, FULL_OID, Repo, Rev, is_oid_like, valid_revision,
 };
@@ -85,6 +86,37 @@ pub fn missing_revisions(repo: &str, missing: &[(&str, &str)]) -> Error {
         }
     };
     Error::missing(message)
+}
+
+/// The error for a null `commit` under `view`, which must also select
+/// `defaultBranch`: a repository with a default branch lacks the revision,
+/// so this is `None`; one without has no commits at all.
+pub fn no_commits(repo: &str, view: &View<'_>) -> Option<Error> {
+    if view.get(&["defaultBranch"]).is_some() {
+        return None;
+    }
+    Some(if view.errored_beneath(&["defaultBranch"]) {
+        repository_lookup_failed()
+    } else {
+        Error::missing(format!("{repo} has no commits"))
+    })
+}
+
+/// The revisions of a range that name no commit, each given with the view
+/// that read its `commit`.
+pub fn missing_sides(
+    repo: &str,
+    (base, base_view): (&str, &View<'_>),
+    (head, head_view): (&str, &View<'_>),
+) -> Error {
+    let mut missing = Vec::new();
+    if base_view.get(&["commit"]).is_none() {
+        missing.push(("base", base));
+    }
+    if head_view.get(&["commit"]).is_none() {
+        missing.push(("head", head));
+    }
+    missing_revisions(repo, &missing)
 }
 
 pub struct Request {
@@ -298,12 +330,17 @@ fn written_name(repo: &Repo) -> &str {
     }
 }
 
-fn str_at<'a>(env: &'a Envelope, path: &[&str]) -> Option<&'a str> {
-    env.get(path)?.as_str()
+/// The canonical repository name at the root `root`.
+fn root_name<'a>(env: &'a Envelope, root: &str) -> Option<&'a str> {
+    text_at(env.get(&[root])?, &["name"])
 }
 
-fn repository_lookup_failed() -> Error {
+pub fn repository_lookup_failed() -> Error {
     Error::failed("the repository lookup")
+}
+
+pub fn revision_lookup_failed() -> Error {
+    Error::failed("the revision lookup")
 }
 
 /// A root that came back null with an error at or beneath it: the lookup
@@ -364,7 +401,7 @@ fn find_root(
         },
         [a, b, ..] => {
             let canonical = |i: usize| {
-                str_at(env, &[&format!("{alias}{i}"), "name"])
+                root_name(env, &format!("{alias}{i}"))
                     .map_or_else(|| candidates[i].clone(), str::to_owned)
             };
             Err(Error::missing(format!(
@@ -379,13 +416,15 @@ fn find_root(
 pub fn locate(address: &Address, env: &Envelope) -> Result<Located, Error> {
     let i = find_root(&address.repo, env, "r", &[])?;
     let r = format!("r{i}");
-    let repo = str_at(env, &[&r, "name"])
+    let repo = root_name(env, &r)
         .map_or_else(|| address.repo.candidates()[i].clone(), str::to_owned);
     let cands = candidates(address);
-    let oid = |j: usize| str_at(env, &[&r, &format!("c{j}"), "oid"]);
+    let oid = |j: usize| {
+        let commit = env.get(&[&r, &format!("c{j}")])?;
+        text_at(commit, &["oid"])
+    };
     let failed =
         |j: usize| env.error_at(&[r.as_str(), &format!("c{j}")]).is_some();
-    let revision_lookup_failed = || Error::failed("the revision lookup");
     let branch_failed = || env.error_at(&[&r, "defaultBranch"]).is_some();
     let no_commits = || env.get(&[&r, "defaultBranch"]).is_none();
     let located = |j: usize, commit: &str| Located {
@@ -496,7 +535,7 @@ pub fn locate_repository(
         .unwrap_or_else(|| panic!("a repository plan needs a root"));
     let alias = establishing.alias;
     let index = find_root(repo, env, alias, plan.parts)?;
-    let name = str_at(env, &[&format!("{alias}{index}"), "name"])
+    let name = root_name(env, &format!("{alias}{index}"))
         .map_or_else(|| repo.candidates()[index].clone(), str::to_owned);
     Ok(RepoAt { repo: name, index })
 }

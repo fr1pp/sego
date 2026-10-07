@@ -313,13 +313,10 @@ fn range_message(rev: &Rev) -> Option<String> {
     let Rev::Range { base, head, dots } = rev else {
         return None;
     };
-    let dots = match dots {
-        address::Dots::Two => "..",
-        address::Dots::Three => "...",
-    };
     Some(format!(
         "a range is only valid in log (A..B) and diff (A...B): \
-         {base}{dots}{head}"
+         {base}{}{head}",
+        dots.as_str()
     ))
 }
 

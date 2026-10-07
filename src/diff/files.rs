@@ -2,6 +2,7 @@ use serde::Serialize;
 use serde_json::Value;
 
 use crate::quote::shell_word;
+use crate::upstream::text_at;
 
 pub const TEXT_ROWS: usize = 200;
 
@@ -13,10 +14,6 @@ pub struct FileRow {
     pub new_path: Option<String>,
     pub added: u64,
     pub deleted: u64,
-}
-
-fn text_at(node: &Value, key: &str) -> Option<String> {
-    node.get(key).and_then(Value::as_str).map(str::to_owned)
 }
 
 fn count_at(node: &Value, key: &str) -> u64 {
@@ -40,8 +37,9 @@ pub fn rows(nodes: &[Value]) -> Vec<FileRow> {
     nodes
         .iter()
         .map(|node| {
-            let old_path = text_at(node, "oldPath");
-            let new_path = text_at(node, "newPath");
+            let path = |key: &str| text_at(node, &[key]).map(str::to_owned);
+            let old_path = path("oldPath");
+            let new_path = path("newPath");
             FileRow {
                 status: status(old_path.as_ref(), new_path.as_ref()),
                 old_path,

@@ -7,7 +7,7 @@ use serde::Serialize;
 use serde_json::{Value, json};
 
 use crate::address::{
-    Address, Rev, is_oid_like, is_plain_path, rev_field, short,
+    Address, Dots, Rev, is_plain_path, range_rev_field, rev_field, short,
 };
 use crate::cli::DIFF_SYNOPSIS;
 use crate::error::Error;
@@ -17,7 +17,8 @@ use crate::output::{Answer, Notes};
 use crate::quote::shell_word;
 use crate::upstream::{
     GRAPHQL_PATH, RepoPlan, Root, Transport, Var, View, build_repository,
-    classify, locate_repository, missing_revisions,
+    classify, locate_repository, missing_revisions, missing_sides, no_commits,
+    revision_lookup_failed, text_at,
 };
 
 pub mod files;
@@ -47,8 +48,7 @@ pub struct Diffed {
 impl Diffed {
     fn rev_field(&self) -> Option<String> {
         match &self.rev_a {
-            Some(a) => (!is_oid_like(a) || !is_oid_like(&self.rev_b))
-                .then(|| format!("rev {a}...{}", self.rev_b)),
+            Some(a) => range_rev_field(a, &self.rev_b, Dots::Three),
             None => rev_field(Some(&self.rev_b)),
         }
     }
@@ -160,10 +160,6 @@ fn plan(base: &str, head: &str, paths: &[String], json: bool) -> RepoPlan {
     }
 }
 
-fn lookup_failed() -> Error {
-    Error::failed("the revision lookup")
-}
-
 fn comparison_failed() -> Error {
     Error::failed("the comparison")
 }
@@ -173,11 +169,9 @@ fn commit_oid(view: &View<'_>) -> Result<Option<String>, Error> {
     let Some(commit) = view.get(&["commit"]) else {
         return Ok(None);
     };
-    commit
-        .get("oid")
-        .and_then(Value::as_str)
+    text_at(commit, &["oid"])
         .map(|oid| Some(oid.to_owned()))
-        .ok_or_else(lookup_failed)
+        .ok_or_else(revision_lookup_failed)
 }
 
 fn is_root_commit(b: &View<'_>) -> bool {
@@ -231,17 +225,14 @@ pub fn run(
     let c = View::new(&envelope, slice::from_ref(&at_c));
 
     if a.errored_beneath(&["commit"]) || b.errored_beneath(&["commit"]) {
-        return Err(lookup_failed());
+        return Err(revision_lookup_failed());
     }
     let (commit_a, commit_b) = (commit_oid(&a)?, commit_oid(&b)?);
     if commit_a.is_none()
         && commit_b.is_none()
-        && a.get(&["defaultBranch"]).is_none()
+        && let Some(error) = no_commits(repo, &a)
     {
-        if a.errored_beneath(&["defaultBranch"]) {
-            return Err(Error::failed("the repository lookup"));
-        }
-        return Err(Error::missing(format!("{repo} has no commits")));
+        return Err(error);
     }
     if rev_a.is_none()
         && commit_a.is_none()
@@ -255,7 +246,10 @@ pub fn run(
     let (Some(commit_a), Some(commit_b)) =
         (commit_a.as_deref(), commit_b.as_deref())
     else {
-        return Err(missing_sides(repo, rev_a.as_deref(), &rev_b, &a, &b));
+        return Err(match rev_a.as_deref() {
+            None => missing_revisions(repo, &[("", &rev_b)]),
+            Some(rev_a) => missing_sides(repo, (rev_a, &a), (&rev_b, &b)),
+        });
     };
 
     for (n, path) in paths.iter().filter(|p| is_plain_path(p)).enumerate() {
@@ -306,28 +300,4 @@ pub fn run(
         files: rows(nodes),
         patch,
     })
-}
-
-fn missing_sides(
-    repo: &str,
-    rev_a: Option<&str>,
-    rev_b: &str,
-    a: &View<'_>,
-    b: &View<'_>,
-) -> Error {
-    let (no_a, no_b) =
-        (a.get(&["commit"]).is_none(), b.get(&["commit"]).is_none());
-    match rev_a {
-        None => missing_revisions(repo, &[("", rev_b)]),
-        Some(rev_a) => {
-            let mut missing = Vec::new();
-            if no_a {
-                missing.push(("base", rev_a));
-            }
-            if no_b {
-                missing.push(("head", rev_b));
-            }
-            missing_revisions(repo, &missing)
-        }
-    }
 }

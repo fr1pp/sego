@@ -2,6 +2,16 @@ use serde_json::Value;
 
 use super::envelope::{Envelope, GqlError};
 
+/// The string at `keys` below `value`, or `None` when a key is missing or
+/// the value there is not a string.
+pub fn text_at<'a>(value: &'a Value, keys: &[&str]) -> Option<&'a str> {
+    let mut value = value;
+    for key in keys {
+        value = value.get(key)?;
+    }
+    value.as_str()
+}
+
 /// An envelope read relative to the commit's alias path, such as
 /// `["r0", "c0"]`.
 pub struct View<'a> {

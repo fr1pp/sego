@@ -5,7 +5,7 @@ use sego::internal::output::json;
 use sego::internal::output::text::{
     code_line, gutter_width, header, header_line,
 };
-use sego::internal::output::{Marker, Notes};
+use sego::internal::output::{Marker, Notes, date};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 struct Record {
@@ -97,4 +97,16 @@ fn json_escapes_astral_unsafe_as_surrogate_pairs() {
     assert_eq!(raw, "\"\\udb40\\udc41\"\n");
     let back: String = serde_json::from_str(&raw).unwrap();
     assert_eq!(back, "\u{e0041}");
+}
+
+#[test]
+fn a_date_is_the_first_ten_characters_of_a_timestamp() {
+    assert_eq!(date("2026-09-14T10:19:56Z"), "2026-09-14");
+    assert_eq!(date("2026-09"), "2026-09");
+    assert_eq!(
+        date(
+            "\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}"
+        ),
+        "\u{e9}".repeat(10)
+    );
 }

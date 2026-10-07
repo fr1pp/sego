@@ -344,7 +344,7 @@ fn commit_group(result: CommitResult) -> Group {
     Group::Commit {
         repo: result.commit.repository.name,
         commit: result.commit.oid,
-        date: author.date.chars().take(10).collect(),
+        date: crate::output::date(&author.date),
         author: author
             .person
             .as_ref()

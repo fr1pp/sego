@@ -1,6 +1,6 @@
 use sego::internal::address::{
     Address, AddressError, Dots, End, LineRange, Repo, Rev, UrlKind,
-    is_oid_like, parse, parse_lines, pinned, short,
+    is_oid_like, parse, parse_lines, pinned, range_rev_field, short,
 };
 
 fn exact(s: &str) -> Repo {
@@ -237,4 +237,19 @@ fn four_to_forty_hex_digits_look_like_an_oid() {
     for no in ["abc", "abcg", "", "v1.8.0", &"a".repeat(41)] {
         assert!(!is_oid_like(no), "{no}");
     }
+}
+
+#[test]
+fn a_range_has_a_rev_field_unless_both_sides_are_commit_ids() {
+    let (a, b) = ("0123abcd", "4567ef01");
+    assert_eq!(range_rev_field(a, b, Dots::Two), None);
+    assert_eq!(range_rev_field(a, b, Dots::Three), None);
+    assert_eq!(
+        range_rev_field("v1", b, Dots::Two).as_deref(),
+        Some("rev v1..4567ef01")
+    );
+    assert_eq!(
+        range_rev_field(a, "main", Dots::Three).as_deref(),
+        Some("rev 0123abcd...main")
+    );
 }

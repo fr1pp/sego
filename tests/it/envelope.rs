@@ -1,5 +1,7 @@
 use sego::internal::error::{Error, Kind, report};
-use sego::internal::upstream::{Envelope, Seg, classify};
+use serde_json::json;
+
+use sego::internal::upstream::{Envelope, Seg, classify, text_at};
 
 use crate::support::fixture::reply;
 
@@ -173,4 +175,14 @@ fn odd_paths_stay_located() {
     assert_eq!(envelope.errors[1].path, [key("r0"), Seg::Invalid, key("x")]);
     assert!(envelope.error_at(&["r0", "x"]).is_none());
     assert!(envelope.get(&["r0", "name"]).is_some());
+}
+
+#[test]
+fn text_at_reads_a_string_below_a_value() {
+    let value = json!({"a": {"b": "x", "n": 1, "z": null}});
+    assert_eq!(text_at(&value, &["a", "b"]), Some("x"));
+    assert_eq!(text_at(&value, &["a", "n"]), None);
+    assert_eq!(text_at(&value, &["a", "z"]), None);
+    assert_eq!(text_at(&value, &["a", "missing"]), None);
+    assert_eq!(text_at(&value["a"]["b"], &[]), Some("x"));
 }

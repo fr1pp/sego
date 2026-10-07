@@ -11,14 +11,14 @@ use crate::diff::files::{FileRow, TEXT_ROWS, files_field, row_text, rows};
 use crate::error::Error;
 use crate::escape::{render_line, strip_cr};
 use crate::output::text::header;
-use crate::output::{Answer, Notes};
+use crate::output::{Answer, Notes, date};
 use crate::upstream::{
     GRAPHQL_PATH, RepoPlan, Root, Transport, Var, View, build_repository,
-    classify, locate_repository, missing_revisions,
+    classify, locate_repository, missing_revisions, no_commits,
+    revision_lookup_failed, text_at,
 };
 
 const MESSAGE_INDENT: &str = "    ";
-const DATE_LEN: usize = 10;
 const ROOT_NOTE: &str = "root commit: Sourcegraph has no diff for it";
 
 const COMMIT: &str = "commit(rev: $rev) { oid subject message author { \
@@ -127,34 +127,25 @@ fn plan(rev: &str) -> RepoPlan {
     }
 }
 
-fn lookup_failed() -> Error {
-    Error::failed("the revision lookup")
-}
-
 fn file_list_failed() -> Error {
     Error::failed("the file list")
 }
 
-fn text_at(commit: &Value, keys: &[&str]) -> Option<String> {
-    let mut value = commit;
-    for key in keys {
-        value = value.get(key)?;
-    }
-    value.as_str().map(str::to_owned)
-}
-
 fn date_at(commit: &Value, who: &str) -> Option<String> {
-    text_at(commit, &[who, "date"])
-        .map(|date| date.chars().take(DATE_LEN).collect())
+    text_at(commit, &[who, "date"]).map(date)
 }
 
 fn parents_of(commit: &Value) -> Result<Vec<String>, Error> {
     commit
         .get("parents")
         .and_then(Value::as_array)
-        .ok_or_else(lookup_failed)?
+        .ok_or_else(revision_lookup_failed)?
         .iter()
-        .map(|parent| text_at(parent, &["oid"]).ok_or_else(lookup_failed))
+        .map(|parent| {
+            text_at(parent, &["oid"])
+                .map(str::to_owned)
+                .ok_or_else(revision_lookup_failed)
+        })
         .collect()
 }
 
@@ -181,26 +172,24 @@ pub fn run(
     let d = View::new(&envelope, slice::from_ref(&at_d));
 
     if m.errored_beneath(&["commit"]) {
-        return Err(lookup_failed());
+        return Err(revision_lookup_failed());
     }
     let Some(commit) = m.get(&["commit"]) else {
-        if m.get(&["defaultBranch"]).is_some() {
-            return Err(missing_revisions(repo, &[("", rev)]));
-        }
-        if m.errored_beneath(&["defaultBranch"]) {
-            return Err(Error::failed("the repository lookup"));
-        }
-        return Err(Error::missing(format!("{repo} has no commits")));
+        return Err(no_commits(repo, &m)
+            .unwrap_or_else(|| missing_revisions(repo, &[("", rev)])));
     };
-    let oid = text_at(commit, &["oid"]).ok_or_else(lookup_failed)?;
-    let subject = text_at(commit, &["subject"]).ok_or_else(lookup_failed)?;
-    let message = text_at(commit, &["message"])
-        .ok_or_else(lookup_failed)?
-        .replace("\r\n", "\n");
+    let field = |keys: &[&str]| {
+        text_at(commit, keys)
+            .map(str::to_owned)
+            .ok_or_else(revision_lookup_failed)
+    };
+    let oid = field(&["oid"])?;
+    let subject = field(&["subject"])?;
+    let message = field(&["message"])?.replace("\r\n", "\n");
     let parents = parents_of(commit)?;
-    let author = text_at(commit, &["author", "person", "displayName"])
-        .ok_or_else(lookup_failed)?;
-    let author_date = date_at(commit, "author").ok_or_else(lookup_failed)?;
+    let author = field(&["author", "person", "displayName"])?;
+    let author_date =
+        date_at(commit, "author").ok_or_else(revision_lookup_failed)?;
 
     let mut committed = Committed {
         repo: repo.clone(),
@@ -208,7 +197,8 @@ pub fn run(
         commit: oid,
         author,
         author_date,
-        committer: text_at(commit, &["committer", "person", "displayName"]),
+        committer: text_at(commit, &["committer", "person", "displayName"])
+            .map(str::to_owned),
         committer_date: date_at(commit, "committer"),
         parents,
         subject,
