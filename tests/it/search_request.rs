@@ -143,10 +143,24 @@ fn fetch_errors() {
         let error = fetched(name, name)
             .err()
             .unwrap_or_else(|| panic!("{name}: accepted"));
+        let text = rendered(&error);
         assert!(
-            rendered(&error)
-                .contains("Sourcegraph failed to answer the search"),
+            text.contains("Sourcegraph failed to answer the search"),
             "{name}"
         );
+        assert!(!text.contains("boom"), "{name}");
+        assert!(!text.contains("search failed"), "{name}");
     }
+}
+
+#[test]
+fn an_item_without_a_typename_does_not_deserialise() {
+    let item = serde_json::from_value::<Item>(json!({ "name": "x" }));
+    assert!(item.is_err());
+}
+
+#[test]
+fn top_level_indents_every_selection_line() {
+    let request = top_level("Probe", Vec::new(), "a {\n  b\n}");
+    assert_eq!(request.document, "query Probe {\n  a {\n    b\n  }\n}\n");
 }

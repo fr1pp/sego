@@ -9,10 +9,10 @@ response:
   data:
     search:
       results:
-        matchCount: 0
-        approximateResultCount: "0"
+        matchCount: 1
+        approximateResultCount: "1"
         limitHit: false
-        repositoriesCount: 0
+        repositoriesCount: 1
         timedout: []
         cloning: []
         missing: []
@@ -23,7 +23,31 @@ response:
           - __typename: FileMatch
             repository:
               name: github.com/a/b
-            file: null
+            file:
+              path: src/main.go
+              commit:
+                oid: 0123456789abcdef0123456789abcdef01234567
+            revSpec:
+              expr: v1.0
+            chunkMatches:
+              - content: "func main() {\n}"
+                contentStart:
+                  line: 9
+                ranges:
+                  - start:
+                      line: 9
+                      character: 5
+                    end:
+                      line: 9
+                      character: 9
+            symbols:
+              - name: main
+                kind: FUNCTION
+                containerName: null
+                location:
+                  range:
+                    start:
+                      line: 9
   errors:
     - message: boom
       path: [search, results, results, 0, file]

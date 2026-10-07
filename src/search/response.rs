@@ -1,5 +1,5 @@
-use serde::de::{Deserializer, Error as _};
-use serde::{Deserialize, de::DeserializeOwned};
+use serde::Deserialize;
+use serde::de::{DeserializeOwned, Deserializer, Error as _};
 use serde_json::Value;
 
 #[derive(Debug, Deserialize)]
@@ -57,7 +57,7 @@ pub enum Item {
     Other(String),
 }
 
-fn rest<T: DeserializeOwned, E: serde::de::Error>(
+fn from_value<T: DeserializeOwned, E: serde::de::Error>(
     value: Value,
 ) -> Result<T, E> {
     serde_json::from_value(value).map_err(E::custom)
@@ -74,9 +74,11 @@ impl<'de> Deserialize<'de> for Item {
             .ok_or_else(|| D::Error::missing_field("__typename"))?
             .to_owned();
         Ok(match typename.as_str() {
-            "FileMatch" => Item::FileMatch(rest(value)?),
-            "CommitSearchResult" => Item::CommitSearchResult(rest(value)?),
-            "Repository" => Item::Repository(rest(value)?),
+            "FileMatch" => Item::FileMatch(from_value(value)?),
+            "CommitSearchResult" => {
+                Item::CommitSearchResult(from_value(value)?)
+            }
+            "Repository" => Item::Repository(from_value(value)?),
             _ => Item::Other(typename),
         })
     }

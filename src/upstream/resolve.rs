@@ -347,7 +347,11 @@ pub fn top_level(
     } else {
         format!("{operation}({})", declared.join(", "))
     };
-    let document = format!("query {header} {{\n  {selection}\n}}\n");
+    let mut body = String::new();
+    for line in selection.lines() {
+        let _ = writeln!(body, "  {line}");
+    }
+    let document = format!("query {header} {{\n{body}}}\n");
     let variables =
         vars.into_iter().map(|var| (var.name.to_owned(), var.value)).collect();
     Request { operation: operation.to_owned(), document, variables }
