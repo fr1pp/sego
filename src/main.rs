@@ -1,4 +1,4 @@
-use std::io::{self, Write};
+use std::io;
 use std::process::ExitCode;
 
 use sego::internal::upstream::{Transport, Ureq};
@@ -9,13 +9,11 @@ fn main() -> ExitCode {
     let env = Env { endpoint: std::env::var_os("SEGO_ENDPOINT") };
     let mut out = io::stdout().lock();
     let mut err = io::stderr().lock();
-    let code = run(
+    run(
         args,
         &env,
         &|endpoint| Box::new(Ureq::new(endpoint)) as Box<dyn Transport>,
         &mut out,
         &mut err,
-    );
-    let _ = out.flush();
-    code
+    )
 }

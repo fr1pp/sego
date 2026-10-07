@@ -237,12 +237,41 @@ fn show_operand_errors() {
 
 #[test]
 fn non_utf8_arguments_are_named_by_position() {
-    let mut args = os(&["show", "--json"]);
-    args.push(OsString::from_vec(vec![b'x', 0xff]));
-    assert_eq!(
-        reported(&args),
-        expected("argument 3 is not valid UTF-8", &[], GENERAL)
-    );
+    let bad = || OsString::from_vec(vec![b'x', 0xff]);
+    let with = |words: &[&str], at: usize| {
+        let mut args = os(words);
+        args.insert(at, bad());
+        args
+    };
+    let table = [
+        (with(&["show", "--json"], 2), 3, SHOW_SYNOPSIS),
+        (with(&["--json", "show"], 2), 3, SHOW_SYNOPSIS),
+        (with(&["show"], 1), 2, SHOW_SYNOPSIS),
+        (with(&["--json"], 1), 2, GENERAL),
+        (with(&["show"], 0), 1, GENERAL),
+        (with(&[], 0), 1, GENERAL),
+    ];
+    for (args, position, synopsis) in table {
+        assert_eq!(
+            reported(&args),
+            expected(
+                &format!("argument {position} is not valid UTF-8"),
+                &[],
+                synopsis
+            ),
+            "{args:?}"
+        );
+    }
+}
+
+#[test]
+fn help_and_version_need_a_known_command() {
+    for flag in ["--help", "--version"] {
+        assert_eq!(
+            reported(&os(&["shwo", flag])),
+            expected("unknown command 'shwo'", &[COMMANDS], GENERAL)
+        );
+    }
 }
 
 const HELP: &str = "\

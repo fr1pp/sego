@@ -7,6 +7,7 @@ use sego::internal::upstream::{Reply, Transport, TransportError};
 use super::fixture::Fixture;
 use super::replay;
 
+#[derive(Clone)]
 pub struct Call {
     pub method: &'static str,
     pub path: String,
@@ -49,15 +50,7 @@ impl Fake {
 
     pub fn calls(&self) -> Vec<Call> {
         let inner = self.inner.lock().unwrap_or_else(PoisonError::into_inner);
-        inner
-            .calls
-            .iter()
-            .map(|call| Call {
-                method: call.method,
-                path: call.path.clone(),
-                deadline: call.deadline,
-            })
-            .collect()
+        inner.calls.clone()
     }
 
     fn request(

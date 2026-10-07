@@ -100,6 +100,18 @@ fn attempt(
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> Result<(), Failure> {
+    dispatch(args, env, connect, out, err)?;
+    out.flush()?;
+    Ok(())
+}
+
+fn dispatch(
+    args: &[OsString],
+    env: &Env,
+    connect: &dyn Fn(Endpoint) -> Box<dyn Transport>,
+    out: &mut dyn Write,
+    err: &mut dyn Write,
+) -> Result<(), Failure> {
     let command = cli::parse(args)?;
     match command {
         Command::Help(topic) => {

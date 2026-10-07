@@ -96,7 +96,7 @@ pub fn shell_words(line: &str) -> Result<Vec<String>, String> {
 }
 
 fn is_section(line: &str) -> bool {
-    line.starts_with("--- ")
+    line == "--- stdout" || line == "--- stderr"
 }
 
 impl Case {

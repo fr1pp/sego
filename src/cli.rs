@@ -63,31 +63,29 @@ pub fn parse(args: &[OsString]) -> Result<Command, Error> {
             Arg::Short(c) => {
                 return Err(unknown(&short_token(&args, c), synopsis));
             }
-            Arg::Value(value) => operands.push(
-                value
-                    .into_string()
-                    .map_err(|_| Error::usage("not valid UTF-8", synopsis))?,
-            ),
+            Arg::Value(value) => {
+                operands.push(value.to_string_lossy().into_owned());
+            }
         }
     }
+    let command = match operands.split_first() {
+        Some((command, _)) if command != "show" => {
+            return Err(unknown_command(command));
+        }
+        Some((_, rest)) => Some(rest),
+        None => None,
+    };
     if flags.help {
-        return match operands.first().map(String::as_str) {
-            None => Ok(Command::Help(None)),
-            Some("show") => Ok(Command::Help(Some("show"))),
-            Some(word) => Err(unknown_command(word)),
-        };
+        return Ok(Command::Help(command.map(|_| "show")));
     }
     if flags.version {
         return Ok(Command::Version);
     }
-    match operands.split_first() {
+    match command {
         None => {
             Err(Error::usage("no command given", SYNOPSIS).fact(COMMANDS_FACT))
         }
-        Some((command, rest)) if command == "show" => {
-            parse_show(rest, flags.json)
-        }
-        Some((word, _)) => Err(unknown_command(word)),
+        Some(rest) => parse_show(rest, flags.json),
     }
 }
 
@@ -98,11 +96,25 @@ fn utf8(args: &[OsString]) -> Result<Vec<String>, Error> {
             arg.to_str().map(str::to_owned).ok_or_else(|| {
                 Error::usage(
                     format!("argument {} is not valid UTF-8", i + 1),
-                    SYNOPSIS,
+                    synopsis_before(&args[..i]),
                 )
             })
         })
         .collect()
+}
+
+/// The synopsis of the command named among `earlier` arguments, which are
+/// all valid UTF-8.
+fn synopsis_before(earlier: &[OsString]) -> &'static str {
+    let mut options_ended = false;
+    for arg in earlier {
+        let word = arg.to_string_lossy();
+        if options_ended || !word.starts_with('-') {
+            return synopsis_of(Some(&word.into_owned()));
+        }
+        options_ended = word == "--";
+    }
+    SYNOPSIS
 }
 
 fn synopsis_of(command: Option<&String>) -> &'static str {

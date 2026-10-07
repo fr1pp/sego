@@ -37,22 +37,22 @@ fn cases() {
         let case = Case::load(file);
         let outcome = case.run(&replay);
         let mut failure = case.failure(&outcome);
-        if failure.is_none() && case.exit == 2 && outcome.requests > 0 {
+        if failure.is_some() && blessing() {
+            case.bless(&outcome);
+        }
+        if case.exit == 2 && outcome.requests > 0 {
             failure = Some(format!(
                 "{} request(s) reached the server on a usage error\n",
                 outcome.requests
             ));
         }
         if let Some(failure) = failure {
-            if blessing() {
-                case.bless(&outcome);
-            }
             let name = file.strip_prefix(&root).unwrap_or(file);
             failures.push(format!("--- {}\n{failure}", name.display()));
         }
     }
     assert!(
-        failures.is_empty() || blessing(),
+        failures.is_empty(),
         "{} of {} cases failed\n\n{}",
         failures.len(),
         files.len(),
@@ -121,4 +121,21 @@ fn missing_sections_are_empty_and_bad_cases_are_refused() {
     ] {
         assert!(Case::parse(bad, Path::new("x")).is_err(), "{bad:?}");
     }
+}
+
+#[test]
+fn only_exact_markers_start_a_section() {
+    let text = "\
+args: diff
+exit: 0
+--- stdout
+--- a/x
++++ b/x
+--- stderr
+--- stdoutish
+";
+    let case = Case::parse(text, Path::new("x.case"))
+        .unwrap_or_else(|e| panic!("{e}"));
+    assert_eq!(case.stdout, "--- a/x\n+++ b/x\n");
+    assert_eq!(case.stderr, "--- stdoutish\n");
 }
