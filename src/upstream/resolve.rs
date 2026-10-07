@@ -36,23 +36,55 @@ pub struct Plan {
     pub vars: Vars,
 }
 
+/// One selection on `Repository`, asked under its own top-level alias.
+pub struct Root {
+    pub alias: &'static str,
+    pub template: String,
+}
+
 pub struct RepoPlan {
     pub operation: &'static str,
     /// Declared once, after the `$repo<i>` variables, and shared by every
     /// root.
     pub vars: Vec<Var>,
-    /// A selection on `Repository`.
-    pub template: String,
-    /// The second key of an error path, and the part of the answer it
-    /// names.
+    /// The first root establishes whether the repository exists; a failure
+    /// in any other is for the command to read.
+    pub roots: Vec<Root>,
+    /// The second key of an error path under the establishing root, and the
+    /// part of the answer it names.
     pub parts: &'static [(&'static str, &'static str)],
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct RepoAt {
     /// The canonical name from the response.
     pub repo: String,
-    /// The alias of the root, such as `r0`.
-    pub at: String,
+    /// The index of the candidate that exists.
+    pub index: usize,
+}
+
+impl RepoAt {
+    /// The response key of a root: `<alias><index>`, such as `c0`.
+    pub fn at(&self, alias: &str) -> String {
+        format!("{alias}{}", self.index)
+    }
+}
+
+/// `side` is `""`, `"base"` or `"head"`; `missing` holds one or two
+/// `(side, revision)` pairs.
+pub fn missing_revisions(repo: &str, missing: &[(&str, &str)]) -> Error {
+    let message = match missing {
+        [("", rev)] => {
+            format!("revision {rev} not found in {repo}")
+        }
+        [(side, rev)] => format!("{side} revision {rev} not found in {repo}"),
+        _ => {
+            let revs: Vec<&str> =
+                missing.iter().map(|(_, rev)| *rev).collect();
+            format!("revisions {} not found in {repo}", revs.join(" and "))
+        }
+    };
+    Error::missing(message)
 }
 
 pub struct Request {
@@ -230,12 +262,18 @@ pub fn build_repository(plan: &RepoPlan, repo: &Repo) -> Request {
     let mut document =
         format!("query {}({}) {{\n", plan.operation, declared.join(", "));
     for i in 0..repos.len() {
-        let _ = writeln!(document, "  r{i}: repository(name: $repo{i}) {{");
-        document.push_str("    name\n    defaultBranch { displayName }\n");
-        for line in plan.template.lines() {
-            let _ = writeln!(document, "    {line}");
+        for root in &plan.roots {
+            let _ = writeln!(
+                document,
+                "  {}{i}: repository(name: $repo{i}) {{",
+                root.alias
+            );
+            document.push_str("    name\n    defaultBranch { displayName }\n");
+            for line in root.template.lines() {
+                let _ = writeln!(document, "    {line}");
+            }
+            document.push_str("  }\n");
         }
-        document.push_str("  }\n");
     }
     document.push_str("}\n");
 
@@ -272,6 +310,7 @@ fn repository_lookup_failed() -> Error {
 /// failed, so the repository is not known to be missing.
 fn failed_root(
     env: &Envelope,
+    alias: &str,
     roots: usize,
     parts: &[(&str, &str)],
 ) -> Option<Error> {
@@ -281,7 +320,8 @@ fn failed_root(
                 |e| matches!(e.path.first(), Some(Seg::Key(k)) if k == root),
             )
     };
-    let names: Vec<String> = (0..roots).map(|i| format!("r{i}")).collect();
+    let names: Vec<String> =
+        (0..roots).map(|i| format!("{alias}{i}")).collect();
     let error = env.errors.iter().find(|e| {
         matches!(e.path.first(), Some(Seg::Key(k))
             if names.contains(k) && failed(k))
@@ -295,31 +335,36 @@ fn failed_root(
     Some(part.map_or_else(repository_lookup_failed, Error::failed))
 }
 
+/// `alias` names the root whose null-or-present answer decides whether the
+/// repository exists; errors under any other root are not read here.
 fn find_root(
     repo: &Repo,
     env: &Envelope,
+    alias: &str,
     parts: &[(&str, &str)],
 ) -> Result<usize, Error> {
     let candidates = repo.candidates();
     let found: Vec<usize> = (0..candidates.len())
-        .filter(|i| env.get(&[&format!("r{i}")]).is_some())
+        .filter(|i| env.get(&[&format!("{alias}{i}")]).is_some())
         .collect();
     let name = written_name(repo);
     match found[..] {
         [] => {
-            if let Some(error) = failed_root(env, candidates.len(), parts) {
+            if let Some(error) =
+                failed_root(env, alias, candidates.len(), parts)
+            {
                 return Err(error);
             }
             Err(Error::missing(format!("{name} is not on sourcegraph.com"))
                 .fact(NOT_INDEXED))
         }
-        [i] => match failed_root(env, candidates.len(), parts) {
+        [i] => match failed_root(env, alias, candidates.len(), parts) {
             Some(error) => Err(error),
             None => Ok(i),
         },
         [a, b, ..] => {
             let canonical = |i: usize| {
-                str_at(env, &[&format!("r{i}"), "name"])
+                str_at(env, &[&format!("{alias}{i}"), "name"])
                     .map_or_else(|| candidates[i].clone(), str::to_owned)
             };
             Err(Error::missing(format!(
@@ -332,7 +377,7 @@ fn find_root(
 }
 
 pub fn locate(address: &Address, env: &Envelope) -> Result<Located, Error> {
-    let i = find_root(&address.repo, env, &[])?;
+    let i = find_root(&address.repo, env, "r", &[])?;
     let r = format!("r{i}");
     let repo = str_at(env, &[&r, "name"])
         .map_or_else(|| address.repo.candidates()[i].clone(), str::to_owned);
@@ -434,16 +479,24 @@ pub fn top_level(
     Request { operation: operation.to_owned(), document, variables }
 }
 
-/// The root that exists. An empty repository is found: the caller reads
-/// `defaultBranch` itself.
+/// The candidate that exists, judged by the plan's first root. An empty
+/// repository is found: the caller reads `defaultBranch` itself.
+///
+/// # Panics
+///
+/// On a plan with no roots.
 pub fn locate_repository(
     repo: &Repo,
     env: &Envelope,
-    parts: &[(&str, &str)],
+    plan: &RepoPlan,
 ) -> Result<RepoAt, Error> {
-    let i = find_root(repo, env, parts)?;
-    let at = format!("r{i}");
-    let repo = str_at(env, &[&at, "name"])
-        .map_or_else(|| repo.candidates()[i].clone(), str::to_owned);
-    Ok(RepoAt { repo, at })
+    let establishing = plan
+        .roots
+        .first()
+        .unwrap_or_else(|| panic!("a repository plan needs a root"));
+    let alias = establishing.alias;
+    let index = find_root(repo, env, alias, plan.parts)?;
+    let name = str_at(env, &[&format!("{alias}{index}"), "name"])
+        .map_or_else(|| repo.candidates()[index].clone(), str::to_owned);
+    Ok(RepoAt { repo: name, index })
 }

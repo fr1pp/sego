@@ -3,8 +3,9 @@ use serde_json::json;
 use sego::internal::address::{Address, Dots, Repo, Rev, UrlKind, parse};
 use sego::internal::error::{Error, report};
 use sego::internal::upstream::{
-    Candidate, Envelope, Located, Plan, RepoPlan, Var, build,
+    Candidate, Envelope, Located, Plan, RepoAt, RepoPlan, Root, Var, build,
     build_repository, candidates, classify, locate, locate_repository,
+    missing_revisions,
 };
 
 use crate::support::fixture::reply;
@@ -519,8 +520,29 @@ fn repo_plan() -> RepoPlan {
     RepoPlan {
         operation: "Toy",
         vars: vec![Var { name: "first", ty: "Int!", value: json!(20) }],
-        template: "tags(first: $first) {\n  totalCount\n}".to_owned(),
+        roots: vec![Root {
+            alias: "r",
+            template: "tags(first: $first) {\n  totalCount\n}".to_owned(),
+        }],
         parts: REPO_PARTS,
+    }
+}
+
+fn named_plan() -> RepoPlan {
+    RepoPlan {
+        operation: "Named",
+        vars: vec![Var { name: "rev", ty: "String!", value: json!("v1") }],
+        roots: vec![
+            Root {
+                alias: "m",
+                template: "commit(rev: $rev) {\n  oid\n}".to_owned(),
+            },
+            Root {
+                alias: "d",
+                template: "commit(rev: $rev) {\n  oid\n}".to_owned(),
+            },
+        ],
+        parts: &[],
     }
 }
 
@@ -529,7 +551,8 @@ fn repo_of(token: &str) -> Repo {
 }
 
 fn repo_refused(fixture: &str, token: &str) -> String {
-    match locate_repository(&repo_of(token), &envelope(fixture), REPO_PARTS) {
+    match locate_repository(&repo_of(token), &envelope(fixture), &repo_plan())
+    {
         Ok(found) => panic!("{fixture}: located {}", found.repo),
         Err(error) => rendered(&error),
     }
@@ -596,20 +619,22 @@ query Toy($repo0: String!, $repo1: String!, $first: Int!) {
     let found = locate_repository(
         &repo_of("gorilla/mux"),
         &envelope("repo-found"),
-        REPO_PARTS,
+        &repo_plan(),
     )
     .unwrap_or_else(|e| panic!("{}", rendered(&e)));
     assert_eq!(found.repo, "github.com/gorilla/mux");
-    assert_eq!(found.at, "r0");
+    assert_eq!(found.index, 0);
+    assert_eq!(found.at("r"), "r0");
 
     let empty = locate_repository(
         &repo_of("github.com/ascoders/blog"),
         &envelope("repo-empty"),
-        REPO_PARTS,
+        &repo_plan(),
     )
     .unwrap_or_else(|e| panic!("{}", rendered(&e)));
     assert_eq!(empty.repo, "github.com/ascoders/blog");
-    assert_eq!(empty.at, "r0");
+    assert_eq!(empty.index, 0);
+    assert_eq!(empty.at("r"), "r0");
 }
 
 #[test]
@@ -689,5 +714,116 @@ fn show_names_no_parts_under_a_failed_root() {
     assert!(
         lookup.contains("Sourcegraph failed to answer the repository lookup"),
         "{lookup}"
+    );
+}
+
+#[test]
+fn named_roots() {
+    let request =
+        build_repository(&named_plan(), &repo_of("github.com/gorilla/mux"));
+    assert_eq!(request.operation, "Named");
+    assert_eq!(
+        request.document,
+        "\
+query Named($repo0: String!, $rev: String!) {
+  m0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $rev) {
+      oid
+    }
+  }
+  d0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $rev) {
+      oid
+    }
+  }
+}
+"
+    );
+    assert_eq!(
+        pretty(&request.variables),
+        r#"{
+  "repo0": "github.com/gorilla/mux",
+  "rev": "v1"
+}"#
+    );
+
+    let request = build_repository(&named_plan(), &repo_of("gorilla/mux"));
+    let order: Vec<&str> = request
+        .document
+        .lines()
+        .filter(|line| line.contains(": repository("))
+        .map(str::trim)
+        .collect();
+    assert_eq!(
+        order,
+        [
+            "m0: repository(name: $repo0) {",
+            "d0: repository(name: $repo0) {",
+            "m1: repository(name: $repo1) {",
+            "d1: repository(name: $repo1) {",
+        ]
+    );
+    assert!(
+        request.document.starts_with(
+            "query Named($repo0: String!, $repo1: String!, $rev: String!) {"
+        ),
+        "{}",
+        request.document
+    );
+}
+
+#[test]
+fn only_the_establishing_root_decides() {
+    let found = locate_repository(
+        &repo_of("github.com/gorilla/mux"),
+        &envelope("repo-second-root-error"),
+        &named_plan(),
+    )
+    .unwrap_or_else(|e| panic!("{}", rendered(&e)));
+    assert_eq!(
+        found,
+        RepoAt { repo: "github.com/gorilla/mux".to_owned(), index: 0 }
+    );
+    assert_eq!(found.at("m"), "m0");
+    assert_eq!(found.at("d"), "d0");
+
+    let blocked = match locate_repository(
+        &repo_of("github.com/gorilla/mux"),
+        &envelope("repo-first-root-error"),
+        &named_plan(),
+    ) {
+        Ok(found) => panic!("located {}", found.repo),
+        Err(error) => rendered(&error),
+    };
+    assert!(
+        blocked.contains("Sourcegraph failed to answer the repository lookup"),
+        "{blocked}"
+    );
+}
+
+#[test]
+fn missing_revision_messages() {
+    let message = |missing: &[(&str, &str)]| {
+        rendered(&missing_revisions("github.com/a/b", missing))
+    };
+    assert!(
+        message(&[("", "v9")])
+            .contains("revision v9 not found in github.com/a/b")
+    );
+    assert!(
+        message(&[("base", "v1")])
+            .contains("base revision v1 not found in github.com/a/b")
+    );
+    assert!(
+        message(&[("head", "v2")])
+            .contains("head revision v2 not found in github.com/a/b")
+    );
+    assert!(
+        message(&[("base", "v1"), ("head", "v2")])
+            .contains("revisions v1 and v2 not found in github.com/a/b")
     );
 }

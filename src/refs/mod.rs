@@ -11,8 +11,8 @@ use crate::escape::one_line;
 use crate::output::text::header_line;
 use crate::output::{Answer, Notes};
 use crate::upstream::{
-    GRAPHQL_PATH, RepoPlan, Transport, Var, View, build_repository, classify,
-    locate_repository,
+    GRAPHQL_PATH, RepoPlan, Root, Transport, Var, View, build_repository,
+    classify, locate_repository,
 };
 
 const TEXT_ROWS: usize = 100;
@@ -188,7 +188,7 @@ fn plan(text: Option<&str>, json: bool) -> RepoPlan {
             Var { name: "first", ty: "Int!", value: json!(first) },
             Var { name: "query", ty: "String", value: json!(text) },
         ],
-        template,
+        roots: vec![Root { alias: "r", template }],
         parts: PARTS,
     }
 }
@@ -205,8 +205,9 @@ pub fn run(
     let request = build_repository(&plan, repo);
     let reply = transport.post(GRAPHQL_PATH, &request.body(), deadline)?;
     let envelope = classify(reply)?;
-    let found = locate_repository(repo, &envelope, plan.parts)?;
-    let view = View::new(&envelope, slice::from_ref(&found.at));
+    let found = locate_repository(repo, &envelope, &plan)?;
+    let at = found.at("r");
+    let view = View::new(&envelope, slice::from_ref(&at));
 
     for kind in [Kind::Branch, Kind::Tag] {
         if view.errored_beneath(&[kind.key()])

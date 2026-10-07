@@ -1,0 +1,16 @@
+operation: RepoSecondRootError
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    m0:
+      name: github.com/gorilla/mux
+      defaultBranch:
+        displayName: main
+      commit:
+        oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+    d0: null
+  errors:
+    - message: internal git failure
+      path: [d0, comparison]
