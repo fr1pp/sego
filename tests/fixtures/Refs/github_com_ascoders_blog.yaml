@@ -1,0 +1,28 @@
+operation: Refs
+variables:
+  first: 101
+  query: null
+  repo0: github.com/ascoders/blog
+query: |
+  query Refs($repo0: String!, $first: Int!, $query: String) {
+    r0: repository(name: $repo0) {
+      name
+      defaultBranch { displayName }
+      branches(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+      tags(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+    }
+  }
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    r0:
+      branches:
+        nodes: []
+        totalCount: 0
+      defaultBranch: null
+      name: github.com/ascoders/blog
+      tags:
+        nodes: []
+        totalCount: 0

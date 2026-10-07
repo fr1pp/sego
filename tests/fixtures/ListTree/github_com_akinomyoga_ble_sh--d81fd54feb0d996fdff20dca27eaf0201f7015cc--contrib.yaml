@@ -1,0 +1,93 @@
+operation: ListTree
+variables:
+  parent_0: ""
+  path_0: contrib
+  recursive_0: false
+  repo0: github.com/akinomyoga/ble.sh
+  rev0: d81fd54feb0d996fdff20dca27eaf0201f7015cc
+query: |
+  query ListTree($repo0: String!, $rev0: String!, $path_0: String!, $recursive_0: Boolean!, $parent_0: String!) {
+    r0: repository(name: $repo0) {
+      name
+      defaultBranch { displayName }
+      c0: commit(rev: $rev0) {
+        oid
+        tree: tree(path: $path_0) { entries(recursive: $recursive_0) { path isDirectory submodule { url commit } } }
+        file: blob(path: $path_0) { totalLines byteSize binary }
+        parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+      }
+    }
+  }
+status: 200
+headers:
+  content-type: application/json
+pinned: true
+response:
+  data:
+    r0:
+      c0:
+        file: null
+        oid: d81fd54feb0d996fdff20dca27eaf0201f7015cc
+        parent:
+          entries:
+          - path: .github
+            submodule: null
+          - path: archive
+            submodule: null
+          - path: docs
+            submodule: null
+          - path: lib
+            submodule: null
+          - path: make
+            submodule: null
+          - path: memo
+            submodule: null
+          - path: src
+            submodule: null
+          - path: test
+            submodule: null
+          - path: .gitattributes
+            submodule: null
+          - path: .gitignore
+            submodule: null
+          - path: .gitmodules
+            submodule: null
+          - path: .srcoption
+            submodule: null
+          - path: GNUmakefile
+            submodule: null
+          - path: LICENSE.md
+            submodule: null
+          - path: Makefile
+            submodule: null
+          - path: README-ja_JP.md
+            submodule: null
+          - path: README.md
+            submodule: null
+          - path: ble.pp
+            submodule: null
+          - path: blerc.template
+            submodule: null
+          - path: contrib
+            submodule:
+              commit: d2109203480a7dfe1dead5f5f8f9f15a9146c90d
+              url: ../blesh-contrib
+          - path: make_command.sh
+            submodule: null
+          - path: note.txt
+            submodule: null
+        tree: null
+      defaultBranch:
+        displayName: master
+      name: github.com/akinomyoga/ble.sh
+  errors:
+  - message: "not a directory: \"contrib\""
+    path:
+    - r0
+    - c0
+    - tree
+  - message: "not a blob: \"contrib\""
+    path:
+    - r0
+    - c0
+    - file

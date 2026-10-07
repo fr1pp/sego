@@ -144,7 +144,13 @@ pub fn load_all(root: &Path) -> Vec<Fixture> {
             .unwrap_or_else(|e| panic!("{}: {e}", file.display()));
         let fixture = Fixture::parse(&text, &file)
             .unwrap_or_else(|e| panic!("{}: {e}", file.display()));
-        if let Some(first) = seen.insert(fixture.key(), file.clone()) {
+        let query = fixture.query.as_deref().unwrap_or_default();
+        let identity = format!(
+            "{} {}",
+            fixture.key(),
+            query.split_whitespace().collect::<Vec<_>>().join(" ")
+        );
+        if let Some(first) = seen.insert(identity, file.clone()) {
             panic!(
                 "duplicate fixture {}: {} and {}",
                 fixture.key(),

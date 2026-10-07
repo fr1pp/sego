@@ -1,0 +1,87 @@
+operation: ListTree
+variables:
+  parent_0: ""
+  path_0: mux.go
+  recursive_0: false
+  repo0: github.com/gorilla/mux
+  rev0: v1.8.0
+query: |
+  query ListTree($repo0: String!, $rev0: String!, $path_0: String!, $recursive_0: Boolean!, $parent_0: String!) {
+    r0: repository(name: $repo0) {
+      name
+      defaultBranch { displayName }
+      c0: commit(rev: $rev0) {
+        oid
+        tree: tree(path: $path_0) { entries(recursive: $recursive_0) { path isDirectory submodule { url commit } } }
+        file: blob(path: $path_0) { totalLines byteSize binary }
+        parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+      }
+    }
+  }
+status: 200
+headers:
+  content-type: application/json
+pinned: true
+response:
+  data:
+    r0:
+      c0:
+        file:
+          binary: false
+          byteSize: 17677
+          totalLines: 606
+        oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+        parent:
+          entries:
+          - path: .circleci
+            submodule: null
+          - path: .github
+            submodule: null
+          - path: AUTHORS
+            submodule: null
+          - path: LICENSE
+            submodule: null
+          - path: README.md
+            submodule: null
+          - path: bench_test.go
+            submodule: null
+          - path: doc.go
+            submodule: null
+          - path: example_authentication_middleware_test.go
+            submodule: null
+          - path: example_cors_method_middleware_test.go
+            submodule: null
+          - path: example_route_test.go
+            submodule: null
+          - path: go.mod
+            submodule: null
+          - path: middleware.go
+            submodule: null
+          - path: middleware_test.go
+            submodule: null
+          - path: mux.go
+            submodule: null
+          - path: mux_httpserver_test.go
+            submodule: null
+          - path: mux_test.go
+            submodule: null
+          - path: old_test.go
+            submodule: null
+          - path: regexp.go
+            submodule: null
+          - path: regexp_test.go
+            submodule: null
+          - path: route.go
+            submodule: null
+          - path: test_helpers.go
+            submodule: null
+        tree: null
+      defaultBranch:
+        displayName: main
+      name: github.com/gorilla/mux
+  errors:
+  - message: "not a directory: \"mux.go\""
+    path:
+    - r0
+    - c0
+    - tree

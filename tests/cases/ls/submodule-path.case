@@ -1,0 +1,6 @@
+# A submodule path answers with its submodule row.
+args: ls github.com/akinomyoga/ble.sh@d81fd54feb0d996fdff20dca27eaf0201f7015cc:contrib
+exit: 0
+--- stdout
+github.com/akinomyoga/ble.sh@d81fd54feb0d:contrib  1 entry  1 submodule
+submodule  contrib  github.com/akinomyoga/blesh-contrib@d2109203480a

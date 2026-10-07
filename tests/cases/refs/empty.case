@@ -1,0 +1,5 @@
+# A repository without refs prints zero of each.
+args: refs github.com/ascoders/blog
+exit: 0
+--- stdout
+github.com/ascoders/blog  0 branches  0 tags

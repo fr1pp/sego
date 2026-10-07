@@ -1,0 +1,24 @@
+# A GitHub URL is an address.
+args: refs https://github.com/gorilla/mux
+exit: 0
+--- stdout
+github.com/gorilla/mux  4 branches  15 tags
+branch  db9d1d0073d2  2024-06-19  main  (default)
+branch  ac856fa44dac  2023-11-05  coreydaley-patch-2
+branch  b4617d0b9670  2023-10-18  release-1.8
+branch  d033abe4a66f  2023-08-23  coreydaley-patch-1
+tag     b4617d0b9670  2023-10-18  v1.8.1
+tag     98cb6bf42e08  2020-07-11  v1.8.0
+tag     75dcda0896e1  2020-01-12  v1.7.4
+tag     00bdffe0f3c7  2019-06-30  v1.7.3
+tag     ed099d423848  2019-05-17  v1.7.2
+tag     c5c6c98bc253  2019-03-16  v1.7.1
+tag     a7962380ca08  2019-01-25  v1.7.0
+tag     e3702bed27f0  2018-05-13  v1.6.2
+tag     53c1911da2b5  2018-01-16  v1.6.1
+tag     7f0880185913  2017-11-05  v1.6.0
+tag     24fca303ac6d  2017-09-05  v1.5.0
+tag     bcd8bc72b08d  2017-05-21  v1.4.0
+tag     392c28fe23e1  2017-01-18  v1.3.0
+tag     b12896167c61  2017-01-17  v1.2.0
+tag     0eeaf8392f5b  2016-03-17  v1.1

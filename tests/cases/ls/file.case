@@ -1,0 +1,5 @@
+# A file path is an error that names the file's size.
+args: ls github.com/gorilla/mux@v1.8.0:mux.go
+exit: 1
+--- stderr
+sego: error: mux.go is a file at github.com/gorilla/mux@98cb6bf42e08 (606 lines)

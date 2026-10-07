@@ -11,7 +11,7 @@ use sego::internal::upstream::{
 
 use crate::support::fixture::{Fault, Fixture, load_all};
 use crate::support::http::{Response, Server};
-use crate::support::replay::{Mode, Replay};
+use crate::support::replay::{Mode, Replay, answer};
 
 fn root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures")
@@ -184,6 +184,50 @@ fn stale_query_fails_with_both_texts() {
             file.display()
         )
     );
+}
+
+#[test]
+fn a_query_picks_among_fixtures_sharing_variables() {
+    let variant = |query: &str, answer: i64| Fixture {
+        operation: Some("Two".to_owned()),
+        variables: Some(json!({ "x": 1 })),
+        query: Some(query.to_owned()),
+        response: Some(json!({ "data": { "a": answer } })),
+        ..Fixture::default()
+    };
+    let fixtures =
+        vec![variant("query Two { a }", 1), variant("query Two { a b }", 2)];
+    let ask = |query: &str| {
+        let body = json!({
+            "query": query,
+            "operationName": "Two",
+            "variables": { "x": 1 },
+        });
+        let reply = answer(
+            &fixtures,
+            "POST",
+            GRAPHQL_PATH,
+            body.to_string().as_bytes(),
+        )
+        .unwrap_or_else(|e| panic!("{e:?}"));
+        text(&reply)
+    };
+    assert_eq!(ask("query Two { a }"), r#"{"data":{"a":1}}"#);
+    assert_eq!(ask("query  Two { a b }"), r#"{"data":{"a":2}}"#);
+    assert!(ask("query Two { c }").starts_with("stale fixture"));
+}
+
+#[test]
+fn fixtures_sharing_variables_load_when_their_queries_differ() {
+    let dir = scratch("same-variables");
+    for (name, query) in [("a", "query Two { a }"), ("b", "query Two { b }")] {
+        let text = format!(
+            "operation: Two\nvariables:\n  x: 1\nquery: {query}\nresponse: {{}}\n"
+        );
+        fs::write(dir.join(format!("{name}.yaml")), text)
+            .unwrap_or_else(|e| panic!("{e}"));
+    }
+    assert_eq!(load_all(&dir).len(), 2);
 }
 
 #[test]
@@ -369,6 +413,17 @@ fn a_query_only_fixture_is_named_from_the_query() {
             "Search/repo_github_com_gorilla_mux_v1_8_0_func_newrouter_count_100.yaml"
         )
         .is_file()
+    );
+
+    let refs = json!({
+        "repo0": "github.com/BurntSushi/ripgrep",
+        "first": 101,
+        "query": "14.1",
+    });
+    graphql(&client(&fake.url()), "Refs", &refs, "query Refs { x }")
+        .unwrap_or_else(|e| panic!("{e:?}"));
+    assert!(
+        dir.join("Refs/github_com_burntsushi_ripgrep--14_1.yaml").is_file()
     );
 
     let long = json!({ "query": "a".repeat(100) });

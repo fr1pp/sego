@@ -45,6 +45,32 @@ enum Query {
 }
 
 impl Query {
+    /// Fixtures may share an operation and variables when the query text
+    /// differs (a URL split adds a probe to the same operation), so the one
+    /// whose query was sent wins; with none, the first match answers, and
+    /// `serve` reports it stale.
+    fn pick(&self, fixtures: &[Fixture]) -> Option<usize> {
+        let mut matching = fixtures
+            .iter()
+            .enumerate()
+            .filter(|(_, fixture)| self.matches(fixture))
+            .map(|(i, _)| i);
+        let first = matching.next()?;
+        let Query::Graphql { query: sent, .. } = self else {
+            return Some(first);
+        };
+        let exact = |i: usize| {
+            fixtures[i]
+                .query
+                .as_ref()
+                .is_none_or(|stored| normalise(stored) == normalise(sent))
+        };
+        std::iter::once(first)
+            .chain(matching)
+            .find(|&i| exact(i))
+            .or(Some(first))
+    }
+
     fn parse(method: &str, path: &str, body: &[u8]) -> Result<Query, String> {
         if method == "GET" {
             return Ok(Query::Raw {
@@ -204,8 +230,8 @@ pub fn answer(
         Ok(query) => query,
         Err(message) => return Ok(plain(500, message)),
     };
-    match fixtures.iter().find(|f| query.matches(f)) {
-        Some(fixture) => serve(fixture, &query),
+    match query.pick(fixtures) {
+        Some(i) => serve(&fixtures[i], &query),
         None => Ok(missing(fixtures, &query)),
     }
 }
@@ -229,7 +255,7 @@ impl State {
             Ok(query) => query,
             Err(message) => return Ok(plain(500, message)),
         };
-        let hit = self.fixtures.iter().position(|f| query.matches(f));
+        let hit = query.pick(&self.fixtures);
         let forward = match (self.mode, hit) {
             (Mode::Replay, _) | (Mode::RecordMissing, Some(_)) => false,
             (Mode::RecordMissing | Mode::Refresh, None) => true,
@@ -411,18 +437,21 @@ fn unique_name(
 ) -> String {
     let name = match query {
         Query::Graphql { variables, .. }
-            if first_value(variables, "query").is_some() =>
+            if variables.as_object().is_some_and(|map| map.len() == 1)
+                && first_value(variables, "query").is_some() =>
         {
             let name =
                 slug(&first_value(variables, "query").unwrap_or_default());
             name.chars().take(QUERY_NAME_LEN).collect()
         }
-        Query::Graphql { variables, .. } => ["repo0", "rev0", "path_0"]
-            .iter()
-            .filter_map(|key| first_value(variables, key))
-            .map(|value| slug(&value))
-            .collect::<Vec<_>>()
-            .join("--"),
+        Query::Graphql { variables, .. } => {
+            ["repo0", "rev0", "path_0", "query"]
+                .iter()
+                .filter_map(|key| first_value(variables, key))
+                .map(|value| slug(&value))
+                .collect::<Vec<_>>()
+                .join("--")
+        }
         Query::Raw { path, .. } => slug(path),
     };
     let name = if name.is_empty() { "fixture".to_owned() } else { name };
