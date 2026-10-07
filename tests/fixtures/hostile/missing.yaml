@@ -3,7 +3,7 @@ operation: ShowFile
 variables:
   end_0: 500
   parent_0: ""
-  path_0: gone.txt
+  path_0: "gone.txt"
   repo0: github.com/hostile/repo
   rev0: HEAD
   start_0: 1
@@ -13,7 +13,7 @@ headers:
 response:
   data:
     r0:
-      name: "github.com/hostile/repo\e[0m‮x​x\nline\r\0x x\x7Fx"
+      name: "github.com/hostile/repoesc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
       defaultBranch:
         displayName: main
       c0:
@@ -23,5 +23,5 @@ response:
         dir: null
         parent:
           entries:
-          - path: "esc\e[0m rtl‮x zw​x new\nline cr\r nul\0x ls x del\x7Fx"
+          - path: "esc\e[0m rtl\u202Ex zw\u200Bx new\nline cr\r nul\0x ls\u2028x del\x7Fx"
             submodule: null

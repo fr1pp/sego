@@ -37,11 +37,7 @@ fn shape_of(value: &Value, path: &str, shape: &mut Shape) {
     match value {
         Value::Object(map) => {
             for (key, child) in map {
-                let at = if path.is_empty() {
-                    key.clone()
-                } else {
-                    format!("{path}.{key}")
-                };
+                let at = join(path, key);
                 shape_of(child, &at, shape);
             }
         }
@@ -52,6 +48,10 @@ fn shape_of(value: &Value, path: &str, shape: &mut Shape) {
         }
         _ => {}
     }
+}
+
+fn join(path: &str, key: &str) -> String {
+    if path.is_empty() { key.to_owned() } else { format!("{path}.{key}") }
 }
 
 fn non_null(types: &BTreeSet<&'static str>) -> BTreeSet<&'static str> {
@@ -134,11 +134,7 @@ fn value_difference(
     match (recorded, live) {
         (Value::Object(a), Value::Object(b)) => {
             for (key, value) in a {
-                let at = if path.is_empty() {
-                    key.clone()
-                } else {
-                    format!("{path}.{key}")
-                };
+                let at = join(path, key);
                 match b.get(key) {
                     None => return Some(format!("{at} is missing")),
                     Some(other) => {
@@ -152,7 +148,7 @@ fn value_difference(
             }
             b.keys()
                 .find(|key| !a.contains_key(*key))
-                .map(|key| format!("{path}.{key} is new"))
+                .map(|key| format!("{} is new", join(path, key)))
         }
         (Value::Array(a), Value::Array(b)) => {
             if a.len() != b.len() {
@@ -183,11 +179,19 @@ fn digest(bytes: &[u8]) -> String {
     format!("{} bytes, hash {:016x}", bytes.len(), hasher.finish())
 }
 
-fn has_errors(value: &Value) -> bool {
+fn error_paths(value: &Value) -> Vec<String> {
     value
         .get("errors")
         .and_then(Value::as_array)
-        .is_some_and(|errors| !errors.is_empty())
+        .map(|errors| errors.iter().map(|e| e["path"].to_string()).collect())
+        .unwrap_or_default()
+}
+
+/// The first live error at a path the recording has no error at. Paths are
+/// stable where messages and their order are not.
+fn new_error_path(recorded: &Value, live: &Value) -> Option<String> {
+    let known = error_paths(recorded);
+    error_paths(live).into_iter().find(|path| !known.contains(path))
 }
 
 fn compare_graphql(fixture: &Fixture, reply: &Reply) -> Option<String> {
@@ -200,15 +204,16 @@ fn compare_graphql(fixture: &Fixture, reply: &Reply) -> Option<String> {
     let Ok(mut live) = serde_json::from_slice::<Value>(&reply.body) else {
         return Some(format!("body is not JSON ({})", digest(&reply.body)));
     };
-    let mut recorded: Value =
-        serde_json::from_slice(&fixture.body()).unwrap_or(Value::Null);
+    let mut recorded: Value = match serde_json::from_slice(&fixture.body()) {
+        Ok(recorded) => recorded,
+        Err(e) => return Some(format!("the recorded body is not JSON: {e}")),
+    };
     for value in [&mut live, &mut recorded] {
         without_transient(value);
         sort_errors(value);
     }
-    if has_errors(&live) && !has_errors(&recorded) {
-        let first = live["errors"][0]["path"].to_string();
-        return Some(format!("new response errors, the first at {first}"));
+    if let Some(path) = new_error_path(&recorded, &live) {
+        return Some(format!("new response error at {path}"));
     }
     if let Some(found) = shape_difference(&recorded, &live) {
         return Some(format!("shape: {found}"));
@@ -280,13 +285,14 @@ fn fixtures_match_sourcegraph() {
                 continue;
             }
         };
-        assert!(
-            reply.status != 429 && reply.cf_mitigated.is_none(),
-            "BLOCKED: sourcegraph.com answered HTTP {} (cf-mitigated: {:?}) \
-             for {name}",
-            reply.status,
-            reply.cf_mitigated
-        );
+        if reply.status == 429 || reply.cf_mitigated.is_some() {
+            failures.push(format!(
+                "{name}: BLOCKED, sourcegraph.com answered HTTP {} \
+                 (cf-mitigated: {:?}); stopped",
+                reply.status, reply.cf_mitigated
+            ));
+            break;
+        }
         let difference = if fixture.operation.is_some() {
             compare_graphql(fixture, &reply)
         } else {
@@ -302,4 +308,85 @@ fn fixtures_match_sourcegraph() {
         failures.len(),
         failures.join("\n")
     );
+}
+
+fn shape(recorded: &Value, live: &Value) -> Option<String> {
+    shape_difference(recorded, live)
+}
+
+#[test]
+fn shape_names_a_missing_key() {
+    let found = shape(&json!({"a": 1, "b": "x"}), &json!({"a": 1}));
+    assert_eq!(found.as_deref(), Some("b is missing"));
+}
+
+#[test]
+fn shape_names_a_type_change() {
+    let found = shape(&json!({"a": 1}), &json!({"a": "1"}));
+    assert!(found.is_some_and(|f| f.starts_with("a is")));
+}
+
+#[test]
+fn shape_names_a_new_key() {
+    let found = shape(&json!({"a": 1}), &json!({"a": 1, "z": true}));
+    assert_eq!(found.as_deref(), Some("z is new"));
+}
+
+#[test]
+fn shape_names_a_live_null_where_the_recording_has_a_value() {
+    let found = shape(&json!({"a": {"b": 1}}), &json!({"a": null}));
+    assert!(found.is_some());
+}
+
+#[test]
+fn a_recorded_null_matches_a_live_subtree() {
+    assert_eq!(shape(&json!({"a": null}), &json!({"a": {"b": [1, 2]}})), None);
+    assert_eq!(shape(&json!({"a": []}), &json!({"a": [{"b": 1}]})), None);
+}
+
+#[test]
+fn list_elements_share_one_shape() {
+    let recorded = json!({"a": [{"b": 1}, {"b": null}]});
+    let live = json!({"a": [{"b": null}, {"b": 2}, {"b": 3}]});
+    assert_eq!(shape(&recorded, &live), None);
+}
+
+#[test]
+fn values_differ_at_the_first_path() {
+    let found =
+        value_difference("", &json!({"a": [1, 2]}), &json!({"a": [1, 3]}));
+    assert!(found.is_some_and(|f| f.starts_with("a[1] changed")));
+    let found =
+        value_difference("", &json!({"a": 1}), &json!({"a": 1, "k": 2}));
+    assert_eq!(found.as_deref(), Some("k is new"));
+    assert_eq!(value_difference("", &json!({"a": 1}), &json!({"a": 1})), None);
+}
+
+fn with_errors(paths: &[&[&str]]) -> Value {
+    let errors: Vec<Value> = paths
+        .iter()
+        .map(|path| json!({"message": format!("m {path:?}"), "path": path}))
+        .collect();
+    json!({"data": {}, "errors": errors})
+}
+
+#[test]
+fn reordered_or_reworded_errors_are_not_drift() {
+    let recorded = with_errors(&[&["r0", "meta"], &["r0", "body"]]);
+    let mut live = with_errors(&[&["r0", "body"], &["r0", "meta"]]);
+    live["errors"][0]["message"] = json!("another wording");
+    assert_eq!(new_error_path(&recorded, &live), None);
+    sort_errors(&mut live);
+    assert_eq!(live["errors"].as_array().map(Vec::len), Some(2));
+}
+
+#[test]
+fn an_error_at_a_new_path_is_drift() {
+    let recorded = with_errors(&[&["r0", "c2", "dir"]]);
+    let live = with_errors(&[&["r0", "c2", "dir"], &["r0", "c1", "dir"]]);
+    let found = new_error_path(&recorded, &live);
+    assert_eq!(found.as_deref(), Some(r#"["r0","c1","dir"]"#));
+    let clean = json!({"data": {}});
+    assert!(new_error_path(&clean, &live).is_some());
+    assert_eq!(new_error_path(&recorded, &clean), None);
 }

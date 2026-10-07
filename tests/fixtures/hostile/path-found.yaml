@@ -1,0 +1,31 @@
+handwritten: true
+operation: ShowFile
+variables:
+  end_0: 500
+  parent_0: ""
+  path_0: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+  repo0: github.com/hostile/repo
+  rev0: HEAD
+  start_0: 1
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    r0:
+      name: "github.com/hostile/repo"
+      defaultBranch:
+        displayName: main
+      c0:
+        oid: 0123456789abcdef0123456789abcdef01234567
+        meta:
+          binary: false
+          byteSize: 3
+          lfs: null
+          rawURL: /r/github.com/hostile/repo@0123456789abcdef0123456789abcdef01234567/-/raw/x
+          totalLines: 1
+        body:
+          content: "ok\n"
+        dir: null
+        parent:
+          entries: []

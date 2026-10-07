@@ -3,7 +3,7 @@ operation: ShowFile
 variables:
   end_0: 500
   parent_0: ""
-  path_0: rejected.txt
+  path_0: "rejected.txt"
   repo0: github.com/hostile/repo
   rev0: HEAD
   start_0: 1
@@ -13,4 +13,4 @@ headers:
 response:
   data: null
   errors:
-  - message: "LEAK esc\e[0m rtl‮x zw​x new\nline cr\r nul\0x ls x del\x7Fx"
+  - message: "LEAK esc\e[0m rtl\u202Ex zw\u200Bx new\nline cr\r nul\0x ls\u2028x del\x7Fx"

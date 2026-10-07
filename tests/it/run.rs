@@ -11,32 +11,12 @@ use sego::internal::upstream::{
 };
 use sego::{Env, run};
 
+use crate::support::exec::{Ran, args, exec};
 use crate::support::fake::Fake;
 use crate::support::fixture::load_all;
 
-struct Ran {
-    code: ExitCode,
-    out: Vec<u8>,
-    err: Vec<u8>,
-}
-
-fn args(words: &[&str]) -> Vec<OsString> {
-    words.iter().map(OsString::from).collect()
-}
-
 fn env(endpoint: Option<&str>) -> Env {
     Env { endpoint: endpoint.map(OsString::from) }
-}
-
-fn exec(
-    words: &[&str],
-    endpoint: Option<&str>,
-    connect: &dyn Fn(Endpoint) -> Box<dyn Transport>,
-) -> Ran {
-    let mut out = Vec::new();
-    let mut err = Vec::new();
-    let code = run(args(words), &env(endpoint), connect, &mut out, &mut err);
-    Ran { code, out, err }
 }
 
 fn never(_: Endpoint) -> Box<dyn Transport> {
