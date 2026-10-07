@@ -1,0 +1,5 @@
+# A submodule path prints its target and commit.
+args: show github.com/akinomyoga/ble.sh@d81fd54feb0d:contrib
+exit: 0
+--- stdout
+github.com/akinomyoga/ble.sh@d81fd54feb0d:contrib  submodule  github.com/akinomyoga/blesh-contrib@d2109203480a

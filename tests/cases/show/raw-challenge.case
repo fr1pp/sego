@@ -1,0 +1,5 @@
+# A Cloudflare challenge on the raw read is reported as the edge's refusal.
+args: show github.com/azadkuh/sqlite-amalgamation@15d0ff10ebc7e7225eced1de84bb52137000899b:sqlite3.c 1-4
+exit: 1
+--- stderr
+sego: error: sourcegraph.com's edge refused the request (HTTP 429, Cloudflare challenge)

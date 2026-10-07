@@ -1,0 +1,5 @@
+# A redirect is reported with its Location.
+args: show github.com/gorilla/mux@v1.8.0:mux.go 21-22
+exit: 1
+--- stderr
+sego: error: sourcegraph.com answered HTTP 302 with Location https://sourcegraph.com/sign-in

@@ -1,0 +1,25 @@
+operation: ShowFile
+variables:
+  end_0: 26
+  parent_0: ""
+  path_0: mux.go
+  repo0: github.com/gorilla/mux
+  rev0: v1.8.0
+  start_0: 25
+query: |
+  query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
+    r0: repository(name: $repo0) {
+      name
+      defaultBranch { displayName }
+      c0: commit(rev: $rev0) {
+        oid
+        meta: blob(path: $path_0) { byteSize totalLines binary rawURL lfs { byteSize } }
+        body: blob(path: $path_0) { content(startLine: $start_0, endLine: $end_0, textOnly: true) }
+        dir: tree(path: $path_0) { entries { path } }
+        parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+      }
+    }
+  }
+
+fault: network
+handwritten: true

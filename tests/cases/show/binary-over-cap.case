@@ -1,0 +1,5 @@
+# A binary file over the limit is answered from its details, with one request.
+args: show github.com/golang/go@6885bad7dd86:src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso
+exit: 0
+--- stdout
+github.com/golang/go@6885bad7dd86:src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso  binary  2555664 bytes

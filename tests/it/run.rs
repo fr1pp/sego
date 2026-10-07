@@ -295,11 +295,68 @@ fn deadline_starts_once() {
     );
     assert_eq!(text(&ran.err).lines().count(), 1, "{}", text(&ran.err));
     assert_eq!(calls.len(), 2);
-    assert_eq!(calls[0].deadline, calls[1].deadline);
     for call in &calls {
         assert!(call.deadline >= before + DEADLINE);
         assert!(call.deadline <= Instant::now() + DEADLINE);
     }
+}
+
+#[test]
+fn deadline_is_shared_by_the_raw_read() {
+    let (ran, calls) = show_via(
+        &["show", "github.com/x/y@main:big.c", "1-5"],
+        vec![
+            Ok(json_reply(&over_cap_envelope())),
+            Ok(raw_reply(200, "text/plain", b"1\n2\n3\n4\n5\n")),
+        ],
+    );
+    assert_eq!(ran.code, ExitCode::SUCCESS);
+    let methods: Vec<_> = calls.iter().map(|call| call.method).collect();
+    assert_eq!(methods, ["POST", "GET"]);
+    assert_eq!(calls[1].deadline, calls[0].deadline);
+
+    let (ran, calls) = show_via(
+        &["show", "github.com/x/y@main:big.c", "1-5"],
+        vec![
+            Ok(json_reply(&over_cap_envelope())),
+            Err(TransportError::Deadline),
+        ],
+    );
+    assert_eq!(ran.code, ExitCode::from(1));
+    assert_eq!(ran.out, b"");
+    assert!(
+        text(&ran.err).ends_with(
+            "sego: error: no answer from sourcegraph.com within 90 s\n"
+        ),
+        "{}",
+        text(&ran.err)
+    );
+    assert_eq!(calls[1].deadline, calls[0].deadline);
+}
+
+#[test]
+fn a_recorded_binary_file_over_the_limit_takes_one_request() {
+    let fake = Fake::fixtures(load_all(
+        &std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures"),
+    ));
+    let handle = fake.clone();
+    let connect =
+        move |_: Endpoint| -> Box<dyn Transport> { Box::new(handle.clone()) };
+    let ran = exec(
+        &[
+            "show",
+            "github.com/golang/go@6885bad7dd86:src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso",
+        ],
+        None,
+        &connect,
+    );
+    assert_eq!(ran.code, ExitCode::SUCCESS, "{}", text(&ran.err));
+    assert_eq!(text(&ran.err), "");
+    assert!(text(&ran.out).contains("binary  2555664 bytes"));
+    let calls = fake.calls();
+    assert_eq!(calls.len(), 1);
+    assert_eq!(calls[0].method, "POST");
 }
 
 #[test]

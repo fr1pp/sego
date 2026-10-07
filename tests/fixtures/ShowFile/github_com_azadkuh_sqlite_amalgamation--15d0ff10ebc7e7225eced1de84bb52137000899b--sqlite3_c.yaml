@@ -1,0 +1,81 @@
+operation: ShowFile
+variables:
+  end_0: 5
+  parent_0: ""
+  path_0: sqlite3.c
+  repo0: github.com/azadkuh/sqlite-amalgamation
+  rev0: 15d0ff10ebc7e7225eced1de84bb52137000899b
+  start_0: 1
+query: |
+  query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
+    r0: repository(name: $repo0) {
+      name
+      defaultBranch { displayName }
+      c0: commit(rev: $rev0) {
+        oid
+        meta: blob(path: $path_0) { byteSize totalLines binary rawURL lfs { byteSize } }
+        body: blob(path: $path_0) { content(startLine: $start_0, endLine: $end_0, textOnly: true) }
+        dir: tree(path: $path_0) { entries { path } }
+        parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+      }
+    }
+  }
+status: 200
+headers:
+  content-type: application/json
+pinned: true
+response:
+  data:
+    r0:
+      c0:
+        body: null
+        dir: null
+        meta:
+          binary: false
+          byteSize: 8462111
+          lfs: null
+          rawURL: >-
+            /r/github.com/azadkuh/sqlite-amalgamation@15d0ff10ebc7e7225eced1de84bb52137000899b/-/raw/sqlite3.c
+          totalLines: 239379
+        oid: 15d0ff10ebc7e7225eced1de84bb52137000899b
+        parent:
+          entries:
+          - path: .gitignore
+            submodule: null
+          - path: CMakeLists.txt
+            submodule: null
+          - path: LICENSE
+            submodule: null
+          - path: README.md
+            submodule: null
+          - path: shell.c
+            submodule: null
+          - path: sqlite3.c
+            submodule: null
+          - path: sqlite3.h
+            submodule: null
+          - path: sqlite3_config.h.in
+            submodule: null
+          - path: sqlite3ext.h
+            submodule: null
+      defaultBranch:
+        displayName: master
+      name: github.com/azadkuh/sqlite-amalgamation
+  errors:
+  - message: "not a directory: \"sqlite3.c\""
+    path:
+    - r0
+    - c0
+    - dir
+  - message: "file exceeded size limit: BytesRead=1572865 (may be lower than file size)"
+    path:
+    - r0
+    - c0
+    - body
+    - content
+  - message: "file exceeded size limit: BytesRead=1572865 (may be lower than file size)"
+    path:
+    - r0
+    - c0
+    - meta
+    - lfs
