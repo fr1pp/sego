@@ -24,7 +24,7 @@ fn partial() -> Envelope {
 
 #[test]
 fn classification() {
-    let cases: [(&str, Kind, String); 10] = [
+    let cases: [(&str, Kind, String); 19] = [
         (
             "challenge",
             Kind::Edge,
@@ -56,6 +56,47 @@ fn classification() {
             "html-404",
             Kind::Upstream,
             "sourcegraph.com answered HTTP 404 text/html".into(),
+        ),
+        (
+            "text-plain-envelope",
+            Kind::Upstream,
+            format!("{NOT_GRAPHQL}: not JSON"),
+        ),
+        (
+            "no-content-type",
+            Kind::Upstream,
+            format!("{NOT_GRAPHQL}: not JSON"),
+        ),
+        (
+            "redirect-no-location",
+            Kind::Upstream,
+            "sourcegraph.com answered HTTP 302 with no Location".into(),
+        ),
+        (
+            "html-403",
+            Kind::Edge,
+            "sourcegraph.com's edge refused the request (HTTP 403, \
+             Cloudflare challenge)"
+                .into(),
+        ),
+        (
+            "challenge-text",
+            Kind::Edge,
+            "sourcegraph.com's edge refused the request (HTTP 403, \
+             Cloudflare challenge)"
+                .into(),
+        ),
+        ("null-no-errors", Kind::Upstream, format!("{NOT_GRAPHQL}: empty")),
+        ("neither", Kind::Upstream, format!("{NOT_GRAPHQL}: empty")),
+        (
+            "bad-request",
+            Kind::Upstream,
+            "Sourcegraph rejected sego's request: Syntax Error".into(),
+        ),
+        (
+            "no-message",
+            Kind::Upstream,
+            "Sourcegraph rejected sego's request".into(),
         ),
         ("not-json", Kind::Upstream, format!("{NOT_GRAPHQL}: not JSON")),
         ("truncated", Kind::Upstream, format!("{NOT_GRAPHQL}: truncated")),
@@ -104,4 +145,16 @@ fn error_coverage() {
         .map(|k| Seg::Key(k.to_owned()))
         .collect();
     assert_eq!(envelope.errors[0].path, path);
+}
+
+#[test]
+fn odd_paths_stay_located() {
+    let envelope =
+        classify(reply("envelope/odd-path")).unwrap_or_else(|e| panic!("{e}"));
+    let key = |k: &str| Seg::Key(k.to_owned());
+    assert_eq!(envelope.errors.len(), 2);
+    assert_eq!(envelope.errors[0].path, [Seg::Invalid]);
+    assert_eq!(envelope.errors[1].path, [key("r0"), Seg::Invalid, key("x")]);
+    assert!(envelope.error_at(&["r0", "x"]).is_none());
+    assert!(envelope.get(&["r0", "name"]).is_some());
 }

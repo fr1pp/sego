@@ -10,6 +10,9 @@ const COMPLEXITY_CODE: &str = "ErrQueryComplexityLimitExceeded";
 pub enum Seg {
     Key(String),
     Index(usize),
+    /// A path element that is neither a string nor an index; it matches
+    /// nothing.
+    Invalid,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -61,9 +64,9 @@ pub fn classify(reply: Reply) -> Result<Envelope, Error> {
         cf_mitigated,
         body,
     } = reply;
-    let content_type = content_type.as_deref();
-    let html = content_type
-        .is_some_and(|ct| ct.trim_start().starts_with("text/html"));
+    let media = content_type.as_deref().map(media_type);
+    let html = media.is_some_and(|m| m.eq_ignore_ascii_case("text/html"));
+    let json_type = media.is_some_and(is_json);
     if cf_mitigated.as_deref() == Some("challenge")
         || (html && matches!(status, 403 | 429))
     {
@@ -100,17 +103,20 @@ pub fn classify(reply: Reply) -> Result<Envelope, Error> {
             None => error,
         });
     }
-    if status != 200 && !is_json(content_type, parsed.is_ok()) {
+    if status != 200 && !(json_type && parsed.is_ok()) {
         return Err(Error::upstream(format!(
             "sourcegraph.com answered HTTP {status} {}",
-            content_type.unwrap_or("without a content type")
+            media.unwrap_or("without a content type")
         )));
+    }
+    if body.iter().all(u8::is_ascii_whitespace) {
+        return Err(not_graphql("empty"));
+    }
+    if !json_type {
+        return Err(not_graphql("not JSON"));
     }
     let json = match parsed {
         Ok(json) => json,
-        Err(_) if body.iter().all(u8::is_ascii_whitespace) => {
-            return Err(not_graphql("empty"));
-        }
         Err(e) if e.is_eof() => return Err(not_graphql("truncated")),
         Err(_) => return Err(not_graphql("not JSON")),
     };
@@ -125,10 +131,12 @@ pub fn classify(reply: Reply) -> Result<Envelope, Error> {
         return Err(not_graphql("empty"));
     }
     if let Some(error) = errors.iter().find(|error| error.path.is_empty()) {
-        return Err(Error::upstream(format!(
-            "Sourcegraph rejected sego's request: {}",
-            error.message
-        )));
+        let message = if error.message.is_empty() {
+            "Sourcegraph rejected sego's request".to_owned()
+        } else {
+            format!("Sourcegraph rejected sego's request: {}", error.message)
+        };
+        return Err(Error::upstream(message));
     }
     Ok(Envelope { data, errors: dedup(errors) })
 }
@@ -137,12 +145,13 @@ fn not_graphql(which: &str) -> Error {
     Error::upstream(format!("{NOT_GRAPHQL}: {which}"))
 }
 
-fn is_json(content_type: Option<&str>, parses: bool) -> bool {
-    let media =
-        content_type.and_then(|ct| ct.split(';').next()).map_or("", str::trim);
-    parses
-        && (media.eq_ignore_ascii_case("application/json")
-            || media.to_ascii_lowercase().ends_with("+json"))
+fn media_type(content_type: &str) -> &str {
+    content_type.split(';').next().unwrap_or_default().trim()
+}
+
+fn is_json(media: &str) -> bool {
+    media.eq_ignore_ascii_case("application/json")
+        || media.to_ascii_lowercase().ends_with("+json")
 }
 
 fn complexity_message(body: &Value) -> Option<&str> {
@@ -168,19 +177,20 @@ fn read_errors(body: &Value) -> Vec<GqlError> {
             path: error
                 .get("path")
                 .and_then(Value::as_array)
-                .map(|path| path.iter().filter_map(seg).collect())
+                .map(|path| path.iter().map(seg).collect())
                 .unwrap_or_default(),
         })
         .collect()
 }
 
-fn seg(value: &Value) -> Option<Seg> {
+fn seg(value: &Value) -> Seg {
     match value {
-        Value::String(key) => Some(Seg::Key(key.clone())),
-        Value::Number(n) => {
-            n.as_u64().and_then(|i| usize::try_from(i).ok()).map(Seg::Index)
-        }
-        _ => None,
+        Value::String(key) => Seg::Key(key.clone()),
+        Value::Number(n) => n
+            .as_u64()
+            .and_then(|i| usize::try_from(i).ok())
+            .map_or(Seg::Invalid, Seg::Index),
+        _ => Seg::Invalid,
     }
 }
 

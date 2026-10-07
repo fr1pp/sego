@@ -1,0 +1,10 @@
+operation: EnvelopeBadRequest
+status: 400
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  errors:
+    - message: Syntax Error
+      extensions:
+        code: ErrOther

@@ -1,0 +1,6 @@
+operation: EnvelopeHtml403
+status: 403
+headers:
+  content-type: Text/HTML; charset=utf-8
+handwritten: true
+response: "<html><body>Forbidden</body></html>"
