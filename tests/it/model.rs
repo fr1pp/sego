@@ -322,7 +322,7 @@ fn commit_body_crlf_blank_line() {
         panic!("not a commit")
     };
     assert_eq!(lines, &["x", "+y"]);
-    assert!(highlights.is_empty());
+    assert_eq!(highlights, &Vec::<[u32; 3]>::new());
 }
 
 #[test]
