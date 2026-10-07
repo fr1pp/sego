@@ -224,6 +224,15 @@ fn checks_filters_and_keywords() {
         ("localhost:8080", vec![]),
         ("display:none", vec![]),
         ("key:value", vec![]),
+        ("files:a", vec![]),
+        ("paths:a", vec![]),
+        ("repos:a", vec![]),
+        ("rules:a", vec![]),
+        ("types:a", vec![]),
+        ("messages:a", vec![]),
+        ("authors:a", vec![]),
+        ("contents:a", vec![]),
+        ("patch:a", vec![]),
         // 2
         ("lang:go lang:rust", vec![INTERSECT.to_owned()]),
         ("repo:a or repo:b", vec![]),
@@ -236,6 +245,9 @@ fn checks_filters_and_keywords() {
         ("[0-9]+", vec![keyword("[0-9]+")]),
         ("file\\.go", vec![keyword("file\\.go")]),
         ("fmt\\.Errorf", vec![keyword("fmt\\.Errorf")]),
+        ("a.*b", vec![keyword("a.*b")]),
+        ("^foo", vec![keyword("^foo")]),
+        // 3: don't fire
         ("string|null", vec![]),
         ("Subrouter|NewRouter", vec![]),
         ("dp[i-j]", vec![]),
@@ -244,17 +256,7 @@ fn checks_filters_and_keywords() {
         ("foo|bar", vec![]),
         ("[a-z]", vec![]),
         ("\\.go", vec![]),
-        ("repo:a x or (repo:b y)", vec![]),
-        ("repo:a x or -repo:b y", vec![]),
-        ("a -repo:x or b", vec![]),
-        ("-type:bogus", vec![]),
-        ("type:\"file\"", vec![]),
-        ("repo:x@a..", vec![]),
-        (
-            "repo:x@a..b repo:x@a..b",
-            vec!["repo:x@a..b searches b only".to_owned()],
-        ),
-        // 3: don't fire
+        ("import.*;", vec![]),
         ("\"\\.go\"", vec![]),
         ("/a.*b/", vec![]),
         ("file:\\.go$", vec![]),
@@ -291,9 +293,14 @@ fn checks_or_types_and_revisions() {
         ("repo:a x or repo:b y", vec![]),
         ("repo:x file:y (a or (b and c))", vec![]),
         ("(repo:x or repo:y) (\"a\" or \"b\")", vec![]),
+        ("repo:a x or (repo:b y)", vec![]),
+        ("repo:a x or -repo:b y", vec![]),
+        ("a -repo:x or b", vec![]),
         // 5
         ("type:File", vec![bad_type("File")]),
         ("type:structural", vec![]),
+        ("-type:bogus", vec![]),
+        ("type:\"file\"", vec![]),
         // 6
         ("repo:x type:path", vec![PATH_ONLY.to_owned()]),
         ("type:path NewRouter", vec![]),
@@ -310,10 +317,12 @@ fn checks_or_types_and_revisions() {
             ],
         ),
         ("repo:x@a:b...c", vec!["repo:x@a:b...c searches c only".to_owned()]),
+        (
+            "repo:x@a..b repo:x@a..b",
+            vec!["repo:x@a..b searches b only".to_owned()],
+        ),
         ("repo:x@v1.8.0", vec![]),
-        ("a.*b", vec![keyword("a.*b")]),
-        ("import.*;", vec![]),
-        ("^foo", vec![keyword("^foo")]),
+        ("repo:x@a..", vec![]),
     ]);
 }
 

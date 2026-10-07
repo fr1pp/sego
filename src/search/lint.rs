@@ -210,8 +210,10 @@ impl Scanner<'_> {
         self.delimited_end(start, true)
     }
 
-    /// A filter's quoted value ends at the first unescaped twin, whatever
-    /// follows it.
+    /// The end of the quoted run at `start`: the first unescaped twin of the
+    /// opening quote. With `terminated`, that twin must be followed by
+    /// whitespace, `)` or the end, or there is no run; without it, whatever
+    /// follows the twin is accepted.
     fn delimited_end(&self, start: usize, terminated: bool) -> Option<usize> {
         let quote = *self.chars.get(start)?;
         if quote != '"' && quote != '\'' {
@@ -445,8 +447,14 @@ fn unknown_filters(tokens: &[Token], notes: &mut Vec<String>) {
 }
 
 /// One adjacent transposition, insertion or deletion from a known field of
-/// four or more letters.
+/// four or more letters. A known field with a trailing `s` and `patch` are
+/// common keys in code, so they are not near.
 fn near_known(field: &str) -> bool {
+    let plural =
+        field.strip_suffix('s').is_some_and(|stem| KNOWN.contains(&stem));
+    if plural || field == "patch" {
+        return false;
+    }
     let f: Vec<char> = field.chars().collect();
     KNOWN.iter().filter(|known| known.len() >= 4).any(|known| {
         let k: Vec<char> = known.chars().collect();
