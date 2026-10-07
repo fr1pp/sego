@@ -52,6 +52,9 @@ fn deadlines() {
         ("foo timeout:-3s", 0),
         ("foo timeout:abc", 60_000),
         ("foo timeout:5", 60_000),
+        ("foo timeout:\"5s\"", 5_000),
+        ("foo timeout:'5s'", 5_000),
+        ("foo timeout:-0s", 0),
         ("foo timeout:2s timeout:9s", 2_000),
     ];
     for (query, ms) in rows {
@@ -73,6 +76,8 @@ fn go_durations() {
         ("0", Some(Duration::ZERO)),
         ("+1s", Some(Duration::from_secs(1))),
         (".5s", Some(Duration::from_millis(500))),
+        ("-0", Some(Duration::ZERO)),
+        ("-0s", Some(Duration::ZERO)),
         ("", None),
         ("1", None),
         ("-", None),

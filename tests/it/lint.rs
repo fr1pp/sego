@@ -28,9 +28,15 @@ fn not_filter(field: &str, value: &str) -> Token {
     })
 }
 
+fn check(rows: Vec<(&str, Vec<Token>)>) {
+    for (query, expected) in rows {
+        assert_eq!(tokenize(query), expected, "{query:?}");
+    }
+}
+
 #[test]
-fn tokens() {
-    let rows: Vec<(&str, Vec<Token>)> = vec![
+fn groups_and_quotes() {
+    check(vec![
         ("foo bar", vec![term("foo"), term("bar")]),
         ("", vec![]),
         ("   ", vec![]),
@@ -70,12 +76,22 @@ fn tokens() {
         ("\"a b\"c", vec![term("\"a"), term("b\"c")]),
         ("(\"a b\")", vec![Token::Open, quoted("\"a b\""), Token::Close]),
         ("\"\"", vec![quoted("\"\"")]),
+    ]);
+}
+
+#[test]
+fn patterns_filters_and_operators() {
+    check(vec![
         ("/a b/", vec![pattern("/a b/")]),
         ("/a.*b/", vec![pattern("/a.*b/")]),
         ("/a or b/", vec![pattern("/a or b/")]),
-        ("/a/b/", vec![pattern("/a/b/")]),
+        ("/a/b/", vec![term("/a/b/")]),
+        ("/src/.*\\.go/", vec![term("/src/.*\\.go/")]),
+        ("//", vec![term("//")]),
+        ("/a\\/ b/", vec![pattern("/a\\/ b/")]),
         ("/a/b c", vec![term("/a/b"), term("c")]),
-        ("/a/b/ c", vec![pattern("/a/b/"), term("c")]),
+        ("/a/ c", vec![pattern("/a/"), term("c")]),
+        ("/a/b/ c", vec![term("/a/b/"), term("c")]),
         (
             "/func \\(r \\*Router\\) \\w+\\(/ count:all",
             vec![
@@ -99,6 +115,20 @@ fn tokens() {
                 Token::Close,
             ],
         ),
+        (
+            "repo:\"a b\"x y",
+            vec![filter("repo", "\"a b\""), term("x"), term("y")],
+        ),
+        ("repo:\"a b", vec![filter("repo", "\"a"), term("b")]),
+        ("'a \\' b'", vec![quoted("'a \\' b'")]),
+        (
+            "(content:\"a b\")",
+            vec![Token::Open, filter("content", "\"a b\""), Token::Close],
+        ),
+        ("a ) b", vec![term("a"), term(")"), term("b")]),
+        ("()", vec![term("()")]),
+        ("( )", vec![term("()")]),
+        ("a () b", vec![term("a"), term("()"), term("b")]),
         ("-file:_test\\.go", vec![not_filter("file", "_test\\.go")]),
         ("std::mem", vec![term("std::mem")]),
         ("TODO:", vec![term("TODO:")]),
@@ -122,10 +152,7 @@ fn tokens() {
             "(repo:x a)",
             vec![Token::Open, filter("repo", "x"), term("a"), Token::Close],
         ),
-    ];
-    for (query, expected) in rows {
-        assert_eq!(tokenize(query), expected, "{query:?}");
-    }
+    ]);
 }
 
 #[test]

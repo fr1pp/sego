@@ -69,7 +69,7 @@ fn deadline_ms(tokens: &[Token]) -> u64 {
     else {
         return DEADLINE_MS;
     };
-    match parse(&timeout.value) {
+    match parse(unquoted(&timeout.value)) {
         Some((true, _)) => 0,
         Some((false, d)) => u64::try_from(d.as_nanos().div_ceil(1_000_000))
             .map_or(DEADLINE_MS, |ms| ms.min(DEADLINE_MS)),
@@ -77,12 +77,19 @@ fn deadline_ms(tokens: &[Token]) -> u64 {
     }
 }
 
+fn unquoted(value: &str) -> &str {
+    ['"', '\'']
+        .iter()
+        .find_map(|q| value.strip_prefix(*q)?.strip_suffix(*q))
+        .unwrap_or(value)
+}
+
 /// Go's `time.ParseDuration`, for a duration that isn't negative. A
-/// negative one, or text Go rejects, is `None`.
+/// negative one, or text Go rejects, is `None`. `-0` is zero.
 pub fn go_duration(text: &str) -> Option<Duration> {
     match parse(text)? {
-        (false, d) => Some(d),
-        (true, _) => None,
+        (true, d) if !d.is_zero() => None,
+        (_, d) => Some(d),
     }
 }
 

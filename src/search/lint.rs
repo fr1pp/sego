@@ -86,6 +86,14 @@ impl Scanner<'_> {
     fn next(&mut self, tokens: &mut Vec<Token>) -> Option<()> {
         let start = self.pos;
         let c = self.chars[start];
+        if self.groups
+            && c == '('
+            && let Some(end) = self.empty_parens_end(start)
+        {
+            self.pos = end;
+            tokens.push(Token::Term("()".to_owned()));
+            return Some(());
+        }
         if self.groups && c == '(' {
             self.pos += 1;
             self.depth += 1;
@@ -174,6 +182,16 @@ impl Scanner<'_> {
         None
     }
 
+    /// `()` or `( )` standing alone is the text `()`, not an empty group.
+    fn empty_parens_end(&self, open: usize) -> Option<usize> {
+        let mut i = open + 1;
+        while self.chars.get(i).is_some_and(|c| c.is_whitespace()) {
+            i += 1;
+        }
+        (self.chars.get(i) == Some(&')') && self.terminal(i + 1))
+            .then_some(i + 1)
+    }
+
     fn terminal(&self, i: usize) -> bool {
         self.chars.get(i).is_none_or(|c| c.is_whitespace() || *c == ')')
     }
@@ -181,6 +199,12 @@ impl Scanner<'_> {
     /// A quote opens at `start` only when its first unescaped twin is
     /// followed by whitespace, `)` or the end.
     fn quoted_end(&self, start: usize) -> Option<usize> {
+        self.delimited_end(start, true)
+    }
+
+    /// A filter's quoted value ends at the first unescaped twin, whatever
+    /// follows it.
+    fn delimited_end(&self, start: usize, terminated: bool) -> Option<usize> {
         let quote = *self.chars.get(start)?;
         if quote != '"' && quote != '\'' {
             return None;
@@ -190,7 +214,7 @@ impl Scanner<'_> {
             if self.chars[i] == '\\' {
                 i += 1;
             } else if self.chars[i] == quote {
-                return self.terminal(i + 1).then_some(i + 1);
+                return (!terminated || self.terminal(i + 1)).then_some(i + 1);
             }
             i += 1;
         }
@@ -202,8 +226,9 @@ impl Scanner<'_> {
         while i < self.chars.len() {
             if self.chars[i] == '\\' {
                 i += 1;
-            } else if self.chars[i] == '/' && self.terminal(i + 1) {
-                return Some(i + 1);
+            } else if self.chars[i] == '/' {
+                return (i > start + 1 && self.terminal(i + 1))
+                    .then_some(i + 1);
             }
             i += 1;
         }
@@ -224,7 +249,7 @@ impl Scanner<'_> {
         if i == letters || self.chars.get(i) != Some(&':') {
             return None;
         }
-        self.quoted_end(i + 1)
+        self.delimited_end(i + 1, false)
     }
 }
 

@@ -29,12 +29,7 @@ pub mod internal {
         pub use crate::quote::*;
     }
     pub mod search {
-        pub mod lint {
-            pub use crate::search::lint::*;
-        }
-        pub mod query {
-            pub use crate::search::query::*;
-        }
+        pub use crate::search::*;
     }
     pub mod upstream {
         pub use crate::upstream::*;
