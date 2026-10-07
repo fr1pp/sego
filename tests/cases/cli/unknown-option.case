@@ -1,0 +1,6 @@
+# An unknown option is named and nothing else is said about it.
+args: show --recursive github.com/x/y:a.go
+exit: 2
+--- stderr
+sego: error: unknown option --recursive
+usage: sego show [--json] REPO[@REV]:PATH [LINES]

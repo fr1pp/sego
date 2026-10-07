@@ -26,7 +26,6 @@ pub enum Mode {
 }
 
 impl Mode {
-    #[expect(dead_code, reason = "the case runner reads it")]
     pub fn from_env() -> Mode {
         match std::env::var("SEGO_RECORD").as_deref() {
             Ok("" | "0") | Err(_) => Mode::Replay,
@@ -271,6 +270,16 @@ fn record(
         Query::Raw { path, .. } => upstream.get(path, deadline),
     }
     .map_err(|e| format!("recording failed: {e:?}"))?;
+    if is_error_reply(&reply) {
+        let mut message = format!(
+            "recording failed: upstream answered HTTP {}",
+            reply.status
+        );
+        if let Some(value) = &reply.cf_mitigated {
+            let _ = write!(message, " (cf-mitigated: {value})");
+        }
+        return Err(message);
+    }
 
     let mut fixture = existing.map_or_else(Fixture::default, |i| {
         let old = &fixtures[i];
@@ -340,6 +349,14 @@ fn record(
     }
     write(&file, fixture.to_yaml().as_bytes())?;
     Ok(fixture)
+}
+
+/// Redirects, rate limits, server errors and Cloudflare challenges describe
+/// the moment of recording, not the API; other 4xx replies are the API's own
+/// answers.
+fn is_error_reply(reply: &Reply) -> bool {
+    matches!(reply.status, 300..=399 | 429 | 500..=599)
+        || reply.cf_mitigated.is_some()
 }
 
 fn write(path: &Path, bytes: &[u8]) -> Result<(), String> {

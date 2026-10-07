@@ -1,0 +1,28 @@
+# --help prints the command list, the address grammar and the exit codes.
+args: --help
+exit: 0
+--- stdout
+sego reads public source code at any revision through sourcegraph.com.
+
+usage: sego COMMAND [--json] ...
+
+commands:
+  show REPO[@REV]:PATH [LINES]   lines of a file
+
+addresses:
+  REPO     host/owner/name, owner/name, or a GitHub, GitLab or
+           Sourcegraph URL
+  @REV     a branch, tag or commit; the default branch without it
+  :PATH    a path from the repository root
+  LINES    N, N-M, N,M or N- (lines are numbered from 1)
+
+options:
+  --json       one JSON document on stdout
+  -h, --help   this help, or a command's help after its name
+  --version    sego's version
+
+environment:
+  SEGO_ENDPOINT   the Sourcegraph instance (default
+                  https://sourcegraph.com)
+
+exit codes: 0 answered, 1 not answered, 2 the command line is wrong

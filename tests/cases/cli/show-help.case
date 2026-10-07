@@ -1,0 +1,20 @@
+# show --help prints show's synopsis, grammar, options and two facts.
+args: show --help
+exit: 0
+--- stdout
+usage: sego show [--json] REPO[@REV]:PATH [LINES]
+
+addresses:
+  REPO     host/owner/name, owner/name, or a GitHub, GitLab or
+           Sourcegraph URL
+  @REV     a branch, tag or commit; the default branch without it
+  :PATH    a path from the repository root
+  LINES    N, N-M, N,M or N- (lines are numbered from 1)
+
+options:
+  --json       one JSON document on stdout
+  -h, --help   this help, or a command's help after its name
+  --version    sego's version
+
+A file over 1.5 MiB is read through Sourcegraph's raw route, a second request.
+Text shows lines 1-500 when LINES is not given; --json carries the same lines.

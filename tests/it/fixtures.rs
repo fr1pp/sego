@@ -421,3 +421,59 @@ fn refresh_forwards_every_request_and_rewrites_the_file() {
         Some(json!(1))
     );
 }
+
+fn failing_upstream(
+    status: u16,
+    cf_mitigated: Option<&'static str>,
+) -> Server {
+    Server::start(move |_| {
+        let mut response = Response::new(status).body("upstream says no");
+        if let Some(value) = cf_mitigated {
+            response = response.header("cf-mitigated", value);
+        }
+        response
+    })
+}
+
+#[test]
+fn recording_refuses_error_replies() {
+    let cases = [
+        (502, None, "recording failed: upstream answered HTTP 502"),
+        (302, None, "recording failed: upstream answered HTTP 302"),
+        (429, None, "recording failed: upstream answered HTTP 429"),
+        (
+            403,
+            Some("challenge"),
+            "recording failed: upstream answered HTTP 403 (cf-mitigated: \
+             challenge)",
+        ),
+    ];
+    for (status, mitigated, expected) in cases {
+        let dir = scratch(&format!("refuse-{status}"));
+        let upstream = failing_upstream(status, mitigated);
+        let fake = recording(Mode::RecordMissing, &dir, &upstream);
+        let reply = graphql(
+            &client(&fake.url()),
+            "Rec",
+            &json!({}),
+            "query Rec { x }",
+        )
+        .unwrap_or_else(|e| panic!("{e:?}"));
+        assert_eq!(reply.status, 500, "{status}");
+        assert_eq!(text(&reply), expected);
+        assert_eq!(upstream.requests().len(), 1);
+        assert!(load_all(&dir).is_empty(), "{status} was written");
+    }
+}
+
+#[test]
+fn recording_keeps_a_bad_request_reply() {
+    let dir = scratch("keep-400");
+    let upstream = failing_upstream(400, None);
+    let fake = recording(Mode::RecordMissing, &dir, &upstream);
+    let reply =
+        graphql(&client(&fake.url()), "Rec", &json!({}), "query Rec { x }")
+            .unwrap_or_else(|e| panic!("{e:?}"));
+    assert_eq!(reply.status, 400);
+    assert_eq!(load_all(&dir).len(), 1);
+}

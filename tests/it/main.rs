@@ -1,4 +1,6 @@
 mod address;
+mod cases;
+mod cli;
 mod envelope;
 mod error;
 mod escape;
@@ -7,6 +9,7 @@ mod guard;
 mod output;
 mod quote;
 mod resolve;
+mod run;
 mod support;
 mod transport;
 mod url;

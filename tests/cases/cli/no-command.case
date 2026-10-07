@@ -1,0 +1,7 @@
+# No command at all.
+args:
+exit: 2
+--- stderr
+sego: error: no command given
+  commands: show
+usage: sego COMMAND [--json] ...
