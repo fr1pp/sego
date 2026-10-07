@@ -6,12 +6,14 @@ use crate::address::{self, Address, LineRange, Rev};
 use crate::error::Error;
 
 pub const SYNOPSIS: &str = "sego COMMAND [--json] ...";
-const COMMANDS_FACT: &str = "commands: show";
+const COMMANDS_FACT: &str = "commands: search, show";
 
+pub const SEARCH_SYNOPSIS: &str = "sego search [--json] QUERY...";
 pub const SHOW_SYNOPSIS: &str = "sego show [--json] REPO[@REV]:PATH [LINES]";
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Command {
+    Search { query: String, json: bool },
     Show { address: Address, lines: Option<LineRange>, json: bool },
     Help(Option<&'static str>),
     Version,
@@ -32,6 +34,13 @@ pub fn parse(args: &[OsString]) -> Result<Command, Error> {
     let mut operands: Vec<String> = Vec::new();
     loop {
         let synopsis = synopsis_of(operands.first());
+        if operands.first().is_some_and(|word| word == "search")
+            && let Some(mut raw) = parser.try_raw_args()
+            && let Some(token) = raw.next_if(is_query_dash)
+        {
+            operands.push(token.to_string_lossy().into_owned());
+            continue;
+        }
         let twice =
             |name: &str| Error::usage(format!("{name} given twice"), synopsis);
         let arg = match parser.next() {
@@ -69,14 +78,15 @@ pub fn parse(args: &[OsString]) -> Result<Command, Error> {
         }
     }
     let command = match operands.split_first() {
-        Some((command, _)) if command != "show" => {
-            return Err(unknown_command(command));
-        }
-        Some((_, rest)) => Some(rest),
+        Some((command, rest)) => match command.as_str() {
+            "search" => Some(("search", rest)),
+            "show" => Some(("show", rest)),
+            _ => return Err(unknown_command(command)),
+        },
         None => None,
     };
     if flags.help {
-        return Ok(Command::Help(command.map(|_| "show")));
+        return Ok(Command::Help(command.map(|(topic, _)| topic)));
     }
     if flags.version {
         return Ok(Command::Version);
@@ -85,8 +95,27 @@ pub fn parse(args: &[OsString]) -> Result<Command, Error> {
         None => {
             Err(Error::usage("no command given", SYNOPSIS).fact(COMMANDS_FACT))
         }
-        Some(rest) => parse_show(rest, flags.json),
+        Some(("search", rest)) => parse_search(rest, flags.json),
+        Some((_, rest)) => parse_show(rest, flags.json),
     }
+}
+
+/// A token with exactly one leading dash, other than `-h`, is query text.
+fn is_query_dash(token: &std::ffi::OsStr) -> bool {
+    token.to_str().is_none_or(|text| {
+        text.len() > 1
+            && text.starts_with('-')
+            && !text.starts_with("--")
+            && text != "-h"
+    })
+}
+
+fn parse_search(operands: &[String], json: bool) -> Result<Command, Error> {
+    let query = operands.join(" ");
+    if query.trim().is_empty() {
+        return Err(Error::usage("search needs a query", SEARCH_SYNOPSIS));
+    }
+    Ok(Command::Search { query, json })
 }
 
 fn utf8(args: &[OsString]) -> Result<Vec<String>, Error> {
@@ -119,6 +148,7 @@ fn synopsis_before(earlier: &[OsString]) -> &'static str {
 
 fn synopsis_of(command: Option<&String>) -> &'static str {
     match command.map(String::as_str) {
+        Some("search") => SEARCH_SYNOPSIS,
         Some("show") => SHOW_SYNOPSIS,
         _ => SYNOPSIS,
     }
@@ -224,8 +254,26 @@ options:
   --version    sego's version
 ";
 
+const SEARCH_QUERY: &str = "\
+query:
+  -term          literal text, not an option (-h is still help)
+  and, or, not   operators, in any case
+  count:, repo:, lang:, file:
+                 query filters
+  -- TEXT        text that is one of sego's options, such as --json
+";
+
 pub fn help(topic: Option<&str>) -> String {
     match topic {
+        Some("search") => format!(
+            "usage: {SEARCH_SYNOPSIS}\n\n\
+             QUERY... is joined with single spaces and sent as one \
+             Sourcegraph query,\nwith count:100 appended when the query has \
+             no count:.\n\n{SEARCH_QUERY}\n{OPTIONS}\n\
+             Search prints one line of context around each match.\n\
+             Text prints the first 100 matches; --json carries every result \
+             fetched.\n"
+        ),
         Some("show") => format!(
             "usage: {SHOW_SYNOPSIS}\n\n{ADDRESSES}\n{OPTIONS}\n\
              A file over 1.5 MiB is read through Sourcegraph's raw route, a \
@@ -240,6 +288,7 @@ sego reads public source code at any revision through sourcegraph.com.
 usage: {SYNOPSIS}
 
 commands:
+  search QUERY...                code matching a Sourcegraph query
   show REPO[@REV]:PATH [LINES]   lines of a file
 
 {ADDRESSES}

@@ -3,5 +3,5 @@ args: shwo github.com/x/y:a.go
 exit: 2
 --- stderr
 sego: error: unknown command 'shwo'
-  commands: show
+  commands: search, show
 usage: sego COMMAND [--json] ...

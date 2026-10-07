@@ -7,6 +7,7 @@ sego reads public source code at any revision through sourcegraph.com.
 usage: sego COMMAND [--json] ...
 
 commands:
+  search QUERY...                code matching a Sourcegraph query
   show REPO[@REV]:PATH [LINES]   lines of a file
 
 addresses:

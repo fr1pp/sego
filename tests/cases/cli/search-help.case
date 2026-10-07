@@ -1,0 +1,23 @@
+# search --help prints search's synopsis, query grammar and options.
+args: search --help
+exit: 0
+--- stdout
+usage: sego search [--json] QUERY...
+
+QUERY... is joined with single spaces and sent as one Sourcegraph query,
+with count:100 appended when the query has no count:.
+
+query:
+  -term          literal text, not an option (-h is still help)
+  and, or, not   operators, in any case
+  count:, repo:, lang:, file:
+                 query filters
+  -- TEXT        text that is one of sego's options, such as --json
+
+options:
+  --json       one JSON document on stdout
+  -h, --help   this help, or a command's help after its name
+  --version    sego's version
+
+Search prints one line of context around each match.
+Text prints the first 100 matches; --json carries every result fetched.

@@ -123,6 +123,9 @@ fn dispatch(
             writeln!(out, "sego {}", env!("CARGO_PKG_VERSION"))?;
             return Ok(());
         }
+        Command::Search { .. } => {
+            return Err(Error::upstream("search is not wired yet").into());
+        }
         Command::Show { address, lines, json } => (address, lines, json),
     };
     let endpoint = Endpoint::from_env(env.endpoint.as_deref())?;

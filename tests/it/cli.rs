@@ -7,7 +7,7 @@ use sego::internal::cli::{Command, SHOW_SYNOPSIS, help, parse};
 use sego::internal::error::{Kind, report};
 
 const GENERAL: &str = "sego COMMAND [--json] ...";
-const COMMANDS: &str = "  commands: show";
+const COMMANDS: &str = "  commands: search, show";
 const LIMIT: &str = "sego has no --limit; count: is a query filter";
 
 fn os(args: &[&str]) -> Vec<OsString> {
@@ -112,8 +112,12 @@ fn errors_before_a_command() {
             expected("unknown command 'shwo'", &[COMMANDS], GENERAL),
         ),
         (
-            vec!["search", "x"],
-            expected("unknown command 'search'", &[COMMANDS], GENERAL),
+            vec!["find", "x"],
+            expected("unknown command 'find'", &[COMMANDS], GENERAL),
+        ),
+        (
+            vec!["-C", "search", "x"],
+            expected("unknown option -C", &[], GENERAL),
         ),
         (
             vec!["--json", "--json"],
@@ -283,6 +287,7 @@ sego reads public source code at any revision through sourcegraph.com.
 usage: sego COMMAND [--json] ...
 
 commands:
+  search QUERY...                code matching a Sourcegraph query
   show REPO[@REV]:PATH [LINES]   lines of a file
 
 addresses:
@@ -326,7 +331,7 @@ fn show_help_has_the_synopsis_blocks_and_two_facts() {
 
 #[test]
 fn help_fits_79_columns() {
-    for text in [help(None), help(Some("show"))] {
+    for text in [help(None), help(Some("show")), help(Some("search"))] {
         for line in text.lines() {
             assert!(line.chars().count() <= 79, "{line}");
         }

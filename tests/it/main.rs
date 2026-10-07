@@ -13,6 +13,7 @@ mod raw;
 mod resolve;
 mod run;
 mod safety;
+mod search_cli;
 mod support;
 mod transport;
 mod url;
