@@ -275,7 +275,9 @@ fn build_chunk(raw: RawChunk) -> Chunk {
             units += 1;
         }
         let last = if ec == 0 && el > sl { el - 1 } else { el };
-        for file_line in sl..=last {
+        let first = sl.max(raw.start);
+        let end = last.min(raw.start + count(lines.len()) - 1);
+        for file_line in first..=end {
             let Some(index) = file_line.checked_sub(raw.start) else {
                 continue;
             };
@@ -298,14 +300,16 @@ fn commit_group(result: CommitResult) -> Group {
     let mut lines: Vec<String> = Vec::new();
     let mut highlights: Vec<[u32; 3]> = Vec::new();
     for found in &result.matches {
-        let mut body: Vec<&str> = found.body.text.split('\n').collect();
-        if !body.is_empty() {
-            body.remove(0);
-        }
+        let mut body: Vec<&str> = found
+            .body
+            .text
+            .split('\n')
+            .map(|l| strip_cr(l).0)
+            .skip(1)
+            .collect();
         if body.last().is_some_and(|l| l.starts_with("```")) {
             body.pop();
         }
-        let span = body.len();
         if body.last() == Some(&"") {
             body.pop();
         }
@@ -314,16 +318,16 @@ fn commit_group(result: CommitResult) -> Group {
             let Some(index) = (h.line as usize).checked_sub(1) else {
                 continue;
             };
-            if index >= span {
+            if index >= body.len() {
                 continue;
             }
             highlights.push([
                 count(index + offset),
                 h.character,
-                h.character + h.length,
+                h.character.saturating_add(h.length),
             ]);
         }
-        lines.extend(body.into_iter().map(|l| strip_cr(l).0.to_owned()));
+        lines.extend(body.into_iter().map(str::to_owned));
     }
     let author = &result.commit.author;
     Group::Commit {
@@ -522,7 +526,7 @@ struct CommitRecord<'a> {
     highlights: &'a [[u32; 3]],
 }
 
-fn records(group: &Group) -> Vec<Record<'_>> {
+fn records<'a>(group: &'a Group) -> Vec<Record<'a>> {
     match group {
         Group::File { repo, commit, rev, path, binary, chunks, symbols } => {
             let rev = rev.as_deref();
@@ -533,8 +537,26 @@ fn records(group: &Group) -> Vec<Record<'_>> {
             } else if chunks.is_empty() && symbols.is_empty() {
                 out.push(Record::Path(file()));
             }
+            let symbol_record = |symbol: &'a SymbolRow| {
+                Record::Symbol(SymbolRecord {
+                    repo,
+                    commit,
+                    rev,
+                    path,
+                    line: symbol.line,
+                    name: &symbol.name,
+                    symbol_kind: &symbol.kind,
+                    container: symbol.container.as_deref(),
+                })
+            };
+            let mut pending = symbols.iter().peekable();
             for (i, chunk) in chunks.iter().enumerate() {
                 for line in &chunk.lines {
+                    while let Some(symbol) = pending
+                        .next_if(|s| s.line.is_some_and(|l| l < line.number))
+                    {
+                        out.push(symbol_record(symbol));
+                    }
                     out.push(Record::Line(LineRecord {
                         repo,
                         commit,
@@ -548,18 +570,7 @@ fn records(group: &Group) -> Vec<Record<'_>> {
                     }));
                 }
             }
-            for symbol in symbols {
-                out.push(Record::Symbol(SymbolRecord {
-                    repo,
-                    commit,
-                    rev,
-                    path,
-                    line: symbol.line,
-                    name: &symbol.name,
-                    symbol_kind: &symbol.kind,
-                    container: symbol.container.as_deref(),
-                }));
-            }
+            out.extend(pending.map(symbol_record));
             out
         }
         Group::Commit {

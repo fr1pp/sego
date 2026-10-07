@@ -184,6 +184,12 @@ fn ranges_count_code_points() {
     )]));
     let line = &only_chunks(&s)[0].lines[0];
     assert_eq!(line.ranges, [[2, 5]]);
+    let s = searched(&json!([file(
+        "a.go",
+        &[chunk("🚀 foo", 0, &json!([range(0, 2, 0, 9)]))],
+        &[]
+    )]));
+    assert_eq!(only_chunks(&s)[0].lines[0].ranges, [[2, 5]]);
     assert!(json_of(&s).contains(r#""text":"🚀 foo""#));
 }
 
@@ -287,7 +293,9 @@ fn commit_body() {
     let s = searched(&json!([commit(
         body,
         &json!([
+            {"line": 3, "character": 1, "length": 2},
             {"line": 4, "character": 1, "length": 2},
+            {"line": 0, "character": 1, "length": 2},
             {"line": 40, "character": 1, "length": 2},
         ])
     )]));
@@ -299,9 +307,74 @@ fn commit_body() {
         lines,
         &["old_test.go old_test.go", "@@ -263,0 +263,3 @@ x", "+a"]
     );
-    assert_eq!(highlights, &[[3, 1, 3]]);
+    assert_eq!(highlights, &[[2, 1, 3]]);
     assert_eq!(date, "2024-05-06");
     assert_eq!(author, "Ann");
+}
+
+#[test]
+fn commit_body_crlf_blank_line() {
+    let s = searched(&json!([commit(
+        "```diff\r\nx\r\n+y\r\n\r\n```",
+        &json!([{"line": 3, "character": 0, "length": 1}])
+    )]));
+    let Group::Commit { lines, highlights, .. } = &s.groups[0] else {
+        panic!("not a commit")
+    };
+    assert_eq!(lines, &["x", "+y"]);
+    assert!(highlights.is_empty());
+}
+
+#[test]
+fn huge_range_end_is_clamped_to_the_chunk() {
+    let s = searched(&json!([file(
+        "a.go",
+        &[chunk("ab\ncd", 3, &json!([range(3, 1, 4_000_000_000_u32, 7)]))],
+        &[]
+    )]));
+    let lines = &only_chunks(&s)[0].lines;
+    assert_eq!(lines[0].ranges, [[1, 2]]);
+    assert_eq!(lines[1].ranges, [[0, 2]]);
+}
+
+#[test]
+fn json_merges_lines_and_symbols_by_line() {
+    let s = searched(&json!([file(
+        "a.go",
+        &[chunk("a\nb\nc", 0, &json!([])), chunk("z", 20, &json!([]))],
+        &[symbol("N", None), symbol("S", Some(8)), symbol("T", Some(1))]
+    )]));
+    let out = json_of(&s);
+    let Ok(doc) = serde_json::from_str::<Value>(&out) else {
+        panic!("not json")
+    };
+    let order: Vec<String> = doc["results"]
+        .as_array()
+        .map(|rs| {
+            rs.iter()
+                .map(|r| {
+                    let what = if r["kind"] == "line" {
+                        r["line"].to_string()
+                    } else {
+                        r["name"].to_string()
+                    };
+                    format!("{}:{what}", r["kind"])
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    assert_eq!(
+        order,
+        [
+            r#""line":1"#,
+            r#""line":2"#,
+            r#""symbol":"T""#,
+            r#""line":3"#,
+            r#""symbol":"S""#,
+            r#""line":21"#,
+            r#""symbol":"N""#,
+        ]
+    );
 }
 
 #[test]
@@ -347,12 +420,12 @@ fn json_order_and_kinds() {
         r#"{"kind":"line","repo":"r/a","commit":"c1","rev":"main","#,
         r#""path":"a.go","line":5,"text":"x","match":false,"ranges":[],"#,
         r#""chunk":1},"#,
-        r#"{"kind":"line","repo":"r/a","commit":"c1","rev":"main","#,
-        r#""path":"a.go","line":6,"text":"foo","match":true,"#,
-        r#""ranges":[[0,3]],"chunk":1},"#,
         r#"{"kind":"symbol","repo":"r/a","commit":"c1","rev":"main","#,
         r#""path":"a.go","line":5,"name":"Foo","symbol_kind":"function","#,
         r#""container":null},"#,
+        r#"{"kind":"line","repo":"r/a","commit":"c1","rev":"main","#,
+        r#""path":"a.go","line":6,"text":"foo","match":true,"#,
+        r#""ranges":[[0,3]],"chunk":1},"#,
         r#"{"kind":"path","repo":"r/a","commit":"c1","rev":null,"#,
         r#""path":"b.go"},"#,
         r#"{"kind":"binary","repo":"r/a","commit":"c1","rev":"main","#,
