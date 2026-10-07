@@ -1,6 +1,7 @@
 mod address;
 mod cases;
 mod cli;
+mod diff;
 mod drift;
 mod envelope;
 mod error;

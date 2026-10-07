@@ -1,5 +1,6 @@
 mod address;
 mod cli;
+mod diff;
 mod error;
 mod escape;
 mod ls;
@@ -18,6 +19,9 @@ pub mod internal {
     }
     pub mod cli {
         pub use crate::cli::*;
+    }
+    pub mod diff {
+        pub use crate::diff::*;
     }
     pub mod error {
         pub use crate::error::*;
@@ -183,8 +187,17 @@ fn dispatch(
         Command::Log { .. } => {
             return Err(Error::upstream("log is not wired yet").into());
         }
-        Command::Diff { .. } => {
-            return Err(Error::upstream("diff is not wired yet").into());
+        Command::Diff { address, paths, json } => {
+            let (transport, deadline) = open()?;
+            let diffed = diff::run(
+                &address,
+                &paths,
+                json,
+                &*transport,
+                deadline,
+                notes,
+            )?;
+            (Box::new(diffed), json)
         }
     };
     notes.write(err)?;
