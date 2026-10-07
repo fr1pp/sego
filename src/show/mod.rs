@@ -242,8 +242,9 @@ fn file_meta<'a>(
         let count =
             dir.get("entries").and_then(Value::as_array).map_or(0, Vec::len);
         let unit = if count == 1 { "entry" } else { "entries" };
+        let name = if path.is_empty() { "./" } else { path };
         return Err(Error::missing(format!(
-            "{path} is a directory at {} ({count} {unit})",
+            "{name} is a directory at {} ({count} {unit})",
             pinned(&located.repo, &located.commit, None)
         )));
     }
@@ -251,7 +252,9 @@ fn file_meta<'a>(
     if silent && meta.is_none() && body.is_none() && dir.is_none() {
         return Err(not_found(located, path));
     }
-    if view.errored(&["parent"]) {
+    let submodule_open =
+        meta_failed || body_failed || meta.is_none() || body.is_none();
+    if submodule_open && view.errored(&["parent"]) {
         return Err(failed("the directory listing"));
     }
     meta.ok_or_else(|| failed("the file's details"))
@@ -364,6 +367,7 @@ fn interpret(
             let raw = meta
                 .get("rawURL")
                 .and_then(Value::as_str)
+                .filter(|raw| raw.starts_with('/') && !raw.starts_with("//"))
                 .ok_or_else(|| failed("the file's details"))?;
             notes.push(format!(
                 "{path} is {} bytes, over GraphQL's {CONTENT_LIMIT}-byte \
@@ -456,11 +460,7 @@ fn read_raw(
     located: &Located,
     path: &str,
 ) -> Result<String, Error> {
-    let route = match raw_url.split_once("://") {
-        Some((_, rest)) => rest.find('/').map_or("/", |at| &rest[at..]),
-        None => raw_url,
-    };
-    let reply = transport.get(route, deadline)?;
+    let reply = transport.get(raw_url, deadline)?;
     if let Some(error) = refusal(&reply) {
         return Err(error);
     }

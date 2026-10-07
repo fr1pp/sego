@@ -565,11 +565,87 @@ fn upstream_errors_name_the_part_and_hide_the_server_text() {
     );
 
     let mut parent = file_envelope();
-    parent["data"]["r0"]["c0"]["parent"] = json!(null);
+    let c0 = &mut parent["data"]["r0"]["c0"];
+    c0["meta"] = json!(null);
+    c0["parent"] = json!(null);
     fails_with(
-        &with_errors(parent, &[(&["r0", "c0", "parent"], secret)]),
+        &with_errors(
+            parent,
+            &[
+                (&["r0", "c0", "meta"], secret),
+                (&["r0", "c0", "parent"], secret),
+            ],
+        ),
         "Sourcegraph failed to answer the directory listing",
         secret,
+    );
+}
+
+#[test]
+fn a_parent_listing_error_does_not_fail_a_file_that_read() {
+    let mut envelope = file_envelope();
+    envelope["data"]["r0"]["c0"]["parent"] = json!(null);
+    let envelope = with_errors(
+        envelope,
+        &[
+            (&["r0", "c0", "dir"], "not a directory"),
+            (&["r0", "c0", "parent"], "listing failed"),
+        ],
+    );
+    let (ran, _) = show_via(
+        &["show", "github.com/x/y@main:a.go"],
+        vec![Ok(json_reply(&envelope))],
+    );
+    assert_eq!(ran.code, ExitCode::SUCCESS, "{}", text(&ran.err));
+    assert_eq!(
+        text(&ran.out),
+        "github.com/x/y@d81fd54f1a2b:a.go  lines 1-3 of 3  rev main\n   \
+         1:a\n   2:b\n   3:c\n"
+    );
+}
+
+#[test]
+fn a_rawurl_that_is_not_a_site_path_is_refused() {
+    for raw in
+        ["@evil.example/x", "//evil.example/x", "https://evil.example/x", ""]
+    {
+        let mut envelope = over_cap_envelope();
+        envelope["data"]["r0"]["c0"]["meta"]["rawURL"] = json!(raw);
+        let (ran, calls) = show_via(
+            &["show", "github.com/x/y@main:big.c", "1-2"],
+            vec![Ok(json_reply(&envelope))],
+        );
+        assert_eq!(ran.code, ExitCode::from(1), "{raw}");
+        assert_eq!(
+            text(&ran.err),
+            "sego: error: Sourcegraph failed to answer the file's details\n",
+            "{raw}"
+        );
+        assert_eq!(calls.len(), 1, "{raw}");
+    }
+}
+
+#[test]
+fn a_tree_url_of_the_root_names_it() {
+    let mut envelope = file_envelope();
+    let c0 = &mut envelope["data"]["r0"]["c0"];
+    c0["meta"] = json!(null);
+    c0["body"] = json!(null);
+    c0["dir"] = json!({"entries": [{"path": "a"}, {"path": "b"}]});
+    c0["x0"] = json!({"__typename": "GitTree"});
+    let envelope = with_errors(
+        envelope,
+        &[(&["r0", "c0", "meta"], "x"), (&["r0", "c0", "body"], "x")],
+    );
+    let (ran, _) = show_via(
+        &["show", "https://github.com/x/y/tree/main"],
+        vec![Ok(json_reply(&envelope))],
+    );
+    assert_eq!(ran.code, ExitCode::from(1));
+    assert_eq!(
+        text(&ran.err),
+        "sego: error: ./ is a directory at github.com/x/y@d81fd54f1a2b \
+         (2 entries)\n"
     );
 }
 
