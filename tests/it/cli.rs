@@ -7,7 +7,7 @@ use sego::internal::cli::{Command, SHOW_SYNOPSIS, help, parse};
 use sego::internal::error::{Kind, report};
 
 const GENERAL: &str = "sego COMMAND [--json] ...";
-const COMMANDS: &str = "  commands: search, show";
+const COMMANDS: &str = "  commands: search, show, ls, refs";
 const LIMIT: &str = "sego has no --limit; count: is a query filter";
 
 fn os(args: &[&str]) -> Vec<OsString> {
@@ -112,6 +112,14 @@ fn errors_before_a_command() {
             expected("unknown command 'shwo'", &[COMMANDS], GENERAL),
         ),
         (
+            vec!["list", "x/y"],
+            expected("unknown command 'list'", &[COMMANDS], GENERAL),
+        ),
+        (
+            vec!["list", "x/y:a.go", "3-9"],
+            expected("unknown command 'list'", &[COMMANDS], GENERAL),
+        ),
+        (
             vec!["find", "x"],
             expected("unknown command 'find'", &[COMMANDS], GENERAL),
         ),
@@ -160,7 +168,7 @@ fn option_errors_in_show() {
         (vec!["show", "-json", "x/y:a"], plain("unknown option -json")),
         (
             vec!["show", "--recursive", "x/y:a"],
-            plain("unknown option --recursive"),
+            plain("show takes no --recursive"),
         ),
         (vec!["show", "x/y:a", "--limit"], with_fact("--limit", LIMIT)),
         (vec!["show", "x/y:a", "--limit=5"], with_fact("--limit", LIMIT)),
@@ -289,6 +297,8 @@ usage: sego COMMAND [--json] ...
 commands:
   search QUERY...                code matching a Sourcegraph query
   show REPO[@REV]:PATH [LINES]   lines of a file
+  ls REPO[@REV][:PATH]           entries of a directory
+  refs REPO [TEXT]               branches and tags
 
 addresses:
   REPO     host/owner/name, owner/name, or a GitHub, GitLab or

@@ -1,0 +1,20 @@
+# ls --help prints ls's synopsis, address grammar and options.
+args: ls --help
+exit: 0
+--- stdout
+usage: sego ls [--json] [--recursive] REPO[@REV][:PATH]
+
+addresses:
+  REPO     host/owner/name, owner/name, or a GitHub, GitLab or
+           Sourcegraph URL
+  @REV     a branch, tag or commit; the default branch without it
+  :PATH    a directory from the repository root; the root without it
+
+options:
+  --json        one JSON document on stdout
+  --recursive   the whole subtree, not one directory
+  -h, --help    this help, or a command's help after its name
+  --version     sego's version
+
+Rows are paths from the repository root, sorted segment by segment.
+Text prints 200 entries; --json carries every entry.

@@ -2,26 +2,44 @@ use std::ffi::OsString;
 
 use lexopt::Arg;
 
-use crate::address::{self, Address, LineRange, Rev};
+use crate::address::{self, Address, LineRange, Repo, Rev};
 use crate::error::Error;
 
 pub const SYNOPSIS: &str = "sego COMMAND [--json] ...";
-const COMMANDS_FACT: &str = "commands: search, show";
 
 pub const SEARCH_SYNOPSIS: &str = "sego search [--json] QUERY...";
 pub const SHOW_SYNOPSIS: &str = "sego show [--json] REPO[@REV]:PATH [LINES]";
+pub const LS_SYNOPSIS: &str =
+    "sego ls [--json] [--recursive] REPO[@REV][:PATH]";
+pub const REFS_SYNOPSIS: &str = "sego refs [--json] REPO [TEXT]";
+
+/// Every command word with its synopsis. The commands fact, the synopsis
+/// lookup and the help topics all come from this table.
+const COMMANDS: &[(&str, &str)] = &[
+    ("search", SEARCH_SYNOPSIS),
+    ("show", SHOW_SYNOPSIS),
+    ("ls", LS_SYNOPSIS),
+    ("refs", REFS_SYNOPSIS),
+];
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Command {
     Search { query: String, json: bool },
     Show { address: Address, lines: Option<LineRange>, json: bool },
+    Ls { address: Address, recursive: bool, json: bool },
+    Refs { repo: Repo, text: Option<String>, json: bool },
     Help(Option<&'static str>),
     Version,
 }
 
 #[derive(Default)]
+#[expect(
+    clippy::struct_excessive_bools,
+    reason = "one independent switch per option"
+)]
 struct Flags {
     json: bool,
+    recursive: bool,
     help: bool,
     version: bool,
 }
@@ -33,7 +51,7 @@ pub fn parse(args: &[OsString]) -> Result<Command, Error> {
     let mut flags = Flags::default();
     let mut operands: Vec<String> = Vec::new();
     loop {
-        let synopsis = synopsis_of(operands.first());
+        let synopsis = synopsis_of(operands.first().map(String::as_str));
         if operands.first().is_some_and(|word| word == "search")
             && let Some(mut raw) = parser.try_raw_args()
             && let Some(token) = raw.next_if(is_query_dash)
@@ -59,6 +77,10 @@ pub fn parse(args: &[OsString]) -> Result<Command, Error> {
         match arg {
             Arg::Long("json") if flags.json => return Err(twice("--json")),
             Arg::Long("json") => flags.json = true,
+            Arg::Long("recursive") if flags.recursive => {
+                return Err(twice("--recursive"));
+            }
+            Arg::Long("recursive") => flags.recursive = true,
             Arg::Long("help") if flags.help => return Err(twice("--help")),
             Arg::Short('h') if flags.help => return Err(twice("-h")),
             Arg::Long("help") | Arg::Short('h') => flags.help = true,
@@ -78,11 +100,12 @@ pub fn parse(args: &[OsString]) -> Result<Command, Error> {
         }
     }
     let command = match operands.split_first() {
-        Some((command, rest)) => match command.as_str() {
-            "search" => Some(("search", rest)),
-            "show" => Some(("show", rest)),
-            _ => return Err(unknown_command(command)),
-        },
+        Some((word, rest)) => {
+            match COMMANDS.iter().find(|(name, _)| name == word) {
+                Some(&(name, _)) => Some((name, rest)),
+                None => return Err(unknown_command(word)),
+            }
+        }
         None => None,
     };
     if flags.help {
@@ -91,12 +114,23 @@ pub fn parse(args: &[OsString]) -> Result<Command, Error> {
     if flags.version {
         return Ok(Command::Version);
     }
-    match command {
-        None => {
-            Err(Error::usage("no command given", SYNOPSIS).fact(COMMANDS_FACT))
-        }
-        Some(("search", rest)) => parse_search(rest, flags.json),
-        Some((_, rest)) => parse_show(rest, flags.json),
+    let Some((name, rest)) = command else {
+        return Err(
+            Error::usage("no command given", SYNOPSIS).fact(commands_fact())
+        );
+    };
+    if flags.recursive && name != "ls" {
+        return Err(Error::usage(
+            format!("{name} takes no --recursive"),
+            synopsis_of(Some(name)),
+        ));
+    }
+    match name {
+        "search" => parse_search(rest, flags.json),
+        "show" => parse_show(rest, flags.json),
+        "ls" => parse_ls(rest, flags.recursive, flags.json),
+        "refs" => parse_refs(rest, flags.json),
+        other => Err(unknown_command(other)),
     }
 }
 
@@ -139,24 +173,27 @@ fn synopsis_before(earlier: &[OsString]) -> &'static str {
     for arg in earlier {
         let word = arg.to_string_lossy();
         if options_ended || !word.starts_with('-') {
-            return synopsis_of(Some(&word.into_owned()));
+            return synopsis_of(Some(&word));
         }
         options_ended = word == "--";
     }
     SYNOPSIS
 }
 
-fn synopsis_of(command: Option<&String>) -> &'static str {
-    match command.map(String::as_str) {
-        Some("search") => SEARCH_SYNOPSIS,
-        Some("show") => SHOW_SYNOPSIS,
-        _ => SYNOPSIS,
-    }
+fn synopsis_of(command: Option<&str>) -> &'static str {
+    command
+        .and_then(|word| COMMANDS.iter().find(|(name, _)| *name == word))
+        .map_or(SYNOPSIS, |&(_, synopsis)| synopsis)
+}
+
+fn commands_fact() -> String {
+    let names: Vec<&str> = COMMANDS.iter().map(|&(name, _)| name).collect();
+    format!("commands: {}", names.join(", "))
 }
 
 fn unknown_command(word: &str) -> Error {
     Error::usage(format!("unknown command '{word}'"), SYNOPSIS)
-        .fact(COMMANDS_FACT)
+        .fact(commands_fact())
 }
 
 /// lexopt splits `-json` into short options; the whole token is what the
@@ -203,15 +240,8 @@ fn parse_show(operands: &[String], json: bool) -> Result<Command, Error> {
         ));
     }
     let address = address::parse(token).map_err(|e| usage(e.to_string()))?;
-    if let Rev::Range { base, head, dots } = &address.rev {
-        let dots = match dots {
-            address::Dots::Two => "..",
-            address::Dots::Three => "...",
-        };
-        return Err(usage(format!(
-            "a range is only valid in log (A..B) and diff (A...B): \
-             {base}{dots}{head}"
-        )));
+    if let Some(message) = range_message(&address.rev) {
+        return Err(usage(message));
     }
     let names_root =
         address.path.as_deref().is_none_or(|path| matches!(path, "" | "."));
@@ -236,6 +266,68 @@ fn parse_show(operands: &[String], json: bool) -> Result<Command, Error> {
         (url, operand) => url.or(operand),
     };
     Ok(Command::Show { address, lines, json })
+}
+
+fn range_message(rev: &Rev) -> Option<String> {
+    let Rev::Range { base, head, dots } = rev else {
+        return None;
+    };
+    let dots = match dots {
+        address::Dots::Two => "..",
+        address::Dots::Three => "...",
+    };
+    Some(format!(
+        "a range is only valid in log (A..B) and diff (A...B): \
+         {base}{dots}{head}"
+    ))
+}
+
+fn parse_ls(
+    operands: &[String],
+    recursive: bool,
+    json: bool,
+) -> Result<Command, Error> {
+    let usage = |message: String| Error::usage(message, LS_SYNOPSIS);
+    let [token] = operands else {
+        return Err(usage(if operands.is_empty() {
+            "ls needs an address, like REPO[@REV][:PATH]".to_owned()
+        } else {
+            "ls takes one address".to_owned()
+        }));
+    };
+    let address = address::parse(token).map_err(|e| usage(e.to_string()))?;
+    if let Some(message) = range_message(&address.rev) {
+        return Err(usage(message));
+    }
+    if address.lines.is_some() {
+        return Err(usage("ls takes no LINES".to_owned()));
+    }
+    Ok(Command::Ls { address, recursive, json })
+}
+
+fn parse_refs(operands: &[String], json: bool) -> Result<Command, Error> {
+    let usage = |message: String| Error::usage(message, REFS_SYNOPSIS);
+    let [token, rest @ ..] = operands else {
+        return Err(usage("refs needs a repository, like REPO".to_owned()));
+    };
+    if rest.len() > 1 {
+        return Err(usage(
+            "refs takes a repository and at most one TEXT".to_owned(),
+        ));
+    }
+    let address = address::parse(token).map_err(|e| usage(e.to_string()))?;
+    let has_path =
+        address.path.as_deref().is_some_and(|path| !path.is_empty());
+    if address.rev != Rev::Default || has_path {
+        return Err(usage(format!(
+            "refs names a repository, not a revision or path: {token}"
+        )));
+    }
+    let text = rest.first().cloned();
+    if text.as_deref().is_some_and(|text| text.trim().is_empty()) {
+        return Err(usage("the TEXT operand is empty".to_owned()));
+    }
+    Ok(Command::Refs { repo: address.repo, text, json })
 }
 
 const ADDRESSES: &str = "\
@@ -263,6 +355,42 @@ query:
   -- TEXT        text that is one of sego's options, such as --json
 ";
 
+const LS_HELP: &str = "\
+usage: sego ls [--json] [--recursive] REPO[@REV][:PATH]
+
+addresses:
+  REPO     host/owner/name, owner/name, or a GitHub, GitLab or
+           Sourcegraph URL
+  @REV     a branch, tag or commit; the default branch without it
+  :PATH    a directory from the repository root; the root without it
+
+options:
+  --json        one JSON document on stdout
+  --recursive   the whole subtree, not one directory
+  -h, --help    this help, or a command's help after its name
+  --version     sego's version
+
+Rows are paths from the repository root, sorted segment by segment.
+Text prints 200 entries; --json carries every entry.
+";
+
+const REFS_HELP: &str = "\
+usage: sego refs [--json] REPO [TEXT]
+
+operands:
+  REPO     host/owner/name, owner/name, or a GitHub, GitLab or
+           Sourcegraph URL
+  TEXT     only refs whose name contains TEXT, in any case
+
+options:
+  --json       one JSON document on stdout
+  -h, --help   this help, or a command's help after its name
+  --version    sego's version
+
+Branches come default first, then newest first; tags newest first.
+Text prints 100 branches and 100 tags; --json carries up to 17000 of each.
+";
+
 pub fn help(topic: Option<&str>) -> String {
     match topic {
         Some("search") => format!(
@@ -281,6 +409,8 @@ pub fn help(topic: Option<&str>) -> String {
              Text shows lines 1-500 when LINES is not given; --json \
              carries the same lines.\n"
         ),
+        Some("ls") => LS_HELP.to_owned(),
+        Some("refs") => REFS_HELP.to_owned(),
         _ => format!(
             "\
 sego reads public source code at any revision through sourcegraph.com.
@@ -290,6 +420,8 @@ usage: {SYNOPSIS}
 commands:
   search QUERY...                code matching a Sourcegraph query
   show REPO[@REV]:PATH [LINES]   lines of a file
+  ls REPO[@REV][:PATH]           entries of a directory
+  refs REPO [TEXT]               branches and tags
 
 {ADDRESSES}
 {OPTIONS}

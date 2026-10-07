@@ -3,5 +3,5 @@ args:
 exit: 2
 --- stderr
 sego: error: no command given
-  commands: search, show
+  commands: search, show, ls, refs
 usage: sego COMMAND [--json] ...

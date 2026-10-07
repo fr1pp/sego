@@ -147,6 +147,12 @@ fn dispatch(
             )?;
             (Box::new(shown), json)
         }
+        Command::Ls { .. } => {
+            return Err(Error::upstream("ls is not wired yet").into());
+        }
+        Command::Refs { .. } => {
+            return Err(Error::upstream("refs is not wired yet").into());
+        }
     };
     notes.write(err)?;
     if json {

@@ -86,6 +86,10 @@ fn search_errors_carry_the_search_synopsis() {
             plain("--json given twice"),
         ),
         (vec!["search", "--json=1", "foo"], plain("--json takes no value")),
+        (
+            vec!["search", "--recursive", "foo"],
+            plain("search takes no --recursive"),
+        ),
     ];
     for (args, text) in table {
         assert_eq!(reported(&os(&args)), text, "{args:?}");
@@ -138,7 +142,8 @@ fn help_texts_are_exact() {
     assert!(help(None).contains(
         "commands:\n  search QUERY...                code matching a \
          Sourcegraph query\n  show REPO[@REV]:PATH [LINES]   lines of a \
-         file\n"
+         file\n  ls REPO[@REV][:PATH]           entries of a directory\n  \
+         refs REPO [TEXT]               branches and tags\n"
     ));
 }
 

@@ -1,0 +1,18 @@
+# refs --help prints refs's synopsis, operands and options.
+args: refs --help
+exit: 0
+--- stdout
+usage: sego refs [--json] REPO [TEXT]
+
+operands:
+  REPO     host/owner/name, owner/name, or a GitHub, GitLab or
+           Sourcegraph URL
+  TEXT     only refs whose name contains TEXT, in any case
+
+options:
+  --json       one JSON document on stdout
+  -h, --help   this help, or a command's help after its name
+  --version    sego's version
+
+Branches come default first, then newest first; tags newest first.
+Text prints 100 branches and 100 tags; --json carries up to 17000 of each.

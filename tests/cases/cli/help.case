@@ -9,6 +9,8 @@ usage: sego COMMAND [--json] ...
 commands:
   search QUERY...                code matching a Sourcegraph query
   show REPO[@REV]:PATH [LINES]   lines of a file
+  ls REPO[@REV][:PATH]           entries of a directory
+  refs REPO [TEXT]               branches and tags
 
 addresses:
   REPO     host/owner/name, owner/name, or a GitHub, GitLab or
