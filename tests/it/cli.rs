@@ -307,10 +307,13 @@ usage: sego COMMAND [--json] ...
 commands:
   search QUERY...                code matching a Sourcegraph query
   show REPO[@REV]:PATH [LINES]   lines of a file
+  show REPO@REV                  a commit: its message and changed files
   ls REPO[@REV][:PATH]           entries of a directory
   refs REPO [TEXT]               branches and tags
   log REPO[@REV][:PATH] [PATH]   commits
+  log REPO@A..B [PATH]           commits in B and not in A
   diff REPO@A...B [PATH...]      changed files, and the patch of named paths
+  diff REPO@REV [PATH...]        the change one commit made
 
 addresses:
   REPO     host/owner/name, owner/name, or a GitHub, GitLab or
@@ -389,6 +392,34 @@ fn general_help_names_every_command() {
         .lines()
         .filter_map(|line| line.trim_start().split(' ').next())
         .collect();
+    let mut once = named.clone();
+    once.dedup();
     let table: Vec<&str> = TABLE.iter().map(|entry| entry.name).collect();
-    assert_eq!(named, table);
+    assert_eq!(once, table);
+}
+
+#[test]
+fn general_help_lists_the_second_form_of_show_log_and_diff() {
+    let text = help(None);
+    let block = text
+        .split("commands:\n")
+        .nth(1)
+        .and_then(|rest| rest.split("\n\n").next())
+        .unwrap_or_default();
+    let lines: Vec<&str> = block.lines().collect();
+    for (first, second) in [
+        ("  show REPO[@REV]:PATH [LINES]", "  show REPO@REV"),
+        ("  log REPO[@REV][:PATH] [PATH]", "  log REPO@A..B [PATH]"),
+        ("  diff REPO@A...B [PATH...]", "  diff REPO@REV [PATH...]"),
+    ] {
+        let at = lines
+            .iter()
+            .position(|line| line.starts_with(first))
+            .unwrap_or_else(|| panic!("no line for {first}"));
+        assert!(
+            lines[at + 1].starts_with(second),
+            "after {first}: {}",
+            lines[at + 1]
+        );
+    }
 }

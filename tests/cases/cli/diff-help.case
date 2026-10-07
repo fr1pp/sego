@@ -19,4 +19,4 @@ options:
   --version    sego's version
 
 Text prints 200 file rows; --json carries every file.
-A rename shows as R only when both its paths are named; otherwise as A and D.
+With PATH operands, a rename shows as R only when both its paths are named.

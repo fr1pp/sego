@@ -518,7 +518,7 @@ options:
   --version    sego's version
 
 Text prints 200 file rows; --json carries every file.
-A rename shows as R only when both its paths are named; otherwise as A and D.
+With PATH operands, a rename shows as R only when both its paths are named.
 ";
 
 const LS_HELP: &str = "\
@@ -621,10 +621,13 @@ usage: {SYNOPSIS}
 commands:
   search QUERY...                code matching a Sourcegraph query
   show REPO[@REV]:PATH [LINES]   lines of a file
+  show REPO@REV                  a commit: its message and changed files
   ls REPO[@REV][:PATH]           entries of a directory
   refs REPO [TEXT]               branches and tags
   log REPO[@REV][:PATH] [PATH]   commits
+  log REPO@A..B [PATH]           commits in B and not in A
   diff REPO@A...B [PATH...]      changed files, and the patch of named paths
+  diff REPO@REV [PATH...]        the change one commit made
 
 {ADDRESSES}
 {OPTIONS}

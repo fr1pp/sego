@@ -142,8 +142,9 @@ fn help_texts_are_exact() {
     assert!(help(None).contains(
         "commands:\n  search QUERY...                code matching a \
          Sourcegraph query\n  show REPO[@REV]:PATH [LINES]   lines of a \
-         file\n  ls REPO[@REV][:PATH]           entries of a directory\n  \
-         refs REPO [TEXT]               branches and tags\n"
+         file\n  show REPO@REV                  a commit: its message and \
+         changed files\n  ls REPO[@REV][:PATH]           entries of a \
+         directory\n  refs REPO [TEXT]               branches and tags\n"
     ));
 }
 
