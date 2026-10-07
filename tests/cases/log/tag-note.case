@@ -1,0 +1,10 @@
+# More than 1000 tags: only the newest 1000 mark commits, and a note says so.
+args: log example.com/handwritten/tag-note@v3.0.0
+exit: 0
+--- stdout
+example.com/handwritten/tag-note@aaaa11111111  3 commits  rev v3.0.0
+aaaa11111111  2026-08-01  Ada Lovelace  (tag: v3.0.0) Release 3.0.0
+bbbb22222222  2026-07-30  Grace Hopper  Fix the parser
+cccc33333333  2026-07-29  Ada Lovelace  (tag: v3.0.0-rc.1) Start 3.0.0
+--- stderr
+sego: note: tags marked from the 1000 newest of 1250

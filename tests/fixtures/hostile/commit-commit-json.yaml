@@ -1,0 +1,61 @@
+handwritten: true
+operation: "ShowCommit"
+variables:
+  repo0: "github.com/hostile/repo"
+  rev: "commit-json"
+  base: "commit-json^1"
+status: 200
+headers:
+  content-type: "application/json"
+response:
+  data:
+    m0:
+      name: "github.com/hostile/repoesc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+      defaultBranch:
+        displayName: "main"
+      commit:
+        oid: "89abcdef0123456789abcdef0123456789abcdef"
+        subject: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+        message: "esc\u001b[0m\nrtl\u202ex\nzw\u200bx\nnew\nline\ncr\r\nnul\u0000x\nls\u2028x\ndel\u007fx\nmid\rcr\ntab\tok\n"
+        author:
+          date: "esc\u001b[0mrtlT00:00:00Z"
+          person:
+            displayName: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+        committer:
+          date: "2026-03-01T12:00:00Z"
+          person:
+            displayName: "c-esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+        parents:
+          - oid: "fedcba9876543210fedcba9876543210fedcba98"
+    d0:
+      name: "github.com/hostile/repoesc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+      defaultBranch:
+        displayName: "main"
+      comparison:
+        all:
+          totalCount: 4
+          diffStat:
+            added: 7
+            deleted: 7
+        page:
+          nodes:
+            - oldPath: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+              newPath: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+              stat:
+                added: 1
+                deleted: 1
+            - oldPath: "o-esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+              newPath: "n-esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+              stat:
+                added: 2
+                deleted: 2
+            - oldPath: null
+              newPath: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx-added"
+              stat:
+                added: 4
+                deleted: 0
+            - oldPath: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx-deleted"
+              newPath: null
+              stat:
+                added: 0
+                deleted: 4

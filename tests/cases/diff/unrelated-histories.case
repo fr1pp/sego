@@ -1,0 +1,9 @@
+# With no shared history the base is A itself.
+args: diff example.com/handwritten/unrelated-histories@gh-pages...main
+exit: 0
+--- stdout
+example.com/handwritten/unrelated-histories@e7df16ff0ce8...cc9969c2e219  4 files  +65 -0  base e7df16ff0ce8  rev gh-pages...main
+R  +0 -0  .nojekyll -> .agents/rules/.gitkeep
+A  +64 -0  .agents/rules/unit_tests.md
+A  +0 -0  .agents/skills/.gitkeep
+A  +1 -0  .claude/rules

@@ -28,19 +28,17 @@ fn declares(source: &str, module: &str) -> bool {
     })
 }
 
-#[test]
-fn every_test_file_is_declared() -> io::Result<()> {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/it");
+/// The `.rs` files under `root` that no `mod` line declares: a file in
+/// `root` in `main.rs`, a directory module `<d>/mod.rs` in `main.rs`, and
+/// each `<d>/<f>.rs` in `<d>/mod.rs`.
+fn undeclared(root: &Path) -> io::Result<Vec<String>> {
     let main = fs::read_to_string(root.join("main.rs"))?;
-    let support =
-        fs::read_to_string(root.join("support/mod.rs")).unwrap_or_default();
-
     let mut files = Vec::new();
-    rust_files(&root, &mut files)?;
+    rust_files(root, &mut files)?;
 
-    let mut undeclared = Vec::new();
+    let mut missing = Vec::new();
     for file in files {
-        let relative = file.strip_prefix(&root).unwrap_or(&file);
+        let relative = file.strip_prefix(root).unwrap_or(&file);
         let parts: Vec<_> = relative
             .iter()
             .map(|part| part.to_string_lossy().into_owned())
@@ -52,20 +50,55 @@ fn every_test_file_is_declared() -> io::Result<()> {
         let declared = match parts.as_slice() {
             [name] if name == "main.rs" => true,
             [_] => declares(&main, &stem),
-            [dir, name] if dir == "support" && name == "mod.rs" => {
-                declares(&main, "support")
+            [dir, name] if name == "mod.rs" => declares(&main, dir),
+            [dir, _] => {
+                let parent = fs::read_to_string(root.join(dir).join("mod.rs"))
+                    .unwrap_or_default();
+                declares(&parent, &stem)
             }
-            [dir, _] if dir == "support" => declares(&support, &stem),
             _ => false,
         };
         if !declared {
-            undeclared.push(relative.display().to_string());
+            missing.push(relative.display().to_string());
         }
     }
+    Ok(missing)
+}
 
+#[test]
+fn every_test_file_is_declared() -> io::Result<()> {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/it");
+    let missing = undeclared(&root)?;
     assert!(
-        undeclared.is_empty(),
-        "test files no `mod` line declares: {undeclared:?}"
+        missing.is_empty(),
+        "test files no `mod` line declares: {missing:?}"
     );
+    Ok(())
+}
+
+#[test]
+fn the_guard_checks_directory_modules_and_their_files() -> io::Result<()> {
+    let root = std::env::temp_dir()
+        .join(format!("sego-guard-{}", std::process::id()));
+    let write = |name: &str, text: &str| -> io::Result<()> {
+        let path = root.join(name);
+        if let Some(dir) = path.parent() {
+            fs::create_dir_all(dir)?;
+        }
+        fs::write(path, text)
+    };
+    write("main.rs", "mod a;\nmod b;\nmod c;\n")?;
+    write("a.rs", "")?;
+    write("b/mod.rs", "mod x;\npub mod y;\n")?;
+    write("b/x.rs", "")?;
+    write("b/y.rs", "")?;
+    write("b/z.rs", "")?;
+    write("d/mod.rs", "")?;
+    write("d/w.rs", "")?;
+    write("c/mod.rs", "")?;
+    write("c/deep/mod.rs", "")?;
+    let missing = undeclared(&root);
+    fs::remove_dir_all(&root)?;
+    assert_eq!(missing?, ["b/z.rs", "c/deep/mod.rs", "d/mod.rs", "d/w.rs"]);
     Ok(())
 }

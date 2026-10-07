@@ -1,0 +1,2 @@
+# Expected outputs hold trailing whitespace that is part of what sego prints.
+tests/cases/** -whitespace

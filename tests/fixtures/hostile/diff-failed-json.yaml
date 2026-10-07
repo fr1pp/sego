@@ -1,0 +1,32 @@
+handwritten: true
+operation: "Diff"
+variables:
+  repo0: "github.com/hostile/repo"
+  a: "failed-json-a"
+  b: "failed-json-b"
+  paths: null
+status: 200
+headers:
+  content-type: "application/json"
+response:
+  errors:
+    - message: "LEAK esc\u001b[0m rtl\u202ex zw\u200bx new\nline cr\r nul\u0000x ls\u2028x del\u007fx"
+      path:
+        - "c0"
+        - "comparison"
+  data:
+    a0:
+      name: "github.com/hostile/repoesc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+      defaultBranch:
+        displayName: "main"
+      commit:
+        oid: "0123456789abcdef0123456789abcdef01234567"
+    b0:
+      name: "github.com/hostile/repoesc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+      defaultBranch:
+        displayName: "main"
+      commit:
+        oid: "89abcdef0123456789abcdef0123456789abcdef"
+        parents:
+          - oid: "fedcba9876543210fedcba9876543210fedcba98"
+    c0: null

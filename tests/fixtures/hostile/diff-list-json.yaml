@@ -1,0 +1,68 @@
+handwritten: true
+operation: "Diff"
+variables:
+  repo0: "github.com/hostile/repo"
+  a: "list-json-a"
+  b: "list-json-b"
+  paths: null
+status: 200
+headers:
+  content-type: "application/json"
+response:
+  data:
+    a0:
+      name: "github.com/hostile/repoesc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+      defaultBranch:
+        displayName: "main"
+      commit:
+        oid: "0123456789abcdef0123456789abcdef01234567"
+    b0:
+      name: "github.com/hostile/repoesc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+      defaultBranch:
+        displayName: "main"
+      commit:
+        oid: "89abcdef0123456789abcdef0123456789abcdef"
+        parents:
+          - oid: "fedcba9876543210fedcba9876543210fedcba98"
+    c0:
+      name: "github.com/hostile/repoesc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+      defaultBranch:
+        displayName: "main"
+      comparison:
+        all:
+          totalCount: 4
+          diffStat:
+            added: 7
+            deleted: 7
+        page:
+          nodes:
+            - oldPath: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+              newPath: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+              stat:
+                added: 1
+                deleted: 1
+              oldFile:
+                commit:
+                  oid: "fedcba9876543210fedcba9876543210fedcba98"
+            - oldPath: "o-esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+              newPath: "n-esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+              stat:
+                added: 2
+                deleted: 2
+              oldFile:
+                commit:
+                  oid: "fedcba9876543210fedcba9876543210fedcba98"
+            - oldPath: null
+              newPath: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx-added"
+              stat:
+                added: 4
+                deleted: 0
+              oldFile: null
+            - oldPath: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx-deleted"
+              newPath: null
+              stat:
+                added: 0
+                deleted: 4
+              oldFile:
+                commit:
+                  oid: "fedcba9876543210fedcba9876543210fedcba98"

@@ -1,0 +1,54 @@
+handwritten: true
+operation: Diff
+variables:
+  repo0: example.com/handwritten/unrelated-histories
+  a: gh-pages
+  b: main
+  paths: null
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    a0:
+      name: example.com/handwritten/unrelated-histories
+      defaultBranch:
+        displayName: main
+      commit:
+        oid: e7df16ff0ce8bbc7139db0368ac23853be65b1b8
+    b0:
+      name: example.com/handwritten/unrelated-histories
+      defaultBranch:
+        displayName: main
+      commit:
+        oid: cc9969c2e2198aafff8accc63ee1aee30e9a2aa4
+        parents:
+        - oid: 46c65b3871dd96c81624f413b24b3d273b41a4e5
+    c0:
+      name: example.com/handwritten/unrelated-histories
+      defaultBranch:
+        displayName: main
+      comparison:
+        all:
+          totalCount: 4
+          diffStat:
+            added: 65
+            deleted: 0
+        page:
+          nodes:
+          - oldPath: .nojekyll
+            newPath: .agents/rules/.gitkeep
+            stat: {added: 0, deleted: 0}
+            oldFile: {commit: {oid: e7df16ff0ce8bbc7139db0368ac23853be65b1b8}}
+          - oldPath: null
+            newPath: .agents/rules/unit_tests.md
+            stat: {added: 64, deleted: 0}
+            oldFile: null
+          - oldPath: null
+            newPath: .agents/skills/.gitkeep
+            stat: {added: 0, deleted: 0}
+            oldFile: null
+          - oldPath: null
+            newPath: .claude/rules
+            stat: {added: 1, deleted: 0}
+            oldFile: null

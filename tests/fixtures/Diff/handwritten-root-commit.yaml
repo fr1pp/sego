@@ -1,0 +1,28 @@
+handwritten: true
+operation: Diff
+variables:
+  repo0: example.com/handwritten/root-commit
+  a: v0.1.0^1
+  b: v0.1.0
+  paths: null
+status: 200
+headers:
+  content-type: application/json
+response:
+  errors:
+  - message: "revision not found: repo 1700 @v0.1.0^1^0"
+    path: [c0, comparison]
+  data:
+    a0:
+      name: example.com/handwritten/root-commit
+      defaultBranch:
+        displayName: main
+      commit: null
+    b0:
+      name: example.com/handwritten/root-commit
+      defaultBranch:
+        displayName: main
+      commit:
+        oid: 4e8d10dc715feb79b43f1d607b45148537546a0a
+        parents: []
+    c0: null

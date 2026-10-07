@@ -1,0 +1,5 @@
+# A failed file list fails the commit, and the server's text is not printed.
+args: show example.com/handwritten/file-list-error@v2.0.0
+exit: 1
+--- stderr
+sego: error: Sourcegraph failed to answer the file list

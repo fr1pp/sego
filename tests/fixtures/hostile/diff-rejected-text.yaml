@@ -1,0 +1,14 @@
+handwritten: true
+operation: "Diff"
+variables:
+  repo0: "github.com/hostile/repo"
+  a: "rejected-text-a"
+  b: "rejected-text-b"
+  paths: null
+status: 200
+headers:
+  content-type: "application/json"
+response:
+  data: null
+  errors:
+    - message: "LEAK esc\u001b[0m rtl\u202ex zw\u200bx new\nline cr\r nul\u0000x ls\u2028x del\u007fx"

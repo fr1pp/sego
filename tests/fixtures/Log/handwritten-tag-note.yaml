@@ -1,0 +1,40 @@
+handwritten: true
+operation: Log
+variables:
+  repo0: example.com/handwritten/tag-note
+  rev: v3.0.0
+  path: null
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    r0:
+      name: example.com/handwritten/tag-note
+      defaultBranch: {displayName: main}
+      commit:
+        oid: aaaa111111111111111111111111111111111111
+        ancestors:
+          nodes:
+          - oid: aaaa111111111111111111111111111111111111
+            subject: Release 3.0.0
+            author: {date: "2026-08-01T09:00:00Z", person: {displayName: Ada Lovelace}}
+            parents: [{oid: bbbb222222222222222222222222222222222222}]
+          - oid: bbbb222222222222222222222222222222222222
+            subject: Fix the parser
+            author: {date: "2026-07-30T17:30:00Z", person: {displayName: Grace Hopper}}
+            parents: [{oid: cccc333333333333333333333333333333333333}]
+          - oid: cccc333333333333333333333333333333333333
+            subject: Start 3.0.0
+            author: {date: "2026-07-29T08:15:00Z", person: {displayName: Ada Lovelace}}
+            parents: [{oid: dddd444444444444444444444444444444444444}]
+          pageInfo: {hasNextPage: false}
+    t0:
+      name: example.com/handwritten/tag-note
+      defaultBranch: {displayName: main}
+      gitRefs:
+        totalCount: 1250
+        nodes:
+        - {displayName: v3.0.1, target: {oid: eeee555555555555555555555555555555555555}}
+        - {displayName: v3.0.0, target: {oid: aaaa111111111111111111111111111111111111}}
+        - {displayName: v3.0.0-rc.1, target: {oid: cccc333333333333333333333333333333333333}}

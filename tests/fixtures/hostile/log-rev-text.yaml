@@ -1,0 +1,60 @@
+handwritten: true
+operation: "Log"
+variables:
+  repo0: "github.com/hostile/repo"
+  rev: "rev-text"
+  path: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+status: 200
+headers:
+  content-type: "application/json"
+response:
+  data:
+    r0:
+      name: "github.com/hostile/repoesc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+      defaultBranch:
+        displayName: "main"
+      commit:
+        oid: "0123456789abcdef0123456789abcdef01234567"
+        ancestors:
+          nodes:
+            - oid: "0123456789abcdef0123456789abcdef01234567"
+              subject: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+              author:
+                date: "2026-08-01T09:00:00Z"
+                person:
+                  displayName: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+              parents:
+                - oid: "89abcdef0123456789abcdef0123456789abcdef"
+            - oid: "89abcdef0123456789abcdef0123456789abcdef"
+              subject: "b-esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+              author:
+                date: "esc\u001b[0mrtlT00:00:00Z"
+                person:
+                  displayName: "b-esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+              parents:
+                - oid: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+            - oid: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+              subject: "c-esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+              author:
+                date: "2026-07-01T00:00:00Z"
+                person:
+                  displayName: "c-esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+              parents: []
+          pageInfo:
+            hasNextPage: false
+    t0:
+      name: "github.com/hostile/repoesc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+      defaultBranch:
+        displayName: "main"
+      gitRefs:
+        totalCount: 3
+        nodes:
+          - displayName: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+            target:
+              oid: "0123456789abcdef0123456789abcdef01234567"
+          - displayName: "t-esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+            target:
+              oid: "0123456789abcdef0123456789abcdef01234567"
+          - displayName: "u-esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+            target:
+              oid: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"

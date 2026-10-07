@@ -1,0 +1,5 @@
+# A failed comparison is named, and the server's text is not printed.
+args: diff example.com/handwritten/comparison-error@v1...v2
+exit: 1
+--- stderr
+sego: error: Sourcegraph failed to answer the comparison

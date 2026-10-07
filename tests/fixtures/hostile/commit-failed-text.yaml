@@ -1,0 +1,35 @@
+handwritten: true
+operation: "ShowCommit"
+variables:
+  repo0: "github.com/hostile/repo"
+  rev: "failed-text"
+  base: "failed-text^1"
+status: 200
+headers:
+  content-type: "application/json"
+response:
+  errors:
+    - message: "LEAK esc\u001b[0m rtl\u202ex zw\u200bx new\nline cr\r nul\u0000x ls\u2028x del\u007fx"
+      path:
+        - "d0"
+        - "comparison"
+  data:
+    m0:
+      name: "github.com/hostile/repoesc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+      defaultBranch:
+        displayName: "main"
+      commit:
+        oid: "89abcdef0123456789abcdef0123456789abcdef"
+        subject: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+        message: "esc\u001b[0m\nrtl\u202ex\nzw\u200bx\nnew\nline\ncr\r\nnul\u0000x\nls\u2028x\ndel\u007fx\nmid\rcr\ntab\tok\n"
+        author:
+          date: "esc\u001b[0mrtlT00:00:00Z"
+          person:
+            displayName: "esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+        committer:
+          date: "2026-03-01T12:00:00Z"
+          person:
+            displayName: "c-esc\u001b[0mrtl\u202exzw\u200bxnew\nlinecr\rnul\u0000xls\u2028xdel\u007fx"
+        parents:
+          - oid: "fedcba9876543210fedcba9876543210fedcba98"
+    d0: null

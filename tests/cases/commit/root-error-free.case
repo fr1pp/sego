@@ -1,0 +1,10 @@
+# A root commit whose file list errors prints without it, with a note.
+args: show example.com/handwritten/root-error-free@v1.0.0
+exit: 0
+--- stdout
+example.com/handwritten/root-error-free@9f2c1d3e5a7b  2020-05-04  Ada Lovelace  parents none  rev v1.0.0
+    Start the project
+
+    The first commit.
+--- stderr
+sego: note: root commit: Sourcegraph has no diff for it
