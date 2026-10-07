@@ -5,7 +5,6 @@ use sego::internal::escape::{
 };
 
 const FAMILY: &str = "👨\u{200d}👩\u{200d}👧";
-const TAIL: &str = "… (+100 more columns; --json has the full line)";
 
 #[test]
 fn unsafe_set() {
@@ -64,48 +63,81 @@ fn strip_cr_forms() {
     }
 }
 
+fn tail(hidden: usize) -> String {
+    format!("… (+{hidden} more columns; --json has the full line)")
+}
+
 #[test]
 fn cut() {
     assert_eq!(CUT_COLUMNS, 500);
 
-    let ascii = "x".repeat(600);
-    assert_eq!(
-        render_line(&ascii, None),
-        format!("{}{TAIL}", "x".repeat(500))
-    );
-
-    let focused = format!("{}Y{}", "x".repeat(550), "x".repeat(49));
-    let out = render_line(&focused, Some(550));
-    assert!(out.starts_with('…'), "{out}");
-    assert!(out.contains('Y'), "{out}");
-    assert!(!out.contains("more columns"), "{out}");
-    assert_eq!(out.chars().count(), 1 + 500);
-
-    let middle = format!("{}Y{}", "x".repeat(300), "x".repeat(299));
-    let out = render_line(&middle, Some(300));
-    assert!(out.starts_with('…') && out.contains('Y'), "{out}");
-    assert!(out.ends_with("more columns; --json has the full line)"));
-
-    let wide = "日".repeat(300);
-    assert_eq!(
-        render_line(&wide, None),
-        format!(
-            "{}… (+100 more columns; --json has the full line)",
-            "日".repeat(250)
-        )
-    );
-
-    let tabs = "\t".repeat(600);
-    assert_eq!(
-        render_line(&tabs, None),
-        format!("{}{TAIL}", "\t".repeat(500))
-    );
-
+    let focus_550 = format!("{}Y{}", "x".repeat(550), "x".repeat(49));
+    let focus_300 = format!("{}Y{}", "x".repeat(300), "x".repeat(299));
     let families = FAMILY.repeat(100);
-    assert_eq!(render_line(&families, None), families);
-
     let exact = "x".repeat(500);
-    assert_eq!(render_line(&exact, None), exact);
+    let cases: Vec<(&str, String, Option<usize>, String)> = vec![
+        (
+            "ascii, no focus",
+            "x".repeat(600),
+            None,
+            format!("{}{}", "x".repeat(500), tail(100)),
+        ),
+        (
+            "focus near the end",
+            focus_550,
+            Some(550),
+            format!("…{}Y{}{}", "x".repeat(450), "x".repeat(49), tail(100)),
+        ),
+        (
+            "focus in the middle",
+            focus_300,
+            Some(300),
+            format!("…{}Y{}{}", "x".repeat(250), "x".repeat(249), tail(100)),
+        ),
+        (
+            "wide characters",
+            "日".repeat(300),
+            None,
+            format!("{}{}", "日".repeat(250), tail(100)),
+        ),
+        (
+            "tabs count 1",
+            "\t".repeat(600),
+            None,
+            format!("{}{}", "\t".repeat(500), tail(100)),
+        ),
+        ("zwj families under the limit", families.clone(), None, families),
+        ("exactly 500 columns", exact.clone(), None, exact),
+    ];
+    for (label, line, focus, expected) in cases {
+        assert_eq!(render_line(&line, focus), expected, "{label}");
+    }
+}
+
+#[test]
+fn cut_keeps_emoji_sequences_whole() {
+    let wave = "👋🏽";
+    let flag = "🇫🇷";
+    let cases = [
+        (
+            "modifier",
+            wave.repeat(300),
+            format!("{}{}", wave.repeat(250), tail(100)),
+        ),
+        (
+            "modifier after ascii",
+            format!("x{}", wave.repeat(300)),
+            format!("x{}{}", wave.repeat(249), tail(102)),
+        ),
+        (
+            "flag after ascii",
+            format!("x{}", flag.repeat(300)),
+            format!("x{}{}", flag.repeat(249), tail(102)),
+        ),
+    ];
+    for (label, line, expected) in cases {
+        assert_eq!(render_line(&line, None), expected, "{label}");
+    }
 }
 
 #[test]

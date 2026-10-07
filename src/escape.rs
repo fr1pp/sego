@@ -52,7 +52,8 @@ pub fn strip_cr(line: &str) -> (&str, bool) {
 }
 
 /// A run of escaped text that the cut never splits: a base character with
-/// the zero-width characters and ZWJ-joined characters that follow it.
+/// the zero-width characters, emoji modifiers and ZWJ-joined characters that
+/// follow it, or a pair of regional indicators (a flag).
 struct Unit {
     text: String,
     width: usize,
@@ -62,12 +63,25 @@ struct Unit {
 fn units(line: &str, focus: Option<usize>) -> Vec<Unit> {
     let mut units: Vec<Unit> = Vec::new();
     let mut after_joiner = false;
+    let mut indicators = 0;
     for (index, c) in line.chars().enumerate() {
         let mut piece = String::new();
         push_escaped(&mut piece, c);
+        let indicator = ('\u{1f1e6}'..='\u{1f1ff}').contains(&c);
+        let modifier = ('\u{1f3fb}'..='\u{1f3ff}').contains(&c);
         let attaches = !is_unsafe(c)
-            && (after_joiner || UnicodeWidthChar::width(c) == Some(0));
+            && (after_joiner
+                || modifier
+                || UnicodeWidthChar::width(c) == Some(0)
+                || (indicator && indicators % 2 == 1));
         after_joiner = c == '\u{200d}';
+        indicators = if !indicator {
+            0
+        } else if attaches {
+            indicators + 1
+        } else {
+            1
+        };
         let holds_focus = focus == Some(index);
         match units.last_mut() {
             Some(last) if attaches => {
@@ -143,7 +157,7 @@ pub fn render_line(line: &str, focus: Option<usize>) -> String {
         out.push('…');
     }
     out.push_str(&window);
-    if end < units.len() {
+    if start > 0 || end < units.len() {
         let hidden = total.saturating_sub(window.width());
         let _ = write!(
             out,
