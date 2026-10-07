@@ -33,7 +33,8 @@ pub fn from_entry(entry: &Value, repo: &str) -> Option<Submodule> {
 }
 
 impl Submodule {
-    /// The target with its 12 hex digits, else the stored URL, else `?`.
+    /// The target, else the stored URL, else `?`. The target carries `@`
+    /// and 12 hex digits of the commit only when the commit is known.
     pub fn shown(&self) -> String {
         match &self.target {
             Some(target) => target.clone(),

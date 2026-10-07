@@ -288,6 +288,24 @@ fn sourcegraph_repository_names_are_validated() {
 }
 
 #[test]
+fn sourcegraph_paths_that_name_no_repository() {
+    for token in [
+        "sourcegraph.com/search",
+        "https://sourcegraph.com/search",
+        "sourcegraph.com/r",
+        "sourcegraph.com/github.com/o/r:a.go",
+        "sourcegraph.com/github.com/o/r@v1:a.go",
+        "sourcegraph.com/r/github.com/o:r",
+    ] {
+        assert_eq!(
+            parse(token),
+            Err(AddressError::UnsupportedUrl(token.to_owned())),
+            "{token}"
+        );
+    }
+}
+
+#[test]
 fn sourcegraph_splits_before_decoding() {
     let a = ok("sourcegraph.com/github.com/o/r@v1/-/blob/a%40b.go");
     assert_eq!(a.path.as_deref(), Some("a@b.go"));

@@ -369,6 +369,26 @@ fn the_default_branch_is_marked_by_name() {
 }
 
 #[test]
+fn the_default_branch_marker_follows_the_name_not_the_position() {
+    let nodes = vec![node("b1", 1), node("b0", 2), node("b2", 3)];
+    let body = root(&list(3, &nodes), &list(0, &[]));
+    let ran = run_on(&scripted(&body), &[REFS]);
+    assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
+    assert_eq!(
+        out(&ran),
+        "example.com/selftest/refs  3 branches  0 tags\n\
+         branch  000000000000  2026-01-02  b1\n\
+         branch  000000000000  2026-01-02  b0  (default)\n\
+         branch  000000000000  2026-01-02  b2\n"
+    );
+
+    let ran = run_on(&scripted(&body), &["--json", REFS]);
+    let json = json_out(&ran);
+    assert_eq!(json["default_branch"], "b0");
+    assert_eq!(json["refs"][1]["name"], "b0");
+}
+
+#[test]
 fn refs_errors() {
     let run = |body: &Value, words: &[&str]| run_on(&scripted(body), words);
 

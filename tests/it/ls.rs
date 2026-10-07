@@ -93,7 +93,7 @@ fn failed(ran: &Ran, message: &str) {
 }
 
 #[test]
-fn listing_text_and_json() {
+fn listing_orders_rows_and_serialises_submodules() {
     let (ran, _) = ls(&["example.com/selftest/ble@d81fd54feb0d"]);
     assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
     assert_eq!(ran.err, b"");
@@ -137,6 +137,38 @@ fn listing_text_and_json() {
     assert!(json_text.contains(
         r#"{"path":"ble.pp","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null}"#
     ));
+}
+
+#[test]
+fn a_tree_url_at_the_root() {
+    let mut body = root_of(&[dir("docs"), file("mux.go")]);
+    body["data"]["r0"]["c0"]["x0"] = json!({"__typename": "GitTree"});
+    let url = "https://github.com/x/y/tree/v1.8.0";
+
+    let fake = scripted(&body);
+    let ran = run_on(&fake, &[url]);
+    assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
+    assert_eq!(ran.err, b"");
+    assert_eq!(
+        out(&ran),
+        "example.com/selftest/mux@98cb6bf42e08  2 entries  1 dir  1 file  \
+         rev v1.8.0\n\
+         dir        docs/\n\
+         file       mux.go\n"
+    );
+    let calls = fake.calls();
+    assert_eq!(calls.len(), 1);
+    let sent: Value = serde_json::from_slice(&calls[0].body)
+        .unwrap_or_else(|e| panic!("{e}"));
+    assert_eq!(sent["variables"]["rev0"], "v1.8.0");
+    assert_eq!(sent["variables"]["path_0"], "");
+    assert!(sent["query"].as_str().is_some_and(|q| q.contains("x0: path")));
+
+    let ran = run_on(&scripted(&body), &["--json", url]);
+    assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
+    let json = json_out(&ran);
+    assert_eq!(json["path"], Value::Null);
+    assert_eq!(json["rev"], "v1.8.0");
 }
 
 #[test]
