@@ -19,7 +19,6 @@ pub struct Prepared {
     pub added: Vec<String>,
     pub pattern_type: String,
     pub deadline_ms: u64,
-    pub tokens: Vec<Token>,
     pub notes: Vec<String>,
 }
 
@@ -37,7 +36,6 @@ pub fn prepare(query: &str) -> Prepared {
         deadline_ms: deadline_ms(&tokens),
         sent,
         added,
-        tokens,
     }
 }
 

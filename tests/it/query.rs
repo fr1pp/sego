@@ -14,7 +14,6 @@ fn facts() {
         let prepared = prepare(query);
         assert_eq!(prepared.sent, appended(query), "{query}");
         assert_eq!(prepared.added, ["count:100"], "{query}");
-        assert_eq!(prepared.tokens, tokenize(&prepared.sent), "{query}");
     }
     for query in ["COUNT:5 foo", "foo (bar count:all)", "-count:5 x"] {
         let prepared = prepare(query);
