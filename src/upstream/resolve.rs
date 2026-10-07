@@ -213,23 +213,28 @@ fn str_at<'a>(env: &'a Envelope, path: &[&str]) -> Option<&'a str> {
     env.get(path)?.as_str()
 }
 
+fn repository_lookup_failed() -> Error {
+    Error::upstream("Sourcegraph failed to answer the repository lookup")
+}
+
 fn find_root(address: &Address, env: &Envelope) -> Result<usize, Error> {
     let found: Vec<usize> = (0..address.repo.candidates().len())
         .filter(|i| env.get(&[&format!("r{i}")]).is_some())
         .collect();
     let name = written_name(&address.repo);
+    let any_root_failed = || {
+        (0..address.repo.candidates().len())
+            .any(|i| env.error_at(&[&format!("r{i}")]).is_some())
+    };
     match found[..] {
         [] => {
-            let failed = (0..address.repo.candidates().len())
-                .any(|i| env.error_at(&[&format!("r{i}")]).is_some());
-            if failed {
-                return Err(Error::upstream(
-                    "Sourcegraph failed to answer the repository lookup",
-                ));
+            if any_root_failed() {
+                return Err(repository_lookup_failed());
             }
             Err(Error::missing(format!("{name} is not on sourcegraph.com"))
                 .fact(NOT_INDEXED))
         }
+        [_] if any_root_failed() => Err(repository_lookup_failed()),
         [i] => Ok(i),
         [a, b, ..] => {
             let canonical = |i: usize| {
@@ -258,6 +263,7 @@ pub fn locate(address: &Address, env: &Envelope) -> Result<Located, Error> {
         |j: usize| env.error_at(&[r.as_str(), &format!("c{j}")]).is_some();
     let revision_lookup_failed =
         || Error::upstream("Sourcegraph failed to answer the revision lookup");
+    let branch_failed = || env.error_at(&[&r, "defaultBranch"]).is_some();
     let no_commits = || env.get(&[&r, "defaultBranch"]).is_none();
     let located = |j: usize, commit: &str| Located {
         repo: repo.clone(),
@@ -274,6 +280,9 @@ pub fn locate(address: &Address, env: &Envelope) -> Result<Located, Error> {
         let Some(commit) = oid(0) else {
             if failed(0) {
                 return Err(revision_lookup_failed());
+            }
+            if branch_failed() {
+                return Err(repository_lookup_failed());
             }
             let message = if no_commits() {
                 format!("{repo} has no commits")
@@ -312,6 +321,7 @@ pub fn locate(address: &Address, env: &Envelope) -> Result<Located, Error> {
     match best.and_then(|&j| oid(j).map(|commit| (j, commit))) {
         Some((j, commit)) => Ok(located(j, commit)),
         None if (0..cands.len()).any(failed) => Err(revision_lookup_failed()),
+        None if branch_failed() => Err(repository_lookup_failed()),
         None if no_commits() => {
             Err(Error::missing(format!("{repo} has no commits")))
         }

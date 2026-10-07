@@ -491,3 +491,23 @@ fn only_splits_look_up_refs() {
         assert!(!request.document.contains("g0:"), "{}", request.document);
     }
 }
+
+#[test]
+fn one_host_failing_is_not_one_host_existing() {
+    let lookup = "Sourcegraph failed to answer the repository lookup";
+    let blocked = refused("one-host-error", "gorilla/mux");
+    assert!(blocked.contains(lookup), "{blocked}");
+    assert!(!blocked.contains("internal git failure"), "{blocked}");
+}
+
+#[test]
+fn failed_default_branch_is_not_an_empty_repository() {
+    let lookup = "Sourcegraph failed to answer the repository lookup";
+    let single = refused("branch-error", "github.com/ascoders/blog");
+    assert!(single.contains(lookup), "{single}");
+    let split = refused(
+        "split-branch-error",
+        "https://github.com/bminor/glibc/blob/release/2.34/master/NEWS",
+    );
+    assert!(split.contains(lookup), "{split}");
+}
