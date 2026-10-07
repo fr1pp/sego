@@ -1,0 +1,32 @@
+handwritten: true
+operation: ShowCommit
+variables:
+  repo0: example.com/selftest/commit
+  rev: v0.0.1
+  base: v0.0.1^1
+status: 200
+headers:
+  content-type: application/json
+response:
+  errors:
+  - message: "revision not found: repo 1700 @4e8d10dc715feb79b43f1d607b45148537546a0a^1^0"
+    path: [d0, comparison]
+  data:
+    m0:
+      name: example.com/selftest/commit
+      defaultBranch:
+        displayName: main
+      commit:
+        oid: 4e8d10dc715feb79b43f1d607b45148537546a0a
+        subject: Initial commit
+        message: Initial commit
+        author:
+          date: "2012-10-02T21:32:24Z"
+          person:
+            displayName: rodrigo moraes
+        committer:
+          date: "2012-10-02T21:32:24Z"
+          person:
+            displayName: rodrigo moraes
+        parents: []
+    d0: null

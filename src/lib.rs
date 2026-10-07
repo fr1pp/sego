@@ -1,5 +1,6 @@
 mod address;
 mod cli;
+mod commit;
 mod diff;
 mod error;
 mod escape;
@@ -19,6 +20,9 @@ pub mod internal {
     }
     pub mod cli {
         pub use crate::cli::*;
+    }
+    pub mod commit {
+        pub use crate::commit::*;
     }
     pub mod diff {
         pub use crate::diff::*;
@@ -181,8 +185,11 @@ fn dispatch(
             )?;
             (Box::new(listed), json)
         }
-        Command::ShowCommit { .. } => {
-            return Err(Error::upstream("show is not wired yet").into());
+        Command::ShowCommit { address, json } => {
+            let (transport, deadline) = open()?;
+            let committed =
+                commit::run(&address, &*transport, deadline, notes)?;
+            (Box::new(committed), json)
         }
         Command::Log { .. } => {
             return Err(Error::upstream("log is not wired yet").into());

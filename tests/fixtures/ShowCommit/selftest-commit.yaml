@@ -1,0 +1,44 @@
+handwritten: true
+operation: ShowCommit
+variables:
+  repo0: example.com/selftest/commit
+  rev: affe2b9b7c60
+  base: affe2b9b7c60^1
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    m0:
+      name: example.com/selftest/commit
+      defaultBranch:
+        displayName: main
+      commit:
+        oid: affe2b9b7c608f4e354d7e83d0583ed35e845650
+        subject: "docs(ast-grep): document run --json output and zero-match debugging (#11)"
+        message: "docs(ast-grep): document run --json output and zero-match debugging (#11)\n\n* docs: document run --json output schema and jq extraction in ast-grep skill\n\n* docs: add node-granularity and zero-match debugging tips to ast-grep skill"
+        author:
+          date: "2026-09-09T20:14:26Z"
+          person:
+            displayName: Jonathan Davies
+        committer:
+          date: "2026-09-09T20:14:26Z"
+          person:
+            displayName: GitHub
+        parents:
+        - oid: 6b668aa526afdc623c1a9ed1d6ae920e04a717ad
+    d0:
+      name: example.com/selftest/commit
+      defaultBranch:
+        displayName: main
+      comparison:
+        all:
+          totalCount: 1
+          diffStat:
+            added: 33
+            deleted: 0
+        page:
+          nodes:
+          - oldPath: ast-grep/skills/ast-grep/SKILL.md
+            newPath: ast-grep/skills/ast-grep/SKILL.md
+            stat: {added: 33, deleted: 0}
