@@ -4,6 +4,7 @@ use crate::escape;
 
 pub mod json;
 pub mod text;
+pub mod vocab;
 
 #[derive(Debug, Default)]
 pub struct Notes(Vec<String>);
