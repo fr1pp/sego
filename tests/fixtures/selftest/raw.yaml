@@ -1,0 +1,8 @@
+request:
+  method: GET
+  path: /r/x
+status: 200
+headers:
+  content-type: text/plain
+handwritten: true
+response: "raw body\n"

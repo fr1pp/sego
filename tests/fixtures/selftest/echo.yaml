@@ -1,0 +1,14 @@
+operation: SelfTest
+variables:
+  x: 1
+query: |
+  query SelfTest($x: Int!) {
+    echo(x: $x)
+  }
+status: 200
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    echo: 1

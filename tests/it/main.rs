@@ -1,6 +1,7 @@
 mod address;
 mod error;
 mod escape;
+mod fixtures;
 mod guard;
 mod quote;
 mod support;

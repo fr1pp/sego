@@ -1,0 +1,8 @@
+request:
+  method: GET
+  path: /r/big
+status: 200
+headers:
+  content-type: text/plain
+handwritten: true
+body_file: big.body
