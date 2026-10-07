@@ -1,0 +1,112 @@
+operation: Search
+variables:
+  query: repo:^github\.com/gorilla/mux$@v1.8.0 "func NewRouter" count:100
+query: |
+  query Search($query: String!) {
+    search(query: $query, version: V3, patternType: keyword) {
+      results {
+        matchCount approximateResultCount limitHit repositoriesCount
+        timedout { name } cloning { name } missing { name }
+        alert { title description kind proposedQueries { description query } }
+        elapsedMilliseconds
+        dynamicFilters { value label count limitHit kind }
+        results {
+          __typename
+          ... on FileMatch {
+            repository { name }
+            file { path commit { oid } }
+            revSpec { ... on GitRevSpecExpr { expr } }
+            chunkMatches { content contentStart { line }
+              ranges { start { line character } end { line character } } }
+            symbols { name kind containerName location { range { start { line } } } }
+          }
+          ... on CommitSearchResult {
+            commit { oid subject author { date person { displayName } } repository { name } }
+            matches { body { text } highlights { line character length } }
+          }
+          ... on Repository { name }
+        }
+      }
+    }
+  }
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    search:
+      results:
+        alert: null
+        approximateResultCount: "2"
+        cloning: []
+        dynamicFilters:
+        - count: 2
+          kind: type
+          label: Code
+          limitHit: true
+          value: type:file
+        - count: 2
+          kind: lang
+          label: Go
+          limitHit: true
+          value: lang:go
+        - count: 2
+          kind: repo
+          label: github.com/gorilla/mux
+          limitHit: true
+          value: repo:^github\.com/gorilla/mux$@v1.8.0
+        elapsedMilliseconds: 3167
+        limitHit: false
+        matchCount: 2
+        missing: []
+        repositoriesCount: 1
+        results:
+        - __typename: FileMatch
+          chunkMatches:
+          - content: |
+              // NewRouter returns a new router instance.
+              func NewRouter() *Router {
+              	return &Router{namedRoutes: make(map[string]*Route)}
+            contentStart:
+              line: 23
+            ranges:
+            - end:
+                character: 14
+                line: 24
+              start:
+                character: 0
+                line: 24
+          file:
+            commit:
+              oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+            path: mux.go
+          repository:
+            name: github.com/gorilla/mux
+          revSpec:
+            expr: v1.8.0
+          symbols: []
+        - __typename: FileMatch
+          chunkMatches:
+          - content: |
+              // name and pattern can't be empty, and names can't contain a colon.
+              func newRouteRegexp(tpl string, typ regexpType, options routeRegexpOptions) (*routeRegexp, error) {
+              	// Check if it is well-formed.
+            contentStart:
+              line: 39
+            ranges:
+            - end:
+                character: 14
+                line: 40
+              start:
+                character: 0
+                line: 40
+          file:
+            commit:
+              oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+            path: regexp.go
+          repository:
+            name: github.com/gorilla/mux
+          revSpec:
+            expr: v1.8.0
+          symbols: []
+        timedout: []

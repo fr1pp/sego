@@ -1,0 +1,40 @@
+# The narrow line lists the server filters; ones the query has or that match every result are skipped.
+args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 ListenAndServe'
+exit: 0
+--- stdout
+8 matches  1 repo  1.4 s, deadline 60 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0 ListenAndServe count:100  (count:100 added by sego)
+narrow  lang:markdown 7  lang:go 1
+
+github.com/gorilla/mux@98cb6bf42e08:README.md
+ 210-
+ 211:    log.Fatal(srv.ListenAndServe())
+ 212-}
+--
+ 297-
+ 298:	log.Fatal(srv.ListenAndServe())
+ 299-}
+--
+ 475-    go func() {
+ 476:        if err := srv.ListenAndServe(); err != nil {
+ 477-            log.Println(err)
+--
+ 608-    
+ 609:    http.ListenAndServe(":8080", r)
+ 610-}
+--
+ 673-
+ 674:    log.Fatal(http.ListenAndServe("localhost:8080", r))
+ 675-}
+--
+ 731-
+ 732:    log.Fatal(http.ListenAndServe("localhost:8080", r))
+ 733-}
+--
+ 798-    // Bind to a port and pass our router in
+ 799:    log.Fatal(http.ListenAndServe(":8000", r))
+ 800-}
+github.com/gorilla/mux@98cb6bf42e08:doc.go
+ 169-
+ 170:		log.Fatal(srv.ListenAndServe())
+ 171-	}

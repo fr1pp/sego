@@ -1,0 +1,56 @@
+operation: Search
+variables:
+  query: repo:^github\.com/gorilla/mux$ type:repo count:100
+query: |
+  query Search($query: String!) {
+    search(query: $query, version: V3, patternType: keyword) {
+      results {
+        matchCount approximateResultCount limitHit repositoriesCount
+        timedout { name } cloning { name } missing { name }
+        alert { title description kind proposedQueries { description query } }
+        elapsedMilliseconds
+        dynamicFilters { value label count limitHit kind }
+        results {
+          __typename
+          ... on FileMatch {
+            repository { name }
+            file { path commit { oid } }
+            revSpec { ... on GitRevSpecExpr { expr } }
+            chunkMatches { content contentStart { line }
+              ranges { start { line character } end { line character } } }
+            symbols { name kind containerName location { range { start { line } } } }
+          }
+          ... on CommitSearchResult {
+            commit { oid subject author { date person { displayName } } repository { name } }
+            matches { body { text } highlights { line character length } }
+          }
+          ... on Repository { name }
+        }
+      }
+    }
+  }
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    search:
+      results:
+        alert: null
+        approximateResultCount: "1"
+        cloning: []
+        dynamicFilters:
+        - count: 1
+          kind: type
+          label: Repositories
+          limitHit: true
+          value: type:repo
+        elapsedMilliseconds: 6
+        limitHit: false
+        matchCount: 1
+        missing: []
+        repositoriesCount: 1
+        results:
+        - __typename: Repository
+          name: github.com/gorilla/mux
+        timedout: []

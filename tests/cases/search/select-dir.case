@@ -1,0 +1,8 @@
+# select:file.directory on a flat repository returns the root as ./.
+args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 select:file.directory NewRouter'
+exit: 0
+--- stdout
+1+ matches  1 repo  0.5 s, deadline 60 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0 select:file.directory NewRouter count:100  (count:100 added by sego)
+
+github.com/gorilla/mux@98cb6bf42e08:./

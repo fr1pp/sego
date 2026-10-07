@@ -1,0 +1,8 @@
+# Check 1: a misspelt filter.
+args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 lnag:go NewRouter'
+exit: 0
+--- stdout
+0 matches  0 repos  0.5 s, deadline 60 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0 lnag:go NewRouter count:100  (count:100 added by sego)
+--- stderr
+sego: note: 'lnag:' is not a filter; the server searches `lnag:go` as text

@@ -1,0 +1,22 @@
+# A given count: is sent as written, with nothing added.
+args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 Route count:5'
+exit: 0
+--- stdout
+5+ matches  1 repo  1.0 s, deadline 60 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0 Route count:5
+
+github.com/gorilla/mux@98cb6bf42e08:old_test.go
+  66-
+  67:func TestRouteMatchers(t *testing.T) {
+  68-	var scheme, host, path, query, method string
+--
+ 363-type urlBuildingTest struct {
+ 364:	route *Route
+ 365-	vars  []string
+--
+ 546-
+ 547:func TestMatchedRouteName(t *testing.T) {
+ 548:	routeName := "stock"
+ 549-	router := NewRouter()
+ 550-	route := router.NewRoute().Path("/products/").Name(routeName)
+ 551-

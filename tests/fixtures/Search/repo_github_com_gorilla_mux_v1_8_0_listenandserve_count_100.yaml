@@ -1,0 +1,195 @@
+operation: Search
+variables:
+  query: repo:^github\.com/gorilla/mux$@v1.8.0 ListenAndServe count:100
+query: |
+  query Search($query: String!) {
+    search(query: $query, version: V3, patternType: keyword) {
+      results {
+        matchCount approximateResultCount limitHit repositoriesCount
+        timedout { name } cloning { name } missing { name }
+        alert { title description kind proposedQueries { description query } }
+        elapsedMilliseconds
+        dynamicFilters { value label count limitHit kind }
+        results {
+          __typename
+          ... on FileMatch {
+            repository { name }
+            file { path commit { oid } }
+            revSpec { ... on GitRevSpecExpr { expr } }
+            chunkMatches { content contentStart { line }
+              ranges { start { line character } end { line character } } }
+            symbols { name kind containerName location { range { start { line } } } }
+          }
+          ... on CommitSearchResult {
+            commit { oid subject author { date person { displayName } } repository { name } }
+            matches { body { text } highlights { line character length } }
+          }
+          ... on Repository { name }
+        }
+      }
+    }
+  }
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    search:
+      results:
+        alert: null
+        approximateResultCount: "8"
+        cloning: []
+        dynamicFilters:
+        - count: 8
+          kind: type
+          label: Code
+          limitHit: true
+          value: type:file
+        - count: 8
+          kind: repo
+          label: github.com/gorilla/mux
+          limitHit: true
+          value: repo:^github\.com/gorilla/mux$@v1.8.0
+        - count: 7
+          kind: lang
+          label: Markdown
+          limitHit: true
+          value: lang:markdown
+        - count: 1
+          kind: lang
+          label: Go
+          limitHit: true
+          value: lang:go
+        elapsedMilliseconds: 1401
+        limitHit: false
+        matchCount: 8
+        missing: []
+        repositoriesCount: 1
+        results:
+        - __typename: FileMatch
+          chunkMatches:
+          - content: |2
+              
+                  log.Fatal(srv.ListenAndServe())
+              }
+            contentStart:
+              line: 209
+            ranges:
+            - end:
+                character: 32
+                line: 210
+              start:
+                character: 18
+                line: 210
+          - content: |
+              
+              	log.Fatal(srv.ListenAndServe())
+              }
+            contentStart:
+              line: 296
+            ranges:
+            - end:
+                character: 29
+                line: 297
+              start:
+                character: 15
+                line: 297
+          - content: |2
+                  go func() {
+                      if err := srv.ListenAndServe(); err != nil {
+                          log.Println(err)
+            contentStart:
+              line: 474
+            ranges:
+            - end:
+                character: 36
+                line: 475
+              start:
+                character: 22
+                line: 475
+          - content: |2
+                  
+                  http.ListenAndServe(":8080", r)
+              }
+            contentStart:
+              line: 607
+            ranges:
+            - end:
+                character: 23
+                line: 608
+              start:
+                character: 9
+                line: 608
+          - content: |2
+              
+                  log.Fatal(http.ListenAndServe("localhost:8080", r))
+              }
+            contentStart:
+              line: 672
+            ranges:
+            - end:
+                character: 33
+                line: 673
+              start:
+                character: 19
+                line: 673
+          - content: |2
+              
+                  log.Fatal(http.ListenAndServe("localhost:8080", r))
+              }
+            contentStart:
+              line: 730
+            ranges:
+            - end:
+                character: 33
+                line: 731
+              start:
+                character: 19
+                line: 731
+          - content: |2
+                  // Bind to a port and pass our router in
+                  log.Fatal(http.ListenAndServe(":8000", r))
+              }
+            contentStart:
+              line: 797
+            ranges:
+            - end:
+                character: 33
+                line: 798
+              start:
+                character: 19
+                line: 798
+          file:
+            commit:
+              oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+            path: README.md
+          repository:
+            name: github.com/gorilla/mux
+          revSpec:
+            expr: v1.8.0
+          symbols: []
+        - __typename: FileMatch
+          chunkMatches:
+          - content: |
+              
+              		log.Fatal(srv.ListenAndServe())
+              	}
+            contentStart:
+              line: 168
+            ranges:
+            - end:
+                character: 30
+                line: 169
+              start:
+                character: 16
+                line: 169
+          file:
+            commit:
+              oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+            path: doc.go
+          repository:
+            name: github.com/gorilla/mux
+          revSpec:
+            expr: v1.8.0
+          symbols: []
+        timedout: []

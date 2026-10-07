@@ -1,0 +1,22 @@
+# A diff search over a revision range prints the hunks.
+args: search 'repo:^github\.com/gorilla/mux$@v1.8.0:^v1.7.4 type:diff count:3 route'
+exit: 0
+--- stdout
+3+ matches  1 repo  0.0 s, deadline 60 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0:^v1.7.4 type:diff count:3 route
+narrow  author:harsha@minio\.io 1  before:"2 months ago" 1
+
+github.com/gorilla/mux@98cb6bf42e08  2020-07-11  Harshavardhana  fix: regression in vars extract for wildcard host (#579)
+    old_test.go old_test.go
+    @@ -263,0 +263,3 @@ var hostMatcherTests = []hostMatcherTest{
+    +	{
+    +		matcher: NewRouter().NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}:{port:.*}"),
+    +		url:     "http://abc.def.ghi:65535/",
+    @@ -263,0 +269,3 @@ var hostMatcherTests = []hostMatcherTest{
+    +	{
+    +		matcher: NewRouter().NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}"),
+    +		url:     "http://abc.def.ghi:65535/",
+    @@ -368,0 +380,3 @@ var urlBuildingTests = []urlBuildingTest{
+    +	{
+    +		route: new(Route).Host("{subdomain}.domain.com:{port:.*}"),
+    +		vars:  []string{"subdomain", "bar", "port", "65535"},

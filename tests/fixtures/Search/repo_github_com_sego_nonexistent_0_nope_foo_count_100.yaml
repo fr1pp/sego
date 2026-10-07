@@ -1,0 +1,53 @@
+operation: Search
+variables:
+  query: repo:^github\.com/sego-nonexistent-0/nope$ foo count:100
+query: |
+  query Search($query: String!) {
+    search(query: $query, version: V3, patternType: keyword) {
+      results {
+        matchCount approximateResultCount limitHit repositoriesCount
+        timedout { name } cloning { name } missing { name }
+        alert { title description kind proposedQueries { description query } }
+        elapsedMilliseconds
+        dynamicFilters { value label count limitHit kind }
+        results {
+          __typename
+          ... on FileMatch {
+            repository { name }
+            file { path commit { oid } }
+            revSpec { ... on GitRevSpecExpr { expr } }
+            chunkMatches { content contentStart { line }
+              ranges { start { line character } end { line character } } }
+            symbols { name kind containerName location { range { start { line } } } }
+          }
+          ... on CommitSearchResult {
+            commit { oid subject author { date person { displayName } } repository { name } }
+            matches { body { text } highlights { line character length } }
+          }
+          ... on Repository { name }
+        }
+      }
+    }
+  }
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    search:
+      results:
+        alert:
+          description: Try using a different `repo:<regexp>` filter to see results
+          kind: null
+          proposedQueries: null
+          title: No repositories found
+        approximateResultCount: "0"
+        cloning: []
+        dynamicFilters: []
+        elapsedMilliseconds: 34
+        limitHit: false
+        matchCount: 0
+        missing: []
+        repositoriesCount: 0
+        results: []
+        timedout: []

@@ -1,0 +1,5 @@
+# A revision the repository lacks is an error.
+args: search 'repo:^github\.com/gorilla/mux$@v9.9.9 NewRouter'
+exit: 1
+--- stderr
+sego: error: revision v9.9.9 not found in github.com/gorilla/mux

@@ -1,0 +1,132 @@
+operation: Search
+variables:
+  query: >-
+    repo:^github\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade
+    count:100
+query: |
+  query Search($query: String!) {
+    search(query: $query, version: V3, patternType: keyword) {
+      results {
+        matchCount approximateResultCount limitHit repositoriesCount
+        timedout { name } cloning { name } missing { name }
+        alert { title description kind proposedQueries { description query } }
+        elapsedMilliseconds
+        dynamicFilters { value label count limitHit kind }
+        results {
+          __typename
+          ... on FileMatch {
+            repository { name }
+            file { path commit { oid } }
+            revSpec { ... on GitRevSpecExpr { expr } }
+            chunkMatches { content contentStart { line }
+              ranges { start { line character } end { line character } } }
+            symbols { name kind containerName location { range { start { line } } } }
+          }
+          ... on CommitSearchResult {
+            commit { oid subject author { date person { displayName } } repository { name } }
+            matches { body { text } highlights { line character length } }
+          }
+          ... on Repository { name }
+        }
+      }
+    }
+  }
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    search:
+      results:
+        alert: null
+        approximateResultCount: 6+
+        cloning: []
+        dynamicFilters:
+        - count: 6
+          kind: type
+          label: Paths
+          limitHit: true
+          value: type:path
+        - count: 6
+          kind: repo
+          label: github.com/gorilla/websocket
+          limitHit: true
+          value: repo:^github\.com/gorilla/websocket$@v1.5.3
+        - count: 4
+          kind: lang
+          label: Go
+          limitHit: true
+          value: lang:go
+        elapsedMilliseconds: 381
+        limitHit: true
+        matchCount: 6
+        missing: []
+        repositoriesCount: 1
+        results:
+        - __typename: FileMatch
+          chunkMatches: []
+          file:
+            commit:
+              oid: ce903f6d1d961af3a8602f2842c8b1c3fca58c4d
+            path: examples/chat/
+          repository:
+            name: github.com/gorilla/websocket
+          revSpec:
+            expr: v1.5.3
+          symbols: []
+        - __typename: FileMatch
+          chunkMatches: []
+          file:
+            commit:
+              oid: ce903f6d1d961af3a8602f2842c8b1c3fca58c4d
+            path: examples/echo/
+          repository:
+            name: github.com/gorilla/websocket
+          revSpec:
+            expr: v1.5.3
+          symbols: []
+        - __typename: FileMatch
+          chunkMatches: []
+          file:
+            commit:
+              oid: ce903f6d1d961af3a8602f2842c8b1c3fca58c4d
+            path: examples/command/
+          repository:
+            name: github.com/gorilla/websocket
+          revSpec:
+            expr: v1.5.3
+          symbols: []
+        - __typename: FileMatch
+          chunkMatches: []
+          file:
+            commit:
+              oid: ce903f6d1d961af3a8602f2842c8b1c3fca58c4d
+            path: ./
+          repository:
+            name: github.com/gorilla/websocket
+          revSpec:
+            expr: v1.5.3
+          symbols: []
+        - __typename: FileMatch
+          chunkMatches: []
+          file:
+            commit:
+              oid: ce903f6d1d961af3a8602f2842c8b1c3fca58c4d
+            path: examples/autobahn/
+          repository:
+            name: github.com/gorilla/websocket
+          revSpec:
+            expr: v1.5.3
+          symbols: []
+        - __typename: FileMatch
+          chunkMatches: []
+          file:
+            commit:
+              oid: ce903f6d1d961af3a8602f2842c8b1c3fca58c4d
+            path: examples/filewatch/
+          repository:
+            name: github.com/gorilla/websocket
+          revSpec:
+            expr: v1.5.3
+          symbols: []
+        timedout: []

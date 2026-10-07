@@ -1,0 +1,182 @@
+# count:all with more than 100 matches prints 100 of N.
+args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 Route count:all'
+exit: 0
+--- stdout
+105 of 1864 matches  1 repo  1.6 s, deadline 60 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0 Route count:all
+narrow  type:path 2  lang:go 1744  -file:_test\.\w+$ 1239  lang:markdown 120
+
+github.com/gorilla/mux@98cb6bf42e08:old_test.go
+  66-
+  67:func TestRouteMatchers(t *testing.T) {
+  68-	var scheme, host, path, query, method string
+--
+  71-
+  72:	router := NewRouter()
+  73:	router.NewRoute().Host("{var1}.google.com").
+  74-		Path("/{var2:[a-z]+}/{var3:[0-9]+}").
+--
+  78-		Headers("x-requested-with", "XMLHttpRequest")
+  79:	router.NewRoute().Host("www.{var4}.com").
+  80-		PathPrefix("/foo/{var5:[a-z]+}/{var6:[0-9]+}").
+--
+ 120-
+ 121:		var routeMatch RouteMatch
+ 122:		matched := router.Match(request, &routeMatch)
+ 123-		if matched != shouldMatch {
+--
+ 127-		if matched {
+ 128:			currentRoute := routeMatch.Route
+ 129:			if currentRoute == nil {
+ 130:				t.Errorf("Expected a current route.")
+ 131-			}
+ 132:			vars := routeMatch.Vars
+ 133-			expectedVars := resultVars[shouldMatch]
+--
+ 144-
+ 145:	// 1st route --------------------------------------------------------------
+ 146-
+--
+ 184-
+ 185:	// 2nd route --------------------------------------------------------------
+ 186-	// Everything match.
+--
+ 249-type hostMatcherTest struct {
+ 250:	matcher *Route
+ 251-	url     string
+--
+ 257-	{
+ 258:		matcher: NewRouter().NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}"),
+ 259-		url:     "http://abc.def.ghi/",
+--
+ 263-	{
+ 264:		matcher: NewRouter().NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}:{port:.*}"),
+ 265-		url:     "http://abc.def.ghi:65535/",
+--
+ 269-	{
+ 270:		matcher: NewRouter().NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}"),
+ 271-		url:     "http://abc.def.ghi:65535/",
+--
+ 275-	{
+ 276:		matcher: NewRouter().NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}"),
+ 277-		url:     "http://a.b.c/",
+--
+ 312-type pathMatcherTest struct {
+ 313:	matcher *Route
+ 314-	url     string
+--
+ 320-	{
+ 321:		matcher: NewRouter().NewRoute().Path("/{foo:[0-9][0-9][0-9]}/{bar:[0-9][0-9][0-9]}/{baz:[0-9][0-9][0-9]}"),
+ 322-		url:     "http://localhost:8080/123/456/789",
+--
+ 326-	{
+ 327:		matcher: NewRouter().NewRoute().Path("/{foo:[0-9][0-9][0-9]}/{bar:[0-9][0-9][0-9]}/{baz:[0-9][0-9][0-9]}"),
+ 328-		url:     "http://localhost:8080/1/2/3",
+--
+ 363-type urlBuildingTest struct {
+ 364:	route *Route
+ 365-	vars  []string
+--
+ 370-	{
+ 371:		route: new(Route).Host("foo.domain.com"),
+ 372-		vars:  []string{},
+--
+ 375-	{
+ 376:		route: new(Route).Host("{subdomain}.domain.com"),
+ 377-		vars:  []string{"subdomain", "bar"},
+--
+ 380-	{
+ 381:		route: new(Route).Host("{subdomain}.domain.com:{port:.*}"),
+ 382-		vars:  []string{"subdomain", "bar", "port", "65535"},
+--
+ 385-	{
+ 386:		route: new(Route).Host("foo.domain.com").Path("/articles"),
+ 387-		vars:  []string{},
+--
+ 390-	{
+ 391:		route: new(Route).Path("/articles"),
+ 392-		vars:  []string{},
+--
+ 395-	{
+ 396:		route: new(Route).Path("/articles/{category}/{id:[0-9]+}"),
+ 397-		vars:  []string{"category", "technology", "id", "42"},
+--
+ 400-	{
+ 401:		route: new(Route).Host("{subdomain}.domain.com").Path("/articles/{category}/{id:[0-9]+}"),
+ 402-		vars:  []string{"subdomain", "foo", "category", "technology", "id", "42"},
+--
+ 405-	{
+ 406:		route: new(Route).Host("example.com").Schemes("https", "http"),
+ 407-		vars:  []string{},
+--
+ 417-		}
+ 418:		var routeMatch RouteMatch
+ 419:		result := v.matcher.Match(request, &routeMatch)
+ 420-		if result != v.result {
+--
+ 436-		}
+ 437:		var routeMatch RouteMatch
+ 438:		result := v.matcher.Match(request, &routeMatch)
+ 439:		vars := routeMatch.Vars
+ 440-		if result != v.result {
+--
+ 466-		request, _ := http.NewRequest(v.method, "http://localhost:8080/", nil)
+ 467:		var routeMatch RouteMatch
+ 468:		result := v.matcher.Match(request, &routeMatch)
+ 469-		if result != v.result {
+--
+ 481-		request, _ := http.NewRequest("GET", v.url, nil)
+ 482:		var routeMatch RouteMatch
+ 483:		result := v.matcher.Match(request, &routeMatch)
+ 484:		vars := routeMatch.Vars
+ 485-		if result != v.result {
+--
+ 511-		request, _ := http.NewRequest("GET", v.url, nil)
+ 512:		var routeMatch RouteMatch
+ 513:		result := v.matcher.Match(request, &routeMatch)
+ 514-		if result != v.result {
+--
+ 526-	for _, v := range urlBuildingTests {
+ 527:		u, _ := v.route.URL(v.vars...)
+ 528-		url := u.String()
+--
+ 536-
+ 537:	router := NewRouter()
+ 538:	router.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).Name("article")
+ 539-
+ 540:	url, _ := router.Get("article").URL("category", "technology", "id", "42")
+ 541-	expected := "/articles/technology/42"
+--
+ 546-
+ 547:func TestMatchedRouteName(t *testing.T) {
+ 548:	routeName := "stock"
+ 549:	router := NewRouter()
+ 550:	route := router.NewRoute().Path("/products/").Name(routeName)
+ 551-
+--
+ 553-	request, _ := http.NewRequest("GET", url, nil)
+ 554:	var rv RouteMatch
+ 555:	ok := router.Match(request, &rv)
+ 556-
+ 557:	if !ok || rv.Route != route {
+ 558:		t.Errorf("Expected same route, got %+v.", rv.Route)
+ 559-	}
+ 560-
+ 561:	retName := rv.Route.GetName()
+ 562:	if retName != routeName {
+ 563:		t.Errorf("Expected %q, got %q.", routeName, retName)
+ 564-	}
+--
+ 568-	// Example from docs.
+ 569:	router := NewRouter()
+ 570:	subrouter := router.NewRoute().Host("www.example.com").Subrouter()
+ 571:	route := subrouter.NewRoute().Path("/products/").Name("products")
+ 572-
+--
+ 574-	request, _ := http.NewRequest("GET", url, nil)
+ 575:	var rv RouteMatch
+ 576:	ok := router.Match(request, &rv)
+ 577-
+ 578:	if !ok || rv.Route != route {
+ 579:		t.Errorf("Expected same route, got %+v.", rv.Route)
+ 580-	}

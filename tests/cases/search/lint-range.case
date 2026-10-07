@@ -1,0 +1,399 @@
+# Check 7: a range in a repository revision.
+args: search 'repo:^github\.com/gorilla/mux$@v1.8.0..v1.7.4 NewRouter'
+exit: 0
+--- stdout
+100+ matches  1 repo  1.2 s, deadline 60 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0..v1.7.4 NewRouter count:100  (count:100 added by sego)
+narrow  lang:go 80  -file:_test\.\w+$ 57  lang:markdown 20
+
+github.com/gorilla/mux@75dcda0896e1:example_route_test.go
+  13-func ExampleRoute_HeadersRegexp() {
+  14:	r := mux.NewRouter()
+  15-	route := r.NewRoute().HeadersRegexp("Accept", "html")
+--
+  35-func ExampleRoute_HeadersRegexp_exactMatch() {
+  36:	r := mux.NewRouter()
+  37-	route := r.NewRoute().HeadersRegexp("Origin", "^https://example.co$")
+github.com/gorilla/mux@75dcda0896e1:example_cors_method_middleware_test.go
+  11-func ExampleCORSMethodMiddleware() {
+  12:	r := mux.NewRouter()
+  13-
+github.com/gorilla/mux@75dcda0896e1:example_authentication_middleware_test.go
+  38-func Example_authenticationMiddleware() {
+  39:	r := mux.NewRouter()
+  40-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+github.com/gorilla/mux@75dcda0896e1:README.md
+  52-func main() {
+  53:    r := mux.NewRouter()
+  54-    r.HandleFunc("/", HomeHandler)
+--
+  65-```go
+  66:r := mux.NewRouter()
+  67-r.HandleFunc("/products/{key}", ProductHandler)
+--
+  88-```go
+  89:r := mux.NewRouter()
+  90-// Only matches if domain is "www.example.com".
+--
+ 145-```go
+ 146:r := mux.NewRouter()
+ 147-r.HandleFunc("/specific", specificHandler)
+--
+ 155-```go
+ 156:r := mux.NewRouter()
+ 157-s := r.Host("www.example.com").Subrouter()
+--
+ 174-```go
+ 175:r := mux.NewRouter()
+ 176-s := r.PathPrefix("/products").Subrouter()
+--
+ 197-    flag.Parse()
+ 198:    r := mux.NewRouter()
+ 199-
+--
+ 279-func main() {
+ 280:	router := mux.NewRouter()
+ 281-
+--
+ 308-```go
+ 309:r := mux.NewRouter()
+ 310-r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
+--
+ 328-```go
+ 329:r := mux.NewRouter()
+ 330-r.Host("{subdomain}.example.com").
+--
+ 365-```go
+ 366:r := mux.NewRouter()
+ 367-s := r.Host("{subdomain}.example.com").Subrouter()
+--
+ 398-func main() {
+ 399:	r := mux.NewRouter()
+ 400-	r.HandleFunc("/", handler)
+--
+ 461-
+ 462:    r := mux.NewRouter()
+ 463-    // Add your routes as needed
+--
+ 531-```go
+ 532:r := mux.NewRouter()
+ 533-r.HandleFunc("/", handler)
+--
+ 571-```go
+ 572:r := mux.NewRouter()
+ 573-r.HandleFunc("/", handler)
+--
+ 602-func main() {
+ 603:    r := mux.NewRouter()
+ 604-
+--
+ 670-func main() {
+ 671:    r := mux.NewRouter()
+ 672-    r.HandleFunc("/health", HealthCheckHandler)
+--
+ 727-func main() {
+ 728:    r := mux.NewRouter()
+ 729-    // A route with a route variable:
+--
+ 761-	// Need to create a router that we can pass the request through so that the vars will be added to the context
+ 762:	router := mux.NewRouter()
+ 763-        router.HandleFunc("/metrics/{type}", MetricsHandler)
+--
+ 793-func main() {
+ 794:    r := mux.NewRouter()
+ 795-    // Routes consist of a path and a handler function.
+github.com/gorilla/mux@75dcda0896e1:doc.go
+  28-	func main() {
+  29:		r := mux.NewRouter()
+  30-		r.HandleFunc("/", HomeHandler)
+--
+  44-
+  45:	r := mux.NewRouter()
+  46-	r.HandleFunc("/products/{key}", ProductHandler)
+--
+  70-
+  71:	r := mux.NewRouter()
+  72-	// Only matches if domain is "www.example.com".
+--
+ 117-
+ 118:	r := mux.NewRouter()
+ 119-	s := r.Host("www.example.com").Subrouter()
+--
+ 138-
+ 139:	r := mux.NewRouter()
+ 140-	s := r.PathPrefix("/products").Subrouter()
+--
+ 156-		flag.Parse()
+ 157:		r := mux.NewRouter()
+ 158-
+--
+ 177-
+ 178:	r := mux.NewRouter()
+ 179-	r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
+--
+ 192-
+ 193:	r := mux.NewRouter()
+ 194-	r.Host("{subdomain}.domain.com").
+--
+ 230-
+ 231:	r := mux.NewRouter()
+ 232-	s := r.Host("{subdomain}.domain.com").Subrouter()
+--
+ 260-
+ 261:	r := mux.NewRouter()
+ 262-	r.HandleFunc("/", handler)
+--
+ 294-
+ 295:	r := mux.NewRouter()
+ 296-	r.HandleFunc("/", handler)
+github.com/gorilla/mux@75dcda0896e1:middleware_test.go
+  22-func TestMiddlewareAdd(t *testing.T) {
+  23:	router := NewRouter()
+  24-	router.HandleFunc("/", dummyHandler).Methods("GET")
+--
+  47-func TestMiddleware(t *testing.T) {
+  48:	router := NewRouter()
+  49-	router.HandleFunc("/", dummyHandler).Methods("GET")
+--
+  90-func TestMiddlewareSubrouter(t *testing.T) {
+  91:	router := NewRouter()
+  92-	router.HandleFunc("/", dummyHandler).Methods("GET")
+--
+ 158-
+ 159:	router := NewRouter()
+ 160-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
+--
+ 196-
+ 197:	router := NewRouter()
+ 198-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
+--
+ 237-
+ 238:	router := NewRouter()
+ 239-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
+--
+ 278-
+ 279:	router := NewRouter()
+ 280-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
+--
+ 324-
+ 325:	router := NewRouter()
+ 326-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
+--
+ 455-		t.Run(tt.name, func(t *testing.T) {
+ 456:			router := NewRouter()
+ 457-
+--
+ 481-func TestCORSMethodMiddlewareSubrouter(t *testing.T) {
+ 482:	router := NewRouter().StrictSlash(true)
+ 483-
+--
+ 505-
+ 506:	router := NewRouter()
+ 507-	firstSubRouter := router.PathPrefix("/").Subrouter()
+github.com/gorilla/mux@75dcda0896e1:mux.go
+  23-
+  24:// NewRouter returns a new router instance.
+  25:func NewRouter() *Router {
+  26-	return &Router{namedRoutes: make(map[string]*Route)}
+--
+  33-//
+  34://     var router = mux.NewRouter()
+  35-//
+github.com/gorilla/mux@75dcda0896e1:mux_httpserver_test.go
+  13-func TestSchemeMatchers(t *testing.T) {
+  14:	router := NewRouter()
+  15-	router.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
+github.com/gorilla/mux@75dcda0896e1:mux_test.go
+1433-func TestNamedRoutes(t *testing.T) {
+1434:	r1 := NewRouter()
+1435-	r1.NewRoute().Name("a")
+--
+1457-func TestNameMultipleCalls(t *testing.T) {
+1458:	r1 := NewRouter()
+1459-	rt := r1.NewRoute().Name("foo").Name("bar")
+--
+1466-func TestStrictSlash(t *testing.T) {
+1467:	r := NewRouter()
+1468-	r.StrictSlash(true)
+--
+1542-func TestUseEncodedPath(t *testing.T) {
+1543:	r := NewRouter()
+1544-	r.UseEncodedPath()
+--
+1577-func TestWalkSingleDepth(t *testing.T) {
+1578:	r0 := NewRouter()
+1579:	r1 := NewRouter()
+1580:	r2 := NewRouter()
+1581-
+--
+1622-func TestWalkNested(t *testing.T) {
+1623:	router := NewRouter()
+1624-
+--
+1672-func TestWalkSubrouters(t *testing.T) {
+1673:	router := NewRouter()
+1674-
+--
+1700-func TestWalkErrorRoute(t *testing.T) {
+1701:	router := NewRouter()
+1702-	router.Path("/g")
+--
+1712-func TestWalkErrorMatcher(t *testing.T) {
+1713:	router := NewRouter()
+1714-	expectedError := router.Path("/g").Subrouter().Path("").GetError()
+--
+1723-func TestWalkErrorHandler(t *testing.T) {
+1724:	handler := NewRouter()
+1725-	expectedError := handler.Path("/path").Subrouter().Path("").GetError()
+1726:	router := NewRouter()
+1727-	router.Path("/g").Handler(handler)
+--
+1739-
+1740:	router := NewRouter()
+1741-	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+--
+1766-	}()
+1767:	NewRouter().NewRoute().Path("/{type:(promo|special)}/{promoId}.json")
+1768-}
+--
+1966-
+1967:	r := NewRouter()
+1968-	r.HandleFunc("/api/", func2).Name("func2")
+--
+1987-
+1988:	r := NewRouter()
+1989-	r.SkipClean(true)
+--
+2009-
+2010:	r := NewRouter()
+2011-	s := r.Headers("SomeSpecialHeader", "").Subrouter()
+--
+2034-
+2035:	r := NewRouter()
+2036-	r.HandleFunc("/", func1).Methods("GET", "POST")
+--
+2073-
+2074:	r := NewRouter()
+2075-	r.HandleFunc("/", emptyHandler)
+--
+2147-
+2148:	router := NewRouter()
+2149-	router.Methods("PATCH").Subrouter().PathPrefix("/").HandlerFunc(methodHandler("PUT"))
+--
+2196-
+2197:	router := NewRouter()
+2198-	sub := router.PathPrefix("/").Subrouter()
+--
+2254-
+2255:	router := NewRouter()
+2256-	router.PathPrefix("/1").Methods("POST").Subrouter().HandleFunc("/2", methodHandler("POST"))
+--
+2303-
+2304:	router := NewRouter()
+2305-	sub := router.PathPrefix("/1").Subrouter()
+--
+2361-
+2362:	router := NewRouter()
+2363-	router.Methods("GET").Subrouter().HandleFunc("/foo", methodHandler("GET"))
+--
+2624-					} {
+2625:						r := NewRouter()
+2626-						v.Config(r)
+--
+2649-		}
+2650:		r, _ = newRouteRegexp("hi", regexpTypeHost, routeRegexpOptions{})
+2651-	)
+--
+2721-	handler := func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }
+2722:	router := NewRouter()
+2723-	router.HandleFunc("/thing", handler).Methods(http.MethodGet)
+--
+2747-
+2748:	router := NewRouter()
+2749-	router.HandleFunc("/test", handler).Methods(http.MethodGet)
+--
+2794-	handler := func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }
+2795:	router := NewRouter()
+2796-	router.Path("/a").Subrouter().HandleFunc("/thing", handler).Methods(http.MethodGet)
+--
+2817-
+2818:	r := NewRouter()
+2819-	r.Handle("/path/{foo}", withTimeout(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+github.com/gorilla/mux@75dcda0896e1:old_test.go
+  71-
+  72:	router := NewRouter()
+  73-	router.NewRoute().Host("{var1}.google.com").
+--
+ 257-	{
+ 258:		matcher: NewRouter().NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}"),
+ 259-		url:     "http://abc.def.ghi/",
+--
+ 263-	{
+ 264:		matcher: NewRouter().NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}"),
+ 265-		url:     "http://a.b.c/",
+--
+ 308-	{
+ 309:		matcher: NewRouter().NewRoute().Path("/{foo:[0-9][0-9][0-9]}/{bar:[0-9][0-9][0-9]}/{baz:[0-9][0-9][0-9]}"),
+ 310-		url:     "http://localhost:8080/123/456/789",
+--
+ 314-	{
+ 315:		matcher: NewRouter().NewRoute().Path("/{foo:[0-9][0-9][0-9]}/{bar:[0-9][0-9][0-9]}/{baz:[0-9][0-9][0-9]}"),
+ 316-		url:     "http://localhost:8080/1/2/3",
+--
+ 515-
+ 516:	router := NewRouter()
+ 517-	router.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).Name("article")
+--
+ 527-	routeName := "stock"
+ 528:	router := NewRouter()
+ 529-	route := router.NewRoute().Path("/products/").Name(routeName)
+--
+ 547-	// Example from docs.
+ 548:	router := NewRouter()
+ 549-	subrouter := router.NewRoute().Host("www.example.com").Subrouter()
+--
+ 578-	var routeMatch RouteMatch
+ 579:	r := NewRouter()
+ 580-
+--
+ 676-	for pattern, paths := range tests {
+ 677:		p, _ = newRouteRegexp(pattern, regexpTypePath, routeRegexpOptions{})
+ 678-		for path, result := range paths {
+github.com/gorilla/mux@75dcda0896e1:regexp.go
+  30-
+  31:// newRouteRegexp parses a route template and returns a routeRegexp,
+  32-// used to match a host, a path or a query string.
+--
+  40-// name and pattern can't be empty, and names can't contain a colon.
+  41:func newRouteRegexp(tpl string, typ regexpType, options routeRegexpOptions) (*routeRegexp, error) {
+  42-	// Check if it is well-formed.
+github.com/gorilla/mux@75dcda0896e1:route.go
+ 185-	}
+ 186:	rr, err := newRouteRegexp(tpl, typ, routeRegexpOptions{
+ 187-		strictSlash:    r.strictSlash,
+--
+ 232-//
+ 233://     r := mux.NewRouter()
+ 234-//     r.Headers("Content-Type", "application/json",
+--
+ 257-//
+ 258://     r := mux.NewRouter()
+ 259-//     r.HeadersRegexp("Content-Type", "application/(text|json)",
+--
+ 285-//
+ 286://     r := mux.NewRouter()
+ 287-//     r.Host("www.example.com")
+--
+ 344-//
+ 345://     r := mux.NewRouter()
+ 346-//     r.Path("/products/").Handler(ProductsHandler)
+--
+ 379-//
+ 380://     r := mux.NewRouter()
+ 381-//     r.Queries("foo", "bar", "id", "{id:[0-9]+}")
+--
+ 475-//
+ 476://     r := mux.NewRouter()
+ 477-//     s := r.Host("www.example.com").Subrouter()
+--- stderr
+sego: note: repo:^github\.com/gorilla/mux$@v1.8.0..v1.7.4 searches v1.7.4 only
