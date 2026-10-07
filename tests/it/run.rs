@@ -693,3 +693,28 @@ fn the_raw_route_shares_the_refusal_rules() {
         );
     }
 }
+
+#[test]
+fn a_failed_raw_read_still_writes_the_raw_route_note() {
+    let note = "sego: note: big.c is 2000000 bytes, over GraphQL's \
+                1572864-byte content limit; read through the raw route (a \
+                second request)\n";
+    let cases: Vec<(Result<Reply, TransportError>, &str)> = vec![
+        (
+            Ok(raw_reply(404, "text/html", b"<html>nope</html>")),
+            "sego: error: big.c not found in github.com/x/y@d81fd54f1a2b\n",
+        ),
+        (
+            Err(TransportError::Deadline),
+            "sego: error: no answer from sourcegraph.com within 90 s\n",
+        ),
+    ];
+    for (raw, error) in cases {
+        let (ran, _) = show_via(
+            &["show", "github.com/x/y@main:big.c", "1-2"],
+            vec![Ok(json_reply(&over_cap_envelope())), raw],
+        );
+        assert_eq!(ran.code, ExitCode::from(1), "{error}");
+        assert_eq!(text(&ran.err), format!("{note}{error}"));
+    }
+}

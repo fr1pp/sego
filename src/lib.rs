@@ -57,12 +57,16 @@ pub fn run(
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> ExitCode {
-    let failure = match attempt(&args, env, connect, out, err) {
+    let mut notes = Notes::new();
+    let result = attempt(&args, env, connect, &mut notes, out, err);
+    let failure = match result {
         Ok(()) => return ExitCode::SUCCESS,
-        Err(Failure::Answer(error)) => match error::report(&error, err) {
-            Ok(()) => return ExitCode::from(error.exit_code()),
-            Err(e) => e,
-        },
+        Err(Failure::Answer(error)) => {
+            match notes.write(err).and_then(|()| error::report(&error, err)) {
+                Ok(()) => return ExitCode::from(error.exit_code()),
+                Err(e) => e,
+            }
+        }
         Err(Failure::Write(e)) => e,
     };
     if failure.kind() == io::ErrorKind::BrokenPipe {
@@ -93,10 +97,11 @@ fn attempt(
     args: &[OsString],
     env: &Env,
     connect: &dyn Fn(Endpoint) -> Box<dyn Transport>,
+    notes: &mut Notes,
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> Result<(), Failure> {
-    dispatch(args, env, connect, out, err)?;
+    dispatch(args, env, connect, notes, out, err)?;
     out.flush()?;
     Ok(())
 }
@@ -105,6 +110,7 @@ fn dispatch(
     args: &[OsString],
     env: &Env,
     connect: &dyn Fn(Endpoint) -> Box<dyn Transport>,
+    notes: &mut Notes,
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> Result<(), Failure> {
@@ -122,14 +128,8 @@ fn dispatch(
     let endpoint = Endpoint::from_env(env.endpoint.as_deref())?;
     let transport = connect(endpoint);
     let deadline = Instant::now() + DEADLINE;
-    let mut notes = Notes::new();
-    let shown = show::run(
-        &address,
-        lines.as_ref(),
-        &*transport,
-        deadline,
-        &mut notes,
-    )?;
+    let shown =
+        show::run(&address, lines.as_ref(), &*transport, deadline, notes)?;
     notes.write(err)?;
     if json {
         output::json::write(&shown, out)?;

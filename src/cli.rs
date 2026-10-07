@@ -183,7 +183,9 @@ fn parse_show(operands: &[String], json: bool) -> Result<Command, Error> {
              {base}{dots}{head}"
         )));
     }
-    if address.path.is_none() && !matches!(address.rev, Rev::Split(_)) {
+    let names_root =
+        address.path.as_deref().is_none_or(|path| matches!(path, "" | "."));
+    if names_root && !matches!(address.rev, Rev::Split(_)) {
         return Err(usage(
             "show needs a file's path, like REPO[@REV]:PATH".to_owned(),
         ));

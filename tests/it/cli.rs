@@ -204,6 +204,9 @@ fn show_operand_errors() {
         ),
         (vec!["show", "github.com/x/y"], plain(needs_path)),
         (vec!["show", "x/y@v1"], plain(needs_path)),
+        (vec!["show", "x/y:"], plain(needs_path)),
+        (vec!["show", "x/y@v1:"], plain(needs_path)),
+        (vec!["show", "x/y:."], plain(needs_path)),
         (
             vec!["show", "x/y@a..b:f"],
             plain(
