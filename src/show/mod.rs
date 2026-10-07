@@ -4,7 +4,7 @@ use std::time::Instant;
 use serde::Serialize;
 use serde_json::{Value, json};
 
-use crate::address::{Address, End, LineRange, is_oid_like, pinned};
+use crate::address::{Address, End, LineRange, pinned, rev_field};
 use crate::error::Error;
 use crate::escape::strip_cr;
 use crate::output::text::{code_line, gutter_width, header};
@@ -176,11 +176,6 @@ fn not_found(located: &Located, path: &str) -> Error {
         "{path} not found in {}",
         pinned(&located.repo, &located.commit, None)
     ))
-}
-
-fn rev_field(rev: Option<&String>) -> Option<String> {
-    let rev = rev?;
-    (!is_oid_like(rev)).then(|| format!("rev {rev}"))
 }
 
 fn submodule_of(

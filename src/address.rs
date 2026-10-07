@@ -188,6 +188,12 @@ pub fn is_oid_like(rev: &str) -> bool {
         && rev.bytes().all(|b| b.is_ascii_hexdigit())
 }
 
+/// The header field for a revision that was not a commit id.
+pub fn rev_field(rev: Option<&String>) -> Option<String> {
+    let rev = rev?;
+    (!is_oid_like(rev)).then(|| format!("rev {rev}"))
+}
+
 pub fn pinned(repo: &str, commit: &str, path: Option<&str>) -> Pinned {
     let short = short(commit);
     let mut address = format!("{repo}@{short}");

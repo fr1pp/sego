@@ -1,0 +1,40 @@
+operation: ListTree
+variables:
+  repo0: github.com/gorilla/mux
+  rev0: v1.8.0
+  path_0: mux.go
+  recursive_0: false
+  parent_0: ""
+status: 200
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  errors:
+    - message: 'not a directory: "mux.go"'
+      path:
+        - r0
+        - c0
+        - tree
+  data:
+    r0:
+      name: github.com/gorilla/mux
+      defaultBranch:
+        displayName: main
+      c0:
+        oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+        tree: null
+        file:
+          totalLines: 606
+          byteSize: 17316
+          binary: false
+        parent:
+          entries:
+            - path: mux.go
+              submodule: null
+            - path: one.txt
+              submodule: null
+            - path: empty.txt
+              submodule: null
+            - path: logo.png
+              submodule: null

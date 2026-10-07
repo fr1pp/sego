@@ -2,6 +2,7 @@ mod address;
 mod cli;
 mod error;
 mod escape;
+mod ls;
 mod output;
 mod quote;
 mod search;
@@ -22,6 +23,9 @@ pub mod internal {
     }
     pub mod escape {
         pub use crate::escape::*;
+    }
+    pub mod ls {
+        pub use crate::ls::*;
     }
     pub mod output {
         pub use crate::output::*;
@@ -151,8 +155,11 @@ fn dispatch(
             )?;
             (Box::new(shown), json)
         }
-        Command::Ls { .. } => {
-            return Err(Error::upstream("ls is not wired yet").into());
+        Command::Ls { address, recursive, json } => {
+            let (transport, deadline) = open()?;
+            let listed =
+                ls::run(&address, recursive, &*transport, deadline, notes)?;
+            (Box::new(listed), json)
         }
         Command::Refs { .. } => {
             return Err(Error::upstream("refs is not wired yet").into());

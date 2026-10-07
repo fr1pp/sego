@@ -8,6 +8,7 @@ mod escape;
 mod fixtures;
 mod guard;
 mod lint;
+mod ls;
 mod ls_cli;
 mod model;
 mod outcome;
