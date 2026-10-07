@@ -1,0 +1,645 @@
+operation: ShowFile
+variables:
+  end_0: 500
+  parent_0: test/fixtures
+  path_0: test/fixtures/print A.js
+  repo0: github.com/nodejs/node
+  rev0: aa1bf2cc37539bfeeef8faf80c9d31a64cb78026
+  start_0: 1
+query: |
+  query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
+    r0: repository(name: $repo0) {
+      name
+      defaultBranch { displayName }
+      c0: commit(rev: $rev0) {
+        oid
+        meta: blob(path: $path_0) { byteSize totalLines binary rawURL lfs { byteSize } }
+        body: blob(path: $path_0) { content(startLine: $start_0, endLine: $end_0, textOnly: true) }
+        dir: tree(path: $path_0) { entries { path } }
+        parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+      }
+    }
+  }
+status: 200
+headers:
+  content-type: application/json
+pinned: true
+response:
+  data:
+    r0:
+      c0:
+        body:
+          content: |
+            console.log('A')
+        dir: null
+        meta:
+          binary: false
+          byteSize: 17
+          lfs: null
+          rawURL: >-
+            /r/github.com/nodejs/node@aa1bf2cc37539bfeeef8faf80c9d31a64cb78026/-/raw/test/fixtures/print%20A.js
+          totalLines: 1
+        oid: aa1bf2cc37539bfeeef8faf80c9d31a64cb78026
+        parent:
+          entries:
+          - path: test/fixtures/0-dns
+            submodule: null
+          - path: test/fixtures/GH-54265
+            submodule: null
+          - path: test/fixtures/GH-7131
+            submodule: null
+          - path: test/fixtures/b
+            submodule: null
+          - path: test/fixtures/bench-runner
+            submodule: null
+          - path: test/fixtures/clustered-server
+            submodule: null
+          - path: test/fixtures/console
+            submodule: null
+          - path: test/fixtures/copy
+            submodule: null
+          - path: test/fixtures/crypto
+            submodule: null
+          - path: test/fixtures/cycles
+            submodule: null
+          - path: test/fixtures/debugger
+            submodule: null
+          - path: test/fixtures/disable-signal
+            submodule: null
+          - path: test/fixtures/dotenv
+            submodule: null
+          - path: test/fixtures/encoding
+            submodule: null
+          - path: test/fixtures/errors
+            submodule: null
+          - path: test/fixtures/es-module-loaders
+            submodule: null
+          - path: test/fixtures/es-module-require-cache
+            submodule: null
+          - path: test/fixtures/es-module-shadow-realm
+            submodule: null
+          - path: test/fixtures/es-module-specifiers
+            submodule: null
+          - path: test/fixtures/es-module-url
+            submodule: null
+          - path: test/fixtures/es-modules
+            submodule: null
+          - path: test/fixtures/eval
+            submodule: null
+          - path: test/fixtures/global
+            submodule: null
+          - path: test/fixtures/icu
+            submodule: null
+          - path: test/fixtures/import-require-cycle
+            submodule: null
+          - path: test/fixtures/inspect-worker
+            submodule: null
+          - path: test/fixtures/inspector-instrumentation-breakpoint
+            submodule: null
+          - path: test/fixtures/inspector-network-resource
+            submodule: null
+          - path: test/fixtures/internal-modules
+            submodule: null
+          - path: test/fixtures/json-with-directory-name-module
+            submodule: null
+          - path: test/fixtures/keys
+            submodule: null
+          - path: test/fixtures/macos-app-sandbox
+            submodule: null
+          - path: test/fixtures/module-extension-over-directory
+            submodule: null
+          - path: test/fixtures/module-hooks
+            submodule: null
+          - path: test/fixtures/module-load-order
+            submodule: null
+          - path: test/fixtures/module-mocking
+            submodule: null
+          - path: test/fixtures/module-require
+            submodule: null
+          - path: test/fixtures/module-require-symlink
+            submodule: null
+          - path: test/fixtures/nested-index
+            submodule: null
+          - path: test/fixtures/node_modules
+            submodule: null
+          - path: test/fixtures/npm-install
+            submodule: null
+          - path: test/fixtures/openssl3-conf
+            submodule: null
+          - path: test/fixtures/options-as-flags
+            submodule: null
+          - path: test/fixtures/package-main-enoent
+            submodule: null
+          - path: test/fixtures/package-map
+            submodule: null
+          - path: test/fixtures/packages
+            submodule: null
+          - path: test/fixtures/permission
+            submodule: null
+          - path: test/fixtures/postject-copy
+            submodule: null
+          - path: test/fixtures/process
+            submodule: null
+          - path: test/fixtures/process-env
+            submodule: null
+          - path: test/fixtures/process-timeout
+            submodule: null
+          - path: test/fixtures/rc
+            submodule: null
+          - path: test/fixtures/repl-folder-extensions
+            submodule: null
+          - path: test/fixtures/require-bin
+            submodule: null
+          - path: test/fixtures/require-empty-main
+            submodule: null
+          - path: test/fixtures/resolve-paths
+            submodule: null
+          - path: test/fixtures/run-script
+            submodule: null
+          - path: test/fixtures/sea
+            submodule: null
+          - path: test/fixtures/self_ref_module
+            submodule: null
+          - path: test/fixtures/snapshot
+            submodule: null
+          - path: test/fixtures/source-map
+            submodule: null
+          - path: test/fixtures/sqlite
+            submodule: null
+          - path: test/fixtures/syntax
+            submodule: null
+          - path: test/fixtures/system-ca
+            submodule: null
+          - path: test/fixtures/test-init-index
+            submodule: null
+          - path: test/fixtures/test-init-native
+            submodule: null
+          - path: test/fixtures/test-module-loading-globalpaths
+            submodule: null
+          - path: test/fixtures/test-repl-tab-completion
+            submodule: null
+          - path: test/fixtures/test-runner
+            submodule: null
+          - path: test/fixtures/test-runner-watch
+            submodule: null
+          - path: test/fixtures/test426
+            submodule: null
+          - path: test/fixtures/tools
+            submodule: null
+          - path: test/fixtures/typescript
+            submodule: null
+          - path: test/fixtures/uncaught-exceptions
+            submodule: null
+          - path: test/fixtures/v8-coverage
+            submodule: null
+          - path: test/fixtures/vm
+            submodule: null
+          - path: test/fixtures/warning_node_modules
+            submodule: null
+          - path: test/fixtures/wasi
+            submodule: null
+          - path: test/fixtures/wasm
+            submodule: null
+          - path: test/fixtures/watch-mode
+            submodule: null
+          - path: test/fixtures/web-worker
+            submodule: null
+          - path: test/fixtures/webcrypto
+            submodule: null
+          - path: test/fixtures/workload
+            submodule: null
+          - path: test/fixtures/wpt
+            submodule: null
+          - path: test/fixtures/x509-escaping
+            submodule: null
+          - path: test/fixtures/.empty-hidden-repl-history-file
+            submodule: null
+          - path: test/fixtures/.empty-repl-history-file
+            submodule: null
+          - path: test/fixtures/.node_repl_history
+            submodule: null
+          - path: test/fixtures/.node_repl_history_multiline
+            submodule: null
+          - path: test/fixtures/GH-1899-output.js
+            submodule: null
+          - path: test/fixtures/GH-892-request.js
+            submodule: null
+          - path: test/fixtures/a.js
+            submodule: null
+          - path: test/fixtures/aead-vectors.js
+            submodule: null
+          - path: test/fixtures/altdocs.md
+            submodule: null
+          - path: test/fixtures/array-hash-collision.js
+            submodule: null
+          - path: test/fixtures/assert-first-line.js
+            submodule: null
+          - path: test/fixtures/assert-long-line.js
+            submodule: null
+          - path: test/fixtures/async-error.js
+            submodule: null
+          - path: test/fixtures/baz.js
+            submodule: null
+          - path: test/fixtures/catch-stdout-error.js
+            submodule: null
+          - path: test/fixtures/child-process-echo-options.js
+            submodule: null
+          - path: test/fixtures/child-process-kill-spawn-error.js
+            submodule: null
+          - path: test/fixtures/child-process-message-and-exit.js
+            submodule: null
+          - path: test/fixtures/child-process-persistent.js
+            submodule: null
+          - path: test/fixtures/child-process-spawn-node.js
+            submodule: null
+          - path: test/fixtures/child-process-stay-alive-forever.js
+            submodule: null
+          - path: test/fixtures/child_process_should_emit_error.js
+            submodule: null
+          - path: test/fixtures/cjs-module-wrap.js
+            submodule: null
+          - path: test/fixtures/cjs-module-wrapper.js
+            submodule: null
+          - path: test/fixtures/cluster-preload-test.js
+            submodule: null
+          - path: test/fixtures/cluster-preload.js
+            submodule: null
+          - path: test/fixtures/compile-cache-flush.js
+            submodule: null
+          - path: test/fixtures/compile-cache-wrapper-options.js
+            submodule: null
+          - path: test/fixtures/compile-cache-wrapper.js
+            submodule: null
+          - path: test/fixtures/crash.wasm
+            submodule: null
+          - path: test/fixtures/crash.wat
+            submodule: null
+          - path: test/fixtures/debugger-repeat-last.js
+            submodule: null
+          - path: test/fixtures/debugger-util-regression-fixture.js
+            submodule: null
+          - path: test/fixtures/deep-exit.js
+            submodule: null
+          - path: test/fixtures/define-global.js
+            submodule: null
+          - path: test/fixtures/deprecated-userland-class.js
+            submodule: null
+          - path: test/fixtures/deprecated-userland-function.js
+            submodule: null
+          - path: test/fixtures/deprecated-userland-subclass.js
+            submodule: null
+          - path: test/fixtures/deprecated.js
+            submodule: null
+          - path: test/fixtures/destroy-stdin.js
+            submodule: null
+          - path: test/fixtures/disable-warning-worker.js
+            submodule: null
+          - path: test/fixtures/disable-warning.js
+            submodule: null
+          - path: test/fixtures/doc_inc_1.md
+            submodule: null
+          - path: test/fixtures/doc_inc_2.md
+            submodule: null
+          - path: test/fixtures/doc_with_backticks_in_headings.md
+            submodule: null
+          - path: test/fixtures/doc_with_yaml.md
+            submodule: null
+          - path: test/fixtures/document_with_cjs_and_esm_code_snippet.md
+            submodule: null
+          - path: test/fixtures/document_with_esm_and_cjs_code_snippet.md
+            submodule: null
+          - path: test/fixtures/document_with_links.md
+            submodule: null
+          - path: test/fixtures/document_with_special_heading.md
+            submodule: null
+          - path: test/fixtures/echo-close-check.js
+            submodule: null
+          - path: test/fixtures/echo.js
+            submodule: null
+          - path: test/fixtures/elipses.txt
+            submodule: null
+          - path: test/fixtures/empty-with-bom.txt
+            submodule: null
+          - path: test/fixtures/empty.cjs
+            submodule: null
+          - path: test/fixtures/empty.js
+            submodule: null
+          - path: test/fixtures/empty.json
+            submodule: null
+          - path: test/fixtures/empty.txt
+            submodule: null
+          - path: test/fixtures/emptyframe.http2
+            submodule: null
+          - path: test/fixtures/exit.js
+            submodule: null
+          - path: test/fixtures/experimental.json
+            submodule: null
+          - path: test/fixtures/exports-function-with-param.js
+            submodule: null
+          - path: test/fixtures/external-repl-module.js
+            submodule: null
+          - path: test/fixtures/failcounter.js
+            submodule: null
+          - path: test/fixtures/failmustcall1.js
+            submodule: null
+          - path: test/fixtures/failmustcall2.js
+            submodule: null
+          - path: test/fixtures/fetch-and-log.mjs
+            submodule: null
+          - path: test/fixtures/file-to-read-with-bom.txt
+            submodule: null
+          - path: test/fixtures/file-to-read-without-bom.txt
+            submodule: null
+          - path: test/fixtures/fixture.ini
+            submodule: null
+          - path: test/fixtures/foo
+            submodule: null
+          - path: test/fixtures/gc.js
+            submodule: null
+          - path: test/fixtures/get-call-sites.js
+            submodule: null
+          - path: test/fixtures/google_ssl_hello.bin
+            submodule: null
+          - path: test/fixtures/inspector-global-function.mjs
+            submodule: null
+          - path: test/fixtures/inspector-open.js
+            submodule: null
+          - path: test/fixtures/intrinsic-mutation.js
+            submodule: null
+          - path: test/fixtures/invalid.json
+            submodule: null
+          - path: test/fixtures/is-object.js
+            submodule: null
+          - path: test/fixtures/ispreloading.js
+            submodule: null
+          - path: test/fixtures/kill-signal-for-watch.js
+            submodule: null
+          - path: test/fixtures/klass-with-fields.js
+            submodule: null
+          - path: test/fixtures/leakedGlobal.js
+            submodule: null
+          - path: test/fixtures/linux-perf-logger.js
+            submodule: null
+          - path: test/fixtures/linux-perf.js
+            submodule: null
+          - path: test/fixtures/list-certs.js
+            submodule: null
+          - path: test/fixtures/loader-is-internal-thread.js
+            submodule: null
+          - path: test/fixtures/loop.js
+            submodule: null
+          - path: test/fixtures/mime-whatwg-generated.js
+            submodule: null
+          - path: test/fixtures/mime-whatwg.js
+            submodule: null
+          - path: test/fixtures/module-loading-error.node
+            submodule: null
+          - path: test/fixtures/monkey-patch-run-main.js
+            submodule: null
+          - path: test/fixtures/net-fd-passing-receiver.js
+            submodule: null
+          - path: test/fixtures/no-wrapper.js
+            submodule: null
+          - path: test/fixtures/not-main-module.js
+            submodule: null
+          - path: test/fixtures/old-repl-history-file-faulty.json
+            submodule: null
+          - path: test/fixtures/old-repl-history-file-obj.json
+            submodule: null
+          - path: test/fixtures/openssl_fips_disabled.cnf
+            submodule: null
+          - path: test/fixtures/openssl_fips_enabled.cnf
+            submodule: null
+          - path: test/fixtures/order_of_end_tags_5873.md
+            submodule: null
+          - path: test/fixtures/out-of-bound.wasm
+            submodule: null
+          - path: test/fixtures/out-of-bound.wat
+            submodule: null
+          - path: test/fixtures/outside.txt
+            submodule: null
+          - path: test/fixtures/overwrite-config-preload-module.js
+            submodule: null
+          - path: test/fixtures/parent-process-nonpersistent-fork.js
+            submodule: null
+          - path: test/fixtures/parent-process-nonpersistent.js
+            submodule: null
+          - path: test/fixtures/parse-args.js
+            submodule: null
+          - path: test/fixtures/path-resolve.js
+            submodule: null
+          - path: test/fixtures/path.js
+            submodule: null
+          - path: test/fixtures/person-large.jpg
+            submodule: null
+          - path: test/fixtures/person.jpg
+            submodule: null
+          - path: test/fixtures/person.jpg.br
+            submodule: null
+          - path: test/fixtures/person.jpg.gz
+            submodule: null
+          - path: test/fixtures/person.jpg.zst
+            submodule: null
+          - path: test/fixtures/pkgexports.mjs
+            submodule: null
+          - path: test/fixtures/post-resource-and-log.js
+            submodule: null
+          - path: test/fixtures/primitive-42.json
+            submodule: null
+          - path: test/fixtures/print A.js
+            submodule: null
+          - path: test/fixtures/print-10-lines.js
+            submodule: null
+          - path: test/fixtures/print-chars-from-buffer.js
+            submodule: null
+          - path: test/fixtures/print-chars.js
+            submodule: null
+          - path: test/fixtures/print-delayed.js
+            submodule: null
+          - path: test/fixtures/print-error-message.js
+            submodule: null
+          - path: test/fixtures/print-intrinsic-mutation-name.js
+            submodule: null
+          - path: test/fixtures/printA.js
+            submodule: null
+          - path: test/fixtures/printB.js
+            submodule: null
+          - path: test/fixtures/printC.js
+            submodule: null
+          - path: test/fixtures/proxy-server-worker.js
+            submodule: null
+          - path: test/fixtures/pseudo-multimember-gzip.gz
+            submodule: null
+          - path: test/fixtures/pseudo-multimember-gzip.z
+            submodule: null
+          - path: test/fixtures/pss-vectors.json
+            submodule: null
+          - path: test/fixtures/qrde-r-oracle.R
+            submodule: null
+          - path: test/fixtures/qrde-r-oracle.json
+            submodule: null
+          - path: test/fixtures/readfile_pipe_test.txt
+            submodule: null
+          - path: test/fixtures/recursive-a.cjs
+            submodule: null
+          - path: test/fixtures/recursive-b.cjs
+            submodule: null
+          - path: test/fixtures/recvfd.js
+            submodule: null
+          - path: test/fixtures/registerExt.hello.world
+            submodule: null
+          - path: test/fixtures/registerExt.test
+            submodule: null
+          - path: test/fixtures/registerExt2.test
+            submodule: null
+          - path: test/fixtures/repl-load-multiline-no-trailing-newline.js
+            submodule: null
+          - path: test/fixtures/repl-load-multiline.js
+            submodule: null
+          - path: test/fixtures/repl-pretty-stack.js
+            submodule: null
+          - path: test/fixtures/report-oom.js
+            submodule: null
+          - path: test/fixtures/request-and-log.js
+            submodule: null
+          - path: test/fixtures/require-resolve.js
+            submodule: null
+          - path: test/fixtures/rsa-oaep-test-vectors.js
+            submodule: null
+          - path: test/fixtures/sample.png
+            submodule: null
+          - path: test/fixtures/sample_document.md
+            submodule: null
+          - path: test/fixtures/sea-exec-argv-empty.js
+            submodule: null
+          - path: test/fixtures/sea-exec-argv-extension-cli.js
+            submodule: null
+          - path: test/fixtures/sea-exec-argv-extension-env.js
+            submodule: null
+          - path: test/fixtures/sea-exec-argv-extension-none.js
+            submodule: null
+          - path: test/fixtures/sea-exec-argv.js
+            submodule: null
+          - path: test/fixtures/sea.js
+            submodule: null
+          - path: test/fixtures/semicolon.js
+            submodule: null
+          - path: test/fixtures/shared-memory.wasm
+            submodule: null
+          - path: test/fixtures/shared-memory.wat
+            submodule: null
+          - path: test/fixtures/should_exit.js
+            submodule: null
+          - path: test/fixtures/simple.wasm
+            submodule: null
+          - path: test/fixtures/simple.wat
+            submodule: null
+          - path: test/fixtures/spawn-worker-with-copied-env.js
+            submodule: null
+          - path: test/fixtures/spawn-worker-with-trace-exit.js
+            submodule: null
+          - path: test/fixtures/spawn_closed_stdio.py
+            submodule: null
+          - path: test/fixtures/test-error-first-line-offset.js
+            submodule: null
+          - path: test/fixtures/test-fs-readfile-error.js
+            submodule: null
+          - path: test/fixtures/test-fs-stat-sync-overflow.js
+            submodule: null
+          - path: test/fixtures/test-inspector-dom-storage-unavailable.mjs
+            submodule: null
+          - path: test/fixtures/test-inspector-dom-storage.mjs
+            submodule: null
+          - path: test/fixtures/test-nodetiming-uvmetricsinfo.js
+            submodule: null
+          - path: test/fixtures/test-resolution-inspect-brk-main.ext
+            submodule: null
+          - path: test/fixtures/test-resolution-inspect-brk-resolver.js
+            submodule: null
+          - path: test/fixtures/test-runner-watch.mjs
+            submodule: null
+          - path: test/fixtures/throws_error.js
+            submodule: null
+          - path: test/fixtures/throws_error1.js
+            submodule: null
+          - path: test/fixtures/throws_error2.js
+            submodule: null
+          - path: test/fixtures/throws_error3.js
+            submodule: null
+          - path: test/fixtures/throws_error4.js
+            submodule: null
+          - path: test/fixtures/throws_error5.js
+            submodule: null
+          - path: test/fixtures/throws_error6.js
+            submodule: null
+          - path: test/fixtures/throws_error7.js
+            submodule: null
+          - path: test/fixtures/tls-check-extra-ca-certificates.js
+            submodule: null
+          - path: test/fixtures/tls-connect.js
+            submodule: null
+          - path: test/fixtures/tls-extra-ca-override.js
+            submodule: null
+          - path: test/fixtures/tls-get-ca-certificates-worker.js
+            submodule: null
+          - path: test/fixtures/tls-get-ca-certificates.js
+            submodule: null
+          - path: test/fixtures/tls-session-ticket.txt
+            submodule: null
+          - path: test/fixtures/tz-version.txt
+            submodule: null
+          - path: test/fixtures/url-idna.js
+            submodule: null
+          - path: test/fixtures/url-searchparams.js
+            submodule: null
+          - path: test/fixtures/url-setter-tests-additional.js
+            submodule: null
+          - path: test/fixtures/url-tests-additional.js
+            submodule: null
+          - path: test/fixtures/utf8-bom-shebang-shebang.js
+            submodule: null
+          - path: test/fixtures/utf8-bom.js
+            submodule: null
+          - path: test/fixtures/utf8-bom.json
+            submodule: null
+          - path: test/fixtures/utf8-shebang-bom.js
+            submodule: null
+          - path: test/fixtures/utf8_test_text.txt
+            submodule: null
+          - path: test/fixtures/value.cjs
+            submodule: null
+          - path: test/fixtures/warnings.js
+            submodule: null
+          - path: test/fixtures/wasi-preview-1.js
+            submodule: null
+          - path: test/fixtures/worker-data.cjs
+            submodule: null
+          - path: test/fixtures/worker-data.mjs
+            submodule: null
+          - path: test/fixtures/worker-from-argv.js
+            submodule: null
+          - path: test/fixtures/worker-is-internal-thread.js
+            submodule: null
+          - path: test/fixtures/worker-name.js
+            submodule: null
+          - path: test/fixtures/worker-preload.js
+            submodule: null
+          - path: test/fixtures/worker-script.mjs
+            submodule: null
+          - path: test/fixtures/worker-script.ts
+            submodule: null
+          - path: test/fixtures/wpt-backends-spec.js
+            submodule: null
+          - path: test/fixtures/x.txt
+            submodule: null
+          - path: test/fixtures/x1024.txt
+            submodule: null
+      defaultBranch:
+        displayName: main
+      name: github.com/nodejs/node
+  errors:
+  - message: "not a directory: \"test/fixtures/print A.js\""
+    path:
+    - r0
+    - c0
+    - dir

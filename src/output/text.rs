@@ -1,6 +1,8 @@
 use super::Marker;
 use crate::escape;
 
+/// `address` is printed as given, so callers pass an already escaped (and
+/// shell-quoted) address such as `address::pinned` returns.
 pub fn header(address: &str, fields: &[String]) -> String {
     let mut line = address.to_owned();
     for field in fields {

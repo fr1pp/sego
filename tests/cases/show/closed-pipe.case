@@ -1,0 +1,4 @@
+# A closed stdout is not an error.
+args: show github.com/gorilla/mux@v1.8.0:mux.go 1-3
+stdout: closed
+exit: 0

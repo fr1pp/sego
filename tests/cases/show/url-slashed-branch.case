@@ -1,0 +1,8 @@
+# A branch name with a slash is told from the path by asking.
+args: show https://github.com/bminor/glibc/blob/release/2.34/master/NEWS 1-3
+exit: 0
+--- stdout
+github.com/bminor/glibc@2b656ff94d72:NEWS  lines 1-3 of 6916  rev release/2.34/master
+   1:GNU C Library NEWS -- history of user-visible changes.
+   2:Copyright (C) 1992-2021 Free Software Foundation, Inc.
+   3:See the end for copying conditions.

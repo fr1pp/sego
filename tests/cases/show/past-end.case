@@ -1,0 +1,7 @@
+# A range starting past the end prints no lines and exits 0.
+args: show github.com/gorilla/mux@v1.8.0:mux.go 700-710
+exit: 0
+--- stdout
+github.com/gorilla/mux@98cb6bf42e08:mux.go  no lines 700-710; the file has 606  rev v1.8.0
+--- stderr
+sego: note: no lines 700-710; the file has 606

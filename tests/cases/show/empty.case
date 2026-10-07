@@ -1,0 +1,5 @@
+# An empty file has no lines, although the server reports 1.
+args: show github.com/django/django@8c34887b1ad8bb3ec61c6e713442dab3c643d557:tests/str/__init__.py
+exit: 0
+--- stdout
+github.com/django/django@8c34887b1ad8:tests/str/__init__.py  lines 0 of 0

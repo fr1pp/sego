@@ -1,0 +1,7 @@
+# A file without a final newline has no line past its last.
+args: show github.com/evilmartians/lefthook@cc9969c2e2198aafff8accc63ee1aee30e9a2aa4:.typos.toml 5-6
+exit: 0
+--- stdout
+github.com/evilmartians/lefthook@cc9969c2e219:.typos.toml  no lines 5-6; the file has 4
+--- stderr
+sego: note: no lines 5-6; the file has 4

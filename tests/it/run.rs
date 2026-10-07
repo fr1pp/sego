@@ -4,7 +4,11 @@ use std::io::{self, Write};
 use std::process::ExitCode;
 use std::time::{Duration, Instant};
 
-use sego::internal::upstream::{Endpoint, Reply, Transport, TransportError};
+use serde_json::json;
+
+use sego::internal::upstream::{
+    DEADLINE, Endpoint, Reply, Transport, TransportError,
+};
 use sego::{Env, run};
 
 use crate::support::fake::Fake;
@@ -166,4 +170,316 @@ fn the_fake_replays_a_script_in_order() {
     );
     let paths: Vec<_> = fake.calls().into_iter().map(|c| c.path).collect();
     assert_eq!(paths, ["/a", "/b", "/c"]);
+}
+
+fn json_reply(value: &serde_json::Value) -> Reply {
+    Reply {
+        status: 200,
+        content_type: Some("application/json".to_owned()),
+        location: None,
+        retry_after: None,
+        cf_mitigated: None,
+        body: value.to_string().into_bytes(),
+    }
+}
+
+fn raw_reply(status: u16, content_type: &str, body: &[u8]) -> Reply {
+    Reply {
+        status,
+        content_type: Some(content_type.to_owned()),
+        location: None,
+        retry_after: None,
+        cf_mitigated: None,
+        body: body.to_vec(),
+    }
+}
+
+const SHA: &str = "d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809";
+
+fn file_envelope() -> serde_json::Value {
+    json!({"data": {"r0": {
+        "name": "github.com/x/y",
+        "defaultBranch": {"displayName": "main"},
+        "c0": {
+            "oid": SHA,
+            "meta": {
+                "byteSize": 6, "totalLines": 3, "binary": false,
+                "rawURL": "/github.com/x/y@d81fd54f1a2b/-/raw/a.go",
+                "lfs": null
+            },
+            "body": {"content": "a\nb\nc\n"},
+            "dir": null,
+            "parent": {"entries": [{"path": "a.go", "submodule": null}]}
+        }
+    }}, "errors": [{"message": "not a directory", "path": ["r0", "c0", "dir"]}]})
+}
+
+fn over_cap_envelope() -> serde_json::Value {
+    json!({"data": {"r0": {
+        "name": "github.com/x/y",
+        "defaultBranch": {"displayName": "main"},
+        "c0": {
+            "oid": SHA,
+            "meta": {
+                "byteSize": 2_000_000, "totalLines": 5, "binary": false,
+                "rawURL": "/github.com/x/y@d81fd54f1a2b/-/raw/big.c",
+                "lfs": null
+            },
+            "body": null,
+            "dir": null,
+            "parent": {"entries": [{"path": "big.c", "submodule": null}]}
+        }
+    }}, "errors": [
+        {"message": "file exceeded size limit", "path": ["r0", "c0", "body", "content"]},
+        {"message": "file exceeded size limit", "path": ["r0", "c0", "meta", "lfs"]},
+        {"message": "not a directory", "path": ["r0", "c0", "dir"]}
+    ]})
+}
+
+fn submodule_envelope(url: &str) -> serde_json::Value {
+    json!({"data": {"r0": {
+        "name": "github.com/akinomyoga/ble.sh",
+        "defaultBranch": {"displayName": "master"},
+        "c0": {
+            "oid": SHA,
+            "meta": null, "body": null, "dir": null,
+            "parent": {"entries": [
+                {"path": "contrib", "submodule": {
+                    "url": url,
+                    "commit": "d2109203480a1b2c3d4e5f60718293a4b5c6d7e8"
+                }},
+                {"path": "make", "submodule": null}
+            ]}
+        }
+    }}, "errors": [
+        {"message": "x", "path": ["r0", "c0", "meta"]},
+        {"message": "x", "path": ["r0", "c0", "body"]},
+        {"message": "x", "path": ["r0", "c0", "dir"]}
+    ]})
+}
+
+fn show_via(
+    words: &[&str],
+    script: Vec<Result<Reply, TransportError>>,
+) -> (Ran, Vec<crate::support::fake::Call>) {
+    let fake = Fake::scripted(script);
+    let handle = fake.clone();
+    let connect =
+        move |_: Endpoint| -> Box<dyn Transport> { Box::new(handle.clone()) };
+    let ran = exec(words, None, &connect);
+    (ran, fake.calls())
+}
+
+fn text(bytes: &[u8]) -> String {
+    String::from_utf8_lossy(bytes).into_owned()
+}
+
+#[test]
+fn deadline_starts_once() {
+    let before = Instant::now();
+    let (ran, calls) = show_via(
+        &["show", "github.com/x/y@main:a.go"],
+        vec![Ok(json_reply(&file_envelope()))],
+    );
+    assert_eq!(text(&ran.err), "", "{}", text(&ran.err));
+    assert_eq!(ran.code, ExitCode::SUCCESS);
+    assert_eq!(calls.len(), 1, "a show without the raw route is one call");
+    assert_eq!(calls[0].method, "POST");
+
+    let (ran, calls) = show_via(
+        &["show", "github.com/x/y@main:big.c", "1-5"],
+        vec![
+            Ok(json_reply(&over_cap_envelope())),
+            Ok(raw_reply(200, "text/plain", b"1\n2\n3\n4\n5\n")),
+        ],
+    );
+    assert_eq!(text(&ran.err).lines().count(), 1, "{}", text(&ran.err));
+    assert_eq!(calls.len(), 2);
+    assert_eq!(calls[0].deadline, calls[1].deadline);
+    for call in &calls {
+        assert!(call.deadline >= before + DEADLINE);
+        assert!(call.deadline <= Instant::now() + DEADLINE);
+    }
+}
+
+#[test]
+fn a_file_prints_its_header_and_lines() {
+    let mut envelope = file_envelope();
+    envelope["data"]["r0"]["c0"]["body"]["content"] = json!("b\nc\n");
+    let (ran, _) = show_via(
+        &["show", "github.com/x/y@main:a.go", "2-9"],
+        vec![Ok(json_reply(&envelope))],
+    );
+    assert_eq!(ran.code, ExitCode::SUCCESS);
+    assert_eq!(
+        text(&ran.err),
+        "sego: note: lines 2-9 clamped to 2-3; the file has 3 lines\n"
+    );
+    assert_eq!(
+        text(&ran.out),
+        "github.com/x/y@d81fd54f1a2b:a.go  lines 2-3 of 3  rev main\n   \
+         2:b\n   3:c\n"
+    );
+}
+
+#[test]
+fn a_submodule_prints_its_target() {
+    let cases = [
+        (
+            "../blesh-contrib",
+            "github.com/akinomyoga/blesh-contrib@d2109203480a",
+        ),
+        ("file:///srv/y", "file:///srv/y@d2109203480a"),
+        ("", "?@d2109203480a"),
+    ];
+    for (url, shown) in cases {
+        let (ran, calls) = show_via(
+            &["show", "github.com/akinomyoga/ble.sh@d81fd54f1a2b:contrib"],
+            vec![Ok(json_reply(&submodule_envelope(url)))],
+        );
+        assert_eq!(text(&ran.err), "", "{url}");
+        assert_eq!(ran.code, ExitCode::SUCCESS, "{url}");
+        assert_eq!(calls.len(), 1);
+        let out = text(&ran.out);
+        assert_eq!(
+            out,
+            format!(
+                "github.com/akinomyoga/ble.sh@d81fd54f1a2b:contrib  \
+                 submodule  {shown}\n"
+            ),
+            "{url}"
+        );
+    }
+}
+
+#[test]
+fn a_submodule_in_json() {
+    let (ran, _) = show_via(
+        &[
+            "show",
+            "--json",
+            "github.com/akinomyoga/ble.sh@d81fd54f1a2b:contrib",
+        ],
+        vec![Ok(json_reply(&submodule_envelope("../blesh-contrib")))],
+    );
+    let value: serde_json::Value =
+        serde_json::from_slice(&ran.out).unwrap_or_else(|e| panic!("{e}"));
+    assert_eq!(
+        value["submodule"],
+        json!({
+            "url": "../blesh-contrib",
+            "target": "github.com/akinomyoga/blesh-contrib@d2109203480a",
+            "commit": "d2109203480a1b2c3d4e5f60718293a4b5c6d7e8"
+        })
+    );
+    assert_eq!(value["lines"], json!([]));
+    assert_eq!(value["start"], json!(null));
+    assert_eq!(value["via_raw"], json!(false));
+}
+
+#[test]
+fn over_the_limit_reads_the_raw_route() {
+    let (ran, calls) = show_via(
+        &["show", "github.com/x/y@main:big.c", "2-3"],
+        vec![
+            Ok(json_reply(&over_cap_envelope())),
+            Ok(raw_reply(200, "text/plain", b"1\r\n2\r\n3\r\n4\r\n5\r\n")),
+        ],
+    );
+    assert_eq!(ran.code, ExitCode::SUCCESS);
+    assert_eq!(
+        text(&ran.err),
+        "sego: note: big.c is 2000000 bytes, over GraphQL's 1572864-byte \
+         content limit; read through the raw route (a second request)\n"
+    );
+    assert_eq!(
+        text(&ran.out),
+        "github.com/x/y@d81fd54f1a2b:big.c  lines 2-3 of 5  CRLF  rev main\n   \
+         2:2\n   3:3\n"
+    );
+    assert_eq!(calls.len(), 2);
+    assert_eq!(
+        (calls[1].method, calls[1].path.as_str()),
+        ("GET", "/github.com/x/y@d81fd54f1a2b/-/raw/big.c")
+    );
+}
+
+#[test]
+fn the_raw_read_in_json() {
+    let (ran, _) = show_via(
+        &["show", "--json", "github.com/x/y@main:big.c", "5-"],
+        vec![
+            Ok(json_reply(&over_cap_envelope())),
+            Ok(raw_reply(200, "text/plain", b"1\n2\n3\n4\n5")),
+        ],
+    );
+    let value: serde_json::Value =
+        serde_json::from_slice(&ran.out).unwrap_or_else(|e| panic!("{e}"));
+    assert_eq!(value["via_raw"], json!(true));
+    assert_eq!(value["lines"], json!([{"line": 5, "text": "5"}]));
+    assert_eq!(
+        (value["start"].as_u64(), value["end"].as_u64()),
+        (Some(5), Some(5))
+    );
+}
+
+#[test]
+fn a_raw_read_that_fails_is_an_error() {
+    let challenge = Ok(Reply {
+        status: 429,
+        content_type: Some("text/html".to_owned()),
+        location: None,
+        retry_after: None,
+        cf_mitigated: Some("challenge".to_owned()),
+        body: b"<html></html>".to_vec(),
+    });
+    let cases: Vec<(Result<Reply, TransportError>, &str)> = vec![
+        (
+            challenge,
+            "sego: error: sourcegraph.com's edge refused the request (HTTP \
+             429, Cloudflare challenge)\n",
+        ),
+        (
+            Ok(raw_reply(404, "text/html", b"<html>nope</html>")),
+            "sego: error: big.c not found in github.com/x/y@d81fd54f1a2b\n",
+        ),
+        (
+            Ok(raw_reply(502, "text/plain", b"bad")),
+            "sego: error: sourcegraph.com answered HTTP 502\n",
+        ),
+        (
+            Err(TransportError::Deadline),
+            "sego: error: no answer from sourcegraph.com within 90 s\n",
+        ),
+    ];
+    for (raw, expected) in cases {
+        let (ran, calls) = show_via(
+            &["show", "github.com/x/y@main:big.c", "1-2"],
+            vec![Ok(json_reply(&over_cap_envelope())), raw],
+        );
+        assert_eq!(ran.code, ExitCode::from(1), "{expected}");
+        assert_eq!(ran.out, b"");
+        assert!(
+            text(&ran.err).ends_with(expected),
+            "{}\n{expected}",
+            text(&ran.err)
+        );
+        assert_eq!(calls.len(), 2);
+    }
+}
+
+#[test]
+fn a_binary_file_over_the_limit_is_not_read_raw() {
+    let mut envelope = over_cap_envelope();
+    envelope["data"]["r0"]["c0"]["meta"]["binary"] = json!(true);
+    let (ran, calls) = show_via(
+        &["show", "github.com/x/y@main:big.c"],
+        vec![Ok(json_reply(&envelope))],
+    );
+    assert_eq!(ran.code, ExitCode::SUCCESS);
+    assert_eq!(calls.len(), 1);
+    assert_eq!(
+        text(&ran.out),
+        "github.com/x/y@d81fd54f1a2b:big.c  binary  2000000 bytes  rev main\n"
+    );
 }

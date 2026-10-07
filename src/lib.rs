@@ -4,6 +4,7 @@ mod error;
 mod escape;
 mod output;
 mod quote;
+mod show;
 mod upstream;
 
 #[doc(hidden)]
@@ -43,11 +44,6 @@ use upstream::{DEADLINE, Endpoint, Transport};
 
 pub struct Env {
     pub endpoint: Option<OsString>,
-}
-
-struct Answer {
-    notes: Notes,
-    body: Vec<u8>,
 }
 
 #[expect(
@@ -112,8 +108,7 @@ fn dispatch(
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> Result<(), Failure> {
-    let command = cli::parse(args)?;
-    match command {
+    let (address, lines, json) = match cli::parse(args)? {
         Command::Help(topic) => {
             out.write_all(cli::help(topic).as_bytes())?;
             return Ok(());
@@ -122,21 +117,24 @@ fn dispatch(
             writeln!(out, "sego {}", env!("CARGO_PKG_VERSION"))?;
             return Ok(());
         }
-        Command::Show { .. } => {}
-    }
+        Command::Show { address, lines, json } => (address, lines, json),
+    };
     let endpoint = Endpoint::from_env(env.endpoint.as_deref())?;
     let transport = connect(endpoint);
     let deadline = Instant::now() + DEADLINE;
-    let answer = execute(command, &*transport, deadline)?;
-    answer.notes.write(err)?;
-    out.write_all(&answer.body)?;
+    let mut notes = Notes::new();
+    let shown = show::run(
+        &address,
+        lines.as_ref(),
+        &*transport,
+        deadline,
+        &mut notes,
+    )?;
+    notes.write(err)?;
+    if json {
+        output::json::write(&shown, out)?;
+    } else {
+        out.write_all(shown.text().as_bytes())?;
+    }
     Ok(())
-}
-
-fn execute(
-    _command: Command,
-    _transport: &dyn Transport,
-    _deadline: Instant,
-) -> Result<Answer, Error> {
-    Err(Error::upstream("show is not wired yet"))
 }

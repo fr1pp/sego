@@ -1,0 +1,5 @@
+# JSON carries every key.
+args: show --json github.com/gorilla/mux@v1.8.0:mux.go 1-3
+exit: 0
+--- stdout
+{"repo":"github.com/gorilla/mux","rev":"v1.8.0","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","path":"mux.go","total_lines":606,"byte_size":17677,"binary":false,"crlf":false,"lfs_size":null,"submodule":null,"start":1,"end":3,"lines":[{"line":1,"text":"// Copyright 2012 The Gorilla Authors. All rights reserved."},{"line":2,"text":"// Use of this source code is governed by a BSD-style"},{"line":3,"text":"// license that can be found in the LICENSE file."}],"via_raw":false}

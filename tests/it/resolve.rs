@@ -23,7 +23,7 @@ fn toy() -> Plan {
     Plan {
         operation: "Toy",
         commit_template: "meta: blob(path: $path) { byteSize }",
-        vars: toy_vars,
+        vars: Box::new(toy_vars),
     }
 }
 
@@ -185,7 +185,7 @@ fn placeholders_are_renamed_whole_word() {
     let plan = Plan {
         operation: "Words",
         commit_template: "a: f(p: $path, q: $pathx)",
-        vars,
+        vars: Box::new(vars),
     };
     let request = build(&plan, &address("github.com/a/b:x"));
     assert!(

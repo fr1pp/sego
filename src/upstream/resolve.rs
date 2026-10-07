@@ -25,12 +25,15 @@ pub struct Candidate {
     pub path: Option<String>,
 }
 
+/// The variables a plan sends for one candidate.
+pub type Vars = Box<dyn Fn(&Candidate) -> Vec<Var>>;
+
 pub struct Plan {
     pub operation: &'static str,
     /// A selection on `GitCommit`. Its `$name` placeholders are renamed
     /// `$name_<j>` for candidate `j`.
     pub commit_template: &'static str,
-    pub vars: fn(&Candidate) -> Vec<Var>,
+    pub vars: Vars,
 }
 
 pub struct Request {

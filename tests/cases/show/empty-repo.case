@@ -1,0 +1,5 @@
+# A repository with no commits is an error.
+args: show github.com/ascoders/blog:README.md
+exit: 1
+--- stderr
+sego: error: github.com/ascoders/blog has no commits

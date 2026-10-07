@@ -1,0 +1,59 @@
+operation: ShowFile
+variables:
+  end_0: 500
+  parent_0: test/fixtures/copy/utf/新建文件夹
+  path_0: test/fixtures/copy/utf/新建文件夹/index.js
+  repo0: github.com/nodejs/node
+  rev0: aa1bf2cc37539bfeeef8faf80c9d31a64cb78026
+  start_0: 1
+query: |
+  query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
+    r0: repository(name: $repo0) {
+      name
+      defaultBranch { displayName }
+      c0: commit(rev: $rev0) {
+        oid
+        meta: blob(path: $path_0) { byteSize totalLines binary rawURL lfs { byteSize } }
+        body: blob(path: $path_0) { content(startLine: $start_0, endLine: $end_0, textOnly: true) }
+        dir: tree(path: $path_0) { entries { path } }
+        parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+      }
+    }
+  }
+status: 200
+headers:
+  content-type: application/json
+pinned: true
+response:
+  data:
+    r0:
+      c0:
+        body:
+          content: |
+            module.exports = {
+              purpose: 'testing copy'
+            };
+        dir: null
+        meta:
+          binary: false
+          byteSize: 48
+          lfs: null
+          rawURL: >-
+            /r/github.com/nodejs/node@aa1bf2cc37539bfeeef8faf80c9d31a64cb78026/-/raw/test/fixtures/copy/utf/%E6%96%B0%E5%BB%BA%E6%96%87%E4%BB%B6%E5%A4%B9/index.js
+          totalLines: 3
+        oid: aa1bf2cc37539bfeeef8faf80c9d31a64cb78026
+        parent:
+          entries:
+          - path: test/fixtures/copy/utf/新建文件夹/experimental.json
+            submodule: null
+          - path: test/fixtures/copy/utf/新建文件夹/index.js
+            submodule: null
+      defaultBranch:
+        displayName: main
+      name: github.com/nodejs/node
+  errors:
+  - message: "not a directory: \"test/fixtures/copy/utf/新建文件夹/index.js\""
+    path:
+    - r0
+    - c0
+    - dir

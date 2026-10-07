@@ -1,0 +1,14 @@
+# A range running past the end is clamped, with a note.
+args: show github.com/gorilla/mux@v1.8.0:mux.go 600-700
+exit: 0
+--- stdout
+github.com/gorilla/mux@98cb6bf42e08:mux.go  lines 600-606 of 606  rev v1.8.0
+ 600:func methodNotAllowed(w http.ResponseWriter, r *http.Request) {
+ 601:	w.WriteHeader(http.StatusMethodNotAllowed)
+ 602:}
+ 603:
+ 604:// methodNotAllowedHandler returns a simple request handler
+ 605:// that replies to each request with a status code 405.
+ 606:func methodNotAllowedHandler() http.Handler { return http.HandlerFunc(methodNotAllowed) }
+--- stderr
+sego: note: lines 600-700 clamped to 600-606; the file has 606 lines
