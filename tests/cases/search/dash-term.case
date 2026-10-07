@@ -1,5 +1,5 @@
-# A term starting with - needs no -- before it.
-args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 -file:_test\.go NewRouter'
+# A term starting with - arrives as its own argument and needs no -- before it.
+args: search 'repo:^github\.com/gorilla/mux$@v1.8.0' '-file:_test\.go' NewRouter
 exit: 0
 --- stdout
 46 matches  1 repo  1.2 s, deadline 60 s

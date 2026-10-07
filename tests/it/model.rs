@@ -466,3 +466,31 @@ fn units() {
     ]));
     assert_eq!(s.units(), 2 + 2 + 1 + 1 + 1 + 2 + 1);
 }
+
+#[test]
+fn author_filters_are_dropped() {
+    let Ok(results) = serde_json::from_value::<Results>(json!({
+        "matchCount": 5,
+        "approximateResultCount": "5",
+        "limitHit": false,
+        "repositoriesCount": 1,
+        "timedout": [],
+        "cloning": [],
+        "missing": [],
+        "alert": null,
+        "elapsedMilliseconds": 1,
+        "dynamicFilters": [
+            {"value": "author:a@b\\.io", "label": "a", "count": 1,
+             "limitHit": false, "kind": "author"},
+            {"value": "lang:go", "label": "Go", "count": 2,
+             "limitHit": false, "kind": "lang"}
+        ],
+        "results": [],
+    })) else {
+        panic!("results do not parse")
+    };
+    let s = Searched::new(results, &prepare("foo"));
+    let out = serde_json::to_string(&s.json()).unwrap();
+    assert!(!out.contains("author"), "{out}");
+    assert!(out.contains(r#""kind":"lang""#), "{out}");
+}

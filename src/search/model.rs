@@ -419,6 +419,7 @@ impl Searched {
             filters: results
                 .dynamic_filters
                 .into_iter()
+                .filter(|f| f.kind != "author")
                 .map(filter_out)
                 .collect(),
             groups,
