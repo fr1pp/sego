@@ -4,6 +4,7 @@ mod error;
 mod escape;
 mod output;
 mod quote;
+mod search;
 mod show;
 mod upstream;
 
@@ -26,6 +27,14 @@ pub mod internal {
     }
     pub mod quote {
         pub use crate::quote::*;
+    }
+    pub mod search {
+        pub mod lint {
+            pub use crate::search::lint::*;
+        }
+        pub mod query {
+            pub use crate::search::query::*;
+        }
     }
     pub mod upstream {
         pub use crate::upstream::*;
