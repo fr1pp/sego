@@ -5,3 +5,4 @@ exit: 2
 sego: error: unknown option --limit
   sego has no --limit; count: is a query filter
 usage: sego show [--json] REPO[@REV]:PATH [LINES]
+       sego show [--json] REPO@REV

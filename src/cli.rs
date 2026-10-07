@@ -8,10 +8,18 @@ use crate::error::Error;
 pub const SYNOPSIS: &str = "sego COMMAND [--json] ...";
 
 pub const SEARCH_SYNOPSIS: &str = "sego search [--json] QUERY...";
-pub const SHOW_SYNOPSIS: &str = "sego show [--json] REPO[@REV]:PATH [LINES]";
+pub const SHOW_SYNOPSIS: &str = "\
+sego show [--json] REPO[@REV]:PATH [LINES]\n\
+sego show [--json] REPO@REV";
 pub const LS_SYNOPSIS: &str =
     "sego ls [--json] [--recursive] REPO[@REV][:PATH]";
 pub const REFS_SYNOPSIS: &str = "sego refs [--json] REPO [TEXT]";
+pub const LOG_SYNOPSIS: &str = "\
+sego log [--json] REPO[@REV][:PATH] [PATH]\n\
+sego log [--json] REPO@A..B[:PATH] [PATH]";
+pub const DIFF_SYNOPSIS: &str = "\
+sego diff [--json] REPO@A...B[:PATH] [PATH...]\n\
+sego diff [--json] REPO@REV[:PATH] [PATH...]";
 
 /// A command word, its synopsis and the text of its `--help`.
 pub struct CommandEntry {
@@ -31,6 +39,8 @@ pub const COMMANDS: &[CommandEntry] = &[
     CommandEntry { name: "show", synopsis: SHOW_SYNOPSIS, help: show_help },
     CommandEntry { name: "ls", synopsis: LS_SYNOPSIS, help: ls_help },
     CommandEntry { name: "refs", synopsis: REFS_SYNOPSIS, help: refs_help },
+    CommandEntry { name: "log", synopsis: LOG_SYNOPSIS, help: log_help },
+    CommandEntry { name: "diff", synopsis: DIFF_SYNOPSIS, help: diff_help },
 ];
 
 #[derive(Debug, PartialEq, Eq)]
@@ -39,6 +49,9 @@ pub enum Command {
     Show { address: Address, lines: Option<LineRange>, json: bool },
     Ls { address: Address, recursive: bool, json: bool },
     Refs { repo: Repo, text: Option<String>, json: bool },
+    ShowCommit { address: Address, json: bool },
+    Log { address: Address, path: Option<String>, json: bool },
+    Diff { address: Address, paths: Vec<String>, json: bool },
     Help(Option<&'static str>),
     Version,
 }
@@ -141,6 +154,8 @@ pub fn parse(args: &[OsString]) -> Result<Command, Error> {
         "show" => parse_show(rest, flags.json),
         "ls" => parse_ls(rest, flags.recursive, flags.json),
         "refs" => parse_refs(rest, flags.json),
+        "log" => parse_log(rest, flags.json),
+        "diff" => parse_diff(rest, flags.json),
         other => Err(unknown_command(other)),
     }
 }
@@ -254,12 +269,27 @@ fn parse_show(operands: &[String], json: bool) -> Result<Command, Error> {
     if let Some(message) = range_message(&address.rev) {
         return Err(usage(message));
     }
-    let names_root =
-        address.path.as_deref().is_none_or(|path| matches!(path, "" | "."));
-    if names_root && !matches!(address.rev, Rev::Split(_)) {
-        return Err(usage(
-            "show needs a file's path, like REPO[@REV]:PATH".to_owned(),
-        ));
+    match (&address.rev, address.path.as_deref()) {
+        (Rev::Split(_), _) => {}
+        (_, Some("")) => {
+            return Err(usage(
+                "show needs a file's path, like REPO[@REV]:PATH".to_owned(),
+            ));
+        }
+        (Rev::One(_), None) => {
+            if !rest.is_empty() || address.lines.is_some() {
+                return Err(usage("a commit takes no LINES".to_owned()));
+            }
+            return Ok(Command::ShowCommit { address, json });
+        }
+        (_, None) => {
+            return Err(usage(
+                "show needs a file's path or a revision, like \
+                 REPO[@REV]:PATH or REPO@REV"
+                    .to_owned(),
+            ));
+        }
+        (_, Some(_)) => {}
     }
     let operand = rest
         .first()
@@ -341,6 +371,95 @@ fn parse_refs(operands: &[String], json: bool) -> Result<Command, Error> {
     Ok(Command::Refs { repo: address.repo, text, json })
 }
 
+/// The checks `log` and `diff` share on their address; `command` names the
+/// command in the messages.
+fn history_address(
+    token: &str,
+    command: &str,
+    synopsis: &'static str,
+) -> Result<Address, Error> {
+    let usage = |message: String| Error::usage(message, synopsis);
+    let address = address::parse(token).map_err(|e| usage(e.to_string()))?;
+    if matches!(address.rev, Rev::Split(_)) {
+        return Err(usage(format!(
+            "{command} can't split a branch or tag from the path in a tree \
+             or blob URL"
+        )));
+    }
+    if address.lines.is_some() {
+        return Err(usage(format!("{command} takes no LINES")));
+    }
+    Ok(address)
+}
+
+/// The path an operand or address names, or `None` for the root.
+fn named_path(path: &str) -> Option<String> {
+    Some(address::parse_path(path)).filter(|path| !path.is_empty())
+}
+
+fn parse_log(operands: &[String], json: bool) -> Result<Command, Error> {
+    let usage = |message: &str| Error::usage(message, LOG_SYNOPSIS);
+    let [token, rest @ ..] = operands else {
+        return Err(usage("log needs an address, like REPO[@REV][:PATH]"));
+    };
+    if rest.len() > 1 {
+        return Err(usage("log takes an address and at most one PATH"));
+    }
+    let mut address = history_address(token, "log", LOG_SYNOPSIS)?;
+    if let Rev::Range { base, head, dots: address::Dots::Three } = &address.rev
+    {
+        if address.kind != address::UrlKind::Compare {
+            return Err(usage("log takes A..B, not A...B"));
+        }
+        address.rev = Rev::Range {
+            base: base.clone(),
+            head: head.clone(),
+            dots: address::Dots::Two,
+        };
+    }
+    let in_address = address.path.as_deref().and_then(named_path);
+    let operand = rest.first().and_then(|path| named_path(path));
+    let path = match (in_address, operand) {
+        (Some(_), Some(_)) => return Err(usage("log takes one path")),
+        (path, None) | (None, path) => path,
+    };
+    Ok(Command::Log { address, path, json })
+}
+
+fn parse_diff(operands: &[String], json: bool) -> Result<Command, Error> {
+    let usage = |message: &str| Error::usage(message, DIFF_SYNOPSIS);
+    let [token, rest @ ..] = operands else {
+        return Err(usage(
+            "diff needs an address, like REPO@A...B or REPO@REV",
+        ));
+    };
+    let address = history_address(token, "diff", DIFF_SYNOPSIS)?;
+    match address.rev {
+        Rev::Range { dots: address::Dots::Two, .. } => {
+            return Err(usage(
+                "diff takes A...B (Sourcegraph compares from the merge base)",
+            ));
+        }
+        Rev::Default => {
+            return Err(usage(
+                "diff needs a revision or a range, like REPO@REV or \
+                 REPO@A...B",
+            ));
+        }
+        _ => {}
+    }
+    if rest.iter().any(String::is_empty) {
+        return Err(usage("diff takes no empty path"));
+    }
+    let paths = address
+        .path
+        .iter()
+        .chain(rest)
+        .filter_map(|path| named_path(path))
+        .collect();
+    Ok(Command::Diff { address, paths, json })
+}
+
 const ADDRESSES: &str = "\
 addresses:
   REPO     host/owner/name, owner/name, or a GitHub, GitLab or
@@ -364,6 +483,58 @@ query:
   count:, repo:, lang:, file:
                  query filters
   -- TEXT        text that is one of sego's options, such as --json
+";
+
+const SHOW_ADDRESSES: &str = "\
+addresses:
+  REPO     host/owner/name, owner/name, or a GitHub, GitLab or
+           Sourcegraph URL
+  @REV     a branch, tag or commit; the default branch without it
+  @REV     with no :PATH, the commit: its message and changed files
+  :PATH    a path from the repository root
+  LINES    N, N-M, N,M or N- (lines are numbered from 1)
+";
+
+const LOG_HELP: &str = "\
+usage: sego log [--json] REPO[@REV][:PATH] [PATH]
+       sego log [--json] REPO@A..B[:PATH] [PATH]
+
+operands:
+  REPO       host/owner/name, owner/name, or a GitHub, GitLab or
+             Sourcegraph URL
+  REPO@REV   commits reachable from REV, newest first; the default
+             branch without @REV
+  REPO@A..B  commits reachable from B and not from A, as git log A..B
+  PATH       only commits that changed PATH (one path)
+
+options:
+  --json       one JSON document on stdout
+  -h, --help   this help, or a command's help after its name
+  --version    sego's version
+
+Text and JSON list the newest 150 commits of a REV; a range lists them all
+in JSON. Tags that point at a listed commit are marked.
+";
+
+const DIFF_HELP: &str = "\
+usage: sego diff [--json] REPO@A...B[:PATH] [PATH...]
+       sego diff [--json] REPO@REV[:PATH] [PATH...]
+
+operands:
+  REPO        host/owner/name, owner/name, or a GitHub, GitLab or
+              Sourcegraph URL
+  REPO@A...B  changes from the merge base of A and B to B, as git
+              diff A...B
+  REPO@REV    the change REV made, against its first parent
+  PATH...     paths or directory prefixes; the patch comes only for these
+
+options:
+  --json       one JSON document on stdout
+  -h, --help   this help, or a command's help after its name
+  --version    sego's version
+
+Text prints 200 file rows; --json carries every file.
+A rename shows as R only when both its paths are named; otherwise as A and D.
 ";
 
 const LS_HELP: &str = "\
@@ -416,12 +587,19 @@ fn search_help() -> String {
 
 fn show_help() -> String {
     format!(
-        "usage: {SHOW_SYNOPSIS}\n\n{ADDRESSES}\n{OPTIONS}\n\
+        "usage: {}\n\n{SHOW_ADDRESSES}\n{OPTIONS}\n\
          A file over 1.5 MiB is read through Sourcegraph's raw route, a \
          second request.\n\
          Text shows lines 1-500 when LINES is not given; --json \
-         carries the same lines.\n"
+         carries the same lines.\n",
+        usage_lines(SHOW_SYNOPSIS)
     )
+}
+
+/// A synopsis as `error::report` prints it after `usage: `: later lines are
+/// indented under the first.
+fn usage_lines(synopsis: &str) -> String {
+    synopsis.replace('\n', "\n       ")
 }
 
 fn ls_help() -> String {
@@ -430,6 +608,14 @@ fn ls_help() -> String {
 
 fn refs_help() -> String {
     REFS_HELP.to_owned()
+}
+
+fn log_help() -> String {
+    LOG_HELP.to_owned()
+}
+
+fn diff_help() -> String {
+    DIFF_HELP.to_owned()
 }
 
 pub fn help(topic: Option<&str>) -> String {
@@ -449,6 +635,8 @@ commands:
   show REPO[@REV]:PATH [LINES]   lines of a file
   ls REPO[@REV][:PATH]           entries of a directory
   refs REPO [TEXT]               branches and tags
+  log REPO[@REV][:PATH] [PATH]   commits
+  diff REPO@A...B [PATH...]      changed files, and the patch of named paths
 
 {ADDRESSES}
 {OPTIONS}

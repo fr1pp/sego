@@ -9,7 +9,7 @@ use sego::internal::cli::{
 use sego::internal::error::{Kind, report};
 
 const GENERAL: &str = "sego COMMAND [--json] ...";
-const COMMANDS: &str = "  commands: search, show, ls, refs";
+const COMMANDS: &str = "  commands: search, show, ls, refs, log, diff";
 const LIMIT: &str = "sego has no --limit; count: is a query filter";
 
 fn os(args: &[&str]) -> Vec<OsString> {
@@ -45,7 +45,10 @@ fn expected(message: &str, facts: &[&str], synopsis: &str) -> String {
     for fact in facts {
         let _ = writeln!(text, "{fact}");
     }
-    let _ = writeln!(text, "usage: {synopsis}");
+    for (i, line) in synopsis.lines().enumerate() {
+        let lead = if i == 0 { "usage: " } else { "       " };
+        let _ = writeln!(text, "{lead}{line}");
+    }
     text
 }
 
@@ -216,8 +219,13 @@ fn show_operand_errors() {
             vec!["show", "x/y:a", "1", "2"],
             plain("show takes an address and at most one LINES operand"),
         ),
-        (vec!["show", "github.com/x/y"], plain(needs_path)),
-        (vec!["show", "x/y@v1"], plain(needs_path)),
+        (
+            vec!["show", "github.com/x/y"],
+            plain(
+                "show needs a file's path or a revision, like \
+                 REPO[@REV]:PATH or REPO@REV",
+            ),
+        ),
         (vec!["show", "x/y:"], plain(needs_path)),
         (vec!["show", "x/y@v1:"], plain(needs_path)),
         (vec!["show", "x/y:."], plain(needs_path)),
@@ -301,6 +309,8 @@ commands:
   show REPO[@REV]:PATH [LINES]   lines of a file
   ls REPO[@REV][:PATH]           entries of a directory
   refs REPO [TEXT]               branches and tags
+  log REPO[@REV][:PATH] [PATH]   commits
+  diff REPO@A...B [PATH...]      changed files, and the patch of named paths
 
 addresses:
   REPO     host/owner/name, owner/name, or a GitHub, GitLab or
@@ -329,9 +339,10 @@ fn help_is_the_text_in_the_brief() {
 #[test]
 fn show_help_has_the_synopsis_blocks_and_two_facts() {
     let text = help(Some("show"));
-    assert!(
-        text.starts_with(&format!("usage: {SHOW_SYNOPSIS}\n\naddresses:\n"))
-    );
+    assert!(text.starts_with(&format!(
+        "usage: {}\n\naddresses:\n",
+        rendered(SHOW_SYNOPSIS)
+    )));
     assert!(text.contains("\noptions:\n  --json "));
     assert!(text.ends_with(
         "A file over 1.5 MiB is read through Sourcegraph's raw route, a \
@@ -341,13 +352,21 @@ fn show_help_has_the_synopsis_blocks_and_two_facts() {
     assert!(!text.contains("commands:"));
 }
 
+/// A synopsis as help and `error::report` print it after `usage: `.
+fn rendered(synopsis: &str) -> String {
+    synopsis.replace('\n', "\n       ")
+}
+
 #[test]
 fn every_command_has_its_own_help() {
     let general = help(None);
     for entry in TABLE {
         let text = help(Some(entry.name));
         assert!(
-            text.starts_with(&format!("usage: {}\n", entry.synopsis)),
+            text.starts_with(&format!(
+                "usage: {}\n",
+                rendered(entry.synopsis)
+            )),
             "{}: {text}",
             entry.name
         );
@@ -358,9 +377,26 @@ fn every_command_has_its_own_help() {
 
 #[test]
 fn help_fits_79_columns() {
-    for text in [help(None), help(Some("show")), help(Some("search"))] {
-        for line in text.lines() {
-            assert!(line.chars().count() <= 79, "{line}");
+    let topics = TABLE.iter().map(|entry| Some(entry.name));
+    for topic in std::iter::once(None).chain(topics) {
+        for line in help(topic).lines() {
+            assert!(line.chars().count() <= 79, "{topic:?}: {line}");
         }
     }
+}
+
+#[test]
+fn general_help_names_every_command() {
+    let text = help(None);
+    let block = text
+        .split("commands:\n")
+        .nth(1)
+        .and_then(|rest| rest.split("\n\n").next())
+        .unwrap_or_default();
+    let named: Vec<&str> = block
+        .lines()
+        .filter_map(|line| line.trim_start().split(' ').next())
+        .collect();
+    let table: Vec<&str> = TABLE.iter().map(|entry| entry.name).collect();
+    assert_eq!(named, table);
 }

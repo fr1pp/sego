@@ -1,0 +1,22 @@
+# log --help prints log's synopses, operands, options and facts.
+args: log --help
+exit: 0
+--- stdout
+usage: sego log [--json] REPO[@REV][:PATH] [PATH]
+       sego log [--json] REPO@A..B[:PATH] [PATH]
+
+operands:
+  REPO       host/owner/name, owner/name, or a GitHub, GitLab or
+             Sourcegraph URL
+  REPO@REV   commits reachable from REV, newest first; the default
+             branch without @REV
+  REPO@A..B  commits reachable from B and not from A, as git log A..B
+  PATH       only commits that changed PATH (one path)
+
+options:
+  --json       one JSON document on stdout
+  -h, --help   this help, or a command's help after its name
+  --version    sego's version
+
+Text and JSON list the newest 150 commits of a REV; a range lists them all
+in JSON. Tags that point at a listed commit are marked.

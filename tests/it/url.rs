@@ -239,6 +239,24 @@ fn submodule_targets() {
 }
 
 #[test]
+fn a_commit_url_names_one_commit() {
+    for token in [
+        "github.com/o/r/commit/a..b",
+        "github.com/o/r/commit/a...b",
+        "github.com/o/r/commit/a%2E%2Eb",
+        "github.com/o/r/commit/a..",
+        "gitlab.com/g/r/-/commit/a..b",
+        "sourcegraph.com/github.com/o/r@v1/-/commit/a..b",
+    ] {
+        assert!(
+            matches!(parse(token), Err(AddressError::UnsupportedUrl(_))),
+            "{token}: {:?}",
+            parse(token)
+        );
+    }
+}
+
+#[test]
 fn web_revisions_are_validated() {
     let a = ok("sourcegraph.com/github.com/o/r@a..b/-/blob/x");
     assert!(matches!(a.rev, Rev::Range { dots: Dots::Two, .. }));

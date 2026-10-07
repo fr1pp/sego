@@ -177,6 +177,15 @@ fn dispatch(
             )?;
             (Box::new(listed), json)
         }
+        Command::ShowCommit { .. } => {
+            return Err(Error::upstream("show is not wired yet").into());
+        }
+        Command::Log { .. } => {
+            return Err(Error::upstream("log is not wired yet").into());
+        }
+        Command::Diff { .. } => {
+            return Err(Error::upstream("diff is not wired yet").into());
+        }
     };
     notes.write(err)?;
     if json {

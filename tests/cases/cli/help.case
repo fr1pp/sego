@@ -11,6 +11,8 @@ commands:
   show REPO[@REV]:PATH [LINES]   lines of a file
   ls REPO[@REV][:PATH]           entries of a directory
   refs REPO [TEXT]               branches and tags
+  log REPO[@REV][:PATH] [PATH]   commits
+  diff REPO@A...B [PATH...]      changed files, and the patch of named paths
 
 addresses:
   REPO     host/owner/name, owner/name, or a GitHub, GitLab or

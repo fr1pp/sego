@@ -7,6 +7,7 @@ mod error;
 mod escape;
 mod fixtures;
 mod guard;
+mod history_cli;
 mod lint;
 mod ls;
 mod ls_cli;

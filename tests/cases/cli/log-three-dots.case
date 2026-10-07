@@ -1,0 +1,7 @@
+# log takes A..B; a three-dot range is a usage error and no request is made.
+args: log github.com/x/y@a...b
+exit: 2
+--- stderr
+sego: error: log takes A..B, not A...B
+usage: sego log [--json] REPO[@REV][:PATH] [PATH]
+       sego log [--json] REPO@A..B[:PATH] [PATH]

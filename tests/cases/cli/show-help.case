@@ -3,11 +3,13 @@ args: show --help
 exit: 0
 --- stdout
 usage: sego show [--json] REPO[@REV]:PATH [LINES]
+       sego show [--json] REPO@REV
 
 addresses:
   REPO     host/owner/name, owner/name, or a GitHub, GitLab or
            Sourcegraph URL
   @REV     a branch, tag or commit; the default branch without it
+  @REV     with no :PATH, the commit: its message and changed files
   :PATH    a path from the repository root
   LINES    N, N-M, N,M or N- (lines are numbered from 1)
 

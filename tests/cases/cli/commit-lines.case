@@ -1,0 +1,7 @@
+# A commit takes no LINES; no request is made.
+args: show github.com/x/y@v1 3-9
+exit: 2
+--- stderr
+sego: error: a commit takes no LINES
+usage: sego show [--json] REPO[@REV]:PATH [LINES]
+       sego show [--json] REPO@REV

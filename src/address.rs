@@ -287,6 +287,14 @@ fn parse_rev(rev: &str) -> Result<Rev, AddressError> {
     Ok(Rev::Range { base: base.to_owned(), head: head.to_owned(), dots })
 }
 
+/// A commit URL names one commit, so a range in its place is unsupported.
+fn commit_rev(token: &str, sha: &str) -> Result<Rev, AddressError> {
+    if sha.contains("..") {
+        return Err(AddressError::UnsupportedUrl(token.to_owned()));
+    }
+    parse_rev(sha)
+}
+
 fn all_digits_then_slash_or_end(s: &str) -> bool {
     let end = s.find('/').unwrap_or(s.len());
     is_digits(&s[..end])
@@ -367,7 +375,8 @@ fn parse_repo(repo: &str, token: &str) -> Result<Repo, AddressError> {
     }
 }
 
-fn parse_path(path: &str) -> String {
+/// Drops the leading and trailing `/`; `.` names the root, as `""`.
+pub fn parse_path(path: &str) -> String {
     let path = path.trim_matches('/');
     if path == "." { String::new() } else { path.to_owned() }
 }
@@ -542,7 +551,7 @@ fn forge_tail(
         "tree" => split_rev(token, rest, UrlKind::Tree),
         "commit" => match rest {
             [sha] if !sha.is_empty() => Ok(Web {
-                rev: parse_rev(&percent_decode(sha))?,
+                rev: commit_rev(token, &percent_decode(sha))?,
                 path: None,
                 kind: UrlKind::Commit,
             }),
@@ -712,7 +721,8 @@ fn sourcegraph_url(
             }
         }
         Some((keyword, [sha])) if keyword == "commit" => {
-            Ok(Web { rev: parse_rev(sha)?, path: None, kind: UrlKind::Commit })
+            let rev = commit_rev(token, sha)?;
+            Ok(Web { rev, path: None, kind: UrlKind::Commit })
         }
         _ => Err(unsupported()),
     });
