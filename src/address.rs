@@ -96,6 +96,9 @@ pub enum AddressError {
     LineZero(String),
     LineEndBeforeStart(String),
     LineForm(String),
+    PullRequestUrl,
+    ReleaseUrl,
+    UnsupportedUrl(String),
 }
 
 impl fmt::Display for AddressError {
@@ -137,6 +140,15 @@ impl fmt::Display for AddressError {
                 f,
                 "invalid line range {s}; lines are N, N-M, N,M or N-"
             ),
+            Self::PullRequestUrl => {
+                write!(f, "pull request URLs name no revision sego can read")
+            }
+            Self::ReleaseUrl => {
+                write!(f, "release URLs name no revision sego can read")
+            }
+            Self::UnsupportedUrl(t) => {
+                write!(f, "unsupported URL form: {t}")
+            }
         }
     }
 }
@@ -318,6 +330,9 @@ fn parse_path(path: &str) -> String {
 }
 
 pub fn parse(token: &str) -> Result<Address, AddressError> {
+    if let Some(web) = parse_web(token) {
+        return web;
+    }
     let stripped = strip_clone_url(token);
     let repo_end = stripped.find(['@', ':']).unwrap_or(stripped.len());
     let repo = parse_repo(&stripped[..repo_end], token);
@@ -355,4 +370,344 @@ pub fn parse(token: &str) -> Result<Address, AddressError> {
         lines: None,
         kind: UrlKind::Plain,
     })
+}
+
+fn hex_value(b: u8) -> Option<u8> {
+    char::from(b).to_digit(16).and_then(|d| u8::try_from(d).ok())
+}
+
+/// An invalid escape such as `%zz` is kept literally.
+fn percent_decode(s: &str) -> String {
+    let bytes = s.as_bytes();
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'%'
+            && i + 2 < bytes.len()
+            && let (Some(h), Some(l)) =
+                (hex_value(bytes[i + 1]), hex_value(bytes[i + 2]))
+        {
+            out.push(h * 16 + l);
+            i += 3;
+        } else {
+            out.push(bytes[i]);
+            i += 1;
+        }
+    }
+    String::from_utf8_lossy(&out).into_owned()
+}
+
+fn strip_prefix_ignore_case<'a>(s: &'a str, prefix: &str) -> Option<&'a str> {
+    let head = s.get(..prefix.len())?;
+    head.eq_ignore_ascii_case(prefix).then(|| &s[prefix.len()..])
+}
+
+fn is_sha(s: &str) -> bool {
+    s.len() == 40 && s.bytes().all(|b| b.is_ascii_hexdigit())
+}
+
+/// `10`, `10-20`, `10C5-12C8` and the same with `L` before each number.
+/// Anything else is not a line selection and yields `None`.
+fn selection_lines(
+    selection: &str,
+) -> Result<Option<LineRange>, AddressError> {
+    let Some(body) = selection.strip_prefix('L') else {
+        return Ok(None);
+    };
+    let number = |part: &str| -> Option<String> {
+        let (line, column) = part.split_once('C').unwrap_or((part, "1"));
+        (is_digits(line) && is_digits(column)).then(|| line.to_owned())
+    };
+    let normalised = match body.split_once('-') {
+        None => number(body),
+        Some((a, b)) => {
+            let b = b.strip_prefix('L').unwrap_or(b);
+            number(a).zip(number(b)).map(|(a, b)| format!("{a}-{b}"))
+        }
+    };
+    match normalised {
+        Some(range) => parse_lines(&range).map(Some),
+        None => Ok(None),
+    }
+}
+
+fn url_lines(
+    fragment: Option<&str>,
+    query: Option<&str>,
+) -> Result<Option<LineRange>, AddressError> {
+    if let Some(lines) = fragment.map(selection_lines).transpose()?.flatten() {
+        return Ok(Some(lines));
+    }
+    let selection = query.and_then(|q| {
+        q.split('&').find(|part| {
+            part.strip_prefix('L')
+                .is_some_and(|r| r.starts_with(|c: char| c.is_ascii_digit()))
+        })
+    });
+    selection.map(selection_lines).transpose().map(Option::flatten)
+}
+
+struct Web {
+    rev: Rev,
+    path: Option<String>,
+    kind: UrlKind,
+}
+
+fn split_rev(
+    token: &str,
+    rest: &[&str],
+    kind: UrlKind,
+) -> Result<Web, AddressError> {
+    let unsupported = || AddressError::UnsupportedUrl(token.to_owned());
+    let segments: Vec<String> =
+        rest.iter().map(|s| percent_decode(s)).collect();
+    if segments.is_empty() || segments.iter().any(String::is_empty) {
+        return Err(unsupported());
+    }
+    if is_sha(&segments[0]) {
+        let path = segments[1..].join("/");
+        if kind == UrlKind::Blob && path.is_empty() {
+            return Err(unsupported());
+        }
+        return Ok(Web {
+            rev: Rev::One(segments[0].clone()),
+            path: Some(path),
+            kind,
+        });
+    }
+    if kind == UrlKind::Blob && segments.len() < 2 {
+        return Err(unsupported());
+    }
+    Ok(Web { rev: Rev::Split(segments), path: None, kind })
+}
+
+fn forge_tail(
+    token: &str,
+    keyword: &str,
+    rest: &[&str],
+) -> Result<Web, AddressError> {
+    let unsupported = || AddressError::UnsupportedUrl(token.to_owned());
+    match keyword {
+        "blob" | "raw" | "blame" => split_rev(token, rest, UrlKind::Blob),
+        "tree" => split_rev(token, rest, UrlKind::Tree),
+        "commit" => match rest {
+            [sha] if !sha.is_empty() => Ok(Web {
+                rev: Rev::One(percent_decode(sha)),
+                path: None,
+                kind: UrlKind::Commit,
+            }),
+            _ => Err(unsupported()),
+        },
+        "compare" => {
+            let spec: Vec<String> =
+                rest.iter().map(|s| percent_decode(s)).collect();
+            match parse_rev(&spec.join("/"))? {
+                rev @ Rev::Range { .. } => {
+                    Ok(Web { rev, path: None, kind: UrlKind::Compare })
+                }
+                _ => Err(unsupported()),
+            }
+        }
+        "pull" | "merge_requests" => Err(AddressError::PullRequestUrl),
+        "releases" => Err(AddressError::ReleaseUrl),
+        _ => Err(unsupported()),
+    }
+}
+
+const GITHUB_KEYWORDS: [&str; 8] =
+    ["blob", "tree", "raw", "blame", "commit", "compare", "pull", "releases"];
+
+fn finish(
+    repo: String,
+    web: Result<Web, AddressError>,
+    lines: Result<Option<LineRange>, AddressError>,
+) -> Result<Address, AddressError> {
+    let web = web?;
+    Ok(Address {
+        repo: Repo::Exact(repo),
+        rev: web.rev,
+        path: web.path,
+        lines: lines?,
+        kind: web.kind,
+    })
+}
+
+fn has_scp_marks(segment: &str) -> bool {
+    segment.contains(['@', ':'])
+}
+
+fn github_url(
+    token: &str,
+    segs: &[&str],
+    lines: Result<Option<LineRange>, AddressError>,
+) -> Option<Result<Address, AddressError>> {
+    if segs.len() < 3
+        || segs[..2].iter().any(|s| s.is_empty() || has_scp_marks(s))
+    {
+        return None;
+    }
+    let repo = format!(
+        "github.com/{}/{}",
+        percent_decode(segs[0]),
+        percent_decode(segs[1])
+    );
+    if GITHUB_KEYWORDS.contains(&segs[2]) {
+        return Some(finish(
+            repo,
+            forge_tail(token, segs[2], &segs[3..]),
+            lines,
+        ));
+    }
+    if segs.iter().any(|s| has_scp_marks(s)) {
+        return None;
+    }
+    Some(Err(AddressError::UnsupportedUrl(token.to_owned())))
+}
+
+fn gitlab_url(
+    token: &str,
+    segs: &[&str],
+    lines: Result<Option<LineRange>, AddressError>,
+) -> Option<Result<Address, AddressError>> {
+    let dash = segs.iter().position(|s| *s == "-")?;
+    let unsupported = || AddressError::UnsupportedUrl(token.to_owned());
+    let repo_segs = &segs[..dash];
+    if repo_segs.len() < 2
+        || repo_segs.iter().any(|s| s.is_empty() || has_scp_marks(s))
+    {
+        return Some(Err(unsupported()));
+    }
+    let names: Vec<String> =
+        repo_segs.iter().map(|s| percent_decode(s)).collect();
+    let repo = format!("gitlab.com/{}", names.join("/"));
+    let tail = match segs.get(dash + 1) {
+        Some(keyword) => forge_tail(token, keyword, &segs[dash + 2..]),
+        None => Err(unsupported()),
+    };
+    Some(finish(repo, tail, lines))
+}
+
+fn sourcegraph_url(
+    token: &str,
+    segs: &[&str],
+    lines: Result<Option<LineRange>, AddressError>,
+) -> Option<Result<Address, AddressError>> {
+    let dash = segs.iter().position(|s| *s == "-")?;
+    if !segs[..dash].iter().any(|s| s.contains('@')) {
+        return None;
+    }
+    let unsupported = || AddressError::UnsupportedUrl(token.to_owned());
+    let named = if segs[0] == "r" { &segs[1..dash] } else { &segs[..dash] };
+    let joined = percent_decode(&named.join("/"));
+    let (repo, rev) = joined.split_once('@')?;
+    if repo.is_empty() {
+        return Some(Err(unsupported()));
+    }
+    if rev.is_empty() {
+        return Some(Err(AddressError::EmptyRevision(token.to_owned())));
+    }
+    let rest: Vec<String> =
+        segs[dash + 1..].iter().map(|s| percent_decode(s)).collect();
+    let tail = match rest.split_first() {
+        Some((keyword, path)) if keyword == "blob" || keyword == "tree" => {
+            let path = path.join("/");
+            let kind =
+                if keyword == "blob" { UrlKind::Blob } else { UrlKind::Tree };
+            if kind == UrlKind::Blob && path.is_empty() {
+                Err(unsupported())
+            } else {
+                Ok(Web {
+                    rev: Rev::One(rev.to_owned()),
+                    path: Some(path),
+                    kind,
+                })
+            }
+        }
+        Some((keyword, [sha])) if keyword == "commit" => Ok(Web {
+            rev: Rev::One(sha.clone()),
+            path: None,
+            kind: UrlKind::Commit,
+        }),
+        _ => Err(unsupported()),
+    };
+    Some(finish(repo.to_owned(), tail, lines))
+}
+
+fn raw_githubusercontent_url(
+    token: &str,
+    segs: &[&str],
+    lines: Result<Option<LineRange>, AddressError>,
+) -> Result<Address, AddressError> {
+    if segs.len() < 4 || segs[..2].iter().any(|s| s.is_empty()) {
+        return Err(AddressError::UnsupportedUrl(token.to_owned()));
+    }
+    let repo = format!(
+        "github.com/{}/{}",
+        percent_decode(segs[0]),
+        percent_decode(segs[1])
+    );
+    finish(repo, split_rev(token, &segs[2..], UrlKind::Blob), lines)
+}
+
+/// `None` when the token is not a web URL and the plain grammar applies.
+fn parse_web(token: &str) -> Option<Result<Address, AddressError>> {
+    let rest = strip_prefix_ignore_case(token, "https://")
+        .or_else(|| strip_prefix_ignore_case(token, "http://"))
+        .unwrap_or(token);
+    let rest = strip_prefix_ignore_case(rest, "www.").unwrap_or(rest);
+    let (rest, fragment) = match rest.split_once('#') {
+        Some((a, b)) => (a, Some(b)),
+        None => (rest, None),
+    };
+    let (rest, query) = match rest.split_once('?') {
+        Some((a, b)) => (a, Some(b)),
+        None => (rest, None),
+    };
+    let (host, path) = rest.split_once('/').unwrap_or((rest, ""));
+    let path = path.trim_end_matches('/');
+    let segs: Vec<&str> =
+        if path.is_empty() { Vec::new() } else { path.split('/').collect() };
+    let lines = url_lines(fragment, query);
+    match host.to_ascii_lowercase().as_str() {
+        "github.com" => github_url(token, &segs, lines),
+        "gitlab.com" => gitlab_url(token, &segs, lines),
+        "sourcegraph.com" => sourcegraph_url(token, &segs, lines),
+        "raw.githubusercontent.com" => {
+            Some(raw_githubusercontent_url(token, &segs, lines))
+        }
+        _ => None,
+    }
+}
+
+/// Resolves a submodule's stored URL to `host/owner/name`.
+pub fn submodule_target(url: &str, parent_repo: &str) -> Option<String> {
+    let url = url.trim();
+    if url.is_empty() || strip_prefix_ignore_case(url, "file:").is_some() {
+        return None;
+    }
+    let location = if url.starts_with("./") || url.starts_with("../") {
+        let mut segments: Vec<&str> = parent_repo.split('/').collect();
+        for part in url.split('/') {
+            match part {
+                "." | "" => {}
+                ".." => {
+                    segments.pop();
+                    if segments.is_empty() {
+                        return None;
+                    }
+                }
+                name => segments.push(name),
+            }
+        }
+        segments.join("/")
+    } else {
+        strip_clone_url(url)
+    };
+    let location = location.trim_end_matches('/');
+    let location = location.strip_suffix(".git").unwrap_or(location);
+    let segments: Vec<&str> = location.split('/').collect();
+    let valid = segments.len() >= 3
+        && segments[0].contains('.')
+        && segments.iter().all(|s| !s.is_empty() && !s.contains(is_bad_char));
+    valid.then(|| location.to_owned())
 }
