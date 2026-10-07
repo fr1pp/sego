@@ -1,14 +1,13 @@
 use std::ffi::OsStr;
+use std::net::TcpListener;
 use std::time::{Duration, Instant};
 
 use sego::internal::error::Error;
 use sego::internal::upstream::{
-    BODY_LIMIT, Endpoint, Transport, TransportError, Ureq,
+    BODY_LIMIT, Endpoint, GRAPHQL_PATH, Transport, TransportError, Ureq,
 };
 
 use crate::support::http::{Response, Server};
-
-const GRAPHQL: &str = "/.api/graphql";
 
 fn client(server: &Server) -> Ureq {
     let value = server.url();
@@ -22,7 +21,7 @@ fn soon() -> Instant {
 }
 
 fn graphql_url(value: Option<&str>) -> Result<String, Error> {
-    Endpoint::from_env(value.map(OsStr::new)).map(|e| e.url(GRAPHQL))
+    Endpoint::from_env(value.map(OsStr::new)).map(|e| e.url(GRAPHQL_PATH))
 }
 
 fn usage_message(value: &str) -> String {
@@ -59,6 +58,9 @@ fn endpoint() {
         "https://host?x=1",
         "https://host#x",
         "http://",
+        "https://host:abc",
+        "https://host:",
+        "http://[::1]:x",
     ] {
         assert_eq!(
             usage_message(bad),
@@ -76,15 +78,25 @@ fn endpoint() {
 #[test]
 fn endpoint_must_be_utf8() {
     use std::os::unix::ffi::OsStrExt;
-    let error = Endpoint::from_env(Some(OsStr::from_bytes(b"http://\xff")))
-        .expect_err("non-utf8");
-    assert_eq!(error.to_string(), "SEGO_ENDPOINT is not valid UTF-8");
+    let Err(error) =
+        Endpoint::from_env(Some(OsStr::from_bytes(b"http://\xff")))
+    else {
+        panic!("non-UTF-8 was accepted");
+    };
+    let mut out = Vec::new();
+    sego::internal::error::report(&error, &mut out)
+        .unwrap_or_else(|e| panic!("{e}"));
+    assert_eq!(
+        String::from_utf8_lossy(&out),
+        "sego: error: SEGO_ENDPOINT is not valid UTF-8\n\
+         usage: sego COMMAND [--json] ...\n"
+    );
 }
 
 #[test]
 fn sends_identification() {
     let server = Server::start(|_| Response::new(200).body("{}"));
-    client(&server).post(GRAPHQL, b"{}", soon()).expect("post");
+    client(&server).post(GRAPHQL_PATH, b"{}", soon()).expect("post");
     client(&server).get("/r/x", soon()).expect("get");
     let requests = server.requests();
     assert_eq!(requests.len(), 2);
@@ -110,7 +122,7 @@ fn sends_identification() {
     }
     let post = &requests[0];
     assert_eq!(post.method, "POST");
-    assert_eq!(post.path, GRAPHQL);
+    assert_eq!(post.path, GRAPHQL_PATH);
     assert_eq!(post.header("content-type"), Some("application/json"));
     assert_eq!(post.header("accept"), Some("application/json"));
     assert_eq!(post.body, b"{}");
@@ -129,7 +141,7 @@ fn status_bodies_are_returned() {
     });
     let bad = client(&server).get("/400", soon()).expect("400");
     assert_eq!((bad.status, bad.body.as_slice()), (400, &b"bad"[..]));
-    let slow = client(&server).post(GRAPHQL, b"{}", soon()).expect("429");
+    let slow = client(&server).post(GRAPHQL_PATH, b"{}", soon()).expect("429");
     assert_eq!(slow.status, 429);
     assert_eq!(slow.retry_after.as_deref(), Some("30"));
     assert_eq!(slow.body, b"slow");
@@ -142,7 +154,7 @@ fn redirects_are_not_followed() {
     });
     for reply in [
         client(&server).get("/r/a", soon()).expect("get"),
-        client(&server).post(GRAPHQL, b"{}", soon()).expect("post"),
+        client(&server).post(GRAPHQL_PATH, b"{}", soon()).expect("post"),
     ] {
         assert_eq!(reply.status, 302);
         assert_eq!(reply.location.as_deref(), Some("/next"));
@@ -169,8 +181,11 @@ fn deadline_is_shared() {
         Response::new(200).delay(Duration::from_secs(3)).body("late")
     });
     let started = Instant::now();
-    let slow =
-        client(&server).post(GRAPHQL, b"{}", started + Duration::from_secs(1));
+    let slow = client(&server).post(
+        GRAPHQL_PATH,
+        b"{}",
+        started + Duration::from_secs(1),
+    );
     assert!(matches!(slow, Err(TransportError::Deadline)), "{slow:?}");
     assert!(started.elapsed() < Duration::from_secs(2));
 
@@ -183,10 +198,15 @@ fn deadline_is_shared() {
 
 #[test]
 fn network_causes() {
-    let closed = {
-        let server = Server::start(|_| Response::new(200));
-        client(&server)
-    };
+    let listener =
+        TcpListener::bind("127.0.0.1:0").unwrap_or_else(|e| panic!("{e}"));
+    let port = listener.local_addr().unwrap_or_else(|e| panic!("{e}")).port();
+    drop(listener);
+    let value = format!("http://127.0.0.1:{port}");
+    let closed = Ureq::without_proxy(
+        Endpoint::from_env(Some(OsStr::new(&value)))
+            .unwrap_or_else(|e| panic!("{e}")),
+    );
     let refused = closed.get("/", soon());
     assert!(
         matches!(refused, Err(TransportError::Network("connection refused"))),
@@ -194,7 +214,7 @@ fn network_causes() {
     );
 
     let server = Server::start(|_| Response::drop_connection());
-    let dropped = client(&server).post(GRAPHQL, b"{}", soon());
+    let dropped = client(&server).post(GRAPHQL_PATH, b"{}", soon());
     assert!(
         matches!(
             dropped,

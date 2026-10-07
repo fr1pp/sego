@@ -88,12 +88,21 @@ fn is_endpoint(text: &str) -> bool {
     }
     let authority = rest.split('/').next().unwrap_or_default();
     let host_port = authority.rsplit('@').next().unwrap_or_default();
-    let host = if host_port.starts_with('[') {
-        host_port.split_once(']').map_or("", |(host, _)| host)
+    let (host, port) = if host_port.starts_with('[') {
+        host_port
+            .split_once(']')
+            .map_or(("", None), |(host, rest)| (host, rest.strip_prefix(':')))
     } else {
-        host_port.split(':').next().unwrap_or_default()
+        match host_port.split_once(':') {
+            Some((host, port)) => (host, Some(port)),
+            None => (host_port, None),
+        }
     };
-    !host.is_empty() && host != "["
+    !host.is_empty()
+        && host != "["
+        && port.is_none_or(|port| {
+            !port.is_empty() && port.bytes().all(|b| b.is_ascii_digit())
+        })
 }
 
 pub struct Ureq {
@@ -208,10 +217,7 @@ fn classify(error: ureq::Error) -> TransportError {
             TransportError::Network("DNS lookup failed")
         }
         ureq::Error::Io(error) => classify_io(error),
-        ureq::Error::Tls(_) => TransportError::Network("TLS failed"),
-        // `Error::Rustls` exists only under ureq's rustls feature, which
-        // sego can't name in a cfg.
-        other if format!("{other:?}").starts_with("Rustls(") => {
+        ureq::Error::Tls(_) | ureq::Error::Rustls(_) | ureq::Error::Pem(_) => {
             TransportError::Network("TLS failed")
         }
         _ => TransportError::Network("network error"),
