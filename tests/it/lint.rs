@@ -194,9 +194,15 @@ fn bad_type(value: &str) -> String {
     format!("type:{value} is not a result type; the server returns nothing")
 }
 
+fn run(rows: Vec<(&str, Vec<String>)>) {
+    for (query, expected) in rows {
+        assert_eq!(prepare(query).notes, expected, "{query:?}");
+    }
+}
+
 #[test]
-fn checks() {
-    let rows: Vec<(&str, Vec<String>)> = vec![
+fn checks_filters_and_keywords() {
+    run(vec![
         // 1: fire
         ("fiel:x", vec![not_a_filter("fiel", "fiel:x")]),
         ("langauge:go", vec![not_a_filter("langauge", "langauge:go")]),
@@ -225,8 +231,29 @@ fn checks() {
         ("repo:^github\\.com/gorilla/ repo:mux$", vec![]),
         ("lang:go lang:Go", vec![]),
         // 3: fire
-        ("Subrouter|NewRouter", vec![keyword("Subrouter|NewRouter")]),
-        ("\\.go", vec![keyword("\\.go")]),
+        ("\\bfoo\\b", vec![keyword("\\bfoo\\b")]),
+        ("[a-zA-Z]", vec![keyword("[a-zA-Z]")]),
+        ("[0-9]+", vec![keyword("[0-9]+")]),
+        ("file\\.go", vec![keyword("file\\.go")]),
+        ("fmt\\.Errorf", vec![keyword("fmt\\.Errorf")]),
+        ("string|null", vec![]),
+        ("Subrouter|NewRouter", vec![]),
+        ("dp[i-j]", vec![]),
+        ("tsconfig.*.json", vec![]),
+        ("..\\.gitignore", vec![]),
+        ("foo|bar", vec![]),
+        ("[a-z]", vec![]),
+        ("\\.go", vec![]),
+        ("repo:a x or (repo:b y)", vec![]),
+        ("repo:a x or -repo:b y", vec![]),
+        ("a -repo:x or b", vec![]),
+        ("-type:bogus", vec![]),
+        ("type:\"file\"", vec![]),
+        ("repo:x@a..", vec![]),
+        (
+            "repo:x@a..b repo:x@a..b",
+            vec!["repo:x@a..b searches b only".to_owned()],
+        ),
         // 3: don't fire
         ("\"\\.go\"", vec![]),
         ("/a.*b/", vec![]),
@@ -244,6 +271,12 @@ fn checks() {
         ("\\$HOME", vec![]),
         ("\\begin", vec![]),
         ("/func \\(r \\*Router\\) \\w+\\(/", vec![]),
+    ]);
+}
+
+#[test]
+fn checks_or_types_and_revisions() {
+    run(vec![
         // 4: fire
         ("repo:x file:mux.go or file:route.go", vec![ESCAPES_OR.to_owned()]),
         ("repo:x file:y a or (b and c)", vec![ESCAPES_OR.to_owned()]),
@@ -280,19 +313,18 @@ fn checks() {
         ("repo:x@v1.8.0", vec![]),
         ("a.*b", vec![keyword("a.*b")]),
         ("import.*;", vec![]),
-        ("[a-z]+", vec![keyword("[a-z]+")]),
         ("^foo", vec![keyword("^foo")]),
-        // several
-        (
-            "lnag:go lang:go lang:rust \\.rs$",
-            vec![
-                not_a_filter("lnag", "lnag:go"),
-                INTERSECT.to_owned(),
-                keyword("\\.rs$"),
-            ],
-        ),
-    ];
-    for (query, expected) in rows {
-        assert_eq!(prepare(query).notes, expected, "{query:?}");
-    }
+    ]);
+}
+
+#[test]
+fn checks_several_at_once() {
+    run(vec![(
+        "lnag:go lang:go lang:rust foo\\.rs",
+        vec![
+            not_a_filter("lnag", "lnag:go"),
+            INTERSECT.to_owned(),
+            keyword("foo\\.rs"),
+        ],
+    )]);
 }

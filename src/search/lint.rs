@@ -25,6 +25,17 @@ pub enum Op {
     Not,
 }
 
+impl Filter {
+    pub fn raw(&self) -> String {
+        format!(
+            "{}{}:{}",
+            if self.negated { "-" } else { "" },
+            self.field,
+            self.value
+        )
+    }
+}
+
 impl Token {
     /// The token as written. An operator's case is not kept, so it comes
     /// back lower-case.
@@ -33,12 +44,7 @@ impl Token {
             Token::Term(text) | Token::Quoted(text) | Token::Pattern(text) => {
                 text.clone()
             }
-            Token::Filter(filter) => format!(
-                "{}{}:{}",
-                if filter.negated { "-" } else { "" },
-                filter.field,
-                filter.value
-            ),
+            Token::Filter(filter) => filter.raw(),
             Token::Open => "(".to_owned(),
             Token::Close => ")".to_owned(),
             Token::Op(Op::And) => "and".to_owned(),
@@ -350,40 +356,68 @@ fn is_field(filter: &Filter, names: &[&str]) -> bool {
     names.iter().any(|name| filter.field.eq_ignore_ascii_case(name))
 }
 
-/// The filters of each operand of OR, at every depth. A filter inside a
-/// group belongs to the group's operands, not to the enclosing one.
+/// One operand of OR: its own filters, and whether a group inside it holds
+/// a `repo:` filter.
+#[derive(Default)]
+struct Operand<'a> {
+    filters: Vec<&'a Filter>,
+    nested_repo: bool,
+}
+
+impl Operand<'_> {
+    fn repo(&self) -> bool {
+        self.nested_repo || self.filters.iter().any(|f| is_repo(f))
+    }
+}
+
+fn is_repo(filter: &Filter) -> bool {
+    is_field(filter, &["repo", "r"])
+}
+
+/// The operands of OR at every depth. A filter inside a group belongs to the
+/// group's operands, not to the enclosing one.
 struct Operands<'a> {
-    all: Vec<Vec<&'a Filter>>,
-    top: Vec<Vec<&'a Filter>>,
+    all: Vec<Operand<'a>>,
+    top: Vec<Operand<'a>>,
 }
 
 impl<'a> Operands<'a> {
     fn of(tokens: &'a [Token]) -> Self {
-        let mut done = Vec::new();
-        let mut stack: Vec<Vec<Vec<&Filter>>> = vec![vec![vec![]]];
+        let mut done: Vec<Operand<'a>> = Vec::new();
+        let mut stack: Vec<Vec<Operand<'a>>> = vec![vec![Operand::default()]];
         for token in tokens {
             match token {
-                Token::Open => stack.push(vec![vec![]]),
+                Token::Open => stack.push(vec![Operand::default()]),
                 Token::Close if stack.len() > 1 => {
-                    done.extend(stack.pop().unwrap_or_default());
+                    let level = stack.pop().unwrap_or_default();
+                    let repo = level.iter().any(Operand::repo);
+                    if let Some(operand) =
+                        stack.last_mut().and_then(|l| l.last_mut())
+                    {
+                        operand.nested_repo |= repo;
+                    }
+                    done.extend(level);
                 }
                 Token::Op(Op::Or) => {
                     if let Some(level) = stack.last_mut() {
-                        level.push(vec![]);
+                        level.push(Operand::default());
                     }
                 }
                 Token::Filter(filter) => {
                     if let Some(operand) =
-                        stack.last_mut().and_then(|level| level.last_mut())
+                        stack.last_mut().and_then(|l| l.last_mut())
                     {
-                        operand.push(filter);
+                        operand.filters.push(filter);
                     }
                 }
                 _ => {}
             }
         }
         let top = stack.into_iter().next().unwrap_or_default();
-        done.extend(top.iter().cloned());
+        done.extend(top.iter().map(|o| Operand {
+            filters: o.filters.clone(),
+            nested_repo: o.nested_repo,
+        }));
         Operands { all: done, top }
     }
 }
@@ -398,7 +432,7 @@ fn unknown_filters(tokens: &[Token], notes: &mut Vec<String>) {
         if !GUESSED.contains(&field.as_str()) && !near_known(&field) {
             continue;
         }
-        let raw = Token::Filter(filter.clone()).raw();
+        let raw = filter.raw();
         if seen.contains(&raw) {
             continue;
         }
@@ -443,6 +477,7 @@ fn drops_one(long: &[char], short: &[char]) -> bool {
 fn different_languages(operands: &Operands, notes: &mut Vec<String>) {
     let differ = operands.all.iter().any(|operand| {
         let mut langs = operand
+            .filters
             .iter()
             .filter(|f| !f.negated && is_field(f, &["lang", "l", "language"]))
             .map(|f| f.value.to_ascii_lowercase());
@@ -485,41 +520,47 @@ fn looks_like_regex(term: &str) -> bool {
     }
     (0..c.len()).any(|i| match c[i] {
         '\\' => at(i + 1).is_some_and(|n| {
-            ".()[]{}|*+?^/".contains(n)
+            (i > 0 && is_word(c[i - 1]) && ".()[]{}|*+?^/".contains(n))
                 || ("wWsSdDbB".contains(n)
                     && !at(i + 2).is_some_and(|a| a.is_ascii_alphabetic()))
         }),
         '.' => {
             matches!(at(i + 1), Some('*' | '+'))
-                && at(i + 2).is_some_and(|n| n != ';')
+                && at(i + 2).is_some_and(|n| n != ';' && n != '.')
         }
-        '[' => match (at(i + 1), at(i + 2), at(i + 3), at(i + 4)) {
-            (Some(x), Some('-'), Some(y), Some(']')) => {
+        '[' => class_of_ranges(&c[i + 1..]),
+        _ => false,
+    })
+}
+
+/// Whether the bracket body starting `rest` holds two ranges, or one range
+/// followed by a quantifier.
+fn class_of_ranges(rest: &[char]) -> bool {
+    let Some(end) = rest.iter().position(|&x| x == ']') else {
+        return false;
+    };
+    let body = &rest[..end];
+    let (mut ranges, mut i) = (0, 0);
+    while i < body.len() {
+        let range = match body[i..] {
+            [x, '-', y, ..] => {
                 x < y
                     && ((x.is_ascii_lowercase() && y.is_ascii_lowercase())
                         || (x.is_ascii_uppercase() && y.is_ascii_uppercase())
                         || (x.is_ascii_digit() && y.is_ascii_digit()))
             }
             _ => false,
-        },
-        '|' => alternation(&c, i),
-        _ => false,
-    })
-}
-
-/// A `|` between two word characters, unless both sides are upper-case
-/// identifiers such as `PROT_READ|PROT_WRITE`.
-fn alternation(c: &[char], bar: usize) -> bool {
-    let left: Vec<char> =
-        c[..bar].iter().rev().take_while(|x| is_word(**x)).copied().collect();
-    let right: Vec<char> =
-        c[bar + 1..].iter().take_while(|x| is_word(**x)).copied().collect();
-    let constant = |side: &[char]| {
-        side.iter()
-            .all(|x| x.is_ascii_uppercase() || x.is_ascii_digit() || *x == '_')
-    };
-    let both = !left.is_empty() && !right.is_empty();
-    both && (!constant(&left) || !constant(&right))
+        };
+        if range {
+            ranges += 1;
+            i += 3;
+        } else {
+            i += 1;
+        }
+    }
+    ranges >= 2
+        || (ranges == 1
+            && matches!(rest.get(end + 1), Some('+' | '*' | '?' | '{')))
 }
 
 /// The server hoists the filters around a flat run of operands of OR to
@@ -559,12 +600,12 @@ fn escaped_or(tokens: &[Token], operands: &Operands, notes: &mut Vec<String>) {
             Some((*depth, t))
         })
         .any(|(depth, t)| depth == 0 && matches!(t, Token::Op(Op::Or)));
-    let has_repo = |operand: &Vec<&Filter>| {
-        operand.iter().any(|f| is_field(f, &["repo", "r"]))
+    let positive = |operand: &Operand| {
+        operand.filters.iter().any(|f| !f.negated && is_repo(f))
     };
     if has_or
-        && operands.top.iter().any(has_repo)
-        && !operands.top.iter().all(has_repo)
+        && operands.top.iter().any(positive)
+        && !operands.top.iter().all(Operand::repo)
         && !hoisted(tokens)
     {
         notes.push(
@@ -577,7 +618,9 @@ fn escaped_or(tokens: &[Token], operands: &Operands, notes: &mut Vec<String>) {
 
 fn unknown_types(tokens: &[Token], notes: &mut Vec<String>) {
     let mut seen: Vec<&str> = Vec::new();
-    for filter in filters(tokens).filter(|f| is_field(f, &["type"])) {
+    for filter in
+        filters(tokens).filter(|f| !f.negated && is_field(f, &["type"]))
+    {
         let value = filter.value.as_str();
         let bare = ['"', '\'']
             .iter()
@@ -620,10 +663,10 @@ fn revision_ranges(tokens: &[Token], notes: &mut Vec<String>) {
             .find(|rev| rev.contains(".."))
             .and_then(|rev| rev.rsplit_once("..").map(|(_, end)| end));
         if let Some(end) = end.filter(|end| !end.is_empty()) {
-            notes.push(format!(
-                "{} searches {end} only",
-                Token::Filter(filter.clone()).raw()
-            ));
+            let note = format!("{} searches {end} only", filter.raw());
+            if !notes.contains(&note) {
+                notes.push(note);
+            }
         }
     }
 }
