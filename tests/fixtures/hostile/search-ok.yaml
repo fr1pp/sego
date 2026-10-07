@@ -10,7 +10,7 @@ response:
     search:
       results:
         matchCount: 10
-        approximateResultCount: "10"
+        approximateResultCount: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
         limitHit: false
         repositoriesCount: 1
         timedout: 
@@ -95,7 +95,16 @@ response:
               - body:
                   text: "```\nesc\e[0m\nrtl\u202Ex\nzw\u200Bx\nnew\nline\ncr\r\nls\u2028x\ndel\x7Fx\nmid\rcr\ntab\tok\n```"
                 highlights:
-                  - line: 1
+                  - line: 2
+                    character: 1
+                    length: 2
+                  - line: 5
+                    character: 1
+                    length: 2
+                  - line: 8
+                    character: 1
+                    length: 2
+                  - line: 10
                     character: 1
                     length: 2
           - __typename: Repository

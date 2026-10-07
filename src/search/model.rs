@@ -25,6 +25,8 @@ pub struct Searched {
     pub cloning: Vec<String>,
     pub missing: Vec<String>,
     pub filters: Vec<FilterOut>,
+    /// Results of a kind sego doesn't read; they are not in the JSON.
+    pub unshown: u64,
     pub groups: Vec<Group>,
 }
 
@@ -69,6 +71,8 @@ pub enum Group {
         subject: String,
         lines: Vec<String>,
         highlights: Vec<[u32; 3]>,
+        /// The match body is a diff, not a commit message.
+        diff: bool,
     },
     Repo {
         repo: String,
@@ -299,7 +303,14 @@ fn build_chunk(raw: RawChunk) -> Chunk {
 fn commit_group(result: CommitResult) -> Group {
     let mut lines: Vec<String> = Vec::new();
     let mut highlights: Vec<[u32; 3]> = Vec::new();
+    let mut diff = false;
     for found in &result.matches {
+        diff |= found
+            .body
+            .text
+            .split('\n')
+            .next()
+            .is_some_and(|fence| strip_cr(fence).0 == "```diff");
         let mut body: Vec<&str> = found
             .body
             .text
@@ -342,22 +353,103 @@ fn commit_group(result: CommitResult) -> Group {
         subject: result.commit.subject,
         lines,
         highlights,
+        diff,
     }
 }
 
+/// One thing a file group prints, and the units it counts.
+#[derive(Clone, Copy)]
+pub enum FileItem<'a> {
+    /// The file is binary: its header is followed by a note.
+    Binary,
+    /// The file matched by path alone: its header is the whole result.
+    Path,
+    Chunk(usize, &'a Chunk),
+    Symbol(&'a SymbolRow),
+}
+
+impl FileItem<'_> {
+    pub fn units(&self) -> u32 {
+        match self {
+            FileItem::Chunk(_, chunk) => chunk.units,
+            FileItem::Binary | FileItem::Path | FileItem::Symbol(_) => 1,
+        }
+    }
+}
+
+/// The items of a file in print order: a binary or path marker first, then
+/// chunks and symbols that have a line, ordered by line with a chunk before a
+/// symbol that starts on the same line. A symbol with no line is not an item.
+pub fn file_items<'a>(
+    binary: bool,
+    chunks: &'a [Chunk],
+    symbols: &'a [SymbolRow],
+) -> Vec<FileItem<'a>> {
+    let mut items: Vec<(u32, u8, FileItem)> = chunks
+        .iter()
+        .enumerate()
+        .map(|(i, c)| {
+            let first = c.lines.first().map_or(0, |l| l.number);
+            (first, 0, FileItem::Chunk(i, c))
+        })
+        .collect();
+    items.extend(
+        symbols
+            .iter()
+            .filter_map(|s| s.line.map(|l| (l, 1, FileItem::Symbol(s)))),
+    );
+    items.sort_by_key(|(line, rank, _)| (*line, *rank));
+    let mut out = Vec::new();
+    if binary {
+        out.push(FileItem::Binary);
+    } else if chunks.is_empty() && items.is_empty() {
+        out.push(FileItem::Path);
+    }
+    out.extend(items.into_iter().map(|(.., item)| item));
+    out
+}
+
+/// One printed line of a file: a chunk line (with its chunk's index) or a
+/// symbol row.
+pub enum Row<'a> {
+    Line(usize, &'a LineOut),
+    Symbol(&'a SymbolRow),
+}
+
+/// Merges chunk lines and symbols by line, a chunk line before a symbol row
+/// on the same line. Symbols with no line come last.
+pub fn rows<'a>(
+    chunks: &[(usize, &'a Chunk)],
+    symbols: &[&'a SymbolRow],
+) -> Vec<Row<'a>> {
+    let mut symbols = symbols.to_vec();
+    symbols.sort_by_key(|s| (s.line.is_none(), s.line));
+    let mut pending = symbols.into_iter().peekable();
+    let mut out = Vec::new();
+    for (index, chunk) in chunks {
+        for line in &chunk.lines {
+            while let Some(symbol) =
+                pending.next_if(|s| s.line.is_some_and(|l| l < line.number))
+            {
+                out.push(Row::Symbol(symbol));
+            }
+            out.push(Row::Line(*index, line));
+        }
+    }
+    out.extend(pending.map(Row::Symbol));
+    out
+}
+
 impl Group {
-    fn units(&self) -> u32 {
+    /// The units this group counts: what the text limit and the count line
+    /// are measured in.
+    pub fn units(&self) -> u32 {
         match self {
             Group::File { binary, chunks, symbols, .. } => {
-                let found = chunks.iter().map(|c| c.units).sum::<u32>()
-                    + count(
-                        symbols.iter().filter(|s| s.line.is_some()).count(),
-                    );
-                if *binary || (chunks.is_empty() && symbols.is_empty()) {
-                    found + 1
-                } else {
-                    found
-                }
+                file_items(*binary, chunks, symbols)
+                    .iter()
+                    .map(FileItem::units)
+                    .sum()
             }
             Group::Commit { highlights, .. } => count(highlights.len()).max(1),
             Group::Repo { .. } => 1,
@@ -368,6 +460,7 @@ impl Group {
 impl Searched {
     pub fn new(results: Results, prepared: &Prepared) -> Searched {
         let mut slots: Vec<Slot> = Vec::new();
+        let mut unshown = 0;
         let mut index: HashMap<(String, String, String), usize> =
             HashMap::new();
         for item in results.results {
@@ -392,7 +485,7 @@ impl Searched {
                 Item::Repository(named) => {
                     slots.push(Slot::Done(Group::Repo { repo: named.name }));
                 }
-                Item::Other(_) => {}
+                Item::Other(_) => unshown += 1,
             }
         }
         let groups = slots
@@ -422,6 +515,7 @@ impl Searched {
                 .filter(|f| f.kind != "author")
                 .map(filter_out)
                 .collect(),
+            unshown,
             groups,
         }
     }
@@ -533,10 +627,10 @@ fn records<'a>(group: &'a Group) -> Vec<Record<'a>> {
             let rev = rev.as_deref();
             let file = || PathRecord { repo, commit, rev, path };
             let mut out = Vec::new();
-            if *binary {
-                out.push(Record::Binary(file()));
-            } else if chunks.is_empty() && symbols.is_empty() {
-                out.push(Record::Path(file()));
+            match file_items(*binary, chunks, symbols).first() {
+                Some(FileItem::Binary) => out.push(Record::Binary(file())),
+                Some(FileItem::Path) => out.push(Record::Path(file())),
+                _ => {}
             }
             let symbol_record = |symbol: &'a SymbolRow| {
                 Record::Symbol(SymbolRecord {
@@ -550,15 +644,13 @@ fn records<'a>(group: &'a Group) -> Vec<Record<'a>> {
                     container: symbol.container.as_deref(),
                 })
             };
-            let mut pending = symbols.iter().peekable();
-            for (i, chunk) in chunks.iter().enumerate() {
-                for line in &chunk.lines {
-                    while let Some(symbol) = pending
-                        .next_if(|s| s.line.is_some_and(|l| l < line.number))
-                    {
-                        out.push(symbol_record(symbol));
-                    }
-                    out.push(Record::Line(LineRecord {
+            let all_chunks: Vec<(usize, &Chunk)> =
+                chunks.iter().enumerate().collect();
+            let all_symbols: Vec<&SymbolRow> = symbols.iter().collect();
+            for row in rows(&all_chunks, &all_symbols) {
+                out.push(match row {
+                    Row::Symbol(symbol) => symbol_record(symbol),
+                    Row::Line(index, line) => Record::Line(LineRecord {
                         repo,
                         commit,
                         rev,
@@ -567,11 +659,10 @@ fn records<'a>(group: &'a Group) -> Vec<Record<'a>> {
                         text: &line.text,
                         matched: line.matched,
                         ranges: &line.ranges,
-                        chunk: i + 1,
-                    }));
-                }
+                        chunk: index + 1,
+                    }),
+                });
             }
-            out.extend(pending.map(symbol_record));
             out
         }
         Group::Commit {
@@ -582,6 +673,7 @@ fn records<'a>(group: &'a Group) -> Vec<Record<'a>> {
             subject,
             lines,
             highlights,
+            ..
         } => vec![Record::Commit(CommitRecord {
             repo,
             commit,

@@ -395,6 +395,7 @@ fn search_json_values_equal_the_hostile_originals() {
     assert_eq!(value["timedout"][0], h);
     assert_eq!(value["cloning"][0], h);
     assert_eq!(value["missing"][0], h);
+    assert_eq!(value["approximate_count"], h);
     assert_eq!(value["alert"]["title"], h);
     assert_eq!(value["alert"]["description"], h);
     assert_eq!(value["alert"]["proposed"][0]["description"], h);

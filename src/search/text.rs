@@ -1,7 +1,10 @@
 use std::fmt::Write as _;
 
 use super::lint::tokenize;
-use super::model::{Chunk, FilterOut, Group, Searched, SymbolRow};
+use super::model::{
+    Chunk, FileItem, FilterOut, Group, Row, Searched, SymbolRow, file_items,
+    rows,
+};
 use super::query::seconds;
 use crate::address::pinned;
 use crate::escape::{escape, one_line, render_line};
@@ -11,34 +14,6 @@ use crate::output::text::{code_line, gutter_width, header};
 pub const TEXT_UNITS: u32 = 100;
 
 const NARROW_VALUES: usize = 5;
-
-enum Item<'a> {
-    Chunk(&'a Chunk),
-    Symbol(&'a SymbolRow, u32),
-}
-
-impl Item<'_> {
-    fn key(&self) -> (u32, u8) {
-        match self {
-            Item::Chunk(c) => (c.lines.first().map_or(0, |l| l.number), 0),
-            Item::Symbol(_, line) => (*line, 1),
-        }
-    }
-
-    fn units(&self) -> u32 {
-        match self {
-            Item::Chunk(c) => c.units,
-            Item::Symbol(..) => 1,
-        }
-    }
-
-    fn last_line(&self) -> u32 {
-        match self {
-            Item::Chunk(c) => c.lines.last().map_or(0, |l| l.number),
-            Item::Symbol(_, line) => *line,
-        }
-    }
-}
 
 impl Searched {
     pub fn text(&self) -> String {
@@ -58,7 +33,7 @@ impl Searched {
         let count = if self.approximate_count == self.match_count.to_string() {
             self.match_count.to_string()
         } else {
-            self.approximate_count.clone()
+            one_line(&self.approximate_count)
         };
         let counted = if printed < self.units() {
             format!("{printed} of {count} matches")
@@ -90,7 +65,7 @@ impl Searched {
 
     fn filter_line(&self) -> Option<String> {
         let (label, values): (&str, Vec<&FilterOut>) =
-            if self.groups.is_empty() {
+            if self.groups.is_empty() && self.unshown == 0 {
                 let utility =
                     self.filters.iter().filter(|f| f.kind == "utility");
                 ("widen", utility.collect())
@@ -138,15 +113,11 @@ impl Searched {
                         &pinned(repo, commit, Some(shown)),
                         &[],
                     ));
-                    if *binary {
-                        out.push_str("binary file; lines not shown\n");
-                        printed += 1;
-                    } else if chunks.is_empty() && symbols.is_empty() {
-                        printed += 1;
-                    } else {
-                        printed +=
-                            file_body(&mut out, chunks, symbols, printed);
-                    }
+                    printed += file_body(
+                        &mut out,
+                        &file_items(*binary, chunks, symbols),
+                        printed,
+                    );
                 }
                 Group::Commit {
                     repo,
@@ -156,28 +127,19 @@ impl Searched {
                     subject,
                     lines,
                     highlights,
+                    diff,
                 } => {
                     out.push_str(&header(
                         &pinned(repo, commit, None),
                         &[date.clone(), author.clone(), subject.clone()],
                     ));
-                    for (i, line) in lines.iter().enumerate() {
-                        let focus = highlights
-                            .iter()
-                            .find(|h| h[0] as usize == i)
-                            .map(|h| h[1] as usize);
-                        out.push_str("    ");
-                        out.push_str(&render_line(line, focus));
-                        out.push('\n');
-                    }
-                    printed += u32::try_from(highlights.len())
-                        .unwrap_or(u32::MAX)
-                        .max(1);
+                    commit_body(&mut out, lines, highlights, *diff);
+                    printed += group.units();
                 }
                 Group::Repo { repo } => {
                     out.push_str(&one_line(repo));
                     out.push('\n');
-                    printed += 1;
+                    printed += group.units();
                 }
             }
         }
@@ -185,65 +147,104 @@ impl Searched {
     }
 }
 
-/// Prints the chunks and line-bearing symbols of one file that fit the
-/// budget left after `before` units; returns the units printed.
-fn file_body(
+/// Prints the commit message lines a highlight falls on with one line of
+/// context either side, `--` between gaps; a diff prints every line.
+fn commit_body(
     out: &mut String,
-    chunks: &[Chunk],
-    symbols: &[SymbolRow],
-    before: u32,
-) -> u32 {
-    let mut items: Vec<Item> = chunks.iter().map(Item::Chunk).collect();
-    items.extend(
-        symbols.iter().filter_map(|s| s.line.map(|l| Item::Symbol(s, l))),
-    );
-    items.sort_by_key(Item::key);
+    lines: &[String],
+    highlights: &[[u32; 3]],
+    diff: bool,
+) {
+    let mut shown = vec![diff; lines.len()];
+    for h in highlights {
+        let at = h[0] as usize;
+        let from = at.saturating_sub(1);
+        let to = (at + 1).min(lines.len().saturating_sub(1));
+        for flag in shown.iter_mut().take(to + 1).skip(from) {
+            *flag = true;
+        }
+    }
+    let mut previous: Option<usize> = None;
+    for (i, line) in lines.iter().enumerate().filter(|(i, _)| shown[*i]) {
+        if previous.is_some_and(|p| p + 1 != i) {
+            out.push_str("--\n");
+        }
+        previous = Some(i);
+        let focus = highlights
+            .iter()
+            .filter(|h| h[0] as usize == i)
+            .map(|h| h[1] as usize)
+            .min();
+        out.push_str("    ");
+        out.push_str(&render_line(line, focus));
+        out.push('\n');
+    }
+}
 
+/// Prints the items of one file that fit the budget left after `before`
+/// units; returns the units printed.
+fn file_body(out: &mut String, items: &[FileItem], before: u32) -> u32 {
     let mut taken = 0;
-    let mut count = 0;
-    for item in &items {
+    let mut chosen = Vec::new();
+    for item in items {
         if before + taken >= TEXT_UNITS {
             break;
         }
         taken += item.units();
-        count += 1;
+        chosen.push(*item);
     }
-    let items = &items[..count];
-    let width =
-        gutter_width(items.iter().map(Item::last_line).max().unwrap_or(0));
 
-    let mut previous: Option<&Chunk> = None;
-    for item in items {
+    let mut chunks: Vec<(usize, &Chunk)> = Vec::new();
+    let mut symbols: Vec<&SymbolRow> = Vec::new();
+    for item in &chosen {
         match item {
-            Item::Chunk(chunk) => {
-                if let Some(prev) = previous {
-                    let end = prev.lines.last().map_or(0, |l| l.number);
-                    let start = chunk.lines.first().map_or(0, |l| l.number);
-                    if end + 1 != start {
-                        out.push_str("--\n");
-                    }
+            FileItem::Binary => out.push_str("binary file; lines not shown\n"),
+            FileItem::Path => {}
+            FileItem::Chunk(index, chunk) => chunks.push((*index, chunk)),
+            FileItem::Symbol(symbol) => symbols.push(symbol),
+        }
+    }
+    let ordered = rows(&chunks, &symbols);
+    let last = ordered
+        .iter()
+        .map(|row| match row {
+            Row::Line(_, line) => line.number,
+            Row::Symbol(symbol) => symbol.line.unwrap_or(0),
+        })
+        .max()
+        .unwrap_or(0);
+    let width = gutter_width(last);
+
+    let mut previous: Option<(usize, u32)> = None;
+    for row in ordered {
+        match row {
+            Row::Line(index, line) => {
+                if previous.is_some_and(|(chunk, number)| {
+                    chunk != index && number + 1 != line.number
+                }) {
+                    out.push_str("--\n");
                 }
-                for line in &chunk.lines {
-                    let (marker, focus) = if line.matched {
-                        let focus = line.ranges.first().map(|r| r[0] as usize);
-                        (Marker::Match, focus)
-                    } else {
-                        (Marker::Context, None)
-                    };
-                    out.push_str(&code_line(
-                        line.number,
-                        width,
-                        marker,
-                        &line.text,
-                        focus,
-                    ));
-                }
-                previous = Some(chunk);
+                let (marker, focus) = if line.matched {
+                    let focus =
+                        line.ranges.iter().map(|r| r[0] as usize).min();
+                    (Marker::Match, focus)
+                } else {
+                    (Marker::Context, None)
+                };
+                out.push_str(&code_line(
+                    line.number,
+                    width,
+                    marker,
+                    &line.text,
+                    focus,
+                ));
+                previous = Some((index, line.number));
             }
-            Item::Symbol(symbol, line) => {
+            Row::Symbol(symbol) => {
                 let _ = writeln!(
                     out,
-                    "{line:>width$}:{}  {}",
+                    "{:>width$}:{}  {}",
+                    symbol.line.unwrap_or(0),
                     escape(&symbol.kind),
                     one_line(&symbol.name),
                 );

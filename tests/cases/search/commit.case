@@ -1,4 +1,4 @@
-# A commit search prints the commit line and its message lines.
+# A commit search prints the commit line and the message lines around each highlight.
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 type:commit wildcard'
 exit: 0
 --- stdout
@@ -8,7 +8,3 @@ query  repo:^github\.com/gorilla/mux$@v1.8.0 type:commit wildcard count:100  (co
 github.com/gorilla/mux@98cb6bf42e08  2020-07-11  Harshavardhana  fix: regression in vars extract for wildcard host (#579)
     fix: regression in vars extract for wildcard host (#579)
     
-    Continuing from PR #447 we have to add extra
-    check to ignore the port as well
-    
-    add tests to cover this case

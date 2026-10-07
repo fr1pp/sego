@@ -299,7 +299,8 @@ fn commit_body() {
             {"line": 40, "character": 1, "length": 2},
         ])
     )]));
-    let Group::Commit { lines, highlights, date, author, .. } = &s.groups[0]
+    let Group::Commit { lines, highlights, date, author, diff, .. } =
+        &s.groups[0]
     else {
         panic!("not a commit")
     };
@@ -308,6 +309,7 @@ fn commit_body() {
         &["old_test.go old_test.go", "@@ -263,0 +263,3 @@ x", "+a"]
     );
     assert_eq!(highlights, &[[2, 1, 3]]);
+    assert!(diff);
     assert_eq!(date, "2024-05-06");
     assert_eq!(author, "Ann");
 }
@@ -493,4 +495,73 @@ fn author_filters_are_dropped() {
     let out = serde_json::to_string(&s.json()).unwrap();
     assert!(!out.contains("author"), "{out}");
     assert!(out.contains(r#""kind":"lang""#), "{out}");
+}
+
+#[test]
+fn commits_say_whether_they_are_diffs() {
+    let s = searched(&json!([
+        commit("```diff\nx\n+y\n```", &json!([])),
+        commit("```\nx\ny\n```", &json!([])),
+    ]));
+    let kinds: Vec<bool> = s
+        .groups
+        .iter()
+        .map(|g| match g {
+            Group::Commit { diff, .. } => *diff,
+            _ => panic!("not a commit"),
+        })
+        .collect();
+    assert_eq!(kinds, [true, false]);
+}
+
+#[test]
+fn a_binary_file_counts_itself_and_its_symbols_with_a_line() {
+    let s = searched(&json!([file(
+        "a.bin",
+        &[chunk("a\0b", 0, &json!([]))],
+        &[symbol("S", Some(2)), symbol("T", Some(4)), symbol("U", None)]
+    )]));
+    assert_eq!(s.units(), 3);
+    assert_eq!(
+        s.text(),
+        "5 matches  3 repos  0.0 s, deadline 60 s\n\
+         query  foo count:100  (count:100 added by sego)\n\
+         \n\
+         r/a@c1:a.bin\n\
+         binary file; lines not shown\n\
+         \x20  3:function  S\n\
+         \x20  5:function  T\n"
+    );
+}
+
+#[test]
+fn a_file_with_only_symbols_without_a_line_is_a_path_match() {
+    let s = searched(&json!([file(
+        "a.go",
+        &[],
+        &[symbol("N", None), symbol("M", None)]
+    )]));
+    assert_eq!(s.units(), 1);
+    let out = json_of(&s);
+    let Ok(doc) = serde_json::from_str::<Value>(&out) else {
+        panic!("not json")
+    };
+    let kinds: Vec<&str> = doc["results"]
+        .as_array()
+        .map(|rs| rs.iter().filter_map(|r| r["kind"].as_str()).collect())
+        .unwrap_or_default();
+    assert_eq!(kinds, ["path", "symbol", "symbol"]);
+    let text = s.text();
+    assert!(text.ends_with("\n\nr/a@c1:a.go\n"), "{text:?}");
+}
+
+#[test]
+fn results_of_unknown_kinds_are_counted() {
+    let s = searched(&json!([
+        {"__typename": "Unknown"},
+        {"__typename": "Other"},
+    ]));
+    assert!(s.groups.is_empty());
+    assert_eq!(s.unshown, 2);
+    assert!(!json_of(&s).contains("unshown"));
 }

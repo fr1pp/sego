@@ -21,6 +21,7 @@ fn base(query: &str) -> Searched {
         cloning: Vec::new(),
         missing: Vec::new(),
         filters: Vec::new(),
+        unshown: 0,
         groups: Vec::new(),
     }
 }
@@ -207,23 +208,31 @@ fn count_forms() {
 fn limit_at_and_past_the_boundary() {
     assert_eq!(TEXT_UNITS, 100);
     let mut s = base("q");
+    s.match_count = 100;
+    s.approximate_count = "100".to_owned();
     s.groups = (0..100).map(path_group).collect();
     let text = s.text();
-    assert!(text.starts_with("30 matches  "), "{text}");
+    assert!(text.starts_with("100 matches  "), "{text}");
     assert_eq!(text.lines().count(), 3 + 100);
 
+    s.match_count = 101;
+    s.approximate_count = "101".to_owned();
     s.groups = (1..=101).map(|n| file("r", "p", vec![one_range(n)])).collect();
+    assert_eq!(s.units(), 101);
     let text = s.text();
-    assert!(text.starts_with("100 of 30 matches  "), "{text}");
+    assert!(text.starts_with("100 of 101 matches  "), "{text}");
     assert_eq!(text.matches("r@3fce3b5bb023:p\n").count(), 100);
 
     let wide = chunk((1..=5).map(|n| line(n, "x", Some([0, 1]))).collect(), 5);
     let mut groups: Vec<Group> = (0..99).map(path_group).collect();
     groups.push(file("r", "wide", vec![wide]));
     groups.push(path_group(100));
+    s.match_count = 105;
+    s.approximate_count = "105".to_owned();
     s.groups = groups;
+    assert_eq!(s.units(), 105);
     let text = s.text();
-    assert!(text.starts_with("104 of 30 matches  "), "{text}");
+    assert!(text.starts_with("104 of 105 matches  "), "{text}");
     assert!(text.ends_with("   5:x\n"), "{text}");
     assert!(!text.contains(":p100"));
 }
@@ -300,18 +309,35 @@ r@3fce3b5bb023:a.rs
     assert_eq!(s.text(), expected);
 }
 
-#[test]
-fn commit_results() {
-    let mut s = base("type:commit q");
-    s.groups = vec![Group::Commit {
+fn commit_group(
+    lines: Vec<String>,
+    highlights: Vec<[u32; 3]>,
+    diff: bool,
+) -> Group {
+    Group::Commit {
         repo: "r".to_owned(),
         commit: COMMIT.to_owned(),
         date: "2026-07-23".to_owned(),
         author: "Ann".to_owned(),
         subject: "Fix it".to_owned(),
-        lines: vec!["Fix it".to_owned(), String::new(), "more".to_owned()],
-        highlights: vec![[0, 4, 6]],
-    }];
+        lines,
+        highlights,
+        diff,
+    }
+}
+
+fn numbered(n: usize) -> Vec<String> {
+    (1..=n).map(|i| format!("m{i}")).collect()
+}
+
+#[test]
+fn commit_results() {
+    let mut s = base("type:commit q");
+    s.groups = vec![commit_group(
+        vec!["Fix it".to_owned(), String::new(), "more".to_owned()],
+        vec![[0, 4, 6]],
+        false,
+    )];
     let expected = "\
 30 matches  1 repo  0.7 s, deadline 60 s
 query  type:commit q
@@ -319,13 +345,42 @@ query  type:commit q
 r@3fce3b5bb023  2026-07-23  Ann  Fix it
     Fix it
     
-    more
 ";
     assert_eq!(s.text(), expected);
 
     let mut s = base("q");
     s.groups = vec![Group::Repo { repo: "github.com/a b/c".to_owned() }];
     assert!(s.text().ends_with("\n\ngithub.com/a b/c\n"));
+}
+
+#[test]
+fn a_commit_prints_the_lines_around_its_highlights() {
+    let mut s = base("type:commit q");
+    s.groups =
+        vec![commit_group(numbered(12), vec![[0, 0, 1], [6, 0, 1]], false)];
+    let text = s.text();
+    let body: Vec<&str> = text.lines().skip(4).map(str::trim_start).collect();
+    assert_eq!(body, ["m1", "m2", "--", "m6", "m7", "m8"]);
+    assert_eq!(s.units(), 2);
+}
+
+#[test]
+fn contiguous_commit_context_has_no_separator() {
+    let mut s = base("type:commit q");
+    s.groups =
+        vec![commit_group(numbered(12), vec![[3, 0, 1], [5, 0, 1]], false)];
+    let text = s.text();
+    let body: Vec<&str> = text.lines().skip(4).map(str::trim_start).collect();
+    assert_eq!(body, ["m3", "m4", "m5", "m6", "m7"]);
+}
+
+#[test]
+fn a_diff_prints_all_its_lines() {
+    let mut s = base("type:diff q");
+    s.groups = vec![commit_group(numbered(12), vec![[0, 0, 1]], true)];
+    let text = s.text();
+    let body: Vec<&str> = text.lines().skip(4).map(str::trim_start).collect();
+    assert_eq!(body, numbered(12));
 }
 
 #[test]
@@ -377,6 +432,7 @@ fn binary_files() {
 fn hostile_strings_print_escaped() {
     let mut s = base("a\nb");
     s.added = vec!["count:100".to_owned()];
+    s.approximate_count = "3\u{1b}[31m".to_owned();
     s.filters = vec![filter("lang", "lang:\u{1b}[31m", 1)];
     s.groups = vec![
         file("r\u{1b}x", "p\u{1b}y", Vec::new()),
@@ -388,11 +444,13 @@ fn hostile_strings_print_escaped() {
             subject: "s\u{1b}z".to_owned(),
             lines: Vec::new(),
             highlights: Vec::new(),
+            diff: false,
         },
     ];
     let text = s.text();
     assert!(!text.contains('\u{1b}'), "{text:?}");
     assert!(text.contains("query  a\\u{a}b  (count:100 added by sego)\n"));
+    assert!(text.starts_with("3\\u{1b}[31m matches  "), "{text:?}");
     assert!(text.contains("narrow  lang:\\u{1b}[31m 1\n"));
     assert!(text.contains("\\u{1b}"));
     assert!(text.contains("s\\u{1b}z"));
@@ -407,4 +465,134 @@ fn elapsed_rounding() {
         let first = s.text().lines().next().unwrap_or_default().to_owned();
         assert!(first.contains(&format!("  {shown}, deadline")), "{first}");
     }
+}
+
+#[test]
+fn a_binary_file_with_symbols_prints_what_units_counts() {
+    let mut s = base("q");
+    s.match_count = 3;
+    s.approximate_count = "3".to_owned();
+    s.groups = vec![Group::File {
+        repo: "r".to_owned(),
+        commit: COMMIT.to_owned(),
+        rev: None,
+        path: "a.bin".to_owned(),
+        binary: true,
+        chunks: Vec::new(),
+        symbols: vec![
+            symbol(Some(3), "a", "function"),
+            symbol(None, "ghost", "function"),
+            symbol(Some(5), "b", "function"),
+        ],
+    }];
+    assert_eq!(s.units(), 3);
+    assert_eq!(
+        s.text(),
+        "3 matches  1 repo  0.7 s, deadline 60 s\n\
+         query  q\n\
+         \n\
+         r@3fce3b5bb023:a.bin\n\
+         binary file; lines not shown\n\
+         \x20  3:function  a\n\
+         \x20  5:function  b\n"
+    );
+}
+
+#[test]
+fn symbols_without_a_line_leave_a_path_match() {
+    let mut s = base("q");
+    s.match_count = 1;
+    s.approximate_count = "1".to_owned();
+    s.groups = vec![file_with(
+        "r",
+        "a.rs",
+        Vec::new(),
+        vec![symbol(None, "ghost", "struct")],
+    )];
+    assert_eq!(s.units(), 1);
+    assert_eq!(
+        s.text(),
+        "1 match  1 repo  0.7 s, deadline 60 s\n\
+         query  q\n\
+         \n\
+         r@3fce3b5bb023:a.rs\n"
+    );
+}
+
+#[test]
+fn symbols_sit_between_the_chunk_lines_around_them() {
+    let mut s = base("q");
+    s.match_count = 6;
+    s.approximate_count = "6".to_owned();
+    s.groups = vec![file_with(
+        "r",
+        "a.rs",
+        vec![
+            chunk(vec![line(20, "a", Some([0, 1])), line(21, "b", None)], 1),
+            chunk(
+                vec![
+                    line(23, "c", None),
+                    line(24, "d", None),
+                    line(25, "e", Some([0, 1])),
+                    line(26, "f", None),
+                ],
+                1,
+            ),
+            chunk(vec![line(30, "g", Some([0, 1]))], 1),
+            chunk(vec![line(40, "h", Some([0, 1]))], 1),
+        ],
+        vec![
+            symbol(Some(25), "inner", "function"),
+            symbol(Some(26), "edge", "function"),
+        ],
+    )];
+    let expected = "\
+6 matches  1 repo  0.7 s, deadline 60 s
+query  q
+
+r@3fce3b5bb023:a.rs
+  20:a
+  21-b
+--
+  23-c
+  24-d
+  25:e
+  25:function  inner
+  26-f
+  26:function  edge
+  30:g
+--
+  40:h
+";
+    assert_eq!(s.text(), expected);
+}
+
+#[test]
+fn unknown_kinds_alone_are_not_zero_results() {
+    let mut s = base("q");
+    s.match_count = 0;
+    s.approximate_count = "0".to_owned();
+    s.filters = vec![filter("utility", "fork:yes", 4)];
+    assert!(s.text().contains("widen  fork:yes 4"));
+    s.unshown = 1;
+    assert_eq!(s.text().lines().count(), 2);
+}
+
+#[test]
+fn the_focus_is_the_leftmost_range() {
+    let mut text = "a".repeat(600);
+    text.replace_range(10..15, "LEFT_");
+    text.replace_range(500..505, "RIGHT");
+    let mut s = base("q");
+    s.groups = vec![file(
+        "r",
+        "wide.txt",
+        vec![chunk(vec![line(1, &text, Some([500, 505]))], 1)],
+    )];
+    if let Group::File { chunks, .. } = &mut s.groups[0] {
+        chunks[0].lines[0].ranges.push([10, 15]);
+    }
+    let out = s.text();
+    let row = out.lines().last().unwrap_or_default();
+    assert!(row.starts_with("   1:aaaaaaaaaaLEFT_"), "{row}");
 }
