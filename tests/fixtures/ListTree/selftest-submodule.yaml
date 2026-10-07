@@ -1,6 +1,6 @@
 operation: ListTree
 variables:
-  repo0: github.com/akinomyoga/ble.sh
+  repo0: example.com/selftest/ble
   rev0: d81fd54feb0d
   path_0: contrib
   recursive_0: false
@@ -23,7 +23,7 @@ response:
         - tree
   data:
     r0:
-      name: github.com/akinomyoga/ble.sh
+      name: example.com/selftest/ble
       defaultBranch:
         displayName: master
       c0:

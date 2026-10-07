@@ -11,8 +11,8 @@ use crate::output::text::{code_line, gutter_width, header};
 use crate::output::{Answer, Marker, Notes};
 use crate::submodule::{self, Submodule};
 use crate::upstream::{
-    Candidate, Envelope, GRAPHQL_PATH, Located, Plan, RawError, Transport,
-    Var, build, classify, locate, raw,
+    Candidate, GRAPHQL_PATH, Located, Plan, RawError, Transport, Var, View,
+    build, classify, locate, raw,
 };
 
 const DEFAULT_WINDOW: u32 = 500;
@@ -140,35 +140,12 @@ pub fn run(
     let reply = transport.post(GRAPHQL_PATH, &request.body(), deadline)?;
     let envelope = classify(reply)?;
     let located = locate(address, &envelope)?;
-    let view = View { envelope: &envelope, at: &located.at };
+    let view = View::new(&envelope, &located.at);
     interpret(&view, &located, &window, transport, deadline, notes)
 }
 
-struct View<'a> {
-    envelope: &'a Envelope,
-    at: &'a [String],
-}
-
-impl View<'_> {
-    fn path<'p>(&'p self, tail: &[&'p str]) -> Vec<&'p str> {
-        let mut path: Vec<&str> = self.at.iter().map(String::as_str).collect();
-        path.extend_from_slice(tail);
-        path
-    }
-
-    fn get(&self, tail: &[&str]) -> Option<&Value> {
-        self.envelope.get(&self.path(tail))
-    }
-
-    fn errored(&self, tail: &[&str]) -> bool {
-        self.envelope.error_at(&self.path(tail)).is_some()
-    }
-
-    fn limit_exceeded(&self, tail: &[&str]) -> bool {
-        self.envelope
-            .error_at(&self.path(tail))
-            .is_some_and(|error| error.message.contains(LIMIT_MESSAGE))
-    }
+fn limit_exceeded(view: &View<'_>, tail: &[&str]) -> bool {
+    view.error(tail).is_some_and(|error| error.message.contains(LIMIT_MESSAGE))
 }
 
 fn not_found(located: &Located, path: &str) -> Error {
@@ -233,9 +210,8 @@ struct Details {
 
 fn details_of(view: &View<'_>, meta: &Value) -> Result<Details, Error> {
     let details = || Error::failed("the file's details");
-    let lfs_path = view.path(&["meta", "lfs"]);
-    if view.envelope.error_at(&lfs_path).is_some()
-        && !view.limit_exceeded(&["meta", "lfs"])
+    if view.errored(&["meta", "lfs"])
+        && !limit_exceeded(view, &["meta", "lfs"])
     {
         return Err(details());
     }
@@ -320,7 +296,7 @@ fn interpret(
     let first = window.start;
     let last = window.end.unwrap_or(total).min(total);
     if first <= total {
-        let content = if view.limit_exceeded(&["body", "content"]) {
+        let content = if limit_exceeded(view, &["body", "content"]) {
             let raw = meta
                 .get("rawURL")
                 .and_then(Value::as_str)

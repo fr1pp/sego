@@ -148,6 +148,22 @@ fn error_coverage() {
 }
 
 #[test]
+fn errors_beneath_a_path() {
+    let envelope = partial();
+    let beneath = |path: &[&str]| envelope.error_beneath(path).is_some();
+    assert!(beneath(&["r0", "c0", "meta", "lfs"]));
+    assert!(beneath(&["r0", "c0", "meta"]));
+    assert!(beneath(&["r0"]));
+    assert!(beneath(&[]));
+    assert!(!beneath(&["r0", "c0", "meta", "lfs", "byteSize"]));
+    assert!(!beneath(&["r0", "c0", "body"]));
+    assert!(!beneath(&["r1"]));
+    assert!(envelope.error_at(&["r0", "c0", "meta"]).is_none());
+    let first = envelope.error_beneath(&["r0", "c0", "meta"]);
+    assert_eq!(first.map(|e| e.message.as_str()), Some("git blob failed"));
+}
+
+#[test]
 fn odd_paths_stay_located() {
     let envelope =
         classify(reply("envelope/odd-path")).unwrap_or_else(|e| panic!("{e}"));

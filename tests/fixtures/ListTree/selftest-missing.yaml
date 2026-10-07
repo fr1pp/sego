@@ -1,6 +1,6 @@
 operation: ListTree
 variables:
-  repo0: github.com/gorilla/mux
+  repo0: example.com/selftest/mux
   rev0: v1.8.0
   path_0: nope
   recursive_0: false
@@ -12,7 +12,7 @@ handwritten: true
 response:
   data:
     r0:
-      name: github.com/gorilla/mux
+      name: example.com/selftest/mux
       defaultBranch:
         displayName: main
       c0:

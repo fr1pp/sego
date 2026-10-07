@@ -1,6 +1,6 @@
 operation: ListTree
 variables:
-  repo0: github.com/gorilla/mux
+  repo0: example.com/selftest/mux
   rev0: v1.8.0
   path_0: logo.png
   recursive_0: false
@@ -18,14 +18,14 @@ response:
         - tree
   data:
     r0:
-      name: github.com/gorilla/mux
+      name: example.com/selftest/mux
       defaultBranch:
         displayName: main
       c0:
         oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
         tree: null
         file:
-          totalLines: 0
+          totalLines: 3790
           byteSize: 4096
           binary: true
         parent:

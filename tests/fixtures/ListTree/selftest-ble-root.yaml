@@ -1,6 +1,6 @@
 operation: ListTree
 variables:
-  repo0: github.com/akinomyoga/ble.sh
+  repo0: example.com/selftest/ble
   rev0: d81fd54feb0d
   path_0: ""
   recursive_0: false
@@ -19,7 +19,7 @@ response:
         - totalLines
   data:
     r0:
-      name: github.com/akinomyoga/ble.sh
+      name: example.com/selftest/ble
       defaultBranch:
         displayName: master
       c0:
@@ -152,4 +152,89 @@ response:
                 url: ../blesh-contrib
                 commit: d2109203480a7dfe1dead5f5f8f9f15a9146c90d
         file: null
-        parent: null
+        parent:
+          entries:
+            - path: .github
+              submodule: null
+            - path: archive
+              submodule: null
+            - path: docs
+              submodule: null
+            - path: lib
+              submodule: null
+            - path: make
+              submodule: null
+            - path: memo
+              submodule: null
+            - path: src
+              submodule: null
+            - path: test
+              submodule: null
+            - path: keymap
+              submodule: null
+            - path: ext
+              submodule: null
+            - path: tools
+              submodule: null
+            - path: scripts
+              submodule: null
+            - path: .gitattributes
+              submodule: null
+            - path: .gitignore
+              submodule: null
+            - path: .gitmodules
+              submodule: null
+            - path: .srcoption
+              submodule: null
+            - path: GNUmakefile
+              submodule: null
+            - path: LICENSE.md
+              submodule: null
+            - path: Makefile
+              submodule: null
+            - path: README-ja_JP.md
+              submodule: null
+            - path: README.md
+              submodule: null
+            - path: ble.pp
+              submodule: null
+            - path: blerc.template
+              submodule: null
+            - path: make_command.sh
+              submodule: null
+            - path: note.txt
+              submodule: null
+            - path: ble.sh.in
+              submodule: null
+            - path: config.sh
+              submodule: null
+            - path: install.sh
+              submodule: null
+            - path: uninstall.sh
+              submodule: null
+            - path: CHANGELOG.md
+              submodule: null
+            - path: CONTRIBUTING.md
+              submodule: null
+            - path: VERSION
+              submodule: null
+            - path: Dockerfile
+              submodule: null
+            - path: .editorconfig
+              submodule: null
+            - path: .travis.yml
+              submodule: null
+            - path: codecov.yml
+              submodule: null
+            - path: tox.ini
+              submodule: null
+            - path: setup.cfg
+              submodule: null
+            - path: pyproject.toml
+              submodule: null
+            - path: Gemfile
+              submodule: null
+            - path: contrib
+              submodule:
+                url: ../blesh-contrib
+                commit: d2109203480a7dfe1dead5f5f8f9f15a9146c90d

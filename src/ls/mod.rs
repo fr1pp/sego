@@ -12,8 +12,8 @@ use crate::output::{Answer, Notes};
 use crate::quote::shell_word;
 use crate::submodule::{self, Submodule};
 use crate::upstream::{
-    Candidate, Envelope, GRAPHQL_PATH, Located, Plan, Seg, Transport, Var,
-    build, classify, locate,
+    Candidate, GRAPHQL_PATH, Located, Plan, Transport, Var, View, build,
+    classify, locate,
 };
 
 const TEXT_ROWS: usize = 200;
@@ -177,7 +177,7 @@ pub fn run(
     let reply = transport.post(GRAPHQL_PATH, &request.body(), deadline)?;
     let envelope = classify(reply)?;
     let located = locate(address, &envelope)?;
-    let view = View { envelope: &envelope, at: &located.at };
+    let view = View::new(&envelope, &located.at);
     let entries = entries_of(&view, &located)?;
     let path = located.path.filter(|path| !path.is_empty());
     Ok(Listed {
@@ -188,36 +188,6 @@ pub fn run(
         recursive,
         entries,
     })
-}
-
-struct View<'a> {
-    envelope: &'a Envelope,
-    at: &'a [String],
-}
-
-impl View<'_> {
-    fn path<'p>(&'p self, part: &'p str) -> Vec<&'p str> {
-        let mut path: Vec<&str> = self.at.iter().map(String::as_str).collect();
-        path.push(part);
-        path
-    }
-
-    /// The part's value, unless it is null or an error covers it.
-    fn get(&self, part: &str) -> Option<&Value> {
-        self.envelope.get(&self.path(part))
-    }
-
-    /// Whether an error sits at the part or anywhere beneath it.
-    fn errored(&self, part: &str) -> bool {
-        let path = self.path(part);
-        self.envelope.errors.iter().any(|error| {
-            error
-                .path
-                .iter()
-                .zip(&path)
-                .all(|(seg, key)| matches!(seg, Seg::Key(k) if k == key))
-        })
-    }
 }
 
 fn listing_failed() -> Error {
@@ -234,15 +204,15 @@ fn entries_of(
     {
         return Ok(vec![Entry::new(path, false, Some(module))]);
     }
-    if let Some(tree) = view.get("tree") {
+    if let Some(tree) = view.get(&["tree"]) {
         return directory(tree, &located.repo);
     }
     let Some(path) = path else {
         return Err(listing_failed());
     };
     let (tree_failed, file_failed) =
-        (view.errored("tree"), view.errored("file"));
-    match view.get("file") {
+        (view.errored_beneath(&["tree"]), view.errored_beneath(&["file"]));
+    match view.get(&["file"]) {
         Some(file) if tree_failed && !file_failed => {
             Err(file_path(file, located, path))
         }
@@ -259,7 +229,7 @@ fn submodule_at(
     located: &Located,
     path: &str,
 ) -> Option<Submodule> {
-    let entries = view.get("parent")?.get("entries")?.as_array()?;
+    let entries = view.get(&["parent"])?.get("entries")?.as_array()?;
     submodule::find(entries, path, &located.repo)
 }
 

@@ -41,6 +41,18 @@ impl Envelope {
         })
     }
 
+    /// An error whose path starts with `path`: at it or anywhere below it.
+    pub fn error_beneath(&self, path: &[&str]) -> Option<&GqlError> {
+        self.errors.iter().find(|error| {
+            error.path.len() >= path.len()
+                && error
+                    .path
+                    .iter()
+                    .zip(path)
+                    .all(|(seg, key)| matches!(seg, Seg::Key(k) if k == key))
+        })
+    }
+
     /// The value at `path`, or `None` when an error covers it, it is absent,
     /// or it is null.
     pub fn get(&self, path: &[&str]) -> Option<&Value> {

@@ -11,11 +11,11 @@ use crate::support::exec::{Ran, exec};
 use crate::support::fake::Fake;
 use crate::support::fixture::load_all;
 
-const MUX: &str = "github.com/gorilla/mux";
+const MUX: &str = "example.com/selftest/mux";
 const MUX_OID: &str = "98cb6bf42e086f6af920b965c38cacc07402d51b";
-const BLE: &str = "github.com/akinomyoga/ble.sh";
+const BLE: &str = "example.com/selftest/ble";
 const BLE_OID: &str = "d81fd54feb0d996fdff20dca27eaf0201f7015cc";
-const MUX_AT: &str = "github.com/gorilla/mux@98cb6bf42e08";
+const MUX_AT: &str = "example.com/selftest/mux@98cb6bf42e08";
 
 fn fixtures() -> Fake {
     let root =
@@ -94,14 +94,14 @@ fn failed(ran: &Ran, message: &str) {
 
 #[test]
 fn listing_text_and_json() {
-    let (ran, _) = ls(&["github.com/akinomyoga/ble.sh@d81fd54feb0d"]);
+    let (ran, _) = ls(&["example.com/selftest/ble@d81fd54feb0d"]);
     assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
     assert_eq!(ran.err, b"");
     let text = out(&ran);
     let lines: Vec<&str> = text.lines().collect();
     assert_eq!(
         lines[0],
-        "github.com/akinomyoga/ble.sh@d81fd54feb0d  41 entries  12 dirs  \
+        "example.com/selftest/ble@d81fd54feb0d  41 entries  12 dirs  \
          28 files  1 submodule"
     );
     assert_eq!(lines.len(), 42);
@@ -114,12 +114,11 @@ fn listing_text_and_json() {
     let archive = at("dir        archive/");
     let ble_pp = at("file       ble.pp");
     let contrib = at(
-        "submodule  contrib  github.com/akinomyoga/blesh-contrib@d2109203480a",
+        "submodule  contrib  example.com/selftest/blesh-contrib@d2109203480a",
     );
     assert!(archive < ble_pp && ble_pp < contrib);
 
-    let (ran, _) =
-        ls(&["--json", "github.com/akinomyoga/ble.sh@d81fd54feb0d"]);
+    let (ran, _) = ls(&["--json", "example.com/selftest/ble@d81fd54feb0d"]);
     assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
     let json = json_out(&ran);
     assert_eq!(json["repo"], BLE);
@@ -133,7 +132,7 @@ fn listing_text_and_json() {
         r#"{"path":"archive","kind":"dir","submodule_url":null,"submodule_target":null,"submodule_commit":null}"#
     ));
     assert!(json_text.contains(
-        r#"{"path":"contrib","kind":"submodule","submodule_url":"../blesh-contrib","submodule_target":"github.com/akinomyoga/blesh-contrib@d2109203480a","submodule_commit":"d2109203480a7dfe1dead5f5f8f9f15a9146c90d"}"#
+        r#"{"path":"contrib","kind":"submodule","submodule_url":"../blesh-contrib","submodule_target":"example.com/selftest/blesh-contrib@d2109203480a","submodule_commit":"d2109203480a7dfe1dead5f5f8f9f15a9146c90d"}"#
     ));
     assert!(json_text.contains(
         r#"{"path":"ble.pp","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null}"#
@@ -152,13 +151,13 @@ fn entries_sort_by_segment() {
         "pkg/foo_x.go",
     ];
     let (ran, fake) =
-        ls(&["--recursive", "github.com/gorilla/mux@v1.8.0:pkg"]);
+        ls(&["--recursive", "example.com/selftest/mux@v1.8.0:pkg"]);
     assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
     let text = out(&ran);
     assert_eq!(
         text.lines().next(),
         Some(
-            "github.com/gorilla/mux@98cb6bf42e08:pkg  7 entries  2 dirs  \
+            "example.com/selftest/mux@98cb6bf42e08:pkg  7 entries  2 dirs  \
              5 files  rev v1.8.0"
         )
     );
@@ -172,7 +171,7 @@ fn entries_sort_by_segment() {
     assert_eq!(paths, expected);
 
     let (ran, _) =
-        ls(&["--json", "--recursive", "github.com/gorilla/mux@v1.8.0:pkg"]);
+        ls(&["--json", "--recursive", "example.com/selftest/mux@v1.8.0:pkg"]);
     let json = json_out(&ran);
     let listed: Vec<&str> = json["entries"]
         .as_array()
@@ -187,11 +186,11 @@ fn entries_sort_by_segment() {
 
 #[test]
 fn rows_join_to_the_header() {
-    let (ran, _) = ls(&["github.com/gorilla/mux@v1.8.0:a b"]);
+    let (ran, _) = ls(&["example.com/selftest/mux@v1.8.0:a b"]);
     assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
     assert_eq!(
         out(&ran),
-        "'github.com/gorilla/mux@98cb6bf42e08:a b'  2 entries  1 dir  \
+        "'example.com/selftest/mux@98cb6bf42e08:a b'  2 entries  1 dir  \
          1 file  rev v1.8.0\n\
          file       'a b/c.go'\n\
          dir        'a b/d e'/\n"
@@ -201,7 +200,7 @@ fn rows_join_to_the_header() {
     let words = shell_words(row).unwrap_or_else(|e| panic!("{e}"));
     assert_eq!(words, ["file", "a b/c.go"]);
     let joined = pinned(MUX, MUX_OID, Some(&words[1])).to_string();
-    assert_eq!(joined, "'github.com/gorilla/mux@98cb6bf42e08:a b/c.go'");
+    assert_eq!(joined, "'example.com/selftest/mux@98cb6bf42e08:a b/c.go'");
     let token = shell_words(&joined).unwrap_or_else(|e| panic!("{e}"));
     let parsed = address::parse(&token[0]).unwrap_or_else(|e| panic!("{e}"));
     assert_eq!(parsed.repo, Repo::Exact(MUX.to_owned()));
@@ -213,9 +212,9 @@ fn rows_join_to_the_header() {
 fn the_root_three_ways() {
     let mut texts = Vec::new();
     for token in [
-        "github.com/akinomyoga/ble.sh@d81fd54feb0d",
-        "github.com/akinomyoga/ble.sh@d81fd54feb0d:",
-        "github.com/akinomyoga/ble.sh@d81fd54feb0d:.",
+        "example.com/selftest/ble@d81fd54feb0d",
+        "example.com/selftest/ble@d81fd54feb0d:",
+        "example.com/selftest/ble@d81fd54feb0d:.",
     ] {
         let (ran, fake) = ls(&[token]);
         assert_eq!(ran.code, ExitCode::SUCCESS, "{token}: {}", err(&ran));
@@ -233,9 +232,11 @@ fn the_root_three_ways() {
     }
     assert_eq!(texts[0], texts[1]);
     assert_eq!(texts[0], texts[2]);
-    assert!(texts[0].starts_with(
-        "github.com/akinomyoga/ble.sh@d81fd54feb0d  41 entries  "
-    ));
+    assert!(
+        texts[0].starts_with(
+            "example.com/selftest/ble@d81fd54feb0d  41 entries  "
+        )
+    );
 }
 
 #[test]
@@ -251,7 +252,7 @@ fn limit_at_200() {
     assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
     assert_eq!(
         header(&ran).as_deref(),
-        Some("github.com/gorilla/mux@98cb6bf42e08  200 entries  200 files")
+        Some("example.com/selftest/mux@98cb6bf42e08  200 entries  200 files")
     );
     assert_eq!(rows(&ran).len(), 200);
 
@@ -264,7 +265,7 @@ fn limit_at_200() {
         assert_eq!(
             header(&ran).as_deref(),
             Some(
-                "github.com/gorilla/mux@98cb6bf42e08  200 of 201 entries \
+                "example.com/selftest/mux@98cb6bf42e08  200 of 201 entries \
                  shown  201 files"
             ),
             "{flags:?}"
@@ -293,7 +294,7 @@ fn counts_are_singular() {
     assert_eq!(
         out(&ran).lines().next(),
         Some(
-            "github.com/gorilla/mux@98cb6bf42e08  3 entries  1 dir  1 file  \
+            "example.com/selftest/mux@98cb6bf42e08  3 entries  1 dir  1 file  \
              1 submodule"
         )
     );
@@ -302,45 +303,45 @@ fn counts_are_singular() {
     let ran = run_on(&fake, &[&format!("{MUX}@{MUX_OID}")]);
     assert_eq!(
         out(&ran),
-        "github.com/gorilla/mux@98cb6bf42e08  1 entry  1 dir\n\
+        "example.com/selftest/mux@98cb6bf42e08  1 entry  1 dir\n\
          dir        a/\n"
     );
 }
 
 #[test]
 fn an_empty_directory() {
-    let (ran, _) = ls(&["github.com/gorilla/mux@v1.8.0:empty"]);
+    let (ran, _) = ls(&["example.com/selftest/mux@v1.8.0:empty"]);
     assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
     assert_eq!(
         out(&ran),
-        "github.com/gorilla/mux@98cb6bf42e08:empty  0 entries  rev v1.8.0\n"
+        "example.com/selftest/mux@98cb6bf42e08:empty  0 entries  rev v1.8.0\n"
     );
-    let (ran, _) = ls(&["--json", "github.com/gorilla/mux@v1.8.0:empty"]);
+    let (ran, _) = ls(&["--json", "example.com/selftest/mux@v1.8.0:empty"]);
     assert_eq!(json_out(&ran)["entries"], json!([]));
 }
 
 #[test]
 fn a_submodule_path() {
-    let (ran, _) = ls(&["github.com/akinomyoga/ble.sh@d81fd54feb0d:contrib"]);
+    let (ran, _) = ls(&["example.com/selftest/ble@d81fd54feb0d:contrib"]);
     assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
     assert_eq!(ran.err, b"");
     assert_eq!(
         out(&ran),
-        "github.com/akinomyoga/ble.sh@d81fd54feb0d:contrib  1 entry  \
+        "example.com/selftest/ble@d81fd54feb0d:contrib  1 entry  \
          1 submodule\n\
-         submodule  contrib  github.com/akinomyoga/blesh-contrib@d2109203480a\n"
+         submodule  contrib  example.com/selftest/blesh-contrib@d2109203480a\n"
     );
     let (ran, _) =
-        ls(&["--json", "github.com/akinomyoga/ble.sh@d81fd54feb0d:contrib"]);
+        ls(&["--json", "example.com/selftest/ble@d81fd54feb0d:contrib"]);
     assert_eq!(
         out(&ran),
         concat!(
-            r#"{"repo":"github.com/akinomyoga/ble.sh","rev":"d81fd54feb0d","#,
+            r#"{"repo":"example.com/selftest/ble","rev":"d81fd54feb0d","#,
             r#""commit":"d81fd54feb0d996fdff20dca27eaf0201f7015cc","#,
             r#""path":"contrib","recursive":false,"entries":["#,
             r#"{"path":"contrib","kind":"submodule","#,
             r#""submodule_url":"../blesh-contrib","#,
-            r#""submodule_target":"github.com/akinomyoga/blesh-contrib@d2109203480a","#,
+            r#""submodule_target":"example.com/selftest/blesh-contrib@d2109203480a","#,
             r#""submodule_commit":"d2109203480a7dfe1dead5f5f8f9f15a9146c90d"}]}"#,
             "\n"
         )
@@ -362,13 +363,13 @@ fn a_file_path() {
 
 #[test]
 fn a_missing_path() {
-    let (ran, _) = ls(&["github.com/gorilla/mux@v1.8.0:nope"]);
+    let (ran, _) = ls(&["example.com/selftest/mux@v1.8.0:nope"]);
     failed(&ran, &format!("nope not found in {MUX_AT}"));
 }
 
 #[test]
 fn a_path_under_a_file() {
-    let (ran, _) = ls(&["github.com/gorilla/mux@v1.8.0:mux.go/x"]);
+    let (ran, _) = ls(&["example.com/selftest/mux@v1.8.0:mux.go/x"]);
     failed(&ran, &format!("mux.go/x not found in {MUX_AT}"));
 }
 
@@ -385,31 +386,35 @@ fn listing_errors() {
 
 #[test]
 fn the_rev_field() {
-    let (ran, _) = ls(&["github.com/gorilla/mux@v1.8.0"]);
+    let (ran, _) = ls(&["example.com/selftest/mux@v1.8.0"]);
     assert_eq!(
         out(&ran).lines().next(),
         Some(
-            "github.com/gorilla/mux@98cb6bf42e08  3 entries  1 dir  2 files  \
+            "example.com/selftest/mux@98cb6bf42e08  3 entries  1 dir  2 files  \
              rev v1.8.0"
         )
     );
-    let (ran, _) = ls(&["--json", "github.com/gorilla/mux@v1.8.0"]);
+    let (ran, _) = ls(&["--json", "example.com/selftest/mux@v1.8.0"]);
     assert_eq!(json_out(&ran)["rev"], "v1.8.0");
 
     let (ran, _) = ls(&[&format!("{MUX}@{MUX_OID}")]);
     assert_eq!(
         out(&ran).lines().next(),
-        Some("github.com/gorilla/mux@98cb6bf42e08  3 entries  1 dir  2 files")
+        Some(
+            "example.com/selftest/mux@98cb6bf42e08  3 entries  1 dir  2 files"
+        )
     );
     let (ran, _) = ls(&["--json", &format!("{MUX}@{MUX_OID}")]);
     assert_eq!(json_out(&ran)["rev"], MUX_OID);
 
-    let (ran, _) = ls(&["github.com/gorilla/mux"]);
+    let (ran, _) = ls(&["example.com/selftest/mux"]);
     assert_eq!(
         out(&ran).lines().next(),
-        Some("github.com/gorilla/mux@98cb6bf42e08  3 entries  1 dir  2 files")
+        Some(
+            "example.com/selftest/mux@98cb6bf42e08  3 entries  1 dir  2 files"
+        )
     );
-    let (ran, _) = ls(&["--json", "github.com/gorilla/mux"]);
+    let (ran, _) = ls(&["--json", "example.com/selftest/mux"]);
     assert_eq!(json_out(&ran)["rev"], Value::Null);
 }
 
@@ -435,12 +440,12 @@ fn server_paths_are_escaped() {
 #[test]
 fn one_request() {
     for token in [
-        "github.com/akinomyoga/ble.sh@d81fd54feb0d",
-        "github.com/akinomyoga/ble.sh@d81fd54feb0d:contrib",
-        "github.com/gorilla/mux@v1.8.0:mux.go",
-        "github.com/gorilla/mux@v1.8.0:nope",
-        "github.com/gorilla/mux@v1.8.0:mux.go/x",
-        "github.com/gorilla/mux@v1.8.0:broken",
+        "example.com/selftest/ble@d81fd54feb0d",
+        "example.com/selftest/ble@d81fd54feb0d:contrib",
+        "example.com/selftest/mux@v1.8.0:mux.go",
+        "example.com/selftest/mux@v1.8.0:nope",
+        "example.com/selftest/mux@v1.8.0:mux.go/x",
+        "example.com/selftest/mux@v1.8.0:broken",
     ] {
         let (_, fake) = ls(&[token]);
         let calls = fake.calls();
