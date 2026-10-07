@@ -176,7 +176,7 @@ pub fn build(plan: &Plan, address: &Address) -> Request {
                 );
             }
             document.push_str("    }\n");
-            if ambiguous(&cands[j].rev) {
+            if split && ambiguous(&cands[j].rev) {
                 let _ = writeln!(
                     document,
                     "    g{j}: gitRefs(query: $rev{j}, first: 5) {{ nodes \
@@ -213,36 +213,52 @@ fn str_at<'a>(env: &'a Envelope, path: &[&str]) -> Option<&'a str> {
     env.get(path)?.as_str()
 }
 
-pub fn locate(address: &Address, env: &Envelope) -> Result<Located, Error> {
+fn find_root(address: &Address, env: &Envelope) -> Result<usize, Error> {
     let found: Vec<usize> = (0..address.repo.candidates().len())
         .filter(|i| env.get(&[&format!("r{i}")]).is_some())
         .collect();
     let name = written_name(&address.repo);
-    let i = match found[..] {
+    match found[..] {
         [] => {
-            return Err(Error::missing(format!(
-                "{name} is not on sourcegraph.com"
-            ))
-            .fact(NOT_INDEXED));
+            let failed = (0..address.repo.candidates().len())
+                .any(|i| env.error_at(&[&format!("r{i}")]).is_some());
+            if failed {
+                return Err(Error::upstream(
+                    "Sourcegraph failed to answer the repository lookup",
+                ));
+            }
+            Err(Error::missing(format!("{name} is not on sourcegraph.com"))
+                .fact(NOT_INDEXED))
         }
-        [i] => i,
+        [i] => Ok(i),
         [a, b, ..] => {
             let canonical = |i: usize| {
-                str_at(env, &[&format!("r{i}"), "name"])
-                    .map_or_else(|| format!("repository {i}"), str::to_owned)
+                str_at(env, &[&format!("r{i}"), "name"]).map_or_else(
+                    || address.repo.candidates()[i].clone(),
+                    str::to_owned,
+                )
             };
-            return Err(Error::missing(format!(
+            Err(Error::missing(format!(
                 "{name} exists as {} and {}",
                 canonical(a),
                 canonical(b)
-            )));
+            )))
         }
-    };
+    }
+}
+
+pub fn locate(address: &Address, env: &Envelope) -> Result<Located, Error> {
+    let i = find_root(address, env)?;
     let r = format!("r{i}");
     let repo = str_at(env, &[&r, "name"])
         .map_or_else(|| address.repo.candidates()[i].clone(), str::to_owned);
     let cands = candidates(address);
     let oid = |j: usize| str_at(env, &[&r, &format!("c{j}"), "oid"]);
+    let failed =
+        |j: usize| env.error_at(&[r.as_str(), &format!("c{j}")]).is_some();
+    let revision_lookup_failed =
+        || Error::upstream("Sourcegraph failed to answer the revision lookup");
+    let no_commits = || env.get(&[&r, "defaultBranch"]).is_none();
     let located = |j: usize, commit: &str| Located {
         repo: repo.clone(),
         commit: commit.to_owned(),
@@ -256,7 +272,10 @@ pub fn locate(address: &Address, env: &Envelope) -> Result<Located, Error> {
 
     let Rev::Split(segs) = &address.rev else {
         let Some(commit) = oid(0) else {
-            let message = if env.get(&[&r, "defaultBranch"]).is_none() {
+            if failed(0) {
+                return Err(revision_lookup_failed());
+            }
+            let message = if no_commits() {
                 format!("{repo} has no commits")
             } else {
                 format!("revision {} not found in {repo}", cands[0].rev)
@@ -292,6 +311,10 @@ pub fn locate(address: &Address, env: &Envelope) -> Result<Located, Error> {
         .or_else(|| resolving.last());
     match best.and_then(|&j| oid(j).map(|commit| (j, commit))) {
         Some((j, commit)) => Ok(located(j, commit)),
+        None if (0..cands.len()).any(failed) => Err(revision_lookup_failed()),
+        None if no_commits() => {
+            Err(Error::missing(format!("{repo} has no commits")))
+        }
         None => Err(Error::missing(format!(
             "no revision and path in {} resolve in {repo}",
             segs.join("/")

@@ -436,3 +436,58 @@ fn locate_with_no_valid_candidates() {
         ),
     }
 }
+
+#[test]
+fn errors_are_not_missing_things() {
+    let root = refused("root-error", "github.com/gorilla/mux");
+    assert!(
+        root.contains("Sourcegraph failed to answer the repository lookup"),
+        "{root}"
+    );
+    assert!(!root.contains("internal git failure"), "{root}");
+    let commit = refused("commit-error", "github.com/gorilla/mux@v1");
+    assert!(
+        commit.contains("Sourcegraph failed to answer the revision lookup"),
+        "{commit}"
+    );
+    assert!(!commit.contains("internal git failure"), "{commit}");
+
+    let glibc =
+        "https://github.com/bminor/glibc/blob/release/2.34/master/NEWS";
+    let split = refused("split-commit-error", glibc);
+    assert!(
+        split.contains("Sourcegraph failed to answer the revision lookup"),
+        "{split}"
+    );
+    let found = located("split-commit-error-wins", glibc);
+    assert_eq!(found.rev.as_deref(), Some("release/2.34/master"));
+}
+
+#[test]
+fn empty_repository_through_a_split() {
+    let blocked = refused(
+        "split-empty",
+        "https://github.com/bminor/glibc/blob/release/2.34/master/NEWS",
+    );
+    assert!(blocked.contains("github.com/bminor/glibc has no commits"));
+}
+
+#[test]
+fn canonical_name_falls_back_to_the_candidate() {
+    assert_eq!(
+        located("no-name", "github.com/gorilla/mux@v1").repo,
+        "github.com/gorilla/mux"
+    );
+    assert!(refused("no-name", "gorilla/mux").contains(
+        "gorilla/mux exists as github.com/gorilla/mux and \
+         gitlab.com/gorilla/mux"
+    ));
+}
+
+#[test]
+fn only_splits_look_up_refs() {
+    for token in ["github.com/a/b@abcd1234:f", "github.com/a/b@main~1:f"] {
+        let request = build(&toy(), &address(token));
+        assert!(!request.document.contains("g0:"), "{}", request.document);
+    }
+}

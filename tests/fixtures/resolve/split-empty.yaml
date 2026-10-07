@@ -1,0 +1,13 @@
+operation: ResolveSplitEmpty
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    r0:
+      name: github.com/bminor/glibc
+      defaultBranch: null
+      c0: null
+      c1: null
+      c2: null
+      c3: null

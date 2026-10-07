@@ -1,0 +1,16 @@
+operation: ResolveNoName
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    r0:
+      defaultBranch:
+        displayName: main
+      c0:
+        oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+    r1:
+      defaultBranch:
+        displayName: main
+      c0:
+        oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
