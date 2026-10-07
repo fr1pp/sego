@@ -495,7 +495,8 @@ fn hostile_names_are_escaped() {
     node["author"]["person"]["displayName"] = json!("Eve\u{1b}[2J\nMallory");
     node["oid"] = json!("ab\u{1b}[2Jc\nd0123456789");
     node["author"]["date"] = json!("2026-0\u{1b}[2J\n9-14T10:19:56Z");
-    let list = tags(1, &[("v\u{1b}1", &oid(1))]);
+    let hostile = "ab\u{1b}[2Jc\nd0123456789";
+    let list = tags(1, &[("v\u{1b}1", hostile)]);
     let body = rev_body(&[node], false, &list);
     let ran = run_on(&scripted(&body), &[&format!("{REPO}@v2")]);
     assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
@@ -504,6 +505,10 @@ fn hostile_names_are_escaped() {
     let row = out(&ran).lines().nth(1).unwrap_or_default().to_owned();
     assert!(
         row.starts_with("ab\\u{1b}[2Jc d012  2026-0\\u{1b}[2J  Eve"),
+        "{row}"
+    );
+    assert!(
+        row.ends_with("  (tag: v\\u{1b}1) red\\u{1b}[31m subject"),
         "{row}"
     );
     let ran = run_on(&scripted(&body), &["--json", &format!("{REPO}@v2")]);
@@ -566,11 +571,12 @@ fn missing_sides() {
         }
         body["data"]["c0"] = Value::Null;
         body["data"]["n0"]["commit"] = Value::Null;
+        let named = if b { "v1" } else { "v2" };
         let mut errors = vec![json!({
-            "message": "revision not found: repo 1700 @v2^0",
+            "message": format!("revision not found: repo 1700 @{named}^0"),
             "path": ["c0", "comparison"],
         })];
-        if !a {
+        if !a && b {
             errors.push(json!({
                 "message": "revision not found",
                 "path": ["n0", "commit", "behindAhead"],
