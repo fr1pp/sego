@@ -332,3 +332,23 @@ pub fn locate(address: &Address, env: &Envelope) -> Result<Located, Error> {
         ))),
     }
 }
+
+/// `query <operation>($a: T, ...) { <selection> }`, with the variables
+/// passed separately.
+pub fn top_level(
+    operation: &'static str,
+    vars: Vec<Var>,
+    selection: &str,
+) -> Request {
+    let declared: Vec<String> =
+        vars.iter().map(|var| format!("${}: {}", var.name, var.ty)).collect();
+    let header = if declared.is_empty() {
+        operation.to_owned()
+    } else {
+        format!("{operation}({})", declared.join(", "))
+    };
+    let document = format!("query {header} {{\n  {selection}\n}}\n");
+    let variables =
+        vars.into_iter().map(|var| (var.name.to_owned(), var.value)).collect();
+    Request { operation: operation.to_owned(), document, variables }
+}

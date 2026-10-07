@@ -1,0 +1,29 @@
+operation: Search
+variables:
+  query: selftest-located-error count:100
+status: 200
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    search:
+      results:
+        matchCount: 0
+        approximateResultCount: "0"
+        limitHit: false
+        repositoriesCount: 0
+        timedout: []
+        cloning: []
+        missing: []
+        alert: null
+        elapsedMilliseconds: 1
+        dynamicFilters: []
+        results:
+          - __typename: FileMatch
+            repository:
+              name: github.com/a/b
+            file: null
+  errors:
+    - message: boom
+      path: [search, results, results, 0, file]

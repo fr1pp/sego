@@ -12,6 +12,7 @@ pub struct Call {
     pub method: &'static str,
     pub path: String,
     pub deadline: Instant,
+    pub body: Vec<u8>,
 }
 
 enum Source {
@@ -62,7 +63,12 @@ impl Fake {
     ) -> Result<Reply, TransportError> {
         let mut inner =
             self.inner.lock().unwrap_or_else(PoisonError::into_inner);
-        inner.calls.push(Call { method, path: path.to_owned(), deadline });
+        inner.calls.push(Call {
+            method,
+            path: path.to_owned(),
+            deadline,
+            body: body.to_vec(),
+        });
         match &mut inner.source {
             Source::Script(queue) => queue
                 .pop_front()
