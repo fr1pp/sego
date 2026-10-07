@@ -1,0 +1,5 @@
+# A timeout: filter sets the deadline the message names.
+args: search 'repo:sego-fake/timeout foo timeout:5s'
+exit: 1
+--- stderr
+sego: error: the search stopped at its 5 s deadline with no results

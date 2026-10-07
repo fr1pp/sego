@@ -1,0 +1,6 @@
+# Zero results with timed-out repositories: an error, with the first five names.
+args: search 'repo:sego-fake/timedout foo'
+exit: 1
+--- stderr
+sego: error: the search stopped at its 60 s deadline with no results
+  timed out: github.com/sego-fake/t1, github.com/sego-fake/t2, github.com/sego-fake/t3, github.com/sego-fake/t4, github.com/sego-fake/t5, and 2 more

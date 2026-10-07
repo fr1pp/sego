@@ -1,0 +1,37 @@
+operation: Search
+variables:
+  query: repo:sego-fake/widen foo count:100
+status: 200
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    search:
+      results:
+        matchCount: 0
+        approximateResultCount: "0"
+        limitHit: false
+        repositoriesCount: 0
+        timedout: []
+        cloning: []
+        missing: []
+        alert: null
+        elapsedMilliseconds: 100
+        dynamicFilters: 
+          - value: archived:yes
+            label: Include archived
+            count: 4
+            limitHit: false
+            kind: utility
+          - value: fork:yes
+            label: Include forks
+            count: 9
+            limitHit: false
+            kind: utility
+          - value: lang:go
+            label: Go
+            count: 3
+            limitHit: false
+            kind: lang
+        results: []

@@ -1,0 +1,29 @@
+operation: Search
+variables:
+  query: repo:sego-fake/timedout foo count:100
+status: 200
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    search:
+      results:
+        matchCount: 0
+        approximateResultCount: "0"
+        limitHit: false
+        repositoriesCount: 0
+        timedout: 
+          - name: github.com/sego-fake/t1
+          - name: github.com/sego-fake/t2
+          - name: github.com/sego-fake/t3
+          - name: github.com/sego-fake/t4
+          - name: github.com/sego-fake/t5
+          - name: github.com/sego-fake/t6
+          - name: github.com/sego-fake/t7
+        cloning: []
+        missing: []
+        alert: null
+        elapsedMilliseconds: 1200
+        dynamicFilters: []
+        results: []

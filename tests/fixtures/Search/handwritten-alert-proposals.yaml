@@ -1,0 +1,32 @@
+operation: Search
+variables:
+  query: repo:sego-fake/alert foo count:100
+status: 200
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    search:
+      results:
+        matchCount: 1
+        approximateResultCount: "1"
+        limitHit: false
+        repositoriesCount: 1
+        timedout: []
+        cloning: []
+        missing: []
+        alert: 
+          title: Too many results
+          description: Narrow the search.
+          kind: null
+          proposedQueries:
+            - description: only go
+              query: repo:sego-fake/alert foo lang:go
+            - description: only rust
+              query: repo:sego-fake/alert foo lang:rust
+        elapsedMilliseconds: 800
+        dynamicFilters: []
+        results: 
+          - __typename: Repository
+            name: github.com/sego-fake/found

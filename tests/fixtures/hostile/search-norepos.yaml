@@ -1,0 +1,30 @@
+operation: Search
+variables:
+  query: "esc\e[0mrtl‮xzw​xnew\nlinecr\rnul\0xls xdel\x7Fx norepos count:100"
+status: 200
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    search:
+      results:
+        matchCount: 0
+        approximateResultCount: "0"
+        limitHit: false
+        repositoriesCount: 0
+        timedout: []
+        cloning: []
+        missing: []
+        alert: 
+          title: No repositories found
+          description: "esc\e[0mrtl‮xzw​xnew\nlinecr\rnul\0xls xdel\x7Fx"
+          kind: null
+          proposedQueries:
+            - description: "esc\e[0mrtl‮xzw​xnew\nlinecr\rnul\0xls xdel\x7Fx"
+              query: "esc\e[0mrtl‮xzw​xnew\nlinecr\rnul\0xls xdel\x7Fx"
+            - description: "esc\e[0mrtl‮xzw​xnew\nlinecr\rnul\0xls xdel\x7Fx"
+              query: "esc\e[0mrtl‮xzw​xnew\nlinecr\rnul\0xls xdel\x7Fxx"
+        elapsedMilliseconds: 100
+        dynamicFilters: []
+        results: []

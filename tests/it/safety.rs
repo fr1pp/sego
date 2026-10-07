@@ -264,3 +264,194 @@ fn a_rejected_request_prints_the_server_message_escaped() {
                    cr\\u{d} nul\\u{0}x ls\\u{2028}x del\\u{7f}x";
     assert!(ran.err.contains(escaped), "{:?}", ran.err);
 }
+
+fn search(tag: &str, json: bool) -> Ran {
+    let fake = Fake::fixtures(fixtures());
+    let connect =
+        move |_: Endpoint| -> Box<dyn Transport> { Box::new(fake.clone()) };
+    let mut args: Vec<OsString> = vec!["search".into()];
+    if json {
+        args.push("--json".into());
+    }
+    args.push(format!("{} {tag}", hostile()).into());
+    let ran = exec_os(args, None, &connect);
+    Ran {
+        code: ran.code,
+        out: String::from_utf8(ran.out).unwrap_or_else(|e| panic!("{e}")),
+        err: String::from_utf8(ran.err).unwrap_or_else(|e| panic!("{e}")),
+    }
+}
+
+const SEARCH_TAGS: [&str; 5] =
+    ["ok", "stopped", "norepos", "revisions", "unable"];
+const SEARCH_ERRORS: [&str; 4] = ["stopped", "norepos", "revisions", "unable"];
+
+fn content_text() -> Vec<&'static str> {
+    vec![
+        "esc\u{1b}[0m",
+        "rtl\u{202e}x",
+        "zw\u{200b}x",
+        "new",
+        "line",
+        "cr",
+        "ls\u{2028}x",
+        "del\u{7f}x",
+        "mid\rcr",
+        "tab\tok",
+    ]
+}
+
+/// A code line is a gutter, then `:` for a match or `-` for context.
+fn search_code_line(line: &str) -> bool {
+    let rest = line.trim_start_matches(' ');
+    let digits = rest.bytes().take_while(u8::is_ascii_digit).count();
+    digits > 0 && matches!(rest.as_bytes().get(digits), Some(b':' | b'-'))
+}
+
+/// Every stdout line of a search is one of the shapes the layout allows.
+fn assert_search_layout(out: &str) {
+    assert!(out.ends_with('\n'), "{out:?}");
+    let lines: Vec<&str> =
+        out.strip_suffix('\n').unwrap_or(out).split('\n').collect();
+    assert!(lines[0].contains(" s, deadline "), "{:?}", lines[0]);
+    assert!(lines[1].starts_with("query  "), "{:?}", lines[1]);
+    let mut headers = 0;
+    let mut binary = 0;
+    for (i, line) in lines.iter().enumerate().skip(2) {
+        if i == 2
+            && (line.starts_with("narrow  ") || line.starts_with("widen  "))
+        {
+            continue;
+        }
+        if line.is_empty() || *line == "--" || search_code_line(line) {
+            continue;
+        }
+        if *line == "binary file; lines not shown" {
+            binary += 1;
+        } else if line.starts_with("    ") {
+        } else if line.starts_with(REPO) || line.starts_with("$'") {
+            headers += 1;
+        } else {
+            panic!("line {i} is not part of the layout: {line:?}");
+        }
+    }
+    assert_eq!(headers, 4, "{out:?}");
+    assert_eq!(binary, 1, "{out:?}");
+    assert_eq!(lines.iter().filter(|l| l.is_empty()).count(), 1, "{out:?}");
+}
+
+fn assert_search_stderr(ran: &Ran) {
+    assert!(ran.err.ends_with('\n'), "{:?}", ran.err);
+    for line in ran.err.lines() {
+        assert!(
+            line.starts_with("sego: note: ")
+                || line.starts_with("sego: error: ")
+                || line.starts_with("  "),
+            "{line:?}"
+        );
+    }
+}
+
+#[test]
+fn no_unsafe_character_reaches_any_search_output() {
+    for tag in SEARCH_TAGS {
+        for json in [false, true] {
+            let ran = search(tag, json);
+            let what = format!("{tag} json={json}");
+            assert_safe(&format!("stdout of {what}"), &ran.out);
+            assert_safe(&format!("stderr of {what}"), &ran.err);
+        }
+    }
+}
+
+#[test]
+fn search_text_has_only_the_layout_lines() {
+    let ran = search("ok", false);
+    assert_eq!(ran.code, ExitCode::SUCCESS, "{}", ran.err);
+    assert_search_layout(&ran.out);
+    assert_search_stderr(&ran);
+    assert_eq!(ran.err.lines().count(), 7, "{:?}", ran.err);
+}
+
+#[test]
+fn search_json_values_equal_the_hostile_originals() {
+    let ran = search("ok", true);
+    assert_eq!(ran.code, ExitCode::SUCCESS, "{}", ran.err);
+    assert_search_stderr(&ran);
+    let h = hostile();
+    let value = json(&ran);
+    assert_eq!(value["query"], format!("{h} ok count:100"));
+    let name = hostile_name();
+    assert_eq!(value["timedout"][0], h);
+    assert_eq!(value["cloning"][0], h);
+    assert_eq!(value["missing"][0], h);
+    assert_eq!(value["alert"]["title"], h);
+    assert_eq!(value["alert"]["description"], h);
+    assert_eq!(value["alert"]["proposed"][0]["description"], h);
+    assert_eq!(value["alert"]["proposed"][0]["query"], h);
+    assert_eq!(value["filters"][0]["value"], h);
+    assert_eq!(value["filters"][0]["label"], h);
+    assert_eq!(value["filters"][1]["value"], h);
+
+    let results = value["results"].as_array().expect("results array");
+    let of = |kind: &str| -> Vec<&Value> {
+        results.iter().filter(|r| r["kind"] == kind).collect()
+    };
+    let lines = of("line");
+    let text: Vec<&str> =
+        lines.iter().map(|l| l["text"].as_str().unwrap_or_default()).collect();
+    assert_eq!(text, content_text());
+    for line in &lines {
+        assert_eq!(line["repo"], name);
+        assert_eq!(line["path"], h);
+        assert_eq!(line["rev"], h);
+    }
+    let symbols = of("symbol");
+    assert_eq!(symbols.len(), 1);
+    assert_eq!(symbols[0]["name"], h);
+    assert_eq!(symbols[0]["container"], h);
+    assert_eq!(symbols[0]["path"], h);
+    let binary = of("binary");
+    assert_eq!(binary.len(), 1);
+    assert_eq!(binary[0]["path"], format!("{h}.bin"));
+    let commits = of("commit");
+    assert_eq!(commits.len(), 1);
+    assert_eq!(commits[0]["subject"], h);
+    assert_eq!(commits[0]["author"], h);
+    assert_eq!(commits[0]["repo"], name);
+    let commit_lines: Vec<&str> = commits[0]["lines"]
+        .as_array()
+        .expect("lines")
+        .iter()
+        .map(|l| l.as_str().unwrap_or_default())
+        .collect();
+    assert_eq!(commit_lines, content_text());
+    let repos = of("repo");
+    assert_eq!(repos.len(), 1);
+    assert_eq!(repos[0]["repo"], name);
+}
+
+#[test]
+fn search_error_paths_fail_with_a_clean_message() {
+    for tag in SEARCH_ERRORS {
+        for as_json in [false, true] {
+            let ran = search(tag, as_json);
+            let what = format!("{tag} json={as_json}");
+            assert_eq!(ran.code, ExitCode::from(1), "{what}: {}", ran.err);
+            assert!(ran.out.is_empty(), "{what}: {:?}", ran.out);
+            assert!(
+                ran.err.starts_with("sego: error: "),
+                "{what}: {:?}",
+                ran.err
+            );
+            assert_search_stderr(&ran);
+            let lines = ran.err.lines().count();
+            let expected = match tag {
+                "unable" => 1,
+                "stopped" => 2,
+                _ => 3,
+            };
+            assert_eq!(lines, expected, "{what}: {:?}", ran.err);
+        }
+    }
+}

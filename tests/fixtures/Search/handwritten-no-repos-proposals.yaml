@@ -1,0 +1,30 @@
+operation: Search
+variables:
+  query: repo:sego-fake/norepos foo count:100
+status: 200
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    search:
+      results:
+        matchCount: 0
+        approximateResultCount: "0"
+        limitHit: false
+        repositoriesCount: 0
+        timedout: []
+        cloning: []
+        missing: []
+        alert: 
+          title: No repositories found
+          description: Nothing matches the repo filter.
+          kind: null
+          proposedQueries:
+            - description: drop the filter
+              query: foo
+            - description: widen the filter
+              query: repo:sego-fake foo
+        elapsedMilliseconds: 100
+        dynamicFilters: []
+        results: []

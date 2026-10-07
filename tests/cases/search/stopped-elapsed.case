@@ -1,0 +1,5 @@
+# Zero results at the deadline with nothing named timed out: the error has no fact.
+args: search 'repo:sego-fake/elapsed foo'
+exit: 1
+--- stderr
+sego: error: the search stopped at its 60 s deadline with no results

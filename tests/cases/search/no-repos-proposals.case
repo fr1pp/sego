@@ -1,0 +1,7 @@
+# No repositories found is an error; the proposals are facts.
+args: search 'repo:sego-fake/norepos foo'
+exit: 1
+--- stderr
+sego: error: No repositories found
+  the server proposes: foo
+  the server proposes: repo:sego-fake foo

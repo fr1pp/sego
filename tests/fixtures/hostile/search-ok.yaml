@@ -1,0 +1,103 @@
+operation: Search
+variables:
+  query: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx ok count:100"
+status: 200
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    search:
+      results:
+        matchCount: 10
+        approximateResultCount: "10"
+        limitHit: false
+        repositoriesCount: 1
+        timedout: 
+          - name: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+        cloning: 
+          - name: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+        missing: 
+          - name: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+        alert: 
+          title: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+          description: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+          kind: null
+          proposedQueries:
+            - description: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+              query: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+        elapsedMilliseconds: 100
+        dynamicFilters: 
+          - value: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+            label: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+            count: 1
+            limitHit: false
+            kind: lang
+          - value: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+            label: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+            count: 2
+            limitHit: false
+            kind: utility
+        results: 
+          - __typename: FileMatch
+            repository:
+              name: "github.com/hostile/repoesc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+            file:
+              path: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+              commit:
+                oid: 0123456789abcdef0123456789abcdef01234567
+            revSpec:
+              expr: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+            chunkMatches:
+              - content: "esc\e[0m\nrtl\u202Ex\nzw\u200Bx\nnew\nline\ncr\r\nls\u2028x\ndel\x7Fx\nmid\rcr\ntab\tok\n"
+                contentStart:
+                  line: 2
+                ranges:
+                  - start:
+                      line: 2
+                      character: 1
+                    end:
+                      line: 2
+                      character: 2
+            symbols:
+              - name: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+                kind: FUNCTION
+                containerName: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+                location:
+                  range:
+                    start:
+                      line: 2
+          - __typename: FileMatch
+            repository:
+              name: "github.com/hostile/repoesc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+            file:
+              path: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx.bin"
+              commit:
+                oid: 0123456789abcdef0123456789abcdef01234567
+            revSpec: null
+            chunkMatches:
+              - content: "a\0b\n"
+                contentStart:
+                  line: 0
+                ranges: []
+            symbols: []
+          - __typename: CommitSearchResult
+            commit:
+              oid: fedcba9876543210fedcba9876543210fedcba98
+              subject: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+              author:
+                date: "2024-01-02T03:04:05Z"
+                person:
+                  displayName: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+              repository:
+                name: "github.com/hostile/repoesc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+            matches:
+              - body:
+                  text: "```\nesc\e[0m\nrtl\u202Ex\nzw\u200Bx\nnew\nline\ncr\r\nls\u2028x\ndel\x7Fx\nmid\rcr\ntab\tok\n```"
+                highlights:
+                  - line: 1
+                    character: 1
+                    length: 2
+          - __typename: Repository
+            name: "github.com/hostile/repoesc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+          - __typename: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"

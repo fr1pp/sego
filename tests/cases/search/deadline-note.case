@@ -1,0 +1,10 @@
+# Results that arrived at the deadline print, with a note.
+args: search 'repo:sego-fake/deadline foo'
+exit: 0
+--- stdout
+1 match  1 repo  60.0 s, deadline 60 s
+query  repo:sego-fake/deadline foo count:100  (count:100 added by sego)
+
+github.com/sego-fake/found
+--- stderr
+sego: note: the search stopped at its 60 s deadline

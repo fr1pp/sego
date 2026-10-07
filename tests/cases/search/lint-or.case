@@ -1,0 +1,8 @@
+# Check 4: filters outside parentheses bind to one operand of OR.
+args: search 'repo:x file:a or file:b'
+exit: 0
+--- stdout
+0 matches  0 repos  0.1 s, deadline 60 s
+query  repo:x file:a or file:b count:100  (count:100 added by sego)
+--- stderr
+sego: note: filters outside parentheses apply only to the operand of OR they sit in; the other operands search every repository

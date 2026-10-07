@@ -1,0 +1,22 @@
+operation: Search
+variables:
+  query: repo:x file:a or file:b count:100
+status: 200
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    search:
+      results:
+        matchCount: 0
+        approximateResultCount: "0"
+        limitHit: false
+        repositoriesCount: 0
+        timedout: []
+        cloning: []
+        missing: []
+        alert: null
+        elapsedMilliseconds: 100
+        dynamicFilters: []
+        results: []
