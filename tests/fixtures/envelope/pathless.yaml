@@ -1,0 +1,10 @@
+operation: EnvelopePathless
+status: 200
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data: null
+  errors:
+    - message: Unknown field "nope" on type "Query"
+    - message: second

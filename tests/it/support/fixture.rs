@@ -5,6 +5,8 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use sego::internal::upstream::Reply;
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RawRequest {
@@ -165,5 +167,24 @@ fn collect(dir: &Path, files: &mut Vec<PathBuf>) {
         } else if path.extension().is_some_and(|ext| ext == "yaml") {
             files.push(path);
         }
+    }
+}
+
+pub fn reply(name: &str) -> Reply {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures")
+        .join(format!("{name}.yaml"));
+    let text = fs::read_to_string(&path)
+        .unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+    let fixture = Fixture::parse(&text, &path)
+        .unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+    let header = |name: &str| fixture.headers.get(name).cloned();
+    Reply {
+        status: fixture.status,
+        content_type: header("content-type"),
+        location: header("location"),
+        retry_after: header("retry-after"),
+        cf_mitigated: header("cf-mitigated"),
+        body: fixture.body(),
     }
 }

@@ -1,0 +1,6 @@
+operation: EnvelopeBadGateway
+status: 502
+headers:
+  content-type: text/plain
+handwritten: true
+response: Bad Gateway

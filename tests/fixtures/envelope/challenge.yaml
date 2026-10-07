@@ -1,0 +1,7 @@
+operation: EnvelopeChallenge
+status: 403
+headers:
+  content-type: text/html; charset=UTF-8
+  cf-mitigated: challenge
+handwritten: true
+response: "<html><title>Just a moment...</title></html>"

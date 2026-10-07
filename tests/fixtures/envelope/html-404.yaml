@@ -1,0 +1,6 @@
+operation: EnvelopeHtml404
+status: 404
+headers:
+  content-type: text/html
+handwritten: true
+response: "<html><body>Not found</body></html>"

@@ -1,0 +1,6 @@
+operation: EnvelopeNotJson
+status: 200
+headers:
+  content-type: text/plain
+handwritten: true
+response: this is not json
