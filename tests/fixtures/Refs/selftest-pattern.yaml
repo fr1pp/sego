@@ -1,0 +1,25 @@
+operation: Refs
+variables:
+  repo0: example.com/selftest/refs
+  first: 101
+  query: v1.*
+status: 200
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    r0:
+      name: example.com/selftest/refs
+      defaultBranch:
+        displayName: main
+      branches:
+        totalCount: 0
+        nodes: []
+      tags:
+        totalCount: 0
+        nodes: []
+      all_branches:
+        totalCount: 4
+      all_tags:
+        totalCount: 15

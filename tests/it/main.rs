@@ -16,6 +16,7 @@ mod output;
 mod query;
 mod quote;
 mod raw;
+mod refs;
 mod resolve;
 mod run;
 mod safety;

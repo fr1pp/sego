@@ -5,6 +5,7 @@ mod escape;
 mod ls;
 mod output;
 mod quote;
+mod refs;
 mod search;
 mod show;
 mod submodule;
@@ -32,6 +33,9 @@ pub mod internal {
     }
     pub mod quote {
         pub use crate::quote::*;
+    }
+    pub mod refs {
+        pub use crate::refs::*;
     }
     pub mod search {
         pub use crate::search::*;
@@ -161,8 +165,17 @@ fn dispatch(
                 ls::run(&address, recursive, &*transport, deadline, notes)?;
             (Box::new(listed), json)
         }
-        Command::Refs { .. } => {
-            return Err(Error::upstream("refs is not wired yet").into());
+        Command::Refs { repo, text, json } => {
+            let (transport, deadline) = open()?;
+            let listed = refs::run(
+                &repo,
+                text.as_deref(),
+                json,
+                &*transport,
+                deadline,
+                notes,
+            )?;
+            (Box::new(listed), json)
         }
     };
     notes.write(err)?;

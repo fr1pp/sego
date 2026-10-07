@@ -3,7 +3,12 @@ use crate::address::Pinned;
 use crate::escape;
 
 pub fn header(address: &Pinned, fields: &[String]) -> String {
-    let mut line = address.to_string();
+    header_line(&address.to_string(), fields)
+}
+
+/// `lead` is written as it is: the caller has already made it safe.
+pub fn header_line(lead: &str, fields: &[String]) -> String {
+    let mut line = lead.to_owned();
     for field in fields {
         line.push_str("  ");
         line.push_str(&escape::one_line(field));

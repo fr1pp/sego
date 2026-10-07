@@ -2,7 +2,9 @@ use serde::{Deserialize, Serialize};
 
 use sego::internal::address::pinned;
 use sego::internal::output::json;
-use sego::internal::output::text::{code_line, gutter_width, header};
+use sego::internal::output::text::{
+    code_line, gutter_width, header, header_line,
+};
 use sego::internal::output::{Marker, Notes};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -44,6 +46,13 @@ fn header_joins_with_two_spaces() {
     );
     let line = header(&pinned("a", "abc", None), &["x\u{1b}y".into()]);
     assert_eq!(line, "a@abc  x\\u{1b}y\n");
+}
+
+#[test]
+fn header_line_escapes_fields_but_not_the_lead() {
+    let line = header_line("a/b", &["1 tag".into(), "x\u{1b}y\nz".into()]);
+    assert_eq!(line, "a/b  1 tag  x\\u{1b}y z\n");
+    assert_eq!(header_line("a/b", &[]), "a/b\n");
 }
 
 #[test]
