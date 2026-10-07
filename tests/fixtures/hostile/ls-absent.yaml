@@ -1,0 +1,14 @@
+handwritten: true
+operation: ListTree
+variables:
+  path_0: "absent"
+  parent_0: ""
+  recursive_0: false
+  repo0: github.com/hostile/repo
+  rev0: HEAD
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    r0: null

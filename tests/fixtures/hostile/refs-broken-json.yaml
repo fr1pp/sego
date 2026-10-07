@@ -1,0 +1,15 @@
+handwritten: true
+operation: Refs
+variables:
+  first: 17000
+  query: broken
+  repo0: github.com/hostile/repo
+status: 200
+headers:
+  content-type: application/json
+response:
+  errors:
+  - message: "LEAK esc\e[0m rtl\u202Ex zw\u200Bx new\nline cr\r nul\0x ls\u2028x del\x7Fx"
+    path: [r0, tags, nodes]
+  data:
+    r0: null

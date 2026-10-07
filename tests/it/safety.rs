@@ -468,6 +468,22 @@ fn search_error_paths_fail_with_a_clean_message() {
     }
 }
 
+/// The two-line error for a repository Sourcegraph doesn't have.
+fn assert_not_served(what: &str, ran: &Ran) {
+    assert_eq!(ran.code, ExitCode::from(1), "{what}: {}", ran.err);
+    assert!(ran.out.is_empty(), "{what}: {:?}", ran.out);
+    assert_eq!(
+        ran.err,
+        format!(
+            "sego: error: {REPO} is not on sourcegraph.com\n  \
+             sourcegraph.com serves indexed repositories from github.com, \
+             gitlab.com and a few other hosts; a renamed repository appears \
+             only under its new name\n"
+        ),
+        "{what}"
+    );
+}
+
 fn ls(path: &str, json: bool) -> Ran {
     let mut args: Vec<OsString> = vec!["ls".into()];
     if json {
@@ -482,17 +498,19 @@ fn ls(path: &str, json: bool) -> Ran {
     sego(args)
 }
 
-const LS_PATHS: [&str; 7] = [
+const LS_PATHS: [&str; 9] = [
     "",
     "HOSTILE",
     "sub",
     "f.txt",
+    "bin.dat",
     "HOSTILE-gone",
+    "absent",
     "broken.txt",
     "rejected.txt",
 ];
-const LS_ERRORS: [&str; 4] =
-    ["f.txt", "HOSTILE-gone", "broken.txt", "rejected.txt"];
+const LS_ERRORS: [&str; 5] =
+    ["f.txt", "bin.dat", "HOSTILE-gone", "broken.txt", "rejected.txt"];
 const LS_KINDS: [&str; 3] = ["file", "dir", "submodule"];
 /// The hostile repository at `COMMIT`, as an address prints it: `$'…'`.
 const QUOTED_ADDRESS: &str = "$'github.com/hostile/repoesc\\033[0mrtl\\342\\200\\256xzw\\342\\200\\213xnew\\nlinecr\\015nul\\000xls\\342\\200\\250xdel\\177x@0123456789ab'";
@@ -729,6 +747,16 @@ fn ls_error_paths_fail_with_a_clean_message_and_no_server_text() {
         ran.err,
         format!("sego: error: f.txt is a file at {at} (3 lines)\n")
     );
+    let ran = ls("bin.dat", false);
+    assert_eq!(
+        ran.err,
+        format!(
+            "sego: error: bin.dat is a file at {at} (binary, 2048 bytes)\n"
+        )
+    );
+    for as_json in [false, true] {
+        assert_not_served("ls absent", &ls("absent", as_json));
+    }
     let ran = ls(&requested("HOSTILE-gone"), false);
     assert_eq!(
         ran.err,
@@ -761,15 +789,21 @@ fn refs(text: Option<&str>, json: bool) -> Ran {
     sego(args)
 }
 
-const REF_QUERIES: [Option<&str>; 4] =
-    [None, Some("HOSTILE"), Some("broken"), Some("refused")];
+const REF_QUERIES: [Option<&str>; 6] = [
+    None,
+    Some("HOSTILE"),
+    Some("broken"),
+    Some("nobranches"),
+    Some("absent"),
+    Some("refused"),
+];
 
 fn refs_query(query: Option<&str>) -> Option<String> {
     query.map(requested)
 }
 
-/// Header, `branch` rows, then `tag` rows; `ESCAPED` stands for every
-/// hostile name, commit and date.
+/// Header, `branch` rows, then `tag` rows. `ESCAPED` stands for each hostile
+/// name; the hostile commit and date are written out.
 fn refs_text(counts: &str) -> String {
     let short = "esc\\u{1b}[0mrtl\\u{202e}x";
     let date = "esc\\u{1b}[0mrtl";
@@ -897,27 +931,27 @@ fn refs_json_values_equal_the_hostile_originals() {
 
 #[test]
 fn refs_error_paths_fail_with_a_clean_message() {
-    for query in ["broken", "refused"] {
+    let rejected = format!(
+        "sego: error: Sourcegraph rejected sego's request: \
+         {ESCAPED_MESSAGE}\n"
+    );
+    let cases = [
+        ("broken", "sego: error: Sourcegraph failed to answer the tag list\n"),
+        (
+            "nobranches",
+            "sego: error: Sourcegraph failed to answer the branch list\n",
+        ),
+        ("refused", rejected.as_str()),
+    ];
+    for (query, message) in cases {
         for as_json in [false, true] {
             let ran = refs(Some(query), as_json);
             let what = format!("refs {query} json={as_json}");
             assert_clean_error(&what, &ran, 1);
-            if query == "broken" {
-                assert!(!ran.err.contains("LEAK"), "{what}: {:?}", ran.err);
-            }
+            assert_eq!(ran.err, message, "{what}");
         }
     }
-    let ran = refs(Some("broken"), false);
-    assert_eq!(
-        ran.err,
-        "sego: error: Sourcegraph failed to answer the tag list\n"
-    );
-    let ran = refs(Some("refused"), false);
-    assert_eq!(
-        ran.err,
-        format!(
-            "sego: error: Sourcegraph rejected sego's request: \
-             {ESCAPED_MESSAGE}\n"
-        )
-    );
+    for as_json in [false, true] {
+        assert_not_served("refs absent", &refs(Some("absent"), as_json));
+    }
 }

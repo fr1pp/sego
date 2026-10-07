@@ -1,0 +1,12 @@
+handwritten: true
+operation: Refs
+variables:
+  first: 17000
+  query: absent
+  repo0: github.com/hostile/repo
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    r0: null
