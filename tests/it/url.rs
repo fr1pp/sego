@@ -294,3 +294,85 @@ fn sourcegraph_splits_before_decoding() {
     let a = ok("sourcegraph.com/github.com/o/r@feature%40x/-/blob/a.go");
     assert_eq!(a.rev, Rev::One("feature@x".into()));
 }
+
+#[test]
+fn repository_urls() {
+    let cases: [(&str, &str, Rev); _] = [
+        ("https://www.github.com/o/r", "github.com/o/r", Rev::Default),
+        ("www.github.com/o/r", "github.com/o/r", Rev::Default),
+        ("https://github.com/o/r/", "github.com/o/r", Rev::Default),
+        ("github.com/o/r.git", "github.com/o/r", Rev::Default),
+        ("https://github.com/o/r.git/", "github.com/o/r", Rev::Default),
+        (
+            "https://github.com/o/r?tab=readme#L5",
+            "github.com/o/r",
+            Rev::Default,
+        ),
+        ("https://gitlab.com/g/s/r", "gitlab.com/g/s/r", Rev::Default),
+        ("https://www.gitlab.com/g/s/r/", "gitlab.com/g/s/r", Rev::Default),
+        ("gitlab.com/g/r?a=b#top", "gitlab.com/g/r", Rev::Default),
+        (
+            "https://sourcegraph.com/github.com/o/r",
+            "github.com/o/r",
+            Rev::Default,
+        ),
+        ("sourcegraph.com/r/github.com/o/r", "github.com/o/r", Rev::Default),
+        (
+            "https://www.sourcegraph.com/github.com/o/r/",
+            "github.com/o/r",
+            Rev::Default,
+        ),
+        (
+            "sourcegraph.com/github.com/o/r?L3#L4",
+            "github.com/o/r",
+            Rev::Default,
+        ),
+        (
+            "https://sourcegraph.com/github.com/o/r@v1.2",
+            "github.com/o/r",
+            Rev::One("v1.2".into()),
+        ),
+        (
+            "sourcegraph.com/r/github.com/o/r@feature/x",
+            "github.com/o/r",
+            Rev::One("feature/x".into()),
+        ),
+        (
+            "sourcegraph.com/github.com/o/r@v1..v2",
+            "github.com/o/r",
+            Rev::Range {
+                base: "v1".into(),
+                head: "v2".into(),
+                dots: Dots::Two,
+            },
+        ),
+    ];
+    for (token, name, rev) in cases {
+        let a = ok(token);
+        assert_eq!(a.repo, repo(name), "{token}");
+        assert_eq!(a.rev, rev, "{token}");
+        assert_eq!(a.path, None, "{token}");
+        assert_eq!(a.lines, None, "{token}");
+        assert_eq!(a.kind, UrlKind::Plain, "{token}");
+    }
+}
+
+#[test]
+fn repository_urls_validate_the_revision() {
+    for token in [
+        "sourcegraph.com/github.com/o/r@-x",
+        "sourcegraph.com/github.com/o/r@a%20b",
+    ] {
+        assert!(
+            matches!(parse(token), Err(AddressError::InvalidRevision(_))),
+            "{token}: {:?}",
+            parse(token)
+        );
+    }
+    assert_eq!(
+        parse("sourcegraph.com/github.com/o/r@"),
+        Err(AddressError::EmptyRevision(
+            "sourcegraph.com/github.com/o/r@".to_owned()
+        ))
+    );
+}

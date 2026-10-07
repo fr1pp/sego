@@ -579,15 +579,36 @@ fn has_scp_marks(segment: &str) -> bool {
     segment.contains(['@', ':'])
 }
 
+/// A repository named by a URL with nothing after it. The query string and
+/// fragment are dropped, and the name is read as a plain address would be.
+fn repository(
+    token: &str,
+    host: &str,
+    segs: &[&str],
+) -> Result<Address, AddressError> {
+    let name = format!("{host}/{}", decode_all(segs).join("/"));
+    Ok(Address {
+        repo: parse_repo(&name, token)?,
+        rev: Rev::Default,
+        path: None,
+        lines: None,
+        kind: UrlKind::Plain,
+    })
+}
+
 fn github_url(
     token: &str,
+    host: &str,
     segs: &[&str],
     lines: Result<Option<LineRange>, AddressError>,
 ) -> Option<Result<Address, AddressError>> {
-    if segs.len() < 3
+    if segs.len() < 2
         || segs[..2].iter().any(|s| s.is_empty() || has_scp_marks(s))
     {
         return None;
+    }
+    if segs.len() == 2 {
+        return Some(repository(token, host, segs));
     }
     let repo = github_repo(segs[0], segs[1]);
     if GITHUB_KEYWORDS.contains(&segs[2]) {
@@ -605,10 +626,18 @@ fn github_url(
 
 fn gitlab_url(
     token: &str,
+    host: &str,
     segs: &[&str],
     lines: Result<Option<LineRange>, AddressError>,
 ) -> Option<Result<Address, AddressError>> {
-    let dash = segs.iter().position(|s| *s == "-")?;
+    let Some(dash) = segs.iter().position(|s| *s == "-") else {
+        if segs.len() < 2
+            || segs.iter().any(|s| s.is_empty() || has_scp_marks(s))
+        {
+            return None;
+        }
+        return Some(repository(token, host, segs));
+    };
     let unsupported = || AddressError::UnsupportedUrl(token.to_owned());
     let repo_segs = &segs[..dash];
     if repo_segs.iter().any(|s| has_scp_marks(s)) {
@@ -630,8 +659,16 @@ fn sourcegraph_url(
     segs: &[&str],
     lines: Result<Option<LineRange>, AddressError>,
 ) -> Option<Result<Address, AddressError>> {
-    let dash = segs.iter().position(|s| *s == "-")?;
+    if segs.is_empty() {
+        return None;
+    }
+    let dash = segs.iter().position(|s| *s == "-");
     let unsupported = || AddressError::UnsupportedUrl(token.to_owned());
+    if dash.is_none() && segs.iter().any(|s| s.contains(':')) {
+        return Some(Err(unsupported()));
+    }
+    let lines = if dash.is_some() { lines } else { Ok(None) };
+    let dash = dash.unwrap_or(segs.len());
     let named = if segs[0] == "r" { &segs[1..dash] } else { &segs[..dash] };
     let joined = named.join("/");
     let (repo, rev) = match joined.split_once('@') {
@@ -653,8 +690,11 @@ fn sourcegraph_url(
         Some("") => Err(AddressError::EmptyRevision(token.to_owned())),
         Some(rev) => parse_rev(&percent_decode(rev)),
     };
-    let rest = decode_all(&segs[dash + 1..]);
+    let rest = decode_all(segs.get(dash + 1..).unwrap_or_default());
     let tail = rev.and_then(|rev| match rest.split_first() {
+        None if dash == segs.len() => {
+            Ok(Web { rev, path: None, kind: UrlKind::Plain })
+        }
         Some((keyword, path)) if keyword == "blob" || keyword == "tree" => {
             let path = path.join("/");
             let kind =
@@ -705,8 +745,8 @@ fn parse_web(token: &str) -> Option<Result<Address, AddressError>> {
         if path.is_empty() { Vec::new() } else { path.split('/').collect() };
     let lines = url_lines(fragment, query);
     match host.to_ascii_lowercase().as_str() {
-        "github.com" => github_url(token, &segs, lines),
-        "gitlab.com" => gitlab_url(token, &segs, lines),
+        "github.com" => github_url(token, host, &segs, lines),
+        "gitlab.com" => gitlab_url(token, host, &segs, lines),
         "sourcegraph.com" => sourcegraph_url(token, &segs, lines),
         "raw.githubusercontent.com" => {
             Some(raw_githubusercontent_url(token, &segs, lines))
