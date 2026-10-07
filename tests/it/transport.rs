@@ -241,3 +241,43 @@ fn errors_convert() {
     let large: Error = TransportError::TooLarge.into();
     assert_eq!(large.to_string(), "sourcegraph.com's answer is over 64 MiB");
 }
+
+fn crc32(data: &[u8]) -> u32 {
+    let mut crc = !0u32;
+    for &byte in data {
+        crc ^= u32::from(byte);
+        for _ in 0..8 {
+            crc = (crc >> 1) ^ (0xEDB8_8320 & 0u32.wrapping_sub(crc & 1));
+        }
+    }
+    !crc
+}
+
+/// A gzip stream holding `data` in one stored deflate block.
+fn gzip(data: &[u8]) -> Vec<u8> {
+    let len = u16::try_from(data.len()).unwrap_or_else(|e| panic!("{e}"));
+    let mut out = vec![0x1f, 0x8b, 8, 0, 0, 0, 0, 0, 0, 0xff, 1];
+    out.extend_from_slice(&len.to_le_bytes());
+    out.extend_from_slice(&(!len).to_le_bytes());
+    out.extend_from_slice(data);
+    out.extend_from_slice(&crc32(data).to_le_bytes());
+    out.extend_from_slice(&u32::from(len).to_le_bytes());
+    out
+}
+
+#[test]
+fn a_gzip_encoded_body_is_decoded() {
+    let json = br#"{"data":{"r0":null}}"#;
+    let compressed = gzip(json);
+    let server = Server::start(move |_| {
+        Response::new(200)
+            .header("Content-Type", "application/json")
+            .header("Content-Encoding", "gzip")
+            .body(compressed.clone())
+    });
+    let reply = client(&server)
+        .post(GRAPHQL_PATH, b"{}", soon())
+        .unwrap_or_else(|e| panic!("{e:?}"));
+    assert_eq!(reply.status, 200);
+    assert_eq!(reply.body, json);
+}

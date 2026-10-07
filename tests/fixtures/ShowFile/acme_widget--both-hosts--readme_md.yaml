@@ -1,0 +1,55 @@
+handwritten: true
+operation: ShowFile
+variables:
+  end_0: 500
+  parent_0: ""
+  path_0: README.md
+  repo0: github.com/acme/widget
+  repo1: gitlab.com/acme/widget
+  rev0: HEAD
+  start_0: 1
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    r0:
+      name: github.com/acme/widget
+      defaultBranch:
+        displayName: main
+      c0:
+        oid: 0123456789abcdef0123456789abcdef01234567
+        meta:
+          binary: false
+          byteSize: 8
+          lfs: null
+          rawURL: /github.com/acme/widget@0123456789abcdef0123456789abcdef01234567/-/raw/README.md
+          totalLines: 1
+        body:
+          content: |
+            widget
+        dir: null
+        parent:
+          entries:
+          - path: README.md
+            submodule: null
+    r1:
+      name: gitlab.com/acme/widget
+      defaultBranch:
+        displayName: main
+      c0:
+        oid: 89abcdef0123456789abcdef0123456789abcdef
+        meta:
+          binary: false
+          byteSize: 8
+          lfs: null
+          rawURL: /gitlab.com/acme/widget@89abcdef0123456789abcdef0123456789abcdef/-/raw/README.md
+          totalLines: 1
+        body:
+          content: |
+            widget
+        dir: null
+        parent:
+          entries:
+          - path: README.md
+            submodule: null
