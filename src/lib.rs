@@ -1,6 +1,7 @@
 mod address;
 mod error;
 mod escape;
+mod output;
 mod quote;
 mod upstream;
 
@@ -14,6 +15,9 @@ pub mod internal {
     }
     pub mod escape {
         pub use crate::escape::*;
+    }
+    pub mod output {
+        pub use crate::output::*;
     }
     pub mod quote {
         pub use crate::quote::*;

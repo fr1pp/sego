@@ -4,6 +4,7 @@ mod error;
 mod escape;
 mod fixtures;
 mod guard;
+mod output;
 mod quote;
 mod resolve;
 mod support;
