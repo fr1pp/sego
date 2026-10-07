@@ -355,6 +355,29 @@ fn recording_writes_and_then_serves() {
 }
 
 #[test]
+fn a_query_only_fixture_is_named_from_the_query() {
+    let dir = scratch("query-name");
+    let upstream = upstream();
+    let fake = recording(Mode::RecordMissing, &dir, &upstream);
+    let variables = json!({
+        "query": r#"repo:^github\.com/gorilla/mux$@v1.8.0 "func NewRouter" count:100"#,
+    });
+    graphql(&client(&fake.url()), "Search", &variables, "query Search { x }")
+        .unwrap_or_else(|e| panic!("{e:?}"));
+    assert!(
+        dir.join(
+            "Search/repo_github_com_gorilla_mux_v1_8_0_func_newrouter_count_100.yaml"
+        )
+        .is_file()
+    );
+
+    let long = json!({ "query": "a".repeat(100) });
+    graphql(&client(&fake.url()), "Search", &long, "query Search { x }")
+        .unwrap_or_else(|e| panic!("{e:?}"));
+    assert!(dir.join(format!("Search/{}.yaml", "a".repeat(80))).is_file());
+}
+
+#[test]
 fn recording_stores_a_large_body_beside_the_fixture() {
     let dir = scratch("large-body");
     let upstream = upstream();

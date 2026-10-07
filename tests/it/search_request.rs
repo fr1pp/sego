@@ -1,3 +1,4 @@
+use std::process::ExitCode;
 use std::time::{Duration, Instant};
 
 use serde_json::{Value, json};
@@ -6,8 +7,11 @@ use sego::internal::error::{Error, report};
 use sego::internal::search::query::prepare;
 use sego::internal::search::response::{Item, Results};
 use sego::internal::search::{OPERATION, fetch, request};
-use sego::internal::upstream::{Request, Var, top_level};
+use sego::internal::upstream::{
+    Endpoint, GRAPHQL_PATH, Reply, Request, Transport, Var, top_level,
+};
 
+use crate::support::exec::{Ran, exec};
 use crate::support::fake::Fake;
 use crate::support::fixture::reply;
 
@@ -52,12 +56,16 @@ fn top_level_document() {
 #[test]
 fn request_carries_the_query_as_written() {
     let written = r#"repo:x "a b" (foo or bar)"#;
-    let prepared = prepare(written);
-    assert_eq!(request(&prepared).operation, OPERATION);
+    assert_eq!(request(&prepare(written)).operation, OPERATION);
     let fake = Fake::scripted(vec![Ok(reply("Search/selftest-kinds"))]);
-    let _ = fetch(&prepared, &fake, deadline());
+    let handle = fake.clone();
+    let connect =
+        move |_: Endpoint| -> Box<dyn Transport> { Box::new(handle.clone()) };
+    let ran = exec(&["search", written], None, &connect);
+    assert_eq!(ran.code, ExitCode::SUCCESS);
     let calls = fake.calls();
     assert_eq!(calls.len(), 1);
+    assert_eq!(calls[0].path, GRAPHQL_PATH);
     let body: Value = serde_json::from_slice(&calls[0].body)
         .unwrap_or_else(|e| panic!("{e}"));
     assert_eq!(
@@ -65,6 +73,84 @@ fn request_carries_the_query_as_written() {
         json!({ "query": r#"repo:x "a b" (foo or bar) count:100"# })
     );
     assert_eq!(body["operationName"], "Search");
+}
+
+fn envelope(results: &Value) -> Reply {
+    let body = json!({ "data": { "search": { "results": results } } });
+    Reply {
+        status: 200,
+        content_type: Some("application/json".to_owned()),
+        location: None,
+        retry_after: None,
+        cf_mitigated: None,
+        body: body.to_string().into_bytes(),
+    }
+}
+
+fn results(alert: &Value, items: &Value) -> Value {
+    json!({
+        "matchCount": items.as_array().map_or(0, Vec::len),
+        "approximateResultCount": "0",
+        "limitHit": false,
+        "repositoriesCount": 1,
+        "timedout": [],
+        "cloning": [],
+        "missing": [],
+        "alert": alert,
+        "elapsedMilliseconds": 5,
+        "dynamicFilters": [],
+        "results": items,
+    })
+}
+
+fn ran_with(reply: Reply, query: &str) -> (Ran, Fake) {
+    let fake = Fake::scripted(vec![Ok(reply)]);
+    let handle = fake.clone();
+    let connect =
+        move |_: Endpoint| -> Box<dyn Transport> { Box::new(handle.clone()) };
+    (exec(&["search", query], None, &connect), fake)
+}
+
+const LINT: &str = "sego: note: lang: filters intersect: a file must \
+                    match both\n";
+
+#[test]
+fn run_order() {
+    let alert = json!({
+        "title": "Heads up",
+        "description": "be careful",
+        "kind": null,
+        "proposedQueries": null,
+    });
+    let items =
+        json!([{ "__typename": "Repository", "name": "github.com/a/b" }]);
+    let (ran, fake) =
+        ran_with(envelope(&results(&alert, &items)), "lang:go lang:rust foo");
+    assert_eq!(ran.code, ExitCode::SUCCESS);
+    assert_eq!(
+        String::from_utf8_lossy(&ran.err),
+        format!("{LINT}sego: note: Heads up: be careful\n")
+    );
+    assert!(String::from_utf8_lossy(&ran.out).contains("github.com/a/b"));
+    assert_eq!(fake.calls().len(), 1);
+
+    let alert = json!({
+        "title": "Unable To Process Query",
+        "description": "bad query",
+        "kind": null,
+        "proposedQueries": null,
+    });
+    let (ran, fake) = ran_with(
+        envelope(&results(&alert, &json!([]))),
+        "lang:go lang:rust foo",
+    );
+    assert_eq!(ran.code, ExitCode::from(1));
+    assert_eq!(ran.out, b"");
+    assert_eq!(
+        String::from_utf8_lossy(&ran.err),
+        format!("{LINT}sego: error: bad query\n")
+    );
+    assert_eq!(fake.calls().len(), 1);
 }
 
 #[test]

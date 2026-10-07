@@ -16,6 +16,7 @@ use super::fixture::{Fault, Fixture};
 use super::http::{Request, Response, Server};
 
 const LARGE_BODY: usize = 1_000_000;
+const QUERY_NAME_LEN: usize = 80;
 const CHALLENGE_LEN: usize = 5 * 1024;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -409,6 +410,13 @@ fn unique_name(
     query: &Query,
 ) -> String {
     let name = match query {
+        Query::Graphql { variables, .. }
+            if first_value(variables, "query").is_some() =>
+        {
+            let name =
+                slug(&first_value(variables, "query").unwrap_or_default());
+            name.chars().take(QUERY_NAME_LEN).collect()
+        }
         Query::Graphql { variables, .. } => ["repo0", "rev0", "path_0"]
             .iter()
             .filter_map(|key| first_value(variables, key))

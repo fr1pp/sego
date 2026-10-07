@@ -3,6 +3,7 @@ use std::time::Instant;
 use serde_json::Value;
 
 use crate::error::Error;
+use crate::output::Notes;
 use crate::upstream::top_level;
 use crate::upstream::{GRAPHQL_PATH, Request, Transport, Var, classify};
 
@@ -13,7 +14,8 @@ pub mod query;
 pub mod response;
 pub mod text;
 
-use query::Prepared;
+use model::Searched;
+use query::{Prepared, prepare};
 
 pub const OPERATION: &str = "Search";
 
@@ -70,4 +72,19 @@ pub fn fetch(
     let results =
         envelope.get(&["search", "results"]).ok_or_else(failed)?.clone();
     serde_json::from_value(results).map_err(|_| failed())
+}
+
+pub fn run(
+    query: &str,
+    transport: &dyn Transport,
+    deadline: Instant,
+    notes: &mut Notes,
+) -> Result<Searched, Error> {
+    let prepared = prepare(query);
+    for note in &prepared.notes {
+        notes.push(note);
+    }
+    let results = fetch(&prepared, transport, deadline)?;
+    outcome::judge(&results, &prepared, notes)?;
+    Ok(Searched::new(results, &prepared))
 }

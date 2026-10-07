@@ -118,7 +118,7 @@ fn dispatch(
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> Result<(), Failure> {
-    let (address, lines, json) = match cli::parse(args)? {
+    let command = match cli::parse(args)? {
         Command::Help(topic) => {
             out.write_all(cli::help(topic).as_bytes())?;
             return Ok(());
@@ -127,21 +127,37 @@ fn dispatch(
             writeln!(out, "sego {}", env!("CARGO_PKG_VERSION"))?;
             return Ok(());
         }
-        Command::Search { .. } => {
-            return Err(Error::upstream("search is not wired yet").into());
-        }
-        Command::Show { address, lines, json } => (address, lines, json),
+        command => command,
     };
     let endpoint = Endpoint::from_env(env.endpoint.as_deref())?;
     let transport = connect(endpoint);
     let deadline = Instant::now() + DEADLINE;
-    let shown =
-        show::run(&address, lines.as_ref(), &*transport, deadline, notes)?;
-    notes.write(err)?;
-    if json {
-        output::json::write(&shown, out)?;
-    } else {
-        out.write_all(shown.text().as_bytes())?;
+    match command {
+        Command::Search { query, json } => {
+            let searched = search::run(&query, &*transport, deadline, notes)?;
+            notes.write(err)?;
+            if json {
+                output::json::write(&searched.json(), out)?;
+            } else {
+                out.write_all(searched.text().as_bytes())?;
+            }
+        }
+        Command::Show { address, lines, json } => {
+            let shown = show::run(
+                &address,
+                lines.as_ref(),
+                &*transport,
+                deadline,
+                notes,
+            )?;
+            notes.write(err)?;
+            if json {
+                output::json::write(&shown, out)?;
+            } else {
+                out.write_all(shown.text().as_bytes())?;
+            }
+        }
+        Command::Help(_) | Command::Version => {}
     }
     Ok(())
 }
