@@ -4,6 +4,7 @@ mod commit;
 mod diff;
 mod error;
 mod escape;
+mod log;
 mod ls;
 mod output;
 mod quote;
@@ -32,6 +33,9 @@ pub mod internal {
     }
     pub mod escape {
         pub use crate::escape::*;
+    }
+    pub mod log {
+        pub use crate::log::*;
     }
     pub mod ls {
         pub use crate::ls::*;
@@ -191,8 +195,17 @@ fn dispatch(
                 commit::run(&address, &*transport, deadline, notes)?;
             (Box::new(committed), json)
         }
-        Command::Log { .. } => {
-            return Err(Error::upstream("log is not wired yet").into());
+        Command::Log { address, path, json } => {
+            let (transport, deadline) = open()?;
+            let logged = log::run(
+                &address,
+                path.as_deref(),
+                json,
+                &*transport,
+                deadline,
+                notes,
+            )?;
+            (Box::new(logged), json)
         }
         Command::Diff { address, paths, json } => {
             let (transport, deadline) = open()?;

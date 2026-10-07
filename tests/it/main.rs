@@ -11,6 +11,7 @@ mod fixtures;
 mod guard;
 mod history_cli;
 mod lint;
+mod log;
 mod ls;
 mod ls_cli;
 mod model;

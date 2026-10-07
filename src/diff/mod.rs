@@ -93,7 +93,7 @@ impl Answer for Diffed {
 
 /// Git reads a leading `:` as pathspec magic, and `*`, `?` and `[` as globs;
 /// `path(path:)` takes none of them literally.
-fn is_plain(path: &str) -> bool {
+pub fn is_plain(path: &str) -> bool {
     !path.starts_with(':') && !path.contains(['*', '?', '['])
 }
 

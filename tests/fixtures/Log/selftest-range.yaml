@@ -1,0 +1,83 @@
+handwritten: true
+operation: Log
+variables:
+  repo0: example.com/selftest/log
+  a: v2.1.12
+  b: v2.1.14
+  path: null
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    a0:
+      name: example.com/selftest/log
+      defaultBranch: {displayName: master}
+      commit: {oid: 4ad40c3a28bd2acabbb50eb3ff63b08c2c55f96c}
+    b0:
+      name: example.com/selftest/log
+      defaultBranch: {displayName: master}
+      commit: {oid: 1e23553eec2392753c5420d348e63a63f517cd45}
+    n0:
+      name: example.com/selftest/log
+      defaultBranch: {displayName: master}
+      commit: {behindAhead: {ahead: 10}}
+    c0:
+      name: example.com/selftest/log
+      defaultBranch: {displayName: master}
+      comparison:
+        commits:
+          nodes:
+          - oid: 1e23553eec2392753c5420d348e63a63f517cd45
+            subject: "2.1.14: small fixes and spinner improvements"
+            author: {date: "2026-09-14T10:19:56Z", person: {displayName: Valentin Kiselev}}
+            parents: [{oid: a2c9d37aab87e75e6b10698f2dad72e20432aa69}]
+          - oid: a2c9d37aab87e75e6b10698f2dad72e20432aa69
+            subject: "2.1.13: small fixes and spinner improvements"
+            author: {date: "2026-09-14T09:47:27Z", person: {displayName: Valentin Kiselev}}
+            parents: [{oid: c7b498349fface33a7b6d6e613455568815c77e2}]
+          - oid: c7b498349fface33a7b6d6e613455568815c77e2
+            subject: "fix(run): error when --job/--command matches nothing (#1512)"
+            author: {date: "2026-09-14T09:41:52Z", person: {displayName: Nityanand Gupta}}
+            parents: [{oid: e4ca4a1d3f3f3eb8a35aeaae3dad703a12f7e008}]
+          - oid: e4ca4a1d3f3f3eb8a35aeaae3dad703a12f7e008
+            subject: "fix: disable tty things when stdout is not TTY (#1545)"
+            author: {date: "2026-09-14T09:38:32Z", person: {displayName: Valentin Kiselev}}
+            parents: [{oid: aa3fa89923c0bf7c087950bda0113940ff48a6c8}]
+          - oid: aa3fa89923c0bf7c087950bda0113940ff48a6c8
+            subject: "docs: document files inheritance for grouped jobs (#1536)"
+            author: {date: "2026-09-14T08:53:24Z", person: {displayName: Vladimir Babin}}
+            parents: [{oid: 250f0283150eb951f26465516fea033d31123b25}]
+          - oid: 250f0283150eb951f26465516fea033d31123b25
+            subject: "fix: force colors when colors are explicitly enabled (#1538)"
+            author: {date: "2026-09-14T08:52:39Z", person: {displayName: Yash Lunawat}}
+            parents: [{oid: 62f4d5e8e9aa22e36afa37c81088ec170567cdf2}]
+          - oid: 62f4d5e8e9aa22e36afa37c81088ec170567cdf2
+            subject: "fix: resolve file_types paths from the repo root (#1537)"
+            author: {date: "2026-09-14T08:52:26Z", person: {displayName: Yash Lunawat}}
+            parents: [{oid: ef092eb9da065b9e8c43c158dd60bfb144b52d8f}]
+          - oid: ef092eb9da065b9e8c43c158dd60bfb144b52d8f
+            subject: "fix(npm) don't force past `core.hooksPath` guard in npm postinstall (#1475)"
+            author: {date: "2026-09-07T07:36:43Z", person: {displayName: Ty Mick}}
+            parents: [{oid: 3667aeb1ca86f3dc11db24df590a624a4e48843b}]
+          - oid: 3667aeb1ca86f3dc11db24df590a624a4e48843b
+            subject: "fix: don't force-install hooks from the npm postinstall (#1510)"
+            author: {date: "2026-09-07T07:34:27Z", person: {displayName: Hamody We}}
+            parents: [{oid: 354df23681bd9d0bb54eaf6aacdabf8bcf05ee6d}]
+          - oid: 354df23681bd9d0bb54eaf6aacdabf8bcf05ee6d
+            subject: "docs: quote template run examples (#1472)"
+            author: {date: "2026-09-07T07:33:43Z", person: {displayName: Guflly}}
+            parents: [{oid: 4ad40c3a28bd2acabbb50eb3ff63b08c2c55f96c}]
+          pageInfo: {hasNextPage: false}
+    t0:
+      name: example.com/selftest/log
+      defaultBranch: {displayName: master}
+      gitRefs:
+        totalCount: 6
+        nodes:
+        - {displayName: v2.1.17, target: {oid: 30645491a0d14f2f5c39e59f53e4895fb7211878}}
+        - {displayName: v2.1.16, target: {oid: 433e6b9067d5d138bf63b47403e0df8895a40e33}}
+        - {displayName: v2.1.15, target: {oid: d050364655420db8a4241f2480942a8d8ddb3486}}
+        - {displayName: v2.1.14, target: {oid: 1e23553eec2392753c5420d348e63a63f517cd45}}
+        - {displayName: v2.1.13, target: {oid: a2c9d37aab87e75e6b10698f2dad72e20432aa69}}
+        - {displayName: v2.1.12, target: {oid: 4ad40c3a28bd2acabbb50eb3ff63b08c2c55f96c}}

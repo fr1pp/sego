@@ -1,0 +1,36 @@
+handwritten: true
+operation: Log
+variables:
+  repo0: example.com/selftest/head
+  rev: HEAD
+  path: null
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    r0:
+      name: example.com/selftest/head
+      defaultBranch: {displayName: main}
+      commit:
+        oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+        ancestors:
+          nodes:
+          - oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+            subject: Release v1.8.0
+            author: {date: "2022-11-01T08:00:00Z", person: {displayName: Ada Example}}
+            parents: [{oid: a7962380ca08b5a188038c69871b8d3fbdf31e89}]
+          - oid: a7962380ca08b5a188038c69871b8d3fbdf31e89
+            subject: Release v1.7.0
+            author: {date: "2019-01-02T08:00:00Z", person: {displayName: Ada Example}}
+            parents: []
+          pageInfo: {hasNextPage: false}
+    t0:
+      name: example.com/selftest/head
+      defaultBranch: {displayName: main}
+      gitRefs:
+        totalCount: 3
+        nodes:
+        - {displayName: v1.8.0, target: {oid: 98cb6bf42e086f6af920b965c38cacc07402d51b}}
+        - {displayName: v1.7.0, target: {oid: a7962380ca08b5a188038c69871b8d3fbdf31e89}}
+        - {displayName: v1.7.0-rc1, target: {oid: a7962380ca08b5a188038c69871b8d3fbdf31e89}}
