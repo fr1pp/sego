@@ -1,0 +1,10 @@
+operation: ResolveEmptyRepo
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    r0:
+      name: github.com/ascoders/blog
+      defaultBranch: null
+      c0: null

@@ -5,6 +5,7 @@ mod escape;
 mod fixtures;
 mod guard;
 mod quote;
+mod resolve;
 mod support;
 mod transport;
 mod url;

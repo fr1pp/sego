@@ -1,0 +1,22 @@
+operation: ResolveSplit
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    r0:
+      name: github.com/bminor/glibc
+      defaultBranch:
+        displayName: master
+      c0:
+        oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+        x0: null
+      g0: null
+      c1:
+        oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+        x1: null
+      c2:
+        oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+        x2:
+          __typename: GitBlob
+      c3: null

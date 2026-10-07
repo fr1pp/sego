@@ -1,0 +1,12 @@
+operation: ResolveNoRev
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    r0:
+      name: github.com/gorilla/mux
+      defaultBranch:
+        displayName: main
+      c0: null
+    r1: null

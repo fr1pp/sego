@@ -214,6 +214,10 @@ fn is_bad_char(c: char) -> bool {
     c.is_whitespace() || c.is_control()
 }
 
+pub fn valid_revision(rev: &str) -> bool {
+    check_revision(rev).is_ok()
+}
+
 fn check_revision(rev: &str) -> Result<(), AddressError> {
     if rev.starts_with('-') || rev.chars().any(is_bad_char) {
         return Err(AddressError::InvalidRevision(rev.to_owned()));
