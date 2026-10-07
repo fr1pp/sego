@@ -402,6 +402,14 @@ fn strip_prefix_ignore_case<'a>(s: &'a str, prefix: &str) -> Option<&'a str> {
     head.eq_ignore_ascii_case(prefix).then(|| &s[prefix.len()..])
 }
 
+fn decode_all(segments: &[&str]) -> Vec<String> {
+    segments.iter().map(|s| percent_decode(s)).collect()
+}
+
+fn github_repo(owner: &str, name: &str) -> String {
+    format!("github.com/{}/{}", percent_decode(owner), percent_decode(name))
+}
+
 fn is_sha(s: &str) -> bool {
     s.len() == 40 && s.bytes().all(|b| b.is_ascii_hexdigit())
 }
@@ -459,8 +467,7 @@ fn split_rev(
     kind: UrlKind,
 ) -> Result<Web, AddressError> {
     let unsupported = || AddressError::UnsupportedUrl(token.to_owned());
-    let segments: Vec<String> =
-        rest.iter().map(|s| percent_decode(s)).collect();
+    let segments = decode_all(rest);
     if segments.is_empty() || segments.iter().any(String::is_empty) {
         return Err(unsupported());
     }
@@ -492,15 +499,14 @@ fn forge_tail(
         "tree" => split_rev(token, rest, UrlKind::Tree),
         "commit" => match rest {
             [sha] if !sha.is_empty() => Ok(Web {
-                rev: Rev::One(percent_decode(sha)),
+                rev: parse_rev(&percent_decode(sha))?,
                 path: None,
                 kind: UrlKind::Commit,
             }),
             _ => Err(unsupported()),
         },
         "compare" => {
-            let spec: Vec<String> =
-                rest.iter().map(|s| percent_decode(s)).collect();
+            let spec = decode_all(rest);
             match parse_rev(&spec.join("/"))? {
                 rev @ Rev::Range { .. } => {
                     Ok(Web { rev, path: None, kind: UrlKind::Compare })
@@ -546,11 +552,7 @@ fn github_url(
     {
         return None;
     }
-    let repo = format!(
-        "github.com/{}/{}",
-        percent_decode(segs[0]),
-        percent_decode(segs[1])
-    );
+    let repo = github_repo(segs[0], segs[1]);
     if GITHUB_KEYWORDS.contains(&segs[2]) {
         return Some(finish(
             repo,
@@ -572,14 +574,13 @@ fn gitlab_url(
     let dash = segs.iter().position(|s| *s == "-")?;
     let unsupported = || AddressError::UnsupportedUrl(token.to_owned());
     let repo_segs = &segs[..dash];
-    if repo_segs.len() < 2
-        || repo_segs.iter().any(|s| s.is_empty() || has_scp_marks(s))
-    {
+    if repo_segs.iter().any(|s| has_scp_marks(s)) {
+        return None;
+    }
+    if repo_segs.len() < 2 || repo_segs.iter().any(|s| s.is_empty()) {
         return Some(Err(unsupported()));
     }
-    let names: Vec<String> =
-        repo_segs.iter().map(|s| percent_decode(s)).collect();
-    let repo = format!("gitlab.com/{}", names.join("/"));
+    let repo = format!("gitlab.com/{}", decode_all(repo_segs).join("/"));
     let tail = match segs.get(dash + 1) {
         Some(keyword) => forge_tail(token, keyword, &segs[dash + 2..]),
         None => Err(unsupported()),
@@ -593,22 +594,30 @@ fn sourcegraph_url(
     lines: Result<Option<LineRange>, AddressError>,
 ) -> Option<Result<Address, AddressError>> {
     let dash = segs.iter().position(|s| *s == "-")?;
-    if !segs[..dash].iter().any(|s| s.contains('@')) {
-        return None;
-    }
     let unsupported = || AddressError::UnsupportedUrl(token.to_owned());
     let named = if segs[0] == "r" { &segs[1..dash] } else { &segs[..dash] };
-    let joined = percent_decode(&named.join("/"));
-    let (repo, rev) = joined.split_once('@')?;
-    if repo.is_empty() {
+    let joined = named.join("/");
+    let (repo, rev) = match joined.split_once('@') {
+        Some((repo, rev)) => (repo, Some(rev)),
+        None => (joined.as_str(), None),
+    };
+    let repo = percent_decode(repo);
+    let repo_segments: Vec<&str> = repo.split('/').collect();
+    if repo_segments.len() < 3
+        || !repo_segments[0].contains('.')
+        || repo_segments
+            .iter()
+            .any(|s| s.is_empty() || s.contains(is_bad_char))
+    {
         return Some(Err(unsupported()));
     }
-    if rev.is_empty() {
-        return Some(Err(AddressError::EmptyRevision(token.to_owned())));
-    }
-    let rest: Vec<String> =
-        segs[dash + 1..].iter().map(|s| percent_decode(s)).collect();
-    let tail = match rest.split_first() {
+    let rev = match rev {
+        None => Ok(Rev::Default),
+        Some("") => Err(AddressError::EmptyRevision(token.to_owned())),
+        Some(rev) => parse_rev(&percent_decode(rev)),
+    };
+    let rest = decode_all(&segs[dash + 1..]);
+    let tail = rev.and_then(|rev| match rest.split_first() {
         Some((keyword, path)) if keyword == "blob" || keyword == "tree" => {
             let path = path.join("/");
             let kind =
@@ -616,21 +625,15 @@ fn sourcegraph_url(
             if kind == UrlKind::Blob && path.is_empty() {
                 Err(unsupported())
             } else {
-                Ok(Web {
-                    rev: Rev::One(rev.to_owned()),
-                    path: Some(path),
-                    kind,
-                })
+                Ok(Web { rev, path: Some(path), kind })
             }
         }
-        Some((keyword, [sha])) if keyword == "commit" => Ok(Web {
-            rev: Rev::One(sha.clone()),
-            path: None,
-            kind: UrlKind::Commit,
-        }),
+        Some((keyword, [sha])) if keyword == "commit" => {
+            Ok(Web { rev: parse_rev(sha)?, path: None, kind: UrlKind::Commit })
+        }
         _ => Err(unsupported()),
-    };
-    Some(finish(repo.to_owned(), tail, lines))
+    });
+    Some(finish(repo, tail, lines))
 }
 
 fn raw_githubusercontent_url(
@@ -641,11 +644,7 @@ fn raw_githubusercontent_url(
     if segs.len() < 4 || segs[..2].iter().any(|s| s.is_empty()) {
         return Err(AddressError::UnsupportedUrl(token.to_owned()));
     }
-    let repo = format!(
-        "github.com/{}/{}",
-        percent_decode(segs[0]),
-        percent_decode(segs[1])
-    );
+    let repo = github_repo(segs[0], segs[1]);
     finish(repo, split_rev(token, &segs[2..], UrlKind::Blob), lines)
 }
 

@@ -72,6 +72,7 @@ fn plain_forms_stay_plain() {
         "https://github.com/gorilla/mux/",
         "github.com/gorilla/mux@v1:mux.go",
         "github.com/gorilla/mux@v1:dir/mux.go",
+        "gitlab.com/g/r@main:docs/-/x.md",
     ] {
         assert_eq!(ok(token).kind, UrlKind::Plain, "{token}");
     }
@@ -235,4 +236,61 @@ fn submodule_targets() {
             "{url} from {parent}"
         );
     }
+}
+
+#[test]
+fn web_revisions_are_validated() {
+    let a = ok("sourcegraph.com/github.com/o/r@a..b/-/blob/x");
+    assert!(matches!(a.rev, Rev::Range { dots: Dots::Two, .. }));
+    for token in [
+        "sourcegraph.com/github.com/o/r@-x/-/blob/x",
+        "sourcegraph.com/github.com/o/r@a%20b/-/blob/x",
+        "sourcegraph.com/github.com/o/r@v1/-/commit/%0A",
+        "github.com/o/r/commit/%0A",
+        "gitlab.com/g/r/-/commit/-x",
+    ] {
+        assert!(
+            matches!(parse(token), Err(AddressError::InvalidRevision(_))),
+            "{token}: {:?}",
+            parse(token)
+        );
+    }
+}
+
+#[test]
+fn sourcegraph_without_revision() {
+    for token in [
+        "sourcegraph.com/github.com/o/r/-/blob/a.go",
+        "sourcegraph.com/r/github.com/o/r/-/blob/a.go",
+    ] {
+        let a = ok(token);
+        assert_eq!(a.repo, repo("github.com/o/r"), "{token}");
+        assert_eq!(a.rev, Rev::Default, "{token}");
+        assert_eq!(a.path.as_deref(), Some("a.go"), "{token}");
+    }
+    let a = ok("sourcegraph.com/github.com/o/r/-/tree/docs");
+    assert_eq!((a.kind, a.rev), (UrlKind::Tree, Rev::Default));
+}
+
+#[test]
+fn sourcegraph_repository_names_are_validated() {
+    for token in [
+        "sourcegraph.com/foo@v1/-/blob/a",
+        "sourcegraph.com/github.com/o@v1/-/blob/a",
+        "sourcegraph.com/@v1/-/blob/a",
+    ] {
+        assert_eq!(
+            parse(token),
+            Err(AddressError::UnsupportedUrl(token.to_owned())),
+            "{token}"
+        );
+    }
+}
+
+#[test]
+fn sourcegraph_splits_before_decoding() {
+    let a = ok("sourcegraph.com/github.com/o/r@v1/-/blob/a%40b.go");
+    assert_eq!(a.path.as_deref(), Some("a@b.go"));
+    let a = ok("sourcegraph.com/github.com/o/r@feature%40x/-/blob/a.go");
+    assert_eq!(a.rev, Rev::One("feature@x".into()));
 }
