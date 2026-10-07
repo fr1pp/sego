@@ -3,8 +3,8 @@ use serde_json::json;
 use sego::internal::address::{Address, Dots, Repo, Rev, UrlKind, parse};
 use sego::internal::error::{Error, report};
 use sego::internal::upstream::{
-    Candidate, Envelope, Located, Plan, Var, build, candidates, classify,
-    locate,
+    Candidate, Envelope, Located, Plan, RepoPlan, Var, build,
+    build_repository, candidates, classify, locate, locate_repository,
 };
 
 use crate::support::fixture::reply;
@@ -510,4 +510,184 @@ fn failed_default_branch_is_not_an_empty_repository() {
         "https://github.com/bminor/glibc/blob/release/2.34/master/NEWS",
     );
     assert!(split.contains(lookup), "{split}");
+}
+
+const REPO_PARTS: &[(&str, &str)] =
+    &[("tags", "the tag list"), ("all_branches", "the branch list")];
+
+fn repo_plan() -> RepoPlan {
+    RepoPlan {
+        operation: "Toy",
+        vars: vec![Var { name: "first", ty: "Int!", value: json!(20) }],
+        template: "tags(first: $first) {\n  totalCount\n}".to_owned(),
+        parts: REPO_PARTS,
+    }
+}
+
+fn repo_of(token: &str) -> Repo {
+    address(token).repo
+}
+
+fn repo_refused(fixture: &str, token: &str) -> String {
+    match locate_repository(&repo_of(token), &envelope(fixture), REPO_PARTS) {
+        Ok(found) => panic!("{fixture}: located {}", found.repo),
+        Err(error) => rendered(&error),
+    }
+}
+
+#[test]
+fn repository_roots() {
+    let request =
+        build_repository(&repo_plan(), &repo_of("github.com/gorilla/mux"));
+    assert_eq!(request.operation, "Toy");
+    assert_eq!(
+        request.document,
+        "\
+query Toy($repo0: String!, $first: Int!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    tags(first: $first) {
+      totalCount
+    }
+  }
+}
+"
+    );
+    assert_eq!(
+        pretty(&request.variables),
+        r#"{
+  "first": 20,
+  "repo0": "github.com/gorilla/mux"
+}"#
+    );
+
+    let request = build_repository(&repo_plan(), &repo_of("gorilla/mux"));
+    assert_eq!(
+        request.document,
+        "\
+query Toy($repo0: String!, $repo1: String!, $first: Int!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    tags(first: $first) {
+      totalCount
+    }
+  }
+  r1: repository(name: $repo1) {
+    name
+    defaultBranch { displayName }
+    tags(first: $first) {
+      totalCount
+    }
+  }
+}
+"
+    );
+    assert_eq!(
+        pretty(&request.variables),
+        r#"{
+  "first": 20,
+  "repo0": "github.com/gorilla/mux",
+  "repo1": "gitlab.com/gorilla/mux"
+}"#
+    );
+
+    let found = locate_repository(
+        &repo_of("gorilla/mux"),
+        &envelope("repo-found"),
+        REPO_PARTS,
+    )
+    .unwrap_or_else(|e| panic!("{}", rendered(&e)));
+    assert_eq!(found.repo, "github.com/gorilla/mux");
+    assert_eq!(found.at, "r0");
+
+    let empty = locate_repository(
+        &repo_of("github.com/ascoders/blog"),
+        &envelope("repo-empty"),
+        REPO_PARTS,
+    )
+    .unwrap_or_else(|e| panic!("{}", rendered(&e)));
+    assert_eq!(empty.repo, "github.com/ascoders/blog");
+    assert_eq!(empty.at, "r0");
+}
+
+#[test]
+fn repository_lookup_errors() {
+    let blocked = repo_refused("repo-none", "gorilla/mux");
+    assert!(
+        blocked.contains("gorilla/mux is not on sourcegraph.com"),
+        "{blocked}"
+    );
+    assert!(
+        blocked.contains(
+            "sourcegraph.com serves indexed repositories from github.com, \
+             gitlab.com and a few other hosts; a renamed repository appears \
+             only under its new name"
+        ),
+        "{blocked}"
+    );
+
+    let both = repo_refused("repo-both-hosts", "gorilla/mux");
+    assert!(
+        both.contains(
+            "gorilla/mux exists as github.com/gorilla/mux and \
+             gitlab.com/gorilla/mux"
+        ),
+        "{both}"
+    );
+
+    let one = repo_refused("repo-one-host-error", "gorilla/mux");
+    assert!(
+        one.contains("Sourcegraph failed to answer the repository lookup"),
+        "{one}"
+    );
+}
+
+#[test]
+fn a_null_root_with_errors_beneath_failed() {
+    let tags = repo_refused("repo-tags-error", "github.com/gorilla/mux");
+    assert!(
+        tags.contains("Sourcegraph failed to answer the tag list"),
+        "{tags}"
+    );
+    assert!(!tags.contains("not on sourcegraph.com"), "{tags}");
+
+    let branches =
+        repo_refused("repo-branches-error", "github.com/gorilla/mux");
+    assert!(
+        branches.contains("Sourcegraph failed to answer the branch list"),
+        "{branches}"
+    );
+
+    for fixture in ["repo-root-error", "repo-unknown-part-error"] {
+        let lookup = repo_refused(fixture, "github.com/gorilla/mux");
+        assert!(
+            lookup.contains(
+                "Sourcegraph failed to answer the repository lookup"
+            ),
+            "{fixture}: {lookup}"
+        );
+    }
+
+    let one = repo_refused("repo-one-host-tags-error", "gorilla/mux");
+    assert!(
+        one.contains("Sourcegraph failed to answer the tag list"),
+        "{one}"
+    );
+
+    let both = repo_refused("repo-both-null-errors", "gorilla/mux");
+    assert!(
+        both.contains("Sourcegraph failed to answer the repository lookup"),
+        "all_tags is not in this table: {both}"
+    );
+}
+
+#[test]
+fn show_names_no_parts_under_a_failed_root() {
+    let lookup = refused("root-error", "github.com/gorilla/mux");
+    assert!(
+        lookup.contains("Sourcegraph failed to answer the repository lookup"),
+        "{lookup}"
+    );
 }

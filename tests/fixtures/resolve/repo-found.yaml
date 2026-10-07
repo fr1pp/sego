@@ -1,0 +1,13 @@
+operation: RepoFound
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    r0:
+      name: github.com/gorilla/mux
+      defaultBranch:
+        displayName: main
+      tags:
+        totalCount: 3
+    r1: null

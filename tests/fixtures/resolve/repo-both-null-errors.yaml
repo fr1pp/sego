@@ -1,0 +1,11 @@
+operation: RepoBothNullErrors
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    r0: null
+    r1: null
+  errors:
+    - message: internal git failure
+      path: [r1, all_tags, nodes]

@@ -1,0 +1,11 @@
+operation: RepoEmpty
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    r0:
+      name: github.com/ascoders/blog
+      defaultBranch: null
+      tags:
+        totalCount: 0

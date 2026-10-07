@@ -1,0 +1,10 @@
+operation: RepoBranchesError
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    r0: null
+  errors:
+    - message: internal git failure
+      path: [r0, all_branches, nodes, 3, target]

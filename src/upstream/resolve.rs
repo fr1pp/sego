@@ -3,7 +3,7 @@ use std::fmt::Write as _;
 use serde::Serialize;
 use serde_json::{Map, Value};
 
-use super::envelope::Envelope;
+use super::envelope::{Envelope, Seg};
 use crate::address::{
     Address, FULL_OID, Repo, Rev, is_oid_like, valid_revision,
 };
@@ -34,6 +34,25 @@ pub struct Plan {
     /// `$name_<j>` for candidate `j`.
     pub commit_template: &'static str,
     pub vars: Vars,
+}
+
+pub struct RepoPlan {
+    pub operation: &'static str,
+    /// Declared once, after the `$repo<i>` variables, and shared by every
+    /// root.
+    pub vars: Vec<Var>,
+    /// A selection on `Repository`.
+    pub template: String,
+    /// The second key of an error path, and the part of the answer it
+    /// names.
+    pub parts: &'static [(&'static str, &'static str)],
+}
+
+pub struct RepoAt {
+    /// The canonical name from the response.
+    pub repo: String,
+    /// The alias of the root, such as `r0`.
+    pub at: String,
 }
 
 pub struct Request {
@@ -193,6 +212,36 @@ pub fn build(plan: &Plan, address: &Address) -> Request {
     Request { operation: plan.operation.to_owned(), document, variables }
 }
 
+pub fn build_repository(plan: &RepoPlan, repo: &Repo) -> Request {
+    let repos = repo.candidates();
+    let mut declared: Vec<String> =
+        (0..repos.len()).map(|i| format!("$repo{i}: String!")).collect();
+    declared.extend(
+        plan.vars.iter().map(|var| format!("${}: {}", var.name, var.ty)),
+    );
+    let mut variables = Map::new();
+    for (i, name) in repos.iter().enumerate() {
+        variables.insert(format!("repo{i}"), Value::String(name.clone()));
+    }
+    for var in &plan.vars {
+        variables.insert(var.name.to_owned(), var.value.clone());
+    }
+
+    let mut document =
+        format!("query {}({}) {{\n", plan.operation, declared.join(", "));
+    for i in 0..repos.len() {
+        let _ = writeln!(document, "  r{i}: repository(name: $repo{i}) {{");
+        document.push_str("    name\n    defaultBranch { displayName }\n");
+        for line in plan.template.lines() {
+            let _ = writeln!(document, "    {line}");
+        }
+        document.push_str("  }\n");
+    }
+    document.push_str("}\n");
+
+    Request { operation: plan.operation.to_owned(), document, variables }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct Located {
     /// The canonical name from the response.
@@ -219,31 +268,59 @@ fn repository_lookup_failed() -> Error {
     Error::failed("the repository lookup")
 }
 
-fn find_root(address: &Address, env: &Envelope) -> Result<usize, Error> {
-    let found: Vec<usize> = (0..address.repo.candidates().len())
+/// A root that came back null with an error at or beneath it: the lookup
+/// failed, so the repository is not known to be missing.
+fn failed_root(
+    env: &Envelope,
+    roots: usize,
+    parts: &[(&str, &str)],
+) -> Option<Error> {
+    let failed = |root: &str| {
+        env.get(&[root]).is_none()
+            && env.errors.iter().any(
+                |e| matches!(e.path.first(), Some(Seg::Key(k)) if k == root),
+            )
+    };
+    let names: Vec<String> = (0..roots).map(|i| format!("r{i}")).collect();
+    let error = env.errors.iter().find(|e| {
+        matches!(e.path.first(), Some(Seg::Key(k))
+            if names.contains(k) && failed(k))
+    })?;
+    let part = match error.path.get(1) {
+        Some(Seg::Key(key)) => parts
+            .iter()
+            .find_map(|(name, part)| (name == key).then_some(*part)),
+        _ => None,
+    };
+    Some(part.map_or_else(repository_lookup_failed, Error::failed))
+}
+
+fn find_root(
+    repo: &Repo,
+    env: &Envelope,
+    parts: &[(&str, &str)],
+) -> Result<usize, Error> {
+    let candidates = repo.candidates();
+    let found: Vec<usize> = (0..candidates.len())
         .filter(|i| env.get(&[&format!("r{i}")]).is_some())
         .collect();
-    let name = written_name(&address.repo);
-    let any_root_failed = || {
-        (0..address.repo.candidates().len())
-            .any(|i| env.error_at(&[&format!("r{i}")]).is_some())
-    };
+    let name = written_name(repo);
     match found[..] {
         [] => {
-            if any_root_failed() {
-                return Err(repository_lookup_failed());
+            if let Some(error) = failed_root(env, candidates.len(), parts) {
+                return Err(error);
             }
             Err(Error::missing(format!("{name} is not on sourcegraph.com"))
                 .fact(NOT_INDEXED))
         }
-        [_] if any_root_failed() => Err(repository_lookup_failed()),
-        [i] => Ok(i),
+        [i] => match failed_root(env, candidates.len(), parts) {
+            Some(error) => Err(error),
+            None => Ok(i),
+        },
         [a, b, ..] => {
             let canonical = |i: usize| {
-                str_at(env, &[&format!("r{i}"), "name"]).map_or_else(
-                    || address.repo.candidates()[i].clone(),
-                    str::to_owned,
-                )
+                str_at(env, &[&format!("r{i}"), "name"])
+                    .map_or_else(|| candidates[i].clone(), str::to_owned)
             };
             Err(Error::missing(format!(
                 "{name} exists as {} and {}",
@@ -255,7 +332,7 @@ fn find_root(address: &Address, env: &Envelope) -> Result<usize, Error> {
 }
 
 pub fn locate(address: &Address, env: &Envelope) -> Result<Located, Error> {
-    let i = find_root(address, env)?;
+    let i = find_root(&address.repo, env, &[])?;
     let r = format!("r{i}");
     let repo = str_at(env, &[&r, "name"])
         .map_or_else(|| address.repo.candidates()[i].clone(), str::to_owned);
@@ -355,4 +432,18 @@ pub fn top_level(
     let variables =
         vars.into_iter().map(|var| (var.name.to_owned(), var.value)).collect();
     Request { operation: operation.to_owned(), document, variables }
+}
+
+/// The root that exists. An empty repository is found: the caller reads
+/// `defaultBranch` itself.
+pub fn locate_repository(
+    repo: &Repo,
+    env: &Envelope,
+    parts: &[(&str, &str)],
+) -> Result<RepoAt, Error> {
+    let i = find_root(repo, env, parts)?;
+    let at = format!("r{i}");
+    let repo = str_at(env, &[&at, "name"])
+        .map_or_else(|| repo.candidates()[i].clone(), str::to_owned);
+    Ok(RepoAt { repo, at })
 }
