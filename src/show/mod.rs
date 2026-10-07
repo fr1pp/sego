@@ -4,13 +4,12 @@ use std::time::Instant;
 use serde::Serialize;
 use serde_json::{Value, json};
 
-use crate::address::{
-    Address, End, LineRange, is_oid_like, pinned, short, submodule_target,
-};
+use crate::address::{Address, End, LineRange, is_oid_like, pinned};
 use crate::error::Error;
 use crate::escape::strip_cr;
 use crate::output::text::{code_line, gutter_width, header};
 use crate::output::{Answer, Marker, Notes};
+use crate::submodule::{self, Submodule};
 use crate::upstream::{
     Candidate, Envelope, GRAPHQL_PATH, Located, Plan, RawError, Transport,
     Var, build, classify, locate, raw,
@@ -31,13 +30,6 @@ meta: blob(path: $path) { byteSize totalLines binary rawURL lfs { byteSize } }
 pub struct Line {
     pub line: u32,
     pub text: String,
-}
-
-#[derive(Serialize)]
-pub struct Submodule {
-    pub url: String,
-    pub target: Option<String>,
-    pub commit: String,
 }
 
 #[derive(Serialize)]
@@ -197,25 +189,7 @@ fn submodule_of(
     path: &str,
 ) -> Option<Submodule> {
     let entries = view.get(&["parent", "entries"])?.as_array()?;
-    let entry = entries.iter().find(|entry| {
-        entry.get("path").and_then(Value::as_str) == Some(path)
-    })?;
-    let module = entry.get("submodule").filter(|value| !value.is_null())?;
-    let field = |name: &str| {
-        module.get(name).and_then(Value::as_str).unwrap_or_default().to_owned()
-    };
-    let (url, commit) = (field("url"), field("commit"));
-    let target = submodule_target(&url, &located.repo)
-        .map(|target| with_commit(&target, &commit));
-    Some(Submodule { url, target, commit })
-}
-
-fn with_commit(name: &str, commit: &str) -> String {
-    if commit.is_empty() {
-        name.to_owned()
-    } else {
-        format!("{name}@{}", short(commit))
-    }
+    submodule::find(entries, path, &located.repo)
 }
 
 /// The file's `meta`, once the path is known to be a readable file or a
@@ -326,14 +300,7 @@ fn interpret(
     let rev = rev_field(located.rev.as_ref());
 
     if let Some(submodule) = submodule_of(view, located, &path) {
-        let target = submodule.target.clone().unwrap_or_else(|| {
-            if submodule.url.is_empty() {
-                "?".to_owned()
-            } else {
-                submodule.url.clone()
-            }
-        });
-        shown.fields.push(format!("submodule  {target}"));
+        shown.fields.push(format!("submodule  {}", submodule.shown()));
         shown.fields.extend(rev);
         shown.submodule = Some(submodule);
         return Ok(shown);

@@ -21,6 +21,7 @@ mod safety;
 mod search_cli;
 mod search_request;
 mod search_text;
+mod submodule;
 mod support;
 mod transport;
 mod url;

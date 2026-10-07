@@ -6,6 +6,7 @@ mod output;
 mod quote;
 mod search;
 mod show;
+mod submodule;
 mod upstream;
 
 #[doc(hidden)]
@@ -30,6 +31,9 @@ pub mod internal {
     }
     pub mod search {
         pub use crate::search::*;
+    }
+    pub mod submodule {
+        pub use crate::submodule::*;
     }
     pub mod upstream {
         pub use crate::upstream::*;
