@@ -107,6 +107,7 @@ fn assert_clean_error(what: &str, ran: &Ran, code: u8) {
     assert_eq!(ran.code, ExitCode::from(code), "{what}: {}", ran.err);
     assert!(ran.out.is_empty(), "{what}: {:?}", ran.out);
     assert!(ran.err.starts_with("sego: error: "), "{what}: {:?}", ran.err);
+    assert!(ran.err.ends_with('\n'), "{what}: {:?}", ran.err);
     assert_eq!(ran.err.matches('\n').count(), 1, "{what}: {:?}", ran.err);
 }
 

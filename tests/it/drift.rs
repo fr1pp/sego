@@ -323,7 +323,7 @@ fn shape_names_a_missing_key() {
 #[test]
 fn shape_names_a_type_change() {
     let found = shape(&json!({"a": 1}), &json!({"a": "1"}));
-    assert!(found.is_some_and(|f| f.starts_with("a is")));
+    assert_eq!(found.as_deref(), Some(r#"a is {"string"}, was {"number"}"#));
 }
 
 #[test]
@@ -335,7 +335,7 @@ fn shape_names_a_new_key() {
 #[test]
 fn shape_names_a_live_null_where_the_recording_has_a_value() {
     let found = shape(&json!({"a": {"b": 1}}), &json!({"a": null}));
-    assert!(found.is_some());
+    assert_eq!(found.as_deref(), Some(r#"a is null, was {"object"}"#));
 }
 
 #[test]
@@ -371,13 +371,32 @@ fn with_errors(paths: &[&[&str]]) -> Value {
 }
 
 #[test]
-fn reordered_or_reworded_errors_are_not_drift() {
+fn reworded_errors_are_not_drift() {
     let recorded = with_errors(&[&["r0", "meta"], &["r0", "body"]]);
-    let mut live = with_errors(&[&["r0", "body"], &["r0", "meta"]]);
+    let mut live = recorded.clone();
     live["errors"][0]["message"] = json!("another wording");
     assert_eq!(new_error_path(&recorded, &live), None);
-    sort_errors(&mut live);
-    assert_eq!(live["errors"].as_array().map(Vec::len), Some(2));
+}
+
+#[test]
+fn a_pinned_fixture_ignores_the_order_of_errors() {
+    let recorded = with_errors(&[&["r0", "meta"], &["r0", "body"]]);
+    let live = with_errors(&[&["r0", "body"], &["r0", "meta"]]);
+    let fixture = Fixture {
+        operation: Some("ShowFile".to_owned()),
+        pinned: true,
+        response: Some(recorded),
+        ..Fixture::default()
+    };
+    let reply = Reply {
+        status: 200,
+        content_type: None,
+        location: None,
+        retry_after: None,
+        cf_mitigated: None,
+        body: live.to_string().into_bytes(),
+    };
+    assert_eq!(compare_graphql(&fixture, &reply), None);
 }
 
 #[test]
