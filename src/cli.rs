@@ -3,7 +3,7 @@ use std::ffi::OsString;
 use lexopt::Arg;
 
 use crate::address::{self, Address, LineRange, Repo, Rev};
-use crate::error::Error;
+use crate::error::{Error, usage_block};
 
 pub const SYNOPSIS: &str = "sego COMMAND [--json] ...";
 
@@ -485,20 +485,7 @@ query:
   -- TEXT        text that is one of sego's options, such as --json
 ";
 
-const SHOW_ADDRESSES: &str = "\
-addresses:
-  REPO     host/owner/name, owner/name, or a GitHub, GitLab or
-           Sourcegraph URL
-  @REV     a branch, tag or commit; the default branch without it
-  @REV     with no :PATH, the commit: its message and changed files
-  :PATH    a path from the repository root
-  LINES    N, N-M, N,M or N- (lines are numbered from 1)
-";
-
-const LOG_HELP: &str = "\
-usage: sego log [--json] REPO[@REV][:PATH] [PATH]
-       sego log [--json] REPO@A..B[:PATH] [PATH]
-
+const LOG_BODY: &str = "\
 operands:
   REPO       host/owner/name, owner/name, or a GitHub, GitLab or
              Sourcegraph URL
@@ -516,10 +503,7 @@ Text and JSON list the newest 150 commits of a REV; a range lists them all
 in JSON. Tags that point at a listed commit are marked.
 ";
 
-const DIFF_HELP: &str = "\
-usage: sego diff [--json] REPO@A...B[:PATH] [PATH...]
-       sego diff [--json] REPO@REV[:PATH] [PATH...]
-
+const DIFF_BODY: &str = "\
 operands:
   REPO        host/owner/name, owner/name, or a GitHub, GitLab or
               Sourcegraph URL
@@ -587,19 +571,23 @@ fn search_help() -> String {
 
 fn show_help() -> String {
     format!(
-        "usage: {}\n\n{SHOW_ADDRESSES}\n{OPTIONS}\n\
+        "{}\n\n{}\n{OPTIONS}\n\
          A file over 1.5 MiB is read through Sourcegraph's raw route, a \
          second request.\n\
          Text shows lines 1-500 when LINES is not given; --json \
          carries the same lines.\n",
-        usage_lines(SHOW_SYNOPSIS)
+        usage_block(SHOW_SYNOPSIS),
+        show_addresses()
     )
 }
 
-/// A synopsis as `error::report` prints it after `usage: `: later lines are
-/// indented under the first.
-fn usage_lines(synopsis: &str) -> String {
-    synopsis.replace('\n', "\n       ")
+/// The general addresses block, with the second meaning `@REV` has for `show`.
+fn show_addresses() -> String {
+    ADDRESSES.replace(
+        "  :PATH ",
+        "  @REV     with no :PATH, the commit: its message and changed \
+         files\n  :PATH ",
+    )
 }
 
 fn ls_help() -> String {
@@ -611,11 +599,11 @@ fn refs_help() -> String {
 }
 
 fn log_help() -> String {
-    LOG_HELP.to_owned()
+    format!("{}\n\n{LOG_BODY}", usage_block(LOG_SYNOPSIS))
 }
 
 fn diff_help() -> String {
-    DIFF_HELP.to_owned()
+    format!("{}\n\n{DIFF_BODY}", usage_block(DIFF_SYNOPSIS))
 }
 
 pub fn help(topic: Option<&str>) -> String {

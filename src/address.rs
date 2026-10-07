@@ -584,7 +584,7 @@ fn finish(
     Ok(Address {
         repo: Repo::Exact(repo),
         rev: web.rev,
-        path: web.path,
+        path: web.path.as_deref().map(parse_path),
         lines: lines?,
         kind: web.kind,
     })

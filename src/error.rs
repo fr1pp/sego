@@ -91,17 +91,21 @@ impl fmt::Display for Error {
     }
 }
 
+/// A synopsis as a usage error and a help text print it: `usage: ` before
+/// the first line, matching indentation before each later one.
+pub fn usage_block(synopsis: &str) -> String {
+    let indent = " ".repeat(USAGE_PREFIX.len());
+    let lines: Vec<&str> = synopsis.lines().collect();
+    format!("{USAGE_PREFIX}{}", lines.join(&format!("\n{indent}")))
+}
+
 pub fn report(error: &Error, out: &mut dyn Write) -> io::Result<()> {
     writeln!(out, "sego: error: {}", one_line(&error.message))?;
     for fact in &error.facts {
         writeln!(out, "  {}", one_line(fact))?;
     }
     if let Some(synopsis) = error.synopsis {
-        let indent = " ".repeat(USAGE_PREFIX.len());
-        for (i, line) in synopsis.lines().enumerate() {
-            let lead = if i == 0 { USAGE_PREFIX } else { &indent };
-            writeln!(out, "{lead}{line}")?;
-        }
+        writeln!(out, "{}", usage_block(synopsis))?;
     }
     Ok(())
 }

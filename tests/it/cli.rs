@@ -6,7 +6,7 @@ use sego::internal::address::{self, End, LineRange};
 use sego::internal::cli::{
     COMMANDS as TABLE, Command, SHOW_SYNOPSIS, help, parse,
 };
-use sego::internal::error::{Kind, report};
+use sego::internal::error::{Kind, report, usage_block};
 
 const GENERAL: &str = "sego COMMAND [--json] ...";
 const COMMANDS: &str = "  commands: search, show, ls, refs, log, diff";
@@ -340,8 +340,8 @@ fn help_is_the_text_in_the_brief() {
 fn show_help_has_the_synopsis_blocks_and_two_facts() {
     let text = help(Some("show"));
     assert!(text.starts_with(&format!(
-        "usage: {}\n\naddresses:\n",
-        rendered(SHOW_SYNOPSIS)
+        "{}\n\naddresses:\n",
+        usage_block(SHOW_SYNOPSIS)
     )));
     assert!(text.contains("\noptions:\n  --json "));
     assert!(text.ends_with(
@@ -352,21 +352,13 @@ fn show_help_has_the_synopsis_blocks_and_two_facts() {
     assert!(!text.contains("commands:"));
 }
 
-/// A synopsis as help and `error::report` print it after `usage: `.
-fn rendered(synopsis: &str) -> String {
-    synopsis.replace('\n', "\n       ")
-}
-
 #[test]
 fn every_command_has_its_own_help() {
     let general = help(None);
     for entry in TABLE {
         let text = help(Some(entry.name));
         assert!(
-            text.starts_with(&format!(
-                "usage: {}\n",
-                rendered(entry.synopsis)
-            )),
+            text.starts_with(&format!("{}\n", usage_block(entry.synopsis))),
             "{}: {text}",
             entry.name
         );

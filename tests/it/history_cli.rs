@@ -102,6 +102,9 @@ fn show_of_a_commit_is_checked() {
         format!("a range is only valid in log (A..B) and diff (A...B): {r}")
     };
     let url = format!("https://github.com/o/r/commit/{SHA}#L3");
+    let tree_dot = format!("https://github.com/o/r/tree/{SHA}/.");
+    let blob_dot = format!("https://github.com/o/r/blob/{SHA}/.");
+    let sg_dot = "sourcegraph.com/github.com/o/r@v1/-/tree/.";
     check_errors(
         SHOW_SYNOPSIS,
         vec![
@@ -111,6 +114,9 @@ fn show_of_a_commit_is_checked() {
             (vec!["show", "x/y@v1:"], needs_path),
             (vec!["show", "x/y@v1:."], needs_path),
             (vec!["show", "x/y:."], needs_path),
+            (vec!["show", &tree_dot], needs_path),
+            (vec!["show", &blob_dot], needs_path),
+            (vec!["show", sg_dot], needs_path),
             (vec!["show", "x/y@v1", "3"], "a commit takes no LINES"),
             (vec!["show", "x/y@v1", "abc"], "a commit takes no LINES"),
             (vec!["show", &url], "a commit takes no LINES"),
