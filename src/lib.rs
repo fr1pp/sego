@@ -2,6 +2,7 @@ mod address;
 mod error;
 mod escape;
 mod quote;
+mod upstream;
 
 #[doc(hidden)]
 pub mod internal {
@@ -16,5 +17,8 @@ pub mod internal {
     }
     pub mod quote {
         pub use crate::quote::*;
+    }
+    pub mod upstream {
+        pub use crate::upstream::*;
     }
 }
