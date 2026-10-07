@@ -188,7 +188,7 @@ fn is_root_commit(b: &View<'_>) -> bool {
 
 /// The first file that existed before names the commit the comparison
 /// started from; a file added in the range has no earlier version.
-fn merge_base(nodes: &[Value]) -> Option<String> {
+fn base(nodes: &[Value]) -> Option<String> {
     nodes.iter().find_map(|node| {
         node.get("oldFile")?
             .get("commit")?
@@ -206,7 +206,7 @@ pub fn run(
     deadline: Instant,
     _notes: &mut Notes,
 ) -> Result<Diffed, Error> {
-    let (rev_a, rev_b, base) = match &address.rev {
+    let (rev_a, rev_b, sent_base) = match &address.rev {
         Rev::One(rev) => (None, rev.clone(), format!("{rev}^1")),
         Rev::Range { base, head, .. } => {
             (Some(base.clone()), head.clone(), base.clone())
@@ -219,7 +219,7 @@ pub fn run(
             ));
         }
     };
-    let plan = plan(&base, &rev_b, paths, json);
+    let plan = plan(&sent_base, &rev_b, paths, json);
     let request = build_repository(&plan, &address.repo);
     let reply = transport.post(GRAPHQL_PATH, &request.body(), deadline)?;
     let envelope = classify(reply)?;
@@ -299,7 +299,7 @@ pub fn run(
         rev_b,
         commit_a: commit_a.to_owned(),
         commit_b: commit_b.to_owned(),
-        base: merge_base(nodes),
+        base: base(nodes),
         files_total,
         added,
         deleted,

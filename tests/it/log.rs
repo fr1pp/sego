@@ -490,6 +490,25 @@ fn tag_marks() {
 }
 
 #[test]
+fn a_row_never_ends_in_whitespace() {
+    let list = tags(1, &[("v2", &oid(2))]);
+    let blank = [node(1, ""), node(2, ""), node(3, "  ")];
+    let body = rev_body(&blank, false, &list);
+    let ran = run_on(&scripted(&body), &[&format!("{REPO}@v2")]);
+    assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
+    let text = out(&ran);
+    let rows: Vec<&str> = text.lines().skip(1).collect();
+    assert_eq!(
+        rows,
+        [
+            format!("{}  2026-09-14  Ada Example", &oid(1)[..12]),
+            format!("{}  2026-09-14  Ada Example  (tag: v2)", &oid(2)[..12]),
+            format!("{}  2026-09-14  Ada Example", &oid(3)[..12]),
+        ]
+    );
+}
+
+#[test]
 fn hostile_names_are_escaped() {
     let mut node = node(1, "red\u{1b}[31m subject");
     node["author"]["person"]["displayName"] = json!("Eve\u{1b}[2J\nMallory");

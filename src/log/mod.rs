@@ -128,6 +128,7 @@ fn row(entry: &Entry) -> String {
         let _ = write!(line, "({}) ", tags.join(", "));
     }
     line.push_str(&render_line(&entry.subject, None));
+    line.truncate(line.trim_end().len());
     line
 }
 
