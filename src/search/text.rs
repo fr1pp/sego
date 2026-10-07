@@ -1,4 +1,5 @@
 use std::fmt::Write as _;
+use std::io;
 
 use super::lint::tokenize;
 use super::model::{
@@ -8,15 +9,19 @@ use super::model::{
 use super::query::seconds;
 use crate::address::pinned;
 use crate::escape::{escape, one_line, render_line};
-use crate::output::Marker;
 use crate::output::text::{code_line, gutter_width, header};
+use crate::output::{Answer, Marker, json};
 
 pub const TEXT_UNITS: u32 = 100;
 
 const NARROW_VALUES: usize = 5;
 
-impl Searched {
-    pub fn text(&self) -> String {
+impl Answer for Searched {
+    fn write_json(&self, out: &mut dyn io::Write) -> io::Result<()> {
+        json::write(&self.json(), out)
+    }
+
+    fn text(&self) -> String {
         let (results, printed) = self.results();
         let mut out = self.summary(printed);
         if let Some(line) = self.filter_line() {
@@ -28,7 +33,9 @@ impl Searched {
         }
         out
     }
+}
 
+impl Searched {
     fn summary(&self, printed: u32) -> String {
         let count = if self.approximate_count == self.match_count.to_string() {
             self.match_count.to_string()

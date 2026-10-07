@@ -43,7 +43,7 @@ use std::time::Instant;
 
 use cli::Command;
 use error::Error;
-use output::Notes;
+use output::{Answer, Notes};
 use upstream::{DEADLINE, Endpoint, Transport};
 
 pub struct Env {
@@ -118,7 +118,11 @@ fn dispatch(
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> Result<(), Failure> {
-    let command = match cli::parse(args)? {
+    let open = || -> Result<_, Error> {
+        let endpoint = Endpoint::from_env(env.endpoint.as_deref())?;
+        Ok((connect(endpoint), Instant::now() + DEADLINE))
+    };
+    let (answer, json): (Box<dyn Answer>, bool) = match cli::parse(args)? {
         Command::Help(topic) => {
             out.write_all(cli::help(topic).as_bytes())?;
             return Ok(());
@@ -127,22 +131,13 @@ fn dispatch(
             writeln!(out, "sego {}", env!("CARGO_PKG_VERSION"))?;
             return Ok(());
         }
-        command => command,
-    };
-    let endpoint = Endpoint::from_env(env.endpoint.as_deref())?;
-    let transport = connect(endpoint);
-    let deadline = Instant::now() + DEADLINE;
-    match command {
         Command::Search { query, json } => {
+            let (transport, deadline) = open()?;
             let searched = search::run(&query, &*transport, deadline, notes)?;
-            notes.write(err)?;
-            if json {
-                output::json::write(&searched.json(), out)?;
-            } else {
-                out.write_all(searched.text().as_bytes())?;
-            }
+            (Box::new(searched), json)
         }
         Command::Show { address, lines, json } => {
+            let (transport, deadline) = open()?;
             let shown = show::run(
                 &address,
                 lines.as_ref(),
@@ -150,14 +145,14 @@ fn dispatch(
                 deadline,
                 notes,
             )?;
-            notes.write(err)?;
-            if json {
-                output::json::write(&shown, out)?;
-            } else {
-                out.write_all(shown.text().as_bytes())?;
-            }
+            (Box::new(shown), json)
         }
-        Command::Help(_) | Command::Version => {}
+    };
+    notes.write(err)?;
+    if json {
+        answer.write_json(out)?;
+    } else {
+        out.write_all(answer.text().as_bytes())?;
     }
     Ok(())
 }

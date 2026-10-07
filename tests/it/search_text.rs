@@ -1,3 +1,4 @@
+use sego::internal::output::Answer;
 use sego::internal::search::model::{
     Chunk, FilterOut, Group, LineOut, Searched, SymbolRow,
 };

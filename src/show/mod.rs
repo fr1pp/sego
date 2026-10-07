@@ -1,3 +1,4 @@
+use std::io;
 use std::time::Instant;
 
 use serde::Serialize;
@@ -9,7 +10,7 @@ use crate::address::{
 use crate::error::Error;
 use crate::escape::strip_cr;
 use crate::output::text::{code_line, gutter_width, header};
-use crate::output::{Marker, Notes};
+use crate::output::{Answer, Marker, Notes};
 use crate::upstream::{
     Candidate, Envelope, GRAPHQL_PATH, Located, Plan, RawError, Transport,
     Var, build, classify, locate, raw,
@@ -59,8 +60,12 @@ pub struct Shown {
     fields: Vec<String>,
 }
 
-impl Shown {
-    pub fn text(&self) -> String {
+impl Answer for Shown {
+    fn write_json(&self, out: &mut dyn io::Write) -> io::Result<()> {
+        crate::output::json::write(self, out)
+    }
+
+    fn text(&self) -> String {
         let address = pinned(&self.repo, &self.commit, Some(&self.path));
         let mut out = header(&address, &self.fields);
         let width = gutter_width(self.end.unwrap_or(0));

@@ -6,6 +6,12 @@ pub mod json;
 pub mod text;
 pub mod vocab;
 
+/// What a command found, ready to be written as JSON or as text.
+pub trait Answer {
+    fn write_json(&self, out: &mut dyn Write) -> io::Result<()>;
+    fn text(&self) -> String;
+}
+
 #[derive(Debug, Default)]
 pub struct Notes(Vec<String>);
 

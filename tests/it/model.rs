@@ -1,5 +1,6 @@
 use serde_json::{Value, json};
 
+use sego::internal::output::Answer;
 use sego::internal::output::json::write;
 use sego::internal::output::vocab::{filter_kind, symbol_kind};
 use sego::internal::search::model::{Chunk, Group, Searched};
