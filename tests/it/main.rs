@@ -8,6 +8,7 @@ mod escape;
 mod fixtures;
 mod guard;
 mod lint;
+mod outcome;
 mod output;
 mod query;
 mod quote;

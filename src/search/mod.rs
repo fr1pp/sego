@@ -7,6 +7,7 @@ use crate::upstream::top_level;
 use crate::upstream::{GRAPHQL_PATH, Request, Transport, Var, classify};
 
 pub mod lint;
+pub mod outcome;
 pub mod query;
 pub mod response;
 
