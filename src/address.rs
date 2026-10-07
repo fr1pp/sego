@@ -2,6 +2,10 @@ use std::fmt;
 
 use crate::quote::shell_word;
 
+const MIN_ABBREVIATION: usize = 4;
+pub const FULL_OID: usize = 40;
+const SHORT_OID: usize = 12;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Repo {
     Exact(String),
@@ -155,14 +159,43 @@ impl fmt::Display for AddressError {
 
 impl std::error::Error for AddressError {}
 
-pub fn pinned(repo: &str, commit: &str, path: Option<&str>) -> String {
-    let short: String = commit.chars().take(12).collect();
+/// A repository at a commit, with an optional path, escaped and quoted to be
+/// printed as an address.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Pinned(String);
+
+impl Pinned {
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl fmt::Display for Pinned {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// The first 12 characters of a commit id, as addresses print it.
+pub fn short(commit: &str) -> String {
+    commit.chars().take(SHORT_OID).collect()
+}
+
+/// Whether `rev` is 4 to 40 hex digits, so it may be an abbreviated or a
+/// full commit id.
+pub fn is_oid_like(rev: &str) -> bool {
+    (MIN_ABBREVIATION..=FULL_OID).contains(&rev.len())
+        && rev.bytes().all(|b| b.is_ascii_hexdigit())
+}
+
+pub fn pinned(repo: &str, commit: &str, path: Option<&str>) -> Pinned {
+    let short = short(commit);
     let mut address = format!("{repo}@{short}");
     if let Some(path) = path {
         address.push(':');
         address.push_str(path);
     }
-    shell_word(&address).into_owned()
+    Pinned(shell_word(&address).into_owned())
 }
 
 fn is_digits(s: &str) -> bool {
@@ -415,7 +448,7 @@ fn github_repo(owner: &str, name: &str) -> String {
 }
 
 fn is_sha(s: &str) -> bool {
-    s.len() == 40 && s.bytes().all(|b| b.is_ascii_hexdigit())
+    s.len() == FULL_OID && is_oid_like(s)
 }
 
 /// `10`, `10-20`, `10C5-12C8` and the same with `L` before each number.

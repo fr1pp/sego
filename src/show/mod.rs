@@ -3,22 +3,22 @@ use std::time::Instant;
 use serde::Serialize;
 use serde_json::{Value, json};
 
-use crate::address::{Address, End, LineRange, pinned, submodule_target};
+use crate::address::{
+    Address, End, LineRange, is_oid_like, pinned, short, submodule_target,
+};
 use crate::error::Error;
 use crate::escape::strip_cr;
 use crate::output::text::{code_line, gutter_width, header};
 use crate::output::{Marker, Notes};
 use crate::upstream::{
-    Candidate, Envelope, GRAPHQL_PATH, Located, Plan, Transport, Var, build,
-    classify, is_html, locate, refusal,
+    Candidate, Envelope, GRAPHQL_PATH, Located, Plan, RawError, Transport,
+    Var, build, classify, locate, raw,
 };
 
 const DEFAULT_WINDOW: u32 = 500;
 const OPEN_END_SPAN: i64 = 500_000;
 const CONTENT_LIMIT: u64 = 1_572_864;
 const LIMIT_MESSAGE: &str = "file exceeded size limit";
-const MIN_ABBREVIATION: usize = 4;
-const FULL_OID: usize = 40;
 
 const COMMIT_TEMPLATE: &str = "\
 meta: blob(path: $path) { byteSize totalLines binary rawURL lfs { byteSize } }
@@ -181,15 +181,9 @@ fn not_found(located: &Located, path: &str) -> Error {
     ))
 }
 
-fn short(commit: &str) -> String {
-    commit.chars().take(12).collect()
-}
-
 fn rev_field(rev: Option<&String>) -> Option<String> {
     let rev = rev?;
-    let is_hex = (MIN_ABBREVIATION..=FULL_OID).contains(&rev.len())
-        && rev.bytes().all(|b| b.is_ascii_hexdigit());
-    (!is_hex).then(|| format!("rev {rev}"))
+    (!is_oid_like(rev)).then(|| format!("rev {rev}"))
 }
 
 fn submodule_of(
@@ -217,10 +211,6 @@ fn with_commit(name: &str, commit: &str) -> String {
     } else {
         format!("{name}@{}", short(commit))
     }
-}
-
-fn failed(part: &str) -> Error {
-    Error::upstream(format!("Sourcegraph failed to answer {part}"))
 }
 
 /// The file's `meta`, once the path is known to be a readable file or a
@@ -255,9 +245,9 @@ fn file_meta<'a>(
     let submodule_open =
         meta_failed || body_failed || meta.is_none() || body.is_none();
     if submodule_open && view.errored(&["parent"]) {
-        return Err(failed("the directory listing"));
+        return Err(Error::failed("the directory listing"));
     }
-    meta.ok_or_else(|| failed("the file's details"))
+    meta.ok_or_else(|| Error::failed("the file's details"))
 }
 
 struct Details {
@@ -268,7 +258,7 @@ struct Details {
 }
 
 fn details_of(view: &View<'_>, meta: &Value) -> Result<Details, Error> {
-    let details = || failed("the file's details");
+    let details = || Error::failed("the file's details");
     let lfs_path = view.path(&["meta", "lfs"]);
     if view.envelope.error_at(&lfs_path).is_some()
         && !view.limit_exceeded(&["meta", "lfs"])
@@ -368,7 +358,7 @@ fn interpret(
                 .get("rawURL")
                 .and_then(Value::as_str)
                 .filter(|raw| raw.starts_with('/') && !raw.starts_with("//"))
-                .ok_or_else(|| failed("the file's details"))?;
+                .ok_or_else(|| Error::failed("the file's details"))?;
             notes.push(format!(
                 "{path} is {} bytes, over GraphQL's {CONTENT_LIMIT}-byte \
                  content limit; read through the raw route (a second \
@@ -376,12 +366,18 @@ fn interpret(
                 shown.byte_size
             ));
             shown.via_raw = true;
-            let whole = read_raw(transport, raw, deadline, located, &path)?;
+            let whole = match raw::read(transport, raw, deadline) {
+                Ok(bytes) => String::from_utf8_lossy(&bytes).into_owned(),
+                Err(RawError::NotFound) => {
+                    return Err(not_found(located, &path));
+                }
+                Err(RawError::Failed(error)) => return Err(error),
+            };
             lines_from(&whole, first)
         } else {
             view.get(&["body", "content"])
                 .and_then(Value::as_str)
-                .ok_or_else(|| failed("the file content"))?
+                .ok_or_else(|| Error::failed("the file content"))?
                 .to_owned()
         };
         let wanted = (last - first + 1) as usize;
@@ -392,7 +388,7 @@ fn interpret(
             shown.lines.push(Line { line: number, text: text.to_owned() });
         }
         if shown.lines.len() != wanted {
-            return Err(failed("the file content"));
+            return Err(Error::failed("the file content"));
         }
         shown.start = Some(first);
         shown.end = Some(last);
@@ -451,27 +447,4 @@ fn split_lines(content: &str) -> Vec<&str> {
         lines.pop();
     }
     lines
-}
-
-fn read_raw(
-    transport: &dyn Transport,
-    raw_url: &str,
-    deadline: Instant,
-    located: &Located,
-    path: &str,
-) -> Result<String, Error> {
-    let reply = transport.get(raw_url, deadline)?;
-    if let Some(error) = refusal(&reply) {
-        return Err(error);
-    }
-    match reply.status {
-        404 => Err(not_found(located, path)),
-        200 if is_html(&reply) => {
-            Err(Error::upstream("sourcegraph.com answered HTTP 200 text/html"))
-        }
-        200 => Ok(String::from_utf8_lossy(&reply.body).into_owned()),
-        status => Err(Error::upstream(format!(
-            "sourcegraph.com answered HTTP {status}"
-        ))),
-    }
 }

@@ -5,7 +5,7 @@ use lexopt::Arg;
 use crate::address::{self, Address, LineRange, Rev};
 use crate::error::Error;
 
-const SYNOPSIS: &str = "sego COMMAND [--json] ...";
+pub const SYNOPSIS: &str = "sego COMMAND [--json] ...";
 const COMMANDS_FACT: &str = "commands: show";
 
 pub const SHOW_SYNOPSIS: &str = "sego show [--json] REPO[@REV]:PATH [LINES]";

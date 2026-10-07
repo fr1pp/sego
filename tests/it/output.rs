@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use sego::internal::address::pinned;
 use sego::internal::output::json;
 use sego::internal::output::text::{code_line, gutter_width, header};
 use sego::internal::output::{Marker, Notes};
@@ -30,15 +31,19 @@ fn no_notes_write_nothing() {
 #[test]
 fn header_joins_with_two_spaces() {
     let line = header(
-        "github.com/x/y@98cb6bf42e08:a.go",
+        &pinned(
+            "github.com/x/y",
+            "98cb6bf42e086f6af920b965c38cacc07402d51b",
+            Some("a.go"),
+        ),
         &["lines 1-3 of 3".into(), "rev v1".into()],
     );
     assert_eq!(
         line,
         "github.com/x/y@98cb6bf42e08:a.go  lines 1-3 of 3  rev v1\n"
     );
-    let line = header("a", &["x\u{1b}y".into()]);
-    assert_eq!(line, "a  x\\u{1b}y\n");
+    let line = header(&pinned("a", "abc", None), &["x\u{1b}y".into()]);
+    assert_eq!(line, "a@abc  x\\u{1b}y\n");
 }
 
 #[test]

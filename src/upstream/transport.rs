@@ -2,9 +2,9 @@ use std::ffi::OsStr;
 use std::io::{self, Read};
 use std::time::{Duration, Instant};
 
+use crate::cli::SYNOPSIS;
 use crate::error::Error;
 
-const SYNOPSIS: &str = "sego COMMAND [--json] ...";
 const DEFAULT_ENDPOINT: &str = "https://sourcegraph.com";
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 

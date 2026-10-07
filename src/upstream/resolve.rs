@@ -4,14 +4,14 @@ use serde::Serialize;
 use serde_json::{Map, Value};
 
 use super::envelope::Envelope;
-use crate::address::{Address, Repo, Rev, valid_revision};
+use crate::address::{
+    Address, FULL_OID, Repo, Rev, is_oid_like, valid_revision,
+};
 use crate::error::Error;
 
 const NOT_INDEXED: &str = "sourcegraph.com serves indexed repositories from \
     github.com, gitlab.com and a few other hosts; a renamed repository \
     appears only under its new name";
-const MIN_ABBREVIATION: usize = 4;
-const FULL_OID: usize = 40;
 
 pub struct Var {
     pub name: &'static str,
@@ -93,9 +93,8 @@ fn is_split(address: &Address) -> bool {
 /// A prefix that could be an abbreviated oid or a revision expression, so
 /// it counts as a revision only when a ref of that name exists.
 fn ambiguous(rev: &str) -> bool {
-    let hex = (MIN_ABBREVIATION..FULL_OID).contains(&rev.len())
-        && rev.bytes().all(|b| b.is_ascii_hexdigit());
-    hex || rev.contains(['~', '^'])
+    let abbreviated = is_oid_like(rev) && rev.len() < FULL_OID;
+    abbreviated || rev.contains(['~', '^'])
 }
 
 fn rename(template: &str, name: &str, suffix: usize) -> String {
@@ -217,7 +216,7 @@ fn str_at<'a>(env: &'a Envelope, path: &[&str]) -> Option<&'a str> {
 }
 
 fn repository_lookup_failed() -> Error {
-    Error::upstream("Sourcegraph failed to answer the repository lookup")
+    Error::failed("the repository lookup")
 }
 
 fn find_root(address: &Address, env: &Envelope) -> Result<usize, Error> {
@@ -264,8 +263,7 @@ pub fn locate(address: &Address, env: &Envelope) -> Result<Located, Error> {
     let oid = |j: usize| str_at(env, &[&r, &format!("c{j}"), "oid"]);
     let failed =
         |j: usize| env.error_at(&[r.as_str(), &format!("c{j}")]).is_some();
-    let revision_lookup_failed =
-        || Error::upstream("Sourcegraph failed to answer the revision lookup");
+    let revision_lookup_failed = || Error::failed("the revision lookup");
     let branch_failed = || env.error_at(&[&r, "defaultBranch"]).is_some();
     let no_commits = || env.get(&[&r, "defaultBranch"]).is_none();
     let located = |j: usize, commit: &str| Located {

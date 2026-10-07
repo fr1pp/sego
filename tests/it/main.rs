@@ -9,6 +9,7 @@ mod fixtures;
 mod guard;
 mod output;
 mod quote;
+mod raw;
 mod resolve;
 mod run;
 mod safety;

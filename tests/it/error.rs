@@ -57,3 +57,13 @@ fn deadline_message() {
         "no answer from sourcegraph.com within 90 s"
     );
 }
+
+#[test]
+fn failed_names_the_part_the_server_did_not_answer() {
+    let error = Error::failed("the file content");
+    assert_eq!(error.kind(), sego::internal::error::Kind::Upstream);
+    assert_eq!(
+        rendered(&error),
+        "sego: error: Sourcegraph failed to answer the file content\n"
+    );
+}

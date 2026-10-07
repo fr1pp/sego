@@ -1,6 +1,6 @@
 use sego::internal::address::{
-    Address, AddressError, Dots, End, LineRange, Repo, Rev, UrlKind, parse,
-    parse_lines, pinned,
+    Address, AddressError, Dots, End, LineRange, Repo, Rev, UrlKind,
+    is_oid_like, parse, parse_lines, pinned, short,
 };
 
 fn exact(s: &str) -> Repo {
@@ -213,12 +213,28 @@ fn lines() {
 #[test]
 fn pinned_addresses() {
     let commit = "98cb6bf42e086f6af920b965c38cacc07402d51b";
+    let quoted = pinned("github.com/x/y", commit, Some("a b.go"));
+    assert_eq!(quoted.as_str(), "'github.com/x/y@98cb6bf42e08:a b.go'");
+    assert_eq!(quoted.to_string(), quoted.as_str());
     assert_eq!(
-        pinned("github.com/x/y", commit, Some("a b.go")),
-        "'github.com/x/y@98cb6bf42e08:a b.go'"
-    );
-    assert_eq!(
-        pinned("github.com/x/y", commit, None),
+        pinned("github.com/x/y", commit, None).as_str(),
         "github.com/x/y@98cb6bf42e08"
     );
+}
+
+#[test]
+fn a_commit_is_shortened_to_twelve_characters() {
+    let commit = "98cb6bf42e086f6af920b965c38cacc07402d51b";
+    assert_eq!(short(commit), "98cb6bf42e08");
+    assert_eq!(short("abc"), "abc");
+}
+
+#[test]
+fn four_to_forty_hex_digits_look_like_an_oid() {
+    for yes in ["abcd", "ABCD", "0123456789", &"a".repeat(40)] {
+        assert!(is_oid_like(yes), "{yes}");
+    }
+    for no in ["abc", "abcg", "", "v1.8.0", &"a".repeat(41)] {
+        assert!(!is_oid_like(no), "{no}");
+    }
 }

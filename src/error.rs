@@ -46,6 +46,10 @@ impl Error {
         Error::new(Kind::Upstream, message)
     }
 
+    pub fn failed(part: &str) -> Error {
+        Error::upstream(format!("Sourcegraph failed to answer {part}"))
+    }
+
     pub fn edge(message: impl Into<String>) -> Error {
         Error::new(Kind::Edge, message)
     }
