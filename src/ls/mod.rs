@@ -204,14 +204,17 @@ fn entries_of(
     {
         return Ok(vec![Entry::new(path, false, Some(module))]);
     }
+    let tree_failed = view.errored_beneath(&["tree"]);
     if let Some(tree) = view.get(&["tree"]) {
+        if tree_failed {
+            return Err(listing_failed());
+        }
         return directory(tree, &located.repo);
     }
     let Some(path) = path else {
         return Err(listing_failed());
     };
-    let (tree_failed, file_failed) =
-        (view.errored_beneath(&["tree"]), view.errored_beneath(&["file"]));
+    let file_failed = view.errored_beneath(&["file"]);
     match view.get(&["file"]) {
         Some(file) if tree_failed && !file_failed => {
             Err(file_path(file, located, path))

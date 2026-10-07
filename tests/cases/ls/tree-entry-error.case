@@ -1,0 +1,5 @@
+# A listing with an error beneath the tree is not used.
+args: ls example.com/handwritten/partial@v3.0.0:docs
+exit: 1
+--- stderr
+sego: error: Sourcegraph failed to answer the directory listing

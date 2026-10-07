@@ -1,0 +1,32 @@
+handwritten: true
+operation: ListTree
+variables:
+  repo0: example.com/handwritten/partial
+  rev0: v3.0.0
+  path_0: docs
+  recursive_0: false
+  parent_0: ""
+status: 200
+headers:
+  content-type: application/json
+response:
+  errors:
+  - message: 'rpc error: code = Internal desc = git command failed on host gitserver-5.internal'
+    path: [r0, c0, tree, entries, 0, submodule]
+  data:
+    r0:
+      name: example.com/handwritten/partial
+      defaultBranch:
+        displayName: main
+      c0:
+        oid: 1a2b3c4d5e6f708192a3b4c5d6e7f80910111213
+        tree:
+          entries:
+          - path: docs/guide.md
+            isDirectory: false
+            submodule: null
+        file: null
+        parent:
+          entries:
+          - path: docs
+            submodule: null
