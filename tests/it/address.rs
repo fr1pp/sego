@@ -113,6 +113,8 @@ fn ranges() {
         ("@v1..", "the range v1.. has an empty side"),
         ("@...", "the range ... has an empty side"),
         ("@a...b..c", "invalid range a...b..c; a range is A..B or A...B"),
+        ("@a....b", "invalid range a....b; a range is A..B or A...B"),
+        ("@a....", "invalid range a....; a range is A..B or A...B"),
     ];
     for (token, message) in errors {
         assert_eq!(parse(token).unwrap_err().to_string(), message, "{token}");
@@ -124,7 +126,11 @@ fn rejected() {
     let cases = [
         (
             "github.com/x/y@",
-            "the address ends in @ with no revision: github.com/x/y@",
+            "the address has an empty revision: github.com/x/y@",
+        ),
+        (
+            "github.com/x/y@:src",
+            "the address has an empty revision: github.com/x/y@:src",
         ),
         ("@v1", "the address has no repository: @v1"),
         (
@@ -141,6 +147,10 @@ fn rejected() {
             "github.com/x/y@a\u{1}b",
             "invalid revision 'a\u{1}b'; a revision cannot start with - or \
              contain whitespace or control characters",
+        ),
+        (
+            "github.com/x/a\u{1b}b",
+            "invalid repository name 'github.com/x/a\u{1b}b'",
         ),
         ("github.com/x /y", "invalid repository name 'github.com/x /y'"),
     ];

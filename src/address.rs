@@ -86,7 +86,7 @@ pub struct Address {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AddressError {
-    EndsInAt(String),
+    EmptyRevision(String),
     NoRepository(String),
     EmptyRangeSide(String),
     InvalidRange(String),
@@ -101,8 +101,8 @@ pub enum AddressError {
 impl fmt::Display for AddressError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::EndsInAt(t) => {
-                write!(f, "the address ends in @ with no revision: {t}")
+            Self::EmptyRevision(t) => {
+                write!(f, "the address has an empty revision: {t}")
             }
             Self::NoRepository(t) => {
                 write!(f, "the address has no repository: {t}")
@@ -221,7 +221,10 @@ fn parse_rev(rev: &str) -> Result<Rev, AddressError> {
     if base.is_empty() || head.is_empty() {
         return Err(AddressError::EmptyRangeSide(rev.to_owned()));
     }
-    if base.contains("..") || head.contains("..") {
+    let stray_dot = |side: &str| {
+        side.contains("..") || side.starts_with('.') || side.ends_with('.')
+    };
+    if stray_dot(base) || stray_dot(head) {
         return Err(AddressError::InvalidRange(rev.to_owned()));
     }
     check_revision(base)?;
@@ -325,7 +328,7 @@ pub fn parse(token: &str) -> Result<Address, AddressError> {
             None => (after_at, None),
         };
         if rev.is_empty() {
-            Err(AddressError::EndsInAt(token.to_owned()))
+            Err(AddressError::EmptyRevision(token.to_owned()))
         } else {
             parse_rev(rev).map(|rev| (rev, path))
         }
