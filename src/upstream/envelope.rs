@@ -55,28 +55,28 @@ impl Envelope {
     }
 }
 
-pub fn classify(reply: Reply) -> Result<Envelope, Error> {
-    let Reply {
-        status,
-        content_type,
-        location,
-        retry_after,
-        cf_mitigated,
-        body,
-    } = reply;
-    let media = content_type.as_deref().map(media_type);
-    let html = media.is_some_and(|m| m.eq_ignore_ascii_case("text/html"));
-    let json_type = media.is_some_and(is_json);
-    if cf_mitigated.as_deref() == Some("challenge")
-        || (html && matches!(status, 403 | 429))
+pub fn is_html(reply: &Reply) -> bool {
+    reply
+        .content_type
+        .as_deref()
+        .map(media_type)
+        .is_some_and(|media| media.eq_ignore_ascii_case("text/html"))
+}
+
+/// The refusals every reply shares, whatever it was asked for: an edge
+/// challenge, a redirect, a rate limit or a server error.
+pub fn refusal(reply: &Reply) -> Option<Error> {
+    let status = reply.status;
+    if reply.cf_mitigated.as_deref() == Some("challenge")
+        || (is_html(reply) && matches!(status, 403 | 429))
     {
-        return Err(Error::edge(format!(
+        return Some(Error::edge(format!(
             "sourcegraph.com's edge refused the request (HTTP {status}, \
              Cloudflare challenge)"
         )));
     }
     if (300..400).contains(&status) {
-        return Err(Error::upstream(match &location {
+        return Some(Error::upstream(match &reply.location {
             Some(location) => format!(
                 "sourcegraph.com answered HTTP {status} with Location \
                  {location}"
@@ -86,6 +86,24 @@ pub fn classify(reply: Reply) -> Result<Envelope, Error> {
             ),
         }));
     }
+    if status == 429 || status >= 500 {
+        let error =
+            Error::upstream(format!("sourcegraph.com answered HTTP {status}"));
+        return Some(match &reply.retry_after {
+            Some(value) => error.fact(format!("Retry-After: {value}")),
+            None => error,
+        });
+    }
+    None
+}
+
+pub fn classify(reply: Reply) -> Result<Envelope, Error> {
+    if let Some(error) = refusal(&reply) {
+        return Err(error);
+    }
+    let Reply { status, content_type, body, .. } = reply;
+    let media = content_type.as_deref().map(media_type);
+    let json_type = media.is_some_and(is_json);
     let parsed = serde_json::from_slice::<Value>(&body);
     if status == 400
         && let Ok(json) = &parsed
@@ -94,14 +112,6 @@ pub fn classify(reply: Reply) -> Result<Envelope, Error> {
         return Err(Error::upstream(format!(
             "Sourcegraph rejected the request: {message}"
         )));
-    }
-    if status == 429 || status >= 500 {
-        let error =
-            Error::upstream(format!("sourcegraph.com answered HTTP {status}"));
-        return Err(match &retry_after {
-            Some(value) => error.fact(format!("Retry-After: {value}")),
-            None => error,
-        });
     }
     if status != 200 && !(json_type && parsed.is_ok()) {
         return Err(Error::upstream(format!(
@@ -145,7 +155,7 @@ fn not_graphql(which: &str) -> Error {
     Error::upstream(format!("{NOT_GRAPHQL}: {which}"))
 }
 
-fn media_type(content_type: &str) -> &str {
+pub fn media_type(content_type: &str) -> &str {
     content_type.split(';').next().unwrap_or_default().trim()
 }
 

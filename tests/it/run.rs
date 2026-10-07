@@ -329,8 +329,8 @@ fn a_submodule_prints_its_target() {
             "../blesh-contrib",
             "github.com/akinomyoga/blesh-contrib@d2109203480a",
         ),
-        ("file:///srv/y", "file:///srv/y@d2109203480a"),
-        ("", "?@d2109203480a"),
+        ("file:///srv/y", "file:///srv/y"),
+        ("", "?"),
     ];
     for (url, shown) in cases {
         let (ran, calls) = show_via(
@@ -482,4 +482,177 @@ fn a_binary_file_over_the_limit_is_not_read_raw() {
         text(&ran.out),
         "github.com/x/y@d81fd54f1a2b:big.c  binary  2000000 bytes  rev main\n"
     );
+}
+
+fn with_errors(
+    mut envelope: serde_json::Value,
+    errors: &[(&[&str], &str)],
+) -> serde_json::Value {
+    let list: Vec<_> = errors
+        .iter()
+        .map(|(path, message)| json!({"message": message, "path": path}))
+        .collect();
+    envelope["errors"] = json!(list);
+    envelope
+}
+
+fn fails_with(envelope: &serde_json::Value, expected: &str, secret: &str) {
+    let (ran, calls) = show_via(
+        &["show", "github.com/x/y@main:a.go"],
+        vec![Ok(json_reply(envelope))],
+    );
+    assert_eq!(ran.code, ExitCode::from(1), "{expected}");
+    assert_eq!(ran.out, b"");
+    assert_eq!(text(&ran.err), format!("sego: error: {expected}\n"));
+    assert!(!text(&ran.err).contains(secret));
+    assert_eq!(calls.len(), 1);
+}
+
+#[test]
+fn upstream_errors_name_the_part_and_hide_the_server_text() {
+    let secret = "git exec: /srv/secret-host failed";
+    let mut body = file_envelope();
+    body["data"]["r0"]["c0"]["body"] = json!(null);
+    fails_with(
+        &with_errors(body, &[(&["r0", "c0", "body"], secret)]),
+        "Sourcegraph failed to answer the file content",
+        secret,
+    );
+
+    let mut meta = file_envelope();
+    meta["data"]["r0"]["c0"]["meta"] = json!(null);
+    fails_with(
+        &with_errors(meta, &[(&["r0", "c0", "meta"], secret)]),
+        "Sourcegraph failed to answer the file's details",
+        secret,
+    );
+
+    let mut parent = file_envelope();
+    parent["data"]["r0"]["c0"]["parent"] = json!(null);
+    fails_with(
+        &with_errors(parent, &[(&["r0", "c0", "parent"], secret)]),
+        "Sourcegraph failed to answer the directory listing",
+        secret,
+    );
+}
+
+#[test]
+fn only_the_limit_error_at_meta_lfs_means_not_lfs() {
+    let secret = "lfs backend exploded";
+    let mut envelope = file_envelope();
+    envelope["data"]["r0"]["c0"]["meta"]["lfs"] = json!(null);
+    fails_with(
+        &with_errors(envelope, &[(&["r0", "c0", "meta", "lfs"], secret)]),
+        "Sourcegraph failed to answer the file's details",
+        secret,
+    );
+}
+
+#[test]
+fn short_content_is_not_printed_under_a_longer_header() {
+    let mut envelope = file_envelope();
+    envelope["data"]["r0"]["c0"]["body"]["content"] = json!("a\n");
+    fails_with(
+        &envelope,
+        "Sourcegraph failed to answer the file content",
+        "zzz",
+    );
+}
+
+#[test]
+fn an_empty_file_with_lines_has_a_past_end_note() {
+    let mut envelope = file_envelope();
+    let meta = &mut envelope["data"]["r0"]["c0"]["meta"];
+    meta["byteSize"] = json!(0);
+    meta["totalLines"] = json!(1);
+    envelope["data"]["r0"]["c0"]["body"]["content"] = json!("");
+    let (ran, _) = show_via(
+        &["show", "github.com/x/y@main:a.go", "1-5"],
+        vec![Ok(json_reply(&envelope))],
+    );
+    assert_eq!(ran.code, ExitCode::SUCCESS);
+    assert_eq!(
+        text(&ran.out),
+        "github.com/x/y@d81fd54f1a2b:a.go  lines 0 of 0  rev main\n"
+    );
+    assert_eq!(text(&ran.err), "sego: note: no lines 1-5; the file has 0\n");
+}
+
+#[test]
+fn a_directory_counts_its_entries() {
+    for (entries, unit) in [(1, "1 entry"), (2, "2 entries")] {
+        let listing: Vec<_> = (0..entries)
+            .map(|i| json!({"path": format!("a.go/{i}")}))
+            .collect();
+        let mut envelope = file_envelope();
+        let c0 = &mut envelope["data"]["r0"]["c0"];
+        c0["meta"] = json!(null);
+        c0["body"] = json!(null);
+        c0["dir"] = json!({"entries": listing});
+        let envelope = with_errors(
+            envelope,
+            &[(&["r0", "c0", "meta"], "x"), (&["r0", "c0", "body"], "x")],
+        );
+        fails_with(
+            &envelope,
+            &format!(
+                "a.go is a directory at github.com/x/y@d81fd54f1a2b ({unit})"
+            ),
+            "zzz",
+        );
+    }
+}
+
+#[test]
+fn the_raw_route_shares_the_refusal_rules() {
+    let reply =
+        |status, content_type: Option<&str>, f: &dyn Fn(&mut Reply)| {
+            let mut reply = Reply {
+                status,
+                content_type: content_type.map(str::to_owned),
+                location: None,
+                retry_after: None,
+                cf_mitigated: None,
+                body: b"x".to_vec(),
+            };
+            f(&mut reply);
+            Ok(reply)
+        };
+    let cases = vec![
+        (
+            reply(302, None, &|r| r.location = Some("/login".to_owned())),
+            "sourcegraph.com answered HTTP 302 with Location /login",
+        ),
+        (
+            reply(302, None, &|_| {}),
+            "sourcegraph.com answered HTTP 302 with no Location",
+        ),
+        (
+            reply(503, Some("text/plain"), &|r| {
+                r.retry_after = Some("30".to_owned());
+            }),
+            "sourcegraph.com answered HTTP 503\n  Retry-After: 30",
+        ),
+        (
+            reply(200, Some("text/html; charset=utf-8"), &|_| {}),
+            "sourcegraph.com answered HTTP 200 text/html",
+        ),
+        (
+            reply(403, Some("text/html"), &|_| {}),
+            "sourcegraph.com's edge refused the request (HTTP 403, \
+             Cloudflare challenge)",
+        ),
+    ];
+    for (raw, expected) in cases {
+        let (ran, _) = show_via(
+            &["show", "github.com/x/y@main:big.c", "1-2"],
+            vec![Ok(json_reply(&over_cap_envelope())), raw],
+        );
+        assert_eq!(ran.code, ExitCode::from(1), "{expected}");
+        assert!(
+            text(&ran.err).ends_with(&format!("sego: error: {expected}\n")),
+            "{}\n{expected}",
+            text(&ran.err)
+        );
+    }
 }

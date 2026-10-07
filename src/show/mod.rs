@@ -9,8 +9,8 @@ use crate::escape::strip_cr;
 use crate::output::text::{code_line, gutter_width, header};
 use crate::output::{Marker, Notes};
 use crate::upstream::{
-    Candidate, Envelope, GRAPHQL_PATH, Located, Plan, Reply, Transport, Var,
-    build, classify, locate,
+    Candidate, Envelope, GRAPHQL_PATH, Located, Plan, Transport, Var, build,
+    classify, is_html, locate, refusal,
 };
 
 const DEFAULT_WINDOW: u32 = 500;
@@ -266,6 +266,12 @@ struct Details {
 
 fn details_of(view: &View<'_>, meta: &Value) -> Result<Details, Error> {
     let details = || failed("the file's details");
+    let lfs_path = view.path(&["meta", "lfs"]);
+    if view.envelope.error_at(&lfs_path).is_some()
+        && !view.limit_exceeded(&["meta", "lfs"])
+    {
+        return Err(details());
+    }
     let lfs_size = match view.get(&["meta", "lfs"]) {
         Some(lfs) => Some(
             lfs.get("byteSize")
@@ -323,9 +329,11 @@ fn interpret(
 
     if let Some(submodule) = submodule_of(view, located, &path) {
         let target = submodule.target.clone().unwrap_or_else(|| {
-            let url =
-                if submodule.url.is_empty() { "?" } else { &submodule.url };
-            with_commit(url, &submodule.commit)
+            if submodule.url.is_empty() {
+                "?".to_owned()
+            } else {
+                submodule.url.clone()
+            }
         });
         shown.fields.push(format!("submodule  {target}"));
         shown.fields.extend(rev);
@@ -379,10 +387,11 @@ fn interpret(
             shown.crlf |= cr;
             shown.lines.push(Line { line: number, text: text.to_owned() });
         }
-        if let Some(line) = shown.lines.last() {
-            shown.start = Some(first);
-            shown.end = Some(line.line);
+        if shown.lines.len() != wanted {
+            return Err(failed("the file content"));
         }
+        shown.start = Some(first);
+        shown.end = Some(last);
     }
     describe(&mut shown, window, notes);
     if shown.crlf {
@@ -452,46 +461,17 @@ fn read_raw(
         None => raw_url,
     };
     let reply = transport.get(route, deadline)?;
-    match classify_raw(&reply) {
-        Raw::Bytes => Ok(String::from_utf8_lossy(&reply.body).into_owned()),
-        Raw::Edge => Err(Error::edge(format!(
-            "sourcegraph.com's edge refused the request (HTTP {}, \
-             Cloudflare challenge)",
-            reply.status
-        ))),
-        Raw::NotFound => Err(not_found(located, path)),
-        Raw::Status => Err(Error::upstream(format!(
-            "sourcegraph.com answered HTTP {}",
-            reply.status
-        ))),
+    if let Some(error) = refusal(&reply) {
+        return Err(error);
     }
-}
-
-enum Raw {
-    Bytes,
-    Edge,
-    NotFound,
-    Status,
-}
-
-fn classify_raw(reply: &Reply) -> Raw {
-    let html = reply.content_type.as_deref().is_some_and(|value| {
-        value
-            .split(';')
-            .next()
-            .unwrap_or_default()
-            .trim()
-            .eq_ignore_ascii_case("text/html")
-    });
-    if reply.cf_mitigated.as_deref() == Some("challenge") {
-        Raw::Edge
-    } else if reply.status == 404 {
-        Raw::NotFound
-    } else if html && matches!(reply.status, 200 | 403 | 429) {
-        Raw::Edge
-    } else if reply.status == 200 {
-        Raw::Bytes
-    } else {
-        Raw::Status
+    match reply.status {
+        404 => Err(not_found(located, path)),
+        200 if is_html(&reply) => {
+            Err(Error::upstream("sourcegraph.com answered HTTP 200 text/html"))
+        }
+        200 => Ok(String::from_utf8_lossy(&reply.body).into_owned()),
+        status => Err(Error::upstream(format!(
+            "sourcegraph.com answered HTTP {status}"
+        ))),
     }
 }
