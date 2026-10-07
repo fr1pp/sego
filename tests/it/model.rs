@@ -470,7 +470,7 @@ fn units() {
 }
 
 #[test]
-fn author_filters_are_dropped() {
+fn author_filters_are_kept() {
     let Ok(results) = serde_json::from_value::<Results>(json!({
         "matchCount": 5,
         "approximateResultCount": "5",
@@ -493,7 +493,7 @@ fn author_filters_are_dropped() {
     };
     let s = Searched::new(results, &prepare("foo"));
     let out = serde_json::to_string(&s.json()).unwrap();
-    assert!(!out.contains("author"), "{out}");
+    assert!(out.contains(r#""kind":"author""#), "{out}");
     assert!(out.contains(r#""kind":"lang""#), "{out}");
 }
 
