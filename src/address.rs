@@ -181,6 +181,12 @@ pub fn short(commit: &str) -> String {
     commit.chars().take(SHORT_OID).collect()
 }
 
+/// Git reads a leading `:` as pathspec magic, and `*`, `?` and `[` as globs;
+/// `path(path:)` takes none of them literally.
+pub fn is_plain_path(path: &str) -> bool {
+    !path.starts_with(':') && !path.contains(['*', '?', '['])
+}
+
 /// Whether `rev` is 4 to 40 hex digits, so it may be an abbreviated or a
 /// full commit id.
 pub fn is_oid_like(rev: &str) -> bool {

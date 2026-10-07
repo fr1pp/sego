@@ -493,20 +493,26 @@ fn tag_marks() {
 fn hostile_names_are_escaped() {
     let mut node = node(1, "red\u{1b}[31m subject");
     node["author"]["person"]["displayName"] = json!("Eve\u{1b}[2J\nMallory");
+    node["oid"] = json!("ab\u{1b}[2Jc\nd0123456789");
+    node["author"]["date"] = json!("2026-0\u{1b}[2J\n9-14T10:19:56Z");
     let list = tags(1, &[("v\u{1b}1", &oid(1))]);
     let body = rev_body(&[node], false, &list);
     let ran = run_on(&scripted(&body), &[&format!("{REPO}@v2")]);
     assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
     assert!(!out(&ran).contains('\u{1b}'));
     assert_eq!(out(&ran).lines().count(), 2);
+    let row = out(&ran).lines().nth(1).unwrap_or_default().to_owned();
+    assert!(
+        row.starts_with("ab\\u{1b}[2Jc d012  2026-0\\u{1b}[2J  Eve"),
+        "{row}"
+    );
     let ran = run_on(&scripted(&body), &["--json", &format!("{REPO}@v2")]);
     assert!(!out(&ran).contains('\u{1b}'));
 }
 
 #[test]
 fn a_deleted_path() {
-    let mut body = rev_body(&nodes(2), false, &no_tags());
-    body["data"]["r0"]["commit"]["x"] = Value::Null;
+    let body = rev_body(&nodes(2), false, &no_tags());
     let ran = run_on(&scripted(&body), &[&format!("{REPO}@v1:gone.go")]);
     assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
     assert_eq!(out(&ran).lines().count(), 3);
@@ -559,12 +565,18 @@ fn missing_sides() {
             body["data"]["b0"]["commit"] = Value::Null;
         }
         body["data"]["c0"] = Value::Null;
-        body["errors"] = json!([
-            {"message": "revision not found: repo 1700 @v2^0",
-             "path": ["c0", "comparison"]},
-            {"message": "revision not found",
-             "path": ["n0", "commit", "behindAhead"]},
-        ]);
+        body["data"]["n0"]["commit"] = Value::Null;
+        let mut errors = vec![json!({
+            "message": "revision not found: repo 1700 @v2^0",
+            "path": ["c0", "comparison"],
+        })];
+        if !a {
+            errors.push(json!({
+                "message": "revision not found",
+                "path": ["n0", "commit", "behindAhead"],
+            }));
+        }
+        body["errors"] = Value::Array(errors);
         run_on(&scripted(&body), &[&format!("{REPO}@v1..v2")])
     };
     failed(
@@ -646,6 +658,26 @@ fn missing_path() {
         assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
         assert!(out(&ran).contains("  0 commits  "));
     }
+
+    let mut body = range_body(None, &[], false, &no_tags());
+    body["data"]["c0"] = Value::Null;
+    body["errors"] = json!([{"message": "x", "path": ["c0", "comparison"]}]);
+    for alias in ["a0", "b0"] {
+        body["data"][alias]["commit"]["x"] = Value::Null;
+    }
+    let ran =
+        run_on(&scripted(&body), &[&format!("{REPO}@v1..v2"), "nope.go"]);
+    failed(&ran, "Sourcegraph failed to answer the comparison");
+
+    let mut body = range_body(None, &[], false, &no_tags());
+    body["errors"] = json!([{"message": "x", "path": ["t0", "gitRefs"]}]);
+    body["data"]["t0"]["gitRefs"] = Value::Null;
+    for alias in ["a0", "b0"] {
+        body["data"][alias]["commit"]["x"] = Value::Null;
+    }
+    let ran =
+        run_on(&scripted(&body), &[&format!("{REPO}@v1..v2"), "nope.go"]);
+    failed(&ran, &format!("nope.go not found in {REPO}@{A12} or @{B12}"));
 }
 
 #[test]

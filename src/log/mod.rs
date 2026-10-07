@@ -6,9 +6,10 @@ use std::time::Instant;
 use serde::Serialize;
 use serde_json::{Value, json};
 
-use crate::address::{Address, Rev, is_oid_like, pinned, rev_field, short};
+use crate::address::{
+    Address, Rev, is_oid_like, is_plain_path, pinned, rev_field, short,
+};
 use crate::cli::LOG_SYNOPSIS;
-use crate::diff::is_plain;
 use crate::error::Error;
 use crate::escape::{one_line, render_line};
 use crate::output::text::{header, header_line};
@@ -114,8 +115,8 @@ impl Answer for Logged {
 fn row(entry: &Entry) -> String {
     let mut line = format!(
         "{}  {}  {}  ",
-        short(&entry.commit),
-        entry.date,
+        one_line(&short(&entry.commit)),
+        one_line(&entry.date),
         one_line(&entry.author)
     );
     if !entry.tags.is_empty() {
@@ -153,7 +154,7 @@ fn revision_plan(rev: &str, path: Option<&str>) -> RepoPlan {
 }
 
 fn range_plan(a: &str, b: &str, path: Option<&str>, json: bool) -> RepoPlan {
-    let probe = if path.is_some_and(is_plain) {
+    let probe = if path.is_some_and(is_plain_path) {
         " x: path(path: $path) { __typename }"
     } else {
         ""
@@ -355,7 +356,7 @@ fn revision(
     let oid = text_at(commit, &["oid"]).ok_or_else(lookup_failed)?;
     let (mut commits, has_next) =
         page(commit.get("ancestors")).ok_or_else(list_failed)?;
-    if let Some(path) = path.filter(|p| is_plain(p))
+    if let Some(path) = path.filter(|p| is_plain_path(p))
         && commits.is_empty()
     {
         return Err(Error::missing(format!(
@@ -440,7 +441,7 @@ fn range(
     let commit_list = (!compared.errored_beneath(&[]))
         .then(|| compared.get(&["comparison", "commits"]))
         .flatten();
-    if let Some(path) = path.filter(|p| is_plain(p))
+    if let Some(path) = path.filter(|p| is_plain_path(p))
         && base.get(&["commit", "x"]).is_none()
         && head.get(&["commit", "x"]).is_none()
         && commit_list

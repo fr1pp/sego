@@ -6,7 +6,9 @@ use std::time::Instant;
 use serde::Serialize;
 use serde_json::{Value, json};
 
-use crate::address::{Address, Rev, is_oid_like, rev_field, short};
+use crate::address::{
+    Address, Rev, is_oid_like, is_plain_path, rev_field, short,
+};
 use crate::cli::DIFF_SYNOPSIS;
 use crate::error::Error;
 use crate::escape::render_line;
@@ -91,12 +93,6 @@ impl Answer for Diffed {
     }
 }
 
-/// Git reads a leading `:` as pathspec magic, and `*`, `?` and `[` as globs;
-/// `path(path:)` takes none of them literally.
-pub fn is_plain(path: &str) -> bool {
-    !path.starts_with(':') && !path.contains(['*', '?', '['])
-}
-
 /// `Var` names are `'static`. A process runs one command, so the leaked
 /// strings are bounded by the operands.
 fn numbered(prefix: &str, n: usize) -> &'static str {
@@ -104,7 +100,8 @@ fn numbered(prefix: &str, n: usize) -> &'static str {
 }
 
 fn plan(base: &str, head: &str, paths: &[String], json: bool) -> RepoPlan {
-    let plain: Vec<&String> = paths.iter().filter(|p| is_plain(p)).collect();
+    let plain: Vec<&String> =
+        paths.iter().filter(|p| is_plain_path(p)).collect();
     let mut probes = String::new();
     for n in 0..plain.len() {
         let _ = write!(probes, " p{n}: path(path: $path{n}) {{ __typename }}");
@@ -261,7 +258,7 @@ pub fn run(
         return Err(missing_sides(repo, rev_a.as_deref(), &rev_b, &a, &b));
     };
 
-    for (n, path) in paths.iter().filter(|p| is_plain(p)).enumerate() {
+    for (n, path) in paths.iter().filter(|p| is_plain_path(p)).enumerate() {
         let probe = format!("p{n}");
         let keys = ["commit", probe.as_str()];
         if a.get(&keys).is_none() && b.get(&keys).is_none() {
