@@ -1,6 +1,6 @@
 operation: Search
 variables:
-  query: "esc\e[0mrtl‮xzw​xnew\nlinecr\rnul\0xls xdel\x7Fx stopped count:100"
+  query: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx stopped count:100"
 status: 200
 headers:
   content-type: application/json
@@ -14,7 +14,7 @@ response:
         limitHit: false
         repositoriesCount: 0
         timedout: 
-          - name: "esc\e[0mrtl‮xzw​xnew\nlinecr\rnul\0xls xdel\x7Fx"
+          - name: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
         cloning: []
         missing: []
         alert: null

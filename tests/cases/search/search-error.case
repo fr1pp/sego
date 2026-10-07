@@ -1,3 +1,4 @@
+# The error shape was returned live on 2026-10-07; the query no longer reproduces it.
 # The server answers with an error at [search, results].
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0:^v1.7.4 NewRouter'
 exit: 1

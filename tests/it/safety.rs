@@ -315,20 +315,27 @@ fn assert_search_layout(out: &str) {
         out.strip_suffix('\n').unwrap_or(out).split('\n').collect();
     assert!(lines[0].contains(" s, deadline "), "{:?}", lines[0]);
     assert!(lines[1].starts_with("query  "), "{:?}", lines[1]);
-    let mut headers = 0;
-    let mut binary = 0;
+    let (mut headers, mut binary, mut code, mut symbols, mut commit) =
+        (0, 0, 0, 0, 0);
     for (i, line) in lines.iter().enumerate().skip(2) {
-        if i == 2
-            && (line.starts_with("narrow  ") || line.starts_with("widen  "))
-        {
+        let filter_line = i == 2
+            && (line.starts_with("narrow  ") || line.starts_with("widen  "));
+        if filter_line || line.is_empty() || *line == "--" {
             continue;
         }
-        if line.is_empty() || *line == "--" || search_code_line(line) {
-            continue;
-        }
-        if *line == "binary file; lines not shown" {
+        if search_code_line(line) {
+            if line
+                .trim_start_matches(|c: char| c == ' ' || c.is_ascii_digit())
+                .starts_with(":function  ")
+            {
+                symbols += 1;
+            } else {
+                code += 1;
+            }
+        } else if *line == "binary file; lines not shown" {
             binary += 1;
         } else if line.starts_with("    ") {
+            commit += 1;
         } else if line.starts_with(REPO) || line.starts_with("$'") {
             headers += 1;
         } else {
@@ -337,6 +344,9 @@ fn assert_search_layout(out: &str) {
     }
     assert_eq!(headers, 4, "{out:?}");
     assert_eq!(binary, 1, "{out:?}");
+    assert_eq!(code, content_text().len(), "{out:?}");
+    assert_eq!(symbols, 1, "{out:?}");
+    assert_eq!(commit, content_text().len(), "{out:?}");
     assert_eq!(lines.iter().filter(|l| l.is_empty()).count(), 1, "{out:?}");
 }
 
