@@ -305,7 +305,7 @@ fn a_root_commit() {
 
 #[test]
 fn a_root_commit_outranks_a_file_list_error() {
-    let mut body = document_of(&commit("first", &[]), &Value::Null);
+    let mut body = answer("first", &[], &[]);
     body["data"]["d0"] = Value::Null;
     body["errors"] = json!([{"message": "x", "path": ["d0", "comparison"]}]);
     let ran = run_on(&scripted(&body), &[&address()]);
@@ -319,8 +319,9 @@ fn a_root_commit_outranks_a_file_list_error() {
 #[test]
 fn message_layout() {
     let long = "x".repeat(600);
-    let message =
-        format!("Subject\r\n\r\nfirst body line\r\n\r\n\r\n{long}\r\nlast\n");
+    let message = format!(
+        "Subject\r\n\r\nfirst body line\r\n  \t\r\n\r\n{long}\r\nlast\n"
+    );
     let body = answer(&message, &[PARENT], &[modified("a.go", (1, 0))]);
     let ran = run_on(&scripted(&body), &[&address()]);
     assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
@@ -347,7 +348,7 @@ fn message_layout() {
     let json = json_out(&ran);
     assert_eq!(
         json["message"],
-        format!("Subject\n\nfirst body line\n\n\n{long}\nlast\n")
+        format!("Subject\n\nfirst body line\n  \t\n\n{long}\nlast\n")
     );
     assert_eq!(json["subject"], "Subject");
 }
@@ -600,4 +601,45 @@ fn names_are_escaped() {
     let text = out(&ran);
     assert!(!text.contains('\u{1b}'), "{text:?}");
     assert_eq!(text.matches('\n').count(), 2, "{text:?}");
+}
+
+#[test]
+fn a_whitespace_only_line_is_blank() {
+    let body = answer("A\n \t \n\u{2028}\nB", &[PARENT], &[]);
+    let ran = run_on(&scripted(&body), &[&address()]);
+    let text = out(&ran);
+    let lines: Vec<&str> = text.lines().skip(1).collect();
+    assert_eq!(lines.len(), 4, "{text:?}");
+    assert_eq!(lines[0], "    A");
+    assert_eq!(lines[1], "");
+    assert!(lines[2].starts_with("    ") && lines[2].len() > 4, "{text:?}");
+    assert!(!lines[2].contains('\u{2028}'), "{text:?}");
+    assert_eq!(lines[3], "    B");
+}
+
+#[test]
+fn the_author_is_required() {
+    for path in [
+        &["author"][..],
+        &["author", "date"],
+        &["author", "person"],
+        &["author", "person", "displayName"],
+    ] {
+        let mut body = answer("m", &[PARENT], &[]);
+        let mut at = &mut body["data"]["m0"]["commit"];
+        for key in path {
+            at = &mut at[*key];
+        }
+        *at = Value::Null;
+        let ran = run_on(&scripted(&body), &[&address()]);
+        failed(&ran, "Sourcegraph failed to answer the revision lookup");
+    }
+
+    let mut body = answer("m", &[PARENT], &[]);
+    body["data"]["m0"]["commit"]["committer"] = Value::Null;
+    let ran = run_on(&scripted(&body), &[&address()]);
+    assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
+    let json = json_out(&run_on(&scripted(&body), &["--json", &address()]));
+    assert_eq!(json["committer"], Value::Null);
+    assert_eq!(json["committer_date"], Value::Null);
 }

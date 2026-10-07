@@ -37,8 +37,8 @@ pub struct Committed {
     repo: String,
     rev: String,
     commit: String,
-    author: Option<String>,
-    author_date: Option<String>,
+    author: String,
+    author_date: String,
     committer: Option<String>,
     committer_date: Option<String>,
     parents: Vec<String>,
@@ -53,8 +53,8 @@ pub struct Committed {
 impl Committed {
     fn fields(&self) -> Vec<String> {
         let mut fields = Vec::new();
-        fields.extend(self.author_date.clone());
-        fields.extend(self.author.clone());
+        fields.push(self.author_date.clone());
+        fields.push(self.author.clone());
         fields.push(if self.parents.is_empty() {
             "parents none".to_owned()
         } else {
@@ -91,7 +91,7 @@ impl Answer for Committed {
         }
         for line in lines {
             let (line, _) = strip_cr(line);
-            if !line.is_empty() {
+            if !line.trim_matches([' ', '\t']).is_empty() {
                 out.push_str(MESSAGE_INDENT);
                 out.push_str(&render_line(line, None));
             }
@@ -198,13 +198,16 @@ pub fn run(
         .ok_or_else(lookup_failed)?
         .replace("\r\n", "\n");
     let parents = parents_of(commit)?;
+    let author = text_at(commit, &["author", "person", "displayName"])
+        .ok_or_else(lookup_failed)?;
+    let author_date = date_at(commit, "author").ok_or_else(lookup_failed)?;
 
     let mut committed = Committed {
         repo: repo.clone(),
         rev: rev.clone(),
         commit: oid,
-        author: text_at(commit, &["author", "person", "displayName"]),
-        author_date: date_at(commit, "author"),
+        author,
+        author_date,
         committer: text_at(commit, &["committer", "person", "displayName"]),
         committer_date: date_at(commit, "committer"),
         parents,

@@ -9,7 +9,7 @@ headers:
   content-type: application/json
 response:
   errors:
-  - message: "revision not found: repo 1700 @4e8d10dc715feb79b43f1d607b45148537546a0a^1^0"
+  - message: "revision not found: repo 1700 @v0.0.1^1^0"
     path: [d0, comparison]
   data:
     m0:
