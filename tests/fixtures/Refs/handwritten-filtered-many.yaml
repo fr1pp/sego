@@ -1,0 +1,631 @@
+handwritten: true
+operation: Refs
+variables:
+  repo0: example.com/handwritten/many
+  first: 101
+  query: rel
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    r0:
+      name: example.com/handwritten/many
+      defaultBranch:
+        displayName: main
+      branches:
+        totalCount: 0
+        nodes: []
+      tags:
+        totalCount: 130
+        nodes:
+        - displayName: rel-001
+          target:
+            oid: "abc0000000010000000000000000000000000001"
+            commit:
+              committer:
+                date: "2026-06-29T09:00:00Z"
+        - displayName: rel-002
+          target:
+            oid: "abc0000000020000000000000000000000000002"
+            commit:
+              committer:
+                date: "2026-06-28T09:00:00Z"
+        - displayName: rel-003
+          target:
+            oid: "abc0000000030000000000000000000000000003"
+            commit:
+              committer:
+                date: "2026-06-27T09:00:00Z"
+        - displayName: rel-004
+          target:
+            oid: "abc0000000040000000000000000000000000004"
+            commit:
+              committer:
+                date: "2026-06-26T09:00:00Z"
+        - displayName: rel-005
+          target:
+            oid: "abc0000000050000000000000000000000000005"
+            commit:
+              committer:
+                date: "2026-06-25T09:00:00Z"
+        - displayName: rel-006
+          target:
+            oid: "abc0000000060000000000000000000000000006"
+            commit:
+              committer:
+                date: "2026-06-24T09:00:00Z"
+        - displayName: rel-007
+          target:
+            oid: "abc0000000070000000000000000000000000007"
+            commit:
+              committer:
+                date: "2026-06-23T09:00:00Z"
+        - displayName: rel-008
+          target:
+            oid: "abc0000000080000000000000000000000000008"
+            commit:
+              committer:
+                date: "2026-06-22T09:00:00Z"
+        - displayName: rel-009
+          target:
+            oid: "abc0000000090000000000000000000000000009"
+            commit:
+              committer:
+                date: "2026-06-21T09:00:00Z"
+        - displayName: rel-010
+          target:
+            oid: "abc00000000a000000000000000000000000000a"
+            commit:
+              committer:
+                date: "2026-06-20T09:00:00Z"
+        - displayName: rel-011
+          target:
+            oid: "abc00000000b000000000000000000000000000b"
+            commit:
+              committer:
+                date: "2026-06-19T09:00:00Z"
+        - displayName: rel-012
+          target:
+            oid: "abc00000000c000000000000000000000000000c"
+            commit:
+              committer:
+                date: "2026-06-18T09:00:00Z"
+        - displayName: rel-013
+          target:
+            oid: "abc00000000d000000000000000000000000000d"
+            commit:
+              committer:
+                date: "2026-06-17T09:00:00Z"
+        - displayName: rel-014
+          target:
+            oid: "abc00000000e000000000000000000000000000e"
+            commit:
+              committer:
+                date: "2026-06-16T09:00:00Z"
+        - displayName: rel-015
+          target:
+            oid: "abc00000000f000000000000000000000000000f"
+            commit:
+              committer:
+                date: "2026-06-15T09:00:00Z"
+        - displayName: rel-016
+          target:
+            oid: "abc0000000100000000000000000000000000010"
+            commit:
+              committer:
+                date: "2026-06-14T09:00:00Z"
+        - displayName: rel-017
+          target:
+            oid: "abc0000000110000000000000000000000000011"
+            commit:
+              committer:
+                date: "2026-06-13T09:00:00Z"
+        - displayName: rel-018
+          target:
+            oid: "abc0000000120000000000000000000000000012"
+            commit:
+              committer:
+                date: "2026-06-12T09:00:00Z"
+        - displayName: rel-019
+          target:
+            oid: "abc0000000130000000000000000000000000013"
+            commit:
+              committer:
+                date: "2026-06-11T09:00:00Z"
+        - displayName: rel-020
+          target:
+            oid: "abc0000000140000000000000000000000000014"
+            commit:
+              committer:
+                date: "2026-06-10T09:00:00Z"
+        - displayName: rel-021
+          target:
+            oid: "abc0000000150000000000000000000000000015"
+            commit:
+              committer:
+                date: "2026-06-09T09:00:00Z"
+        - displayName: rel-022
+          target:
+            oid: "abc0000000160000000000000000000000000016"
+            commit:
+              committer:
+                date: "2026-06-08T09:00:00Z"
+        - displayName: rel-023
+          target:
+            oid: "abc0000000170000000000000000000000000017"
+            commit:
+              committer:
+                date: "2026-06-07T09:00:00Z"
+        - displayName: rel-024
+          target:
+            oid: "abc0000000180000000000000000000000000018"
+            commit:
+              committer:
+                date: "2026-06-06T09:00:00Z"
+        - displayName: rel-025
+          target:
+            oid: "abc0000000190000000000000000000000000019"
+            commit:
+              committer:
+                date: "2026-06-05T09:00:00Z"
+        - displayName: rel-026
+          target:
+            oid: "abc00000001a000000000000000000000000001a"
+            commit:
+              committer:
+                date: "2026-06-04T09:00:00Z"
+        - displayName: rel-027
+          target:
+            oid: "abc00000001b000000000000000000000000001b"
+            commit:
+              committer:
+                date: "2026-06-03T09:00:00Z"
+        - displayName: rel-028
+          target:
+            oid: "abc00000001c000000000000000000000000001c"
+            commit:
+              committer:
+                date: "2026-06-02T09:00:00Z"
+        - displayName: rel-029
+          target:
+            oid: "abc00000001d000000000000000000000000001d"
+            commit:
+              committer:
+                date: "2026-06-01T09:00:00Z"
+        - displayName: rel-030
+          target:
+            oid: "abc00000001e000000000000000000000000001e"
+            commit:
+              committer:
+                date: "2026-05-31T09:00:00Z"
+        - displayName: rel-031
+          target:
+            oid: "abc00000001f000000000000000000000000001f"
+            commit:
+              committer:
+                date: "2026-05-30T09:00:00Z"
+        - displayName: rel-032
+          target:
+            oid: "abc0000000200000000000000000000000000020"
+            commit:
+              committer:
+                date: "2026-05-29T09:00:00Z"
+        - displayName: rel-033
+          target:
+            oid: "abc0000000210000000000000000000000000021"
+            commit:
+              committer:
+                date: "2026-05-28T09:00:00Z"
+        - displayName: rel-034
+          target:
+            oid: "abc0000000220000000000000000000000000022"
+            commit:
+              committer:
+                date: "2026-05-27T09:00:00Z"
+        - displayName: rel-035
+          target:
+            oid: "abc0000000230000000000000000000000000023"
+            commit:
+              committer:
+                date: "2026-05-26T09:00:00Z"
+        - displayName: rel-036
+          target:
+            oid: "abc0000000240000000000000000000000000024"
+            commit:
+              committer:
+                date: "2026-05-25T09:00:00Z"
+        - displayName: rel-037
+          target:
+            oid: "abc0000000250000000000000000000000000025"
+            commit:
+              committer:
+                date: "2026-05-24T09:00:00Z"
+        - displayName: rel-038
+          target:
+            oid: "abc0000000260000000000000000000000000026"
+            commit:
+              committer:
+                date: "2026-05-23T09:00:00Z"
+        - displayName: rel-039
+          target:
+            oid: "abc0000000270000000000000000000000000027"
+            commit:
+              committer:
+                date: "2026-05-22T09:00:00Z"
+        - displayName: rel-040
+          target:
+            oid: "abc0000000280000000000000000000000000028"
+            commit:
+              committer:
+                date: "2026-05-21T09:00:00Z"
+        - displayName: rel-041
+          target:
+            oid: "abc0000000290000000000000000000000000029"
+            commit:
+              committer:
+                date: "2026-05-20T09:00:00Z"
+        - displayName: rel-042
+          target:
+            oid: "abc00000002a000000000000000000000000002a"
+            commit:
+              committer:
+                date: "2026-05-19T09:00:00Z"
+        - displayName: rel-043
+          target:
+            oid: "abc00000002b000000000000000000000000002b"
+            commit:
+              committer:
+                date: "2026-05-18T09:00:00Z"
+        - displayName: rel-044
+          target:
+            oid: "abc00000002c000000000000000000000000002c"
+            commit:
+              committer:
+                date: "2026-05-17T09:00:00Z"
+        - displayName: rel-045
+          target:
+            oid: "abc00000002d000000000000000000000000002d"
+            commit:
+              committer:
+                date: "2026-05-16T09:00:00Z"
+        - displayName: rel-046
+          target:
+            oid: "abc00000002e000000000000000000000000002e"
+            commit:
+              committer:
+                date: "2026-05-15T09:00:00Z"
+        - displayName: rel-047
+          target:
+            oid: "abc00000002f000000000000000000000000002f"
+            commit:
+              committer:
+                date: "2026-05-14T09:00:00Z"
+        - displayName: rel-048
+          target:
+            oid: "abc0000000300000000000000000000000000030"
+            commit:
+              committer:
+                date: "2026-05-13T09:00:00Z"
+        - displayName: rel-049
+          target:
+            oid: "abc0000000310000000000000000000000000031"
+            commit:
+              committer:
+                date: "2026-05-12T09:00:00Z"
+        - displayName: rel-050
+          target:
+            oid: "abc0000000320000000000000000000000000032"
+            commit:
+              committer:
+                date: "2026-05-11T09:00:00Z"
+        - displayName: rel-051
+          target:
+            oid: "abc0000000330000000000000000000000000033"
+            commit:
+              committer:
+                date: "2026-05-10T09:00:00Z"
+        - displayName: rel-052
+          target:
+            oid: "abc0000000340000000000000000000000000034"
+            commit:
+              committer:
+                date: "2026-05-09T09:00:00Z"
+        - displayName: rel-053
+          target:
+            oid: "abc0000000350000000000000000000000000035"
+            commit:
+              committer:
+                date: "2026-05-08T09:00:00Z"
+        - displayName: rel-054
+          target:
+            oid: "abc0000000360000000000000000000000000036"
+            commit:
+              committer:
+                date: "2026-05-07T09:00:00Z"
+        - displayName: rel-055
+          target:
+            oid: "abc0000000370000000000000000000000000037"
+            commit:
+              committer:
+                date: "2026-05-06T09:00:00Z"
+        - displayName: rel-056
+          target:
+            oid: "abc0000000380000000000000000000000000038"
+            commit:
+              committer:
+                date: "2026-05-05T09:00:00Z"
+        - displayName: rel-057
+          target:
+            oid: "abc0000000390000000000000000000000000039"
+            commit:
+              committer:
+                date: "2026-05-04T09:00:00Z"
+        - displayName: rel-058
+          target:
+            oid: "abc00000003a000000000000000000000000003a"
+            commit:
+              committer:
+                date: "2026-05-03T09:00:00Z"
+        - displayName: rel-059
+          target:
+            oid: "abc00000003b000000000000000000000000003b"
+            commit:
+              committer:
+                date: "2026-05-02T09:00:00Z"
+        - displayName: rel-060
+          target:
+            oid: "abc00000003c000000000000000000000000003c"
+            commit:
+              committer:
+                date: "2026-05-01T09:00:00Z"
+        - displayName: rel-061
+          target:
+            oid: "abc00000003d000000000000000000000000003d"
+            commit:
+              committer:
+                date: "2026-04-30T09:00:00Z"
+        - displayName: rel-062
+          target:
+            oid: "abc00000003e000000000000000000000000003e"
+            commit:
+              committer:
+                date: "2026-04-29T09:00:00Z"
+        - displayName: rel-063
+          target:
+            oid: "abc00000003f000000000000000000000000003f"
+            commit:
+              committer:
+                date: "2026-04-28T09:00:00Z"
+        - displayName: rel-064
+          target:
+            oid: "abc0000000400000000000000000000000000040"
+            commit:
+              committer:
+                date: "2026-04-27T09:00:00Z"
+        - displayName: rel-065
+          target:
+            oid: "abc0000000410000000000000000000000000041"
+            commit:
+              committer:
+                date: "2026-04-26T09:00:00Z"
+        - displayName: rel-066
+          target:
+            oid: "abc0000000420000000000000000000000000042"
+            commit:
+              committer:
+                date: "2026-04-25T09:00:00Z"
+        - displayName: rel-067
+          target:
+            oid: "abc0000000430000000000000000000000000043"
+            commit:
+              committer:
+                date: "2026-04-24T09:00:00Z"
+        - displayName: rel-068
+          target:
+            oid: "abc0000000440000000000000000000000000044"
+            commit:
+              committer:
+                date: "2026-04-23T09:00:00Z"
+        - displayName: rel-069
+          target:
+            oid: "abc0000000450000000000000000000000000045"
+            commit:
+              committer:
+                date: "2026-04-22T09:00:00Z"
+        - displayName: rel-070
+          target:
+            oid: "abc0000000460000000000000000000000000046"
+            commit:
+              committer:
+                date: "2026-04-21T09:00:00Z"
+        - displayName: rel-071
+          target:
+            oid: "abc0000000470000000000000000000000000047"
+            commit:
+              committer:
+                date: "2026-04-20T09:00:00Z"
+        - displayName: rel-072
+          target:
+            oid: "abc0000000480000000000000000000000000048"
+            commit:
+              committer:
+                date: "2026-04-19T09:00:00Z"
+        - displayName: rel-073
+          target:
+            oid: "abc0000000490000000000000000000000000049"
+            commit:
+              committer:
+                date: "2026-04-18T09:00:00Z"
+        - displayName: rel-074
+          target:
+            oid: "abc00000004a000000000000000000000000004a"
+            commit:
+              committer:
+                date: "2026-04-17T09:00:00Z"
+        - displayName: rel-075
+          target:
+            oid: "abc00000004b000000000000000000000000004b"
+            commit:
+              committer:
+                date: "2026-04-16T09:00:00Z"
+        - displayName: rel-076
+          target:
+            oid: "abc00000004c000000000000000000000000004c"
+            commit:
+              committer:
+                date: "2026-04-15T09:00:00Z"
+        - displayName: rel-077
+          target:
+            oid: "abc00000004d000000000000000000000000004d"
+            commit:
+              committer:
+                date: "2026-04-14T09:00:00Z"
+        - displayName: rel-078
+          target:
+            oid: "abc00000004e000000000000000000000000004e"
+            commit:
+              committer:
+                date: "2026-04-13T09:00:00Z"
+        - displayName: rel-079
+          target:
+            oid: "abc00000004f000000000000000000000000004f"
+            commit:
+              committer:
+                date: "2026-04-12T09:00:00Z"
+        - displayName: rel-080
+          target:
+            oid: "abc0000000500000000000000000000000000050"
+            commit:
+              committer:
+                date: "2026-04-11T09:00:00Z"
+        - displayName: rel-081
+          target:
+            oid: "abc0000000510000000000000000000000000051"
+            commit:
+              committer:
+                date: "2026-04-10T09:00:00Z"
+        - displayName: rel-082
+          target:
+            oid: "abc0000000520000000000000000000000000052"
+            commit:
+              committer:
+                date: "2026-04-09T09:00:00Z"
+        - displayName: rel-083
+          target:
+            oid: "abc0000000530000000000000000000000000053"
+            commit:
+              committer:
+                date: "2026-04-08T09:00:00Z"
+        - displayName: rel-084
+          target:
+            oid: "abc0000000540000000000000000000000000054"
+            commit:
+              committer:
+                date: "2026-04-07T09:00:00Z"
+        - displayName: rel-085
+          target:
+            oid: "abc0000000550000000000000000000000000055"
+            commit:
+              committer:
+                date: "2026-04-06T09:00:00Z"
+        - displayName: rel-086
+          target:
+            oid: "abc0000000560000000000000000000000000056"
+            commit:
+              committer:
+                date: "2026-04-05T09:00:00Z"
+        - displayName: rel-087
+          target:
+            oid: "abc0000000570000000000000000000000000057"
+            commit:
+              committer:
+                date: "2026-04-04T09:00:00Z"
+        - displayName: rel-088
+          target:
+            oid: "abc0000000580000000000000000000000000058"
+            commit:
+              committer:
+                date: "2026-04-03T09:00:00Z"
+        - displayName: rel-089
+          target:
+            oid: "abc0000000590000000000000000000000000059"
+            commit:
+              committer:
+                date: "2026-04-02T09:00:00Z"
+        - displayName: rel-090
+          target:
+            oid: "abc00000005a000000000000000000000000005a"
+            commit:
+              committer:
+                date: "2026-04-01T09:00:00Z"
+        - displayName: rel-091
+          target:
+            oid: "abc00000005b000000000000000000000000005b"
+            commit:
+              committer:
+                date: "2026-03-31T09:00:00Z"
+        - displayName: rel-092
+          target:
+            oid: "abc00000005c000000000000000000000000005c"
+            commit:
+              committer:
+                date: "2026-03-30T09:00:00Z"
+        - displayName: rel-093
+          target:
+            oid: "abc00000005d000000000000000000000000005d"
+            commit:
+              committer:
+                date: "2026-03-29T09:00:00Z"
+        - displayName: rel-094
+          target:
+            oid: "abc00000005e000000000000000000000000005e"
+            commit:
+              committer:
+                date: "2026-03-28T09:00:00Z"
+        - displayName: rel-095
+          target:
+            oid: "abc00000005f000000000000000000000000005f"
+            commit:
+              committer:
+                date: "2026-03-27T09:00:00Z"
+        - displayName: rel-096
+          target:
+            oid: "abc0000000600000000000000000000000000060"
+            commit:
+              committer:
+                date: "2026-03-26T09:00:00Z"
+        - displayName: rel-097
+          target:
+            oid: "abc0000000610000000000000000000000000061"
+            commit:
+              committer:
+                date: "2026-03-25T09:00:00Z"
+        - displayName: rel-098
+          target:
+            oid: "abc0000000620000000000000000000000000062"
+            commit:
+              committer:
+                date: "2026-03-24T09:00:00Z"
+        - displayName: rel-099
+          target:
+            oid: "abc0000000630000000000000000000000000063"
+            commit:
+              committer:
+                date: "2026-03-23T09:00:00Z"
+        - displayName: rel-100
+          target:
+            oid: "abc0000000640000000000000000000000000064"
+            commit:
+              committer:
+                date: "2026-03-22T09:00:00Z"
+        - displayName: rel-101
+          target:
+            oid: "abc0000000650000000000000000000000000065"
+            commit:
+              committer:
+                date: "2026-03-21T09:00:00Z"
+      all_branches:
+        totalCount: 12
+      all_tags:
+        totalCount: 400

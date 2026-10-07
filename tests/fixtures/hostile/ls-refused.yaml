@@ -1,0 +1,15 @@
+handwritten: true
+operation: ListTree
+variables:
+  path_0: "rejected.txt"
+  parent_0: ""
+  recursive_0: false
+  repo0: github.com/hostile/repo
+  rev0: HEAD
+status: 200
+headers:
+  content-type: application/json
+response:
+  errors:
+  - message: "LEAK esc\e[0m rtl\u202Ex zw\u200Bx new\nline cr\r nul\0x ls\u2028x del\x7Fx"
+  data: null

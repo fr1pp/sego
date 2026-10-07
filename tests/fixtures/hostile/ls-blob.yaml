@@ -1,0 +1,31 @@
+handwritten: true
+operation: ListTree
+variables:
+  path_0: "f.txt"
+  parent_0: ""
+  recursive_0: false
+  repo0: github.com/hostile/repo
+  rev0: HEAD
+status: 200
+headers:
+  content-type: application/json
+response:
+  errors:
+  - message: "not a directory: \"f.txt\""
+    path: [r0, c0, tree]
+  data:
+    r0:
+      name: "github.com/hostile/repoesc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+      defaultBranch:
+        displayName: main
+      c0:
+        oid: 0123456789abcdef0123456789abcdef01234567
+        tree: null
+        file:
+          totalLines: 3
+          byteSize: 40
+          binary: false
+        parent:
+          entries:
+          - path: f.txt
+            submodule: null

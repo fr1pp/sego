@@ -1,0 +1,5 @@
+# owner/name on both hosts is ambiguous and names both.
+args: refs acme/widget
+exit: 1
+--- stderr
+sego: error: acme/widget exists as github.com/acme/widget and gitlab.com/acme/widget

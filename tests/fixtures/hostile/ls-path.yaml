@@ -1,0 +1,37 @@
+handwritten: true
+operation: ListTree
+variables:
+  path_0: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+  parent_0: ""
+  recursive_0: false
+  repo0: github.com/hostile/repo
+  rev0: HEAD
+status: 200
+headers:
+  content-type: application/json
+response:
+  data:
+    r0:
+      name: "github.com/hostile/repoesc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+      defaultBranch:
+        displayName: main
+      c0:
+        oid: 0123456789abcdef0123456789abcdef01234567
+        tree:
+          entries:
+          - path: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx/esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+            isDirectory: false
+            submodule: null
+          - path: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx/esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx-dir"
+            isDirectory: true
+            submodule: null
+          - path: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx/sub"
+            isDirectory: false
+            submodule:
+              url: "https://example.com/esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+              commit: 0123456789abcdef0123456789abcdef01234567
+        file: null
+        parent:
+          entries:
+          - path: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
+            submodule: null

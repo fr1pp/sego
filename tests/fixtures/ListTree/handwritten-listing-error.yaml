@@ -1,0 +1,28 @@
+handwritten: true
+operation: ListTree
+variables:
+  repo0: example.com/handwritten/listing
+  rev0: v2.0.0
+  path_0: docs
+  recursive_0: false
+  parent_0: ""
+status: 200
+headers:
+  content-type: application/json
+response:
+  errors:
+  - message: 'rpc error: code = Internal desc = git command failed on host gitserver-3.internal'
+    path: [r0, c0, tree]
+  data:
+    r0:
+      name: example.com/handwritten/listing
+      defaultBranch:
+        displayName: main
+      c0:
+        oid: 0a1b2c3d4e5f60718293a4b5c6d7e8f901234567
+        tree: null
+        file: null
+        parent:
+          entries:
+          - path: docs
+            submodule: null

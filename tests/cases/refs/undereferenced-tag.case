@@ -1,0 +1,8 @@
+# A tag whose commit Sourcegraph can't dereference prints `-` twice.
+args: refs example.com/handwritten/tagged
+exit: 0
+--- stdout
+example.com/handwritten/tagged  1 branch  2 tags
+branch  a1b2c3d4e5f6  2026-03-01  main  (default)
+tag     0f1e2d3c4b5a  2026-02-01  v2
+tag     -             -           v1-tree
