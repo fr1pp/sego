@@ -12,7 +12,7 @@ use crate::output::text::header_line;
 use crate::output::{Answer, Notes, date};
 use crate::upstream::{
     GRAPHQL_PATH, RepoPlan, Root, Transport, Var, View, build_repository,
-    classify, locate_repository,
+    classify, locate_repository, repository_lookup_failed,
 };
 
 const TEXT_ROWS: usize = 100;
@@ -216,7 +216,7 @@ pub fn run(
         }
     }
     if view.errored_beneath(&["defaultBranch"]) {
-        return Err(Error::failed("the repository lookup"));
+        return Err(repository_lookup_failed());
     }
     let default_branch = view
         .get(&["defaultBranch", "displayName"])
