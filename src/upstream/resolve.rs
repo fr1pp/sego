@@ -4,7 +4,7 @@ use serde::Serialize;
 use serde_json::{Map, Value};
 
 use super::envelope::{Envelope, Seg};
-use super::view::{View, text_at};
+use super::view::View;
 use crate::address::{
     Address, FULL_OID, Repo, Rev, is_oid_like, valid_revision,
 };
@@ -332,7 +332,7 @@ fn written_name(repo: &Repo) -> &str {
 
 /// The canonical repository name at the root `root`.
 fn root_name<'a>(env: &'a Envelope, root: &str) -> Option<&'a str> {
-    text_at(env.get(&[root])?, &["name"])
+    env.get(&[root, "name"])?.as_str()
 }
 
 pub fn repository_lookup_failed() -> Error {
@@ -419,12 +419,11 @@ pub fn locate(address: &Address, env: &Envelope) -> Result<Located, Error> {
     let repo = root_name(env, &r)
         .map_or_else(|| address.repo.candidates()[i].clone(), str::to_owned);
     let cands = candidates(address);
-    let oid = |j: usize| {
-        let commit = env.get(&[&r, &format!("c{j}")])?;
-        text_at(commit, &["oid"])
+    let oid = |j: usize| env.get(&[&r, &format!("c{j}"), "oid"])?.as_str();
+    let failed = |j: usize| {
+        oid(j).is_none()
+            && env.error_beneath(&[r.as_str(), &format!("c{j}")]).is_some()
     };
-    let failed =
-        |j: usize| env.error_at(&[r.as_str(), &format!("c{j}")]).is_some();
     let branch_failed = || env.error_at(&[&r, "defaultBranch"]).is_some();
     let no_commits = || env.get(&[&r, "defaultBranch"]).is_none();
     let located = |j: usize, commit: &str| Located {

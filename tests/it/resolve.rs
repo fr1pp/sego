@@ -486,6 +486,46 @@ fn canonical_name_falls_back_to_the_candidate() {
 }
 
 #[test]
+fn an_errored_name_falls_back() {
+    assert_eq!(
+        located("errored-name", "github.com/x/y@v1").repo,
+        "github.com/x/y"
+    );
+}
+
+#[test]
+fn an_errored_oid_is_unresolved() {
+    let lookup = "Sourcegraph failed to answer the revision lookup";
+    let blocked = refused("errored-oid", "github.com/gorilla/mux@v1");
+    assert!(blocked.contains(lookup), "{blocked}");
+    assert!(!blocked.contains("not found"), "{blocked}");
+}
+
+#[test]
+fn an_error_inside_a_null_commit_failed() {
+    let lookup = "Sourcegraph failed to answer the revision lookup";
+    let blocked =
+        refused("null-commit-oid-error", "github.com/gorilla/mux@v1");
+    assert!(blocked.contains(lookup), "{blocked}");
+    assert!(!blocked.contains("not found"), "{blocked}");
+}
+
+#[test]
+fn a_resolved_candidate_keeps_its_expected_errors() {
+    let none = refused(
+        "split-resolved-expected-errors",
+        "https://github.com/bminor/glibc/blob/release/2.34/master/NEWS",
+    );
+    assert!(
+        none.contains(
+            "no revision and path in release/2.34/master/NEWS resolve in \
+             github.com/bminor/glibc"
+        ),
+        "{none}"
+    );
+}
+
+#[test]
 fn only_splits_look_up_refs() {
     for token in ["github.com/a/b@abcd1234:f", "github.com/a/b@main~1:f"] {
         let request = build(&toy(), &address(token));
