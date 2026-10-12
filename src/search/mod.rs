@@ -5,7 +5,7 @@ use serde_json::Value;
 use crate::error::Error;
 use crate::output::Notes;
 use crate::upstream::top_level;
-use crate::upstream::{Request, Transport, Var, exchange};
+use crate::upstream::{Envelope, Request, Transport, Var, exchange};
 
 pub mod derive;
 pub mod lint;
@@ -15,19 +15,21 @@ pub mod query;
 pub mod response;
 pub mod text;
 
+use derive::in_time;
 use model::Searched;
 use query::{Prepared, prepare};
+use response::{Listing, Results, UnindexedFile};
 
 pub const OPERATION: &str = "Search";
 
 pub const SELECTION: &str = "\
 search(query: $query, version: V3, patternType: keyword) {
   results {
-    matchCount approximateResultCount limitHit repositoriesCount
-    timedout { name } cloning { name } missing { name }
+    matchCount approximateResultCount limitHit
+    timedout { name }
     alert { title description kind proposedQueries { description query } }
     elapsedMilliseconds
-    dynamicFilters { value label count limitHit kind }
+    dynamicFilters { value count kind }
     results {
       __typename
       ... on FileMatch {
@@ -47,30 +49,70 @@ search(query: $query, version: V3, patternType: keyword) {
   }
 }";
 
+const UNINDEXED_SELECTION: &str = "\
+unindexed: search(query: $unindexed, version: V3, patternType: keyword) {
+  results {
+    limitHit elapsedMilliseconds timedout { name } alert { title }
+    results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
+  }
+}";
+
 pub fn request(prepared: &Prepared) -> Request {
-    let query = Var {
-        name: "query",
+    let string = |name, value: &str| Var {
+        name,
         ty: "String!",
-        value: Value::String(prepared.sent.clone()),
+        value: Value::String(value.to_owned()),
     };
-    top_level(OPERATION, vec![query], SELECTION)
+    let mut vars = vec![string("query", &prepared.query)];
+    let mut selection = SELECTION.to_owned();
+    if let Some(unindexed) = &prepared.unindexed {
+        vars.push(string("unindexed", unindexed));
+        selection.push('\n');
+        selection.push_str(UNINDEXED_SELECTION);
+    }
+    top_level(OPERATION, vars, &selection)
 }
 
-/// A search has one root, so a located error anywhere leaves no part of the
-/// answer to trust.
+pub struct Fetched {
+    pub results: Results,
+    /// `None` when the side alias wasn't sent or its answer can't be trusted.
+    pub unindexed: Option<Vec<UnindexedFile>>,
+}
+
+/// A located error at or beneath `search` leaves no part of the answer to
+/// trust. The `unindexed` alias can't fail the search: any problem with it
+/// leaves its fact unknown.
 pub fn fetch(
     prepared: &Prepared,
     transport: &dyn Transport,
     deadline: Instant,
-) -> Result<response::Results, Error> {
+) -> Result<Fetched, Error> {
     let failed = || Error::failed("the search");
     let envelope = exchange(transport, &request(prepared), deadline)?;
-    if !envelope.errors.is_empty() {
+    if envelope.error_beneath(&["search"]).is_some() {
         return Err(failed());
     }
     let results =
         envelope.get(&["search", "results"]).ok_or_else(failed)?.clone();
-    serde_json::from_value(results).map_err(|_| failed())
+    let results = serde_json::from_value(results).map_err(|_| failed())?;
+    Ok(Fetched { results, unindexed: listed(&envelope, prepared) })
+}
+
+fn listed(
+    envelope: &Envelope,
+    prepared: &Prepared,
+) -> Option<Vec<UnindexedFile>> {
+    prepared.unindexed.as_ref()?;
+    if envelope.error_beneath(&["unindexed"]).is_some() {
+        return None;
+    }
+    let value = envelope.get(&["unindexed", "results"])?.clone();
+    let listing: Listing = serde_json::from_value(value).ok()?;
+    let clean = listing.alert.is_none()
+        && !listing.limit_hit
+        && listing.timedout.is_empty()
+        && in_time(listing.elapsed_milliseconds, prepared.deadline_ms);
+    clean.then(|| listing.files())
 }
 
 pub fn run(
@@ -83,8 +125,9 @@ pub fn run(
     for note in &prepared.notes {
         notes.push(note);
     }
-    let results = fetch(&prepared, transport, deadline)?;
-    let searched = Searched::new(results, &prepared);
+    let fetched = fetch(&prepared, transport, deadline)?;
+    let mut searched = Searched::new(fetched.results, &prepared);
+    searched.unindexed = fetched.unindexed;
     outcome::judge(&searched, notes)?;
     Ok(searched)
 }

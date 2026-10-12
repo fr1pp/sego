@@ -5,8 +5,8 @@ use serde_json::{Value, json};
 
 use sego::internal::error::{Error, report};
 use sego::internal::search::query::prepare;
-use sego::internal::search::response::{Item, Results};
-use sego::internal::search::{OPERATION, fetch, request};
+use sego::internal::search::response::{Item, UnindexedFile};
+use sego::internal::search::{Fetched, OPERATION, fetch, request};
 use sego::internal::upstream::{
     Endpoint, GRAPHQL_PATH, Reply, Request, Transport, Var, top_level,
 };
@@ -19,7 +19,7 @@ fn deadline() -> Instant {
     Instant::now() + Duration::from_secs(5)
 }
 
-fn fetched(name: &str, query: &str) -> Result<Results, Error> {
+fn fetched(name: &str, query: &str) -> Result<Fetched, Error> {
     let fake = Fake::scripted(vec![Ok(reply(&format!("Search/{name}")))]);
     fetch(&prepare(query), &fake, deadline())
 }
@@ -68,11 +68,171 @@ fn request_carries_the_query_as_written() {
     assert_eq!(calls[0].path, GRAPHQL_PATH);
     let body: Value = serde_json::from_slice(&calls[0].body)
         .unwrap_or_else(|e| panic!("{e}"));
-    assert_eq!(
-        body["variables"],
-        json!({ "query": r#"repo:x "a b" (foo or bar) count:100"# })
-    );
+    assert_eq!(body["variables"], json!({ "query": written }));
     assert_eq!(body["operationName"], "Search");
+}
+
+fn body_of(request: &Request) -> Value {
+    serde_json::from_slice(&request.body()).unwrap_or_else(|e| panic!("{e}"))
+}
+
+#[test]
+fn request_sends_the_query_as_written() {
+    let prepared = prepare("repo:x foo");
+    let eligible = request(&prepared);
+    let body = body_of(&eligible);
+    assert_eq!(body["variables"]["query"], "repo:x foo");
+    assert!(prepared.unindexed.is_some());
+    assert_eq!(body["variables"]["unindexed"], json!(prepared.unindexed));
+    assert!(eligible.document.contains("$unindexed: String!"));
+    assert!(
+        eligible
+            .document
+            .contains("unindexed: search(query: $unindexed, version: V3")
+    );
+
+    let ineligible = request(&prepare("foo"));
+    assert_eq!(body_of(&ineligible)["variables"], json!({ "query": "foo" }));
+    assert!(!ineligible.document.contains("unindexed"));
+}
+
+fn envelope_of(body: &Value) -> Reply {
+    Reply {
+        status: 200,
+        content_type: Some("application/json".to_owned()),
+        location: None,
+        retry_after: None,
+        cf_mitigated: None,
+        body: body.to_string().into_bytes(),
+    }
+}
+
+fn side(
+    limit_hit: bool,
+    elapsed: u64,
+    timedout: &Value,
+    alert: &Value,
+) -> Value {
+    json!({ "results": {
+        "limitHit": limit_hit,
+        "elapsedMilliseconds": elapsed,
+        "timedout": timedout,
+        "alert": alert,
+        "results": [
+            {
+                "repository": { "name": "github.com/a/b" },
+                "file": {
+                    "path": "big.c",
+                    "byteSize": 2_000_000,
+                    "commit": { "oid": "aaaa" },
+                },
+            },
+            {},
+            {
+                "repository": { "name": "github.com/c/d" },
+                "file": {
+                    "path": "dense.txt",
+                    "byteSize": 900,
+                    "commit": { "oid": "bbbb" },
+                },
+            },
+        ],
+    } })
+}
+
+fn clean_side() -> Value {
+    side(false, 10, &json!([]), &Value::Null)
+}
+
+fn fetched_with(unindexed: &Value, errors: &Value) -> Result<Fetched, Error> {
+    let body = json!({
+        "data": {
+            "search": { "results": results(&Value::Null, &json!([])) },
+            "unindexed": unindexed,
+        },
+        "errors": errors,
+    });
+    let fake = Fake::scripted(vec![Ok(envelope_of(&body))]);
+    fetch(&prepare("repo:x foo"), &fake, deadline())
+}
+
+fn files(fetched: &Fetched) -> Vec<(&str, &str, &str, u64)> {
+    let list = fetched.unindexed.as_deref().unwrap_or_default();
+    list.iter()
+        .map(|f: &UnindexedFile| (&*f.repo, &*f.commit, &*f.path, f.bytes))
+        .collect()
+}
+
+#[test]
+fn unindexed_known() {
+    let got = fetched_with(&clean_side(), &json!([]))
+        .unwrap_or_else(|e| panic!("{e}"));
+    assert_eq!(
+        files(&got),
+        vec![
+            ("github.com/a/b", "aaaa", "big.c", 2_000_000),
+            ("github.com/c/d", "bbbb", "dense.txt", 900),
+        ]
+    );
+    let empty = json!({ "results": {
+        "limitHit": false, "elapsedMilliseconds": 10, "timedout": [],
+        "alert": null, "results": [],
+    } });
+    let got =
+        fetched_with(&empty, &json!([])).unwrap_or_else(|e| panic!("{e}"));
+    assert_eq!(got.unindexed.map(|list| list.len()), Some(0));
+}
+
+#[test]
+fn unindexed_unknown() {
+    let alert = json!({ "title": "Heads up" });
+    let rows = [
+        (
+            "error",
+            clean_side(),
+            json!([{
+                "message": "boom",
+                "path": ["unindexed", "results"],
+            }]),
+        ),
+        ("null", Value::Null, json!([])),
+        ("alert", side(false, 10, &json!([]), &alert), json!([])),
+        ("limitHit", side(true, 10, &json!([]), &Value::Null), json!([])),
+        (
+            "timedout",
+            side(
+                false,
+                10,
+                &json!([{ "name": "github.com/a/b" }]),
+                &Value::Null,
+            ),
+            json!([]),
+        ),
+        ("late", side(false, 19_500, &json!([]), &Value::Null), json!([])),
+    ];
+    for (name, unindexed, errors) in rows {
+        let got = fetched_with(&unindexed, &errors)
+            .unwrap_or_else(|e| panic!("{name}: {e}"));
+        assert!(got.unindexed.is_none(), "{name}");
+    }
+}
+
+#[test]
+fn main_error_fails_the_search() {
+    let body = json!({
+        "data": {
+            "search": { "results": results(&Value::Null, &json!([])) },
+            "unindexed": clean_side(),
+        },
+        "errors": [{ "message": "boom", "path": ["search", "results"] }],
+    });
+    let fake = Fake::scripted(vec![Ok(envelope_of(&body))]);
+    let error = fetch(&prepare("repo:x foo"), &fake, deadline())
+        .err()
+        .unwrap_or_else(|| panic!("accepted"));
+    assert!(
+        rendered(&error).contains("Sourcegraph failed to answer the search")
+    );
 }
 
 fn envelope(results: &Value) -> Reply {
@@ -92,10 +252,7 @@ fn results(alert: &Value, items: &Value) -> Value {
         "matchCount": items.as_array().map_or(0, Vec::len),
         "approximateResultCount": "0",
         "limitHit": false,
-        "repositoriesCount": 1,
         "timedout": [],
-        "cloning": [],
-        "missing": [],
         "alert": alert,
         "elapsedMilliseconds": 5,
         "dynamicFilters": [],
@@ -156,21 +313,17 @@ fn run_order() {
 #[test]
 fn fetch_reads_every_kind() {
     let results = fetched("selftest-kinds", "selftest-kinds")
-        .unwrap_or_else(|e| panic!("{e}"));
+        .unwrap_or_else(|e| panic!("{e}"))
+        .results;
     assert_eq!(results.match_count, 4);
     assert_eq!(results.approximate_result_count, "4");
     assert!(!results.limit_hit);
-    assert_eq!(results.repositories_count, 1);
     assert!(results.timedout.is_empty());
-    assert!(results.cloning.is_empty());
-    assert!(results.missing.is_empty());
     assert!(results.alert.is_none());
     assert_eq!(results.elapsed_milliseconds, 12);
     let filter = &results.dynamic_filters[0];
     assert_eq!(filter.value, "lang:go");
-    assert_eq!(filter.label, "Go");
     assert_eq!(filter.count, 3);
-    assert!(!filter.limit_hit);
     assert_eq!(filter.kind, "lang");
     assert_eq!(results.results.len(), 4);
 

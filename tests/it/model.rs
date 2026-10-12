@@ -412,7 +412,7 @@ fn json_order_and_kinds() {
     let expected = concat!(
         r#"{"query":"foo","pattern_type":"keyword","unit":"matches","#,
         r#""count":5,"at_least":true,"stopped":true,"elapsed_ms":12,"#,
-        r#""limit_ms":60000,"widen":[{"filter":"fork:yes","repos":4},"#,
+        r#""limit_ms":20000,"widen":[{"filter":"fork:yes","repos":4},"#,
         r#"{"filter":"archived:yes","repos":9}],"unindexed":null,"#,
         r#""alert":{"title":"T","description":null,"kind":"k","#,
         r#""proposed":[{"description":null,"query":"q"}]},"results":["#,

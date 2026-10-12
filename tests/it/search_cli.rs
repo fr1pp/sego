@@ -117,8 +117,7 @@ fn non_utf8_after_search_names_the_position() {
 const SEARCH_HELP: &str = "\
 usage: sego search [--json] QUERY...
 
-QUERY... is joined with single spaces and sent as one Sourcegraph query,
-with count:100 appended when the query has no count:.
+QUERY... is joined with single spaces and sent as one Sourcegraph query.
 
 query:
   -term          literal text, not an option (-h is still help)

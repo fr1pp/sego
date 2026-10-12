@@ -5,6 +5,11 @@ const PLACEHOLDER: &str = "NOT-INDEXED: ";
 /// A search that comes back this close to its deadline may have been cut.
 const MARGIN_MS: u64 = 1000;
 
+/// Whether an answer that took `elapsed_ms` came back clear of the deadline.
+pub fn in_time(elapsed_ms: u64, deadline_ms: u64) -> bool {
+    elapsed_ms + MARGIN_MS < deadline_ms
+}
+
 /// The server's stand-in for a file the index skipped, listed as if it were
 /// a match.
 pub fn is_placeholder(file: &FileMatch) -> bool {
@@ -33,8 +38,7 @@ pub fn counted(
     placeholder_ranges: u64,
 ) -> Counted {
     let count = results.match_count.saturating_sub(placeholder_ranges);
-    let in_time =
-        results.elapsed_milliseconds + MARGIN_MS < prepared.deadline_ms;
+    let in_time = in_time(results.elapsed_milliseconds, prepared.deadline_ms);
     let capped = results.limit_hit
         && prepared.cap.is_some_and(|cap| results.match_count >= cap);
     // `limitHit` below the cap is not a cut: select:symbol, select:file.owners

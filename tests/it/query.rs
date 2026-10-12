@@ -10,14 +10,18 @@ const OVERFLOW: &str = "340282366920938463463374607431.9s";
 
 #[test]
 fn facts() {
-    let appended = |query: &str| format!("{query} count:100");
-    for query in ["NewRouter", "\"count:5\" foo"] {
+    let rows = [
+        ("NewRouter", Some(30), 20_000),
+        ("\"count:5\" foo", Some(30), 20_000),
+        ("COUNT:5 foo", Some(5), 60_000),
+        ("foo (bar count:all)", None, 60_000),
+        ("-count:5 x", Some(5), 60_000),
+    ];
+    for (query, cap, deadline) in rows {
         let prepared = prepare(query);
-        assert_eq!(prepared.sent, appended(query), "{query}");
-    }
-    for query in ["COUNT:5 foo", "foo (bar count:all)", "-count:5 x"] {
-        let prepared = prepare(query);
-        assert_eq!(prepared.sent, query);
+        assert_eq!(prepared.query, query);
+        assert_eq!(prepared.cap, cap, "{query}");
+        assert_eq!(prepared.deadline_ms, deadline, "{query}");
     }
 }
 
@@ -41,7 +45,8 @@ fn pattern_types() {
 #[test]
 fn deadlines() {
     let rows = [
-        ("foo", 60_000),
+        ("foo", 20_000),
+        ("foo count:5", 60_000),
         ("foo timeout:5s", 5_000),
         ("foo timeout:1m30s", 60_000),
         ("foo timeout:1.5s", 1_500),
@@ -203,10 +208,10 @@ fn tenths_rounds_to_one_decimal() {
 fn prepared_carries_the_facts() {
     let prepared = prepare("repo:x type:diff foo");
     assert_eq!(prepared.query, "repo:x type:diff foo");
-    assert_eq!(prepared.cap, Some(100));
+    assert_eq!(prepared.cap, Some(30));
     assert_eq!(prepared.unit, Unit::Matches);
     assert!(prepared.diff);
-    assert_eq!(prepared.deadline_ms, 60_000);
+    assert_eq!(prepared.deadline_ms, 20_000);
     assert_eq!(prepared.unindexed, None);
 
     let prepared = prepare("repo:x file:a$ count:all");

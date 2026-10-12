@@ -8,10 +8,7 @@ pub struct Results {
     pub match_count: u64,
     pub approximate_result_count: String,
     pub limit_hit: bool,
-    pub repositories_count: u64,
     pub timedout: Vec<Named>,
-    pub cloning: Vec<Named>,
-    pub missing: Vec<Named>,
     pub alert: Option<Alert>,
     pub elapsed_milliseconds: u64,
     pub dynamic_filters: Vec<DynamicFilter>,
@@ -24,6 +21,53 @@ pub struct UnindexedFile {
     pub commit: String,
     pub path: String,
     pub bytes: u64,
+}
+
+/// The `unindexed` alias's results.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Listing {
+    pub limit_hit: bool,
+    pub elapsed_milliseconds: u64,
+    pub timedout: Vec<Named>,
+    pub alert: Option<Titled>,
+    /// A selection naming only `FileMatch` leaves `{}` for any other kind.
+    pub results: Vec<Value>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Titled {
+    pub title: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct Listed {
+    repository: Named,
+    file: ListedFile,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ListedFile {
+    path: String,
+    byte_size: u64,
+    commit: Oid,
+}
+
+impl Listing {
+    /// The file matches, in order; anything else is skipped.
+    pub fn files(self) -> Vec<UnindexedFile> {
+        self.results
+            .into_iter()
+            .filter_map(|item| serde_json::from_value::<Listed>(item).ok())
+            .map(|listed| UnindexedFile {
+                repo: listed.repository.name,
+                commit: listed.file.commit.oid,
+                path: listed.file.path,
+                bytes: listed.file.byte_size,
+            })
+            .collect()
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -50,9 +94,7 @@ pub struct Proposed {
 #[serde(rename_all = "camelCase")]
 pub struct DynamicFilter {
     pub value: String,
-    pub label: String,
     pub count: u64,
-    pub limit_hit: bool,
     pub kind: String,
 }
 

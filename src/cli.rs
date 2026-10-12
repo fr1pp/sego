@@ -561,8 +561,7 @@ fn search_help() -> String {
     format!(
         "usage: {SEARCH_SYNOPSIS}\n\n\
          QUERY... is joined with single spaces and sent as one \
-         Sourcegraph query,\nwith count:100 appended when the query has \
-         no count:.\n\n{SEARCH_QUERY}\n{OPTIONS}\n\
+         Sourcegraph query.\n\n{SEARCH_QUERY}\n{OPTIONS}\n\
          Search prints one line of context around each match.\n\
          Text prints the first 100 matches; --json carries every result \
          fetched.\n"

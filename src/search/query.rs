@@ -61,7 +61,6 @@ impl Unit {
 
 pub struct Prepared {
     pub query: String,
-    pub sent: String,
     pub pattern_type: String,
     pub cap: Option<u64>,
     pub unit: Unit,
@@ -72,13 +71,7 @@ pub struct Prepared {
 }
 
 pub fn prepare(query: &str) -> Prepared {
-    let has_count = tokenize(query).iter().any(|token| field(token, "count"));
-    let sent = if has_count {
-        query.to_owned()
-    } else {
-        format!("{query} count:100")
-    };
-    let tokens = tokenize(&sent);
+    let tokens = tokenize(query);
     let deadline_ms = deadline_ms(&tokens);
     Prepared {
         query: query.to_owned(),
@@ -89,7 +82,6 @@ pub fn prepare(query: &str) -> Prepared {
         diff: values(&tokens, "type").any(|value| value == "diff"),
         unindexed: unindexed_query(&tokens, deadline_ms),
         deadline_ms,
-        sent,
     }
 }
 
