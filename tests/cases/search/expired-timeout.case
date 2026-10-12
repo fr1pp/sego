@@ -1,0 +1,5 @@
+# A clean zero that came back after a 1ms deadline is stopped, not empty.
+args: search 'repo:sego-fake/et func timeout:1ms'
+exit: 1
+--- stderr
+sego: error: the search stopped at 0.0 s with no results

@@ -1,0 +1,10 @@
+# A NOT-INDEXED placeholder is dropped and its range leaves the count.
+args: search 'repo:sego-fake/ph binary'
+exit: 0
+--- stdout
+2 matches  1 repo  0.3 s
+query  repo:sego-fake/ph binary
+
+github.com/sego-fake/ph@0123456789ab:src/real.txt
+  10:a binary value
+  11:another binary

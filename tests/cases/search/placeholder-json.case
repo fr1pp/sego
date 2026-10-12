@@ -1,0 +1,5 @@
+# The JSON form drops the placeholder too.
+args: search --json 'repo:sego-fake/ph binary'
+exit: 0
+--- stdout
+{"query":"repo:sego-fake/ph binary","pattern_type":"keyword","unit":"matches","count":2,"at_least":false,"stopped":false,"elapsed_ms":300,"limit_ms":60000,"widen":[],"unindexed":null,"alert":null,"results":[{"kind":"line","repo":"github.com/sego-fake/ph","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"src/real.txt","line":10,"text":"a binary value","match":true,"ranges":[[2,8]],"chunk":1},{"kind":"line","repo":"github.com/sego-fake/ph","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"src/real.txt","line":11,"text":"another binary","match":true,"ranges":[[8,14]],"chunk":1}],"server":{"match_count":3,"approximate_count":"3","limit_hit":false,"timedout":[]}}
