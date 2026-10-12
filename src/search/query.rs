@@ -1,8 +1,25 @@
 use std::time::Duration;
 
-use super::lint::{Token, check, tokenize};
+use super::lint::{Filter, Op, Token, check, tokenize};
 
-const DEADLINE_MS: u64 = 60_000;
+const MAX_DEADLINE_MS: u64 = 60_000;
+const DEFAULT_DEADLINE_MS: u64 = 20_000;
+const DEFAULT_CAP: u64 = 30;
+const SCOPE_FIELDS: [&str; 12] = [
+    "repo",
+    "r",
+    "file",
+    "f",
+    "path",
+    "lang",
+    "l",
+    "language",
+    "fork",
+    "archived",
+    "visibility",
+    "context",
+];
+pub const UNINDEXED_PATTERN: &str = r"^NOT-INDEXED:\ (exceeds\ the\ maximum\ size\ limit|contains\ too\ many\ trigrams)$";
 const PATTERN_TYPES: [&str; 8] = [
     "standard",
     "regex",
@@ -14,11 +31,44 @@ const PATTERN_TYPES: [&str; 8] = [
     "lucky",
 ];
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Unit {
+    Matches,
+    Symbols,
+    Files,
+    Repos,
+}
+
+impl Unit {
+    pub fn plural(self) -> &'static str {
+        match self {
+            Unit::Matches => "matches",
+            Unit::Symbols => "symbols",
+            Unit::Files => "files",
+            Unit::Repos => "repos",
+        }
+    }
+
+    pub fn singular(self) -> &'static str {
+        match self {
+            Unit::Matches => "match",
+            Unit::Symbols => "symbol",
+            Unit::Files => "file",
+            Unit::Repos => "repo",
+        }
+    }
+}
+
 pub struct Prepared {
+    pub query: String,
     pub sent: String,
     pub added: Vec<String>,
     pub pattern_type: String,
+    pub cap: Option<u64>,
+    pub unit: Unit,
+    pub diff: bool,
     pub deadline_ms: u64,
+    pub unindexed: Option<String>,
     pub notes: Vec<String>,
 }
 
@@ -30,10 +80,16 @@ pub fn prepare(query: &str) -> Prepared {
         (format!("{query} count:100"), vec!["count:100".to_owned()])
     };
     let tokens = tokenize(&sent);
+    let deadline_ms = deadline_ms(&tokens);
     Prepared {
+        query: query.to_owned(),
         pattern_type: pattern_type(&tokens),
         notes: check(&tokens),
-        deadline_ms: deadline_ms(&tokens),
+        cap: cap(&tokens),
+        unit: unit(&tokens),
+        diff: values(&tokens, "type").any(|value| value == "diff"),
+        unindexed: unindexed_query(&tokens, deadline_ms),
+        deadline_ms,
         sent,
         added,
     }
@@ -41,6 +97,103 @@ pub fn prepare(query: &str) -> Prepared {
 
 fn field(token: &Token, name: &str) -> bool {
     matches!(token, Token::Filter(f) if f.field.eq_ignore_ascii_case(name))
+}
+
+fn values<'a>(
+    tokens: &'a [Token],
+    name: &'a str,
+) -> impl Iterator<Item = &'a str> {
+    tokens.iter().filter_map(move |token| match token {
+        Token::Filter(f) if f.field.eq_ignore_ascii_case(name) => {
+            Some(f.value.as_str())
+        }
+        _ => None,
+    })
+}
+
+/// How many results the query asks for: the last `count:` value, 30 when
+/// there is none. `all`, or a value that isn't a number, is no cap.
+pub fn cap(tokens: &[Token]) -> Option<u64> {
+    let Some(value) = values(tokens, "count").last() else {
+        return Some(DEFAULT_CAP);
+    };
+    if value.is_empty() || !value.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    value.parse().ok()
+}
+
+/// What the results count, from the query's `select:` and `type:` values.
+pub fn unit(tokens: &[Token]) -> Unit {
+    let selects = || values(tokens, "select");
+    let types = || values(tokens, "type");
+    if selects().any(|v| v.starts_with("repo")) || types().any(|v| v == "repo")
+    {
+        Unit::Repos
+    } else if selects().any(|v| v.starts_with("file"))
+        || types().any(|v| v == "path")
+    {
+        Unit::Files
+    } else if types().any(|v| v == "symbol") && types().all(|v| v == "symbol")
+    {
+        Unit::Symbols
+    } else if types().any(|v| v == "commit" || v == "diff")
+        || tokens.iter().any(|token| {
+            matches!(
+                token,
+                Token::Term(_) | Token::Quoted(_) | Token::Pattern(_)
+            )
+        })
+    {
+        Unit::Matches
+    } else {
+        Unit::Files
+    }
+}
+
+pub fn duration_text(ms: u64) -> String {
+    if ms.is_multiple_of(1000) {
+        format!("{}s", ms / 1000)
+    } else {
+        format!("{ms}ms")
+    }
+}
+
+/// `ms` in seconds, rounded to one decimal place.
+pub fn tenths(ms: u64) -> String {
+    let tenths = (ms + 50) / 100;
+    format!("{}.{}", tenths / 10, tenths % 10)
+}
+
+/// A second search for the files the index skipped, within the query's
+/// scope. `None` when the query's scope can't be restated that way.
+pub fn unindexed_query(tokens: &[Token], deadline_ms: u64) -> Option<String> {
+    let filters = || {
+        tokens.iter().filter_map(|token| match token {
+            Token::Filter(f) => Some(f),
+            _ => None,
+        })
+    };
+    let is = |f: &Filter, names: &[&str]| {
+        names.iter().any(|name| f.field.eq_ignore_ascii_case(name))
+    };
+    let repo = |f: &Filter| is(f, &["repo", "r"]);
+    let eligible = filters().any(|f| repo(f) && !f.negated)
+        && !tokens.contains(&Token::Op(Op::Or))
+        && !filters().any(|f| repo(f) && f.value.contains('@'))
+        && !filters().any(|f| is(f, &["rev", "revision"]))
+        && !values(tokens, "type")
+            .any(|v| matches!(v, "commit" | "diff" | "repo"));
+    let scope: Vec<String> =
+        filters().filter(|f| is(f, &SCOPE_FIELDS)).map(Filter::raw).collect();
+    if !eligible || scope.iter().any(|raw| raw.contains(char::is_whitespace)) {
+        return None;
+    }
+    Some(format!(
+        "{} type:file select:file index:only patterntype:regexp {UNINDEXED_PATTERN} count:all timeout:{}",
+        scope.join(" "),
+        duration_text(deadline_ms),
+    ))
 }
 
 /// The last `patterntype:` value the server accepts, as written. `regex`
@@ -63,17 +216,23 @@ pub fn pattern_type(tokens: &[Token]) -> String {
     if value == "regex" { "regexp" } else { value }.to_owned()
 }
 
-fn deadline_ms(tokens: &[Token]) -> u64 {
+/// How long the search may run: the first `timeout:`, at most a minute;
+/// without one, a minute when the query has a `count:`, else 20 seconds.
+pub fn deadline_ms(tokens: &[Token]) -> u64 {
     let Some(Token::Filter(timeout)) =
         tokens.iter().find(|token| field(token, "timeout"))
     else {
-        return DEADLINE_MS;
+        return if tokens.iter().any(|token| field(token, "count")) {
+            MAX_DEADLINE_MS
+        } else {
+            DEFAULT_DEADLINE_MS
+        };
     };
     match parse(unquoted(&timeout.value)) {
         Some((true, _)) => 0,
         Some((false, d)) => u64::try_from(d.as_nanos().div_ceil(1_000_000))
-            .map_or(DEADLINE_MS, |ms| ms.min(DEADLINE_MS)),
-        None => DEADLINE_MS,
+            .map_or(MAX_DEADLINE_MS, |ms| ms.min(MAX_DEADLINE_MS)),
+        None => MAX_DEADLINE_MS,
     }
 }
 

@@ -1,8 +1,9 @@
 use std::time::Duration;
 
-use sego::internal::search::lint::tokenize;
+use sego::internal::search::lint::{Token, tokenize};
 use sego::internal::search::query::{
-    go_duration, pattern_type, prepare, seconds,
+    Unit, cap, deadline_ms, duration_text, go_duration, pattern_type, prepare,
+    seconds, tenths, unindexed_query, unit,
 };
 
 const OVERFLOW: &str = "340282366920938463463374607431.9s";
@@ -100,4 +101,125 @@ fn seconds_text() {
         assert_eq!(seconds(ms), text);
     }
     assert_eq!(seconds(0), "0");
+}
+
+fn t(query: &str) -> Vec<Token> {
+    tokenize(query)
+}
+
+#[test]
+fn cap_in_force() {
+    assert_eq!(cap(&t("foo")), Some(30));
+    assert_eq!(cap(&t("foo count:5")), Some(5));
+    assert_eq!(cap(&t("foo COUNT:all")), None);
+    assert_eq!(cap(&t("foo count:5 count:7")), Some(7));
+    assert_eq!(cap(&t("foo count:5 count:all")), None);
+    assert_eq!(cap(&t("foo count:many")), None);
+}
+
+#[test]
+fn deadline_defaults_to_20_s() {
+    assert_eq!(deadline_ms(&t("foo")), 20_000);
+    assert_eq!(deadline_ms(&t("foo count:5")), 60_000);
+    assert_eq!(deadline_ms(&t("foo timeout:90s")), 60_000);
+    assert_eq!(deadline_ms(&t("foo count:all timeout:5s")), 5_000);
+    assert_eq!(deadline_ms(&t("foo timeout:-3s")), 0);
+}
+
+#[test]
+fn unit_from_the_query() {
+    let rows = [
+        ("repo:x foo select:repo", Unit::Repos),
+        ("foo type:repo", Unit::Repos),
+        ("foo SELECT:file.directory", Unit::Files),
+        ("type:path foo", Unit::Files),
+        (r"repo:x file:\.go$", Unit::Files),
+        ("type:symbol Route", Unit::Symbols),
+        ("type:symbol type:file Route", Unit::Matches),
+        ("repo:x type:commit author:a", Unit::Matches),
+        ("repo:x type:diff", Unit::Matches),
+        ("type:Symbol foo", Unit::Matches),
+        ("foo", Unit::Matches),
+        ("\"foo bar\"", Unit::Matches),
+        ("/foo/", Unit::Matches),
+    ];
+    for (query, expected) in rows {
+        assert_eq!(unit(&t(query)), expected, "{query}");
+    }
+    assert_eq!(
+        [Unit::Matches, Unit::Symbols, Unit::Files, Unit::Repos]
+            .map(|u| (u.plural(), u.singular())),
+        [
+            ("matches", "match"),
+            ("symbols", "symbol"),
+            ("files", "file"),
+            ("repos", "repo"),
+        ],
+    );
+}
+
+#[test]
+fn unindexed_query_for_an_eligible_query() {
+    assert_eq!(
+        unindexed_query(
+            &t(r"repo:^github\.com/gorilla/mux$ file:\.go$ -lang:markdown foo count:5"),
+            60_000,
+        )
+        .as_deref(),
+        Some(
+            r"repo:^github\.com/gorilla/mux$ file:\.go$ -lang:markdown type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\ (exceeds\ the\ maximum\ size\ limit|contains\ too\ many\ trigrams)$ count:all timeout:60s"
+        ),
+    );
+    assert_eq!(
+        unindexed_query(&t("R:x -F:y foo"), 1_500).as_deref(),
+        Some(
+            r"R:x -F:y type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\ (exceeds\ the\ maximum\ size\ limit|contains\ too\ many\ trigrams)$ count:all timeout:1500ms"
+        ),
+    );
+    assert_eq!(duration_text(500), "500ms");
+    assert_eq!(duration_text(20_000), "20s");
+}
+
+#[test]
+fn unindexed_query_absent_when_not_eligible() {
+    for q in [
+        "foo",
+        "-repo:x foo",
+        "repo:x a or b",
+        "repo:x@v1 foo",
+        "repo:x -r:y@v1 foo",
+        "repo:x rev:v1 foo",
+        "repo:x revision:v1 foo",
+        "repo:x type:diff foo",
+        "repo:x type:commit foo",
+        "repo:x type:repo",
+        r#"repo:x file:"a b" foo"#,
+    ] {
+        assert_eq!(unindexed_query(&t(q), 20_000), None, "{q}");
+    }
+}
+
+#[test]
+fn tenths_rounds_to_one_decimal() {
+    assert_eq!(tenths(1449), "1.4");
+    assert_eq!(tenths(21_300), "21.3");
+    assert_eq!(tenths(15), "0.0");
+    assert_eq!(tenths(50), "0.1");
+}
+
+#[test]
+fn prepared_carries_the_facts() {
+    let prepared = prepare("repo:x type:diff foo");
+    assert_eq!(prepared.query, "repo:x type:diff foo");
+    assert_eq!(prepared.cap, Some(100));
+    assert_eq!(prepared.unit, Unit::Matches);
+    assert!(prepared.diff);
+    assert_eq!(prepared.deadline_ms, 60_000);
+    assert_eq!(prepared.unindexed, None);
+
+    let prepared = prepare("repo:x file:a$ count:all");
+    assert_eq!(prepared.cap, None);
+    assert_eq!(prepared.unit, Unit::Files);
+    assert!(!prepared.diff);
+    assert!(prepared.unindexed.is_some());
 }
