@@ -1,15 +1,15 @@
 operation: Search
 variables:
-  query: repo:^github\.com/gorilla/mux$@v1.8.0 select:file.directory NewRouter count:100
+  query: repo:^github\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter
 query: |
   query Search($query: String!) {
     search(query: $query, version: V3, patternType: keyword) {
       results {
-        matchCount approximateResultCount limitHit repositoriesCount
-        timedout { name } cloning { name } missing { name }
+        matchCount approximateResultCount limitHit
+        timedout { name }
         alert { title description kind proposedQueries { description query } }
         elapsedMilliseconds
-        dynamicFilters { value label count limitHit kind }
+        dynamicFilters { value count kind }
         results {
           __typename
           ... on FileMatch {
@@ -37,39 +37,58 @@ response:
     search:
       results:
         alert: null
-        approximateResultCount: 1+
-        cloning: []
+        approximateResultCount: "2"
         dynamicFilters:
-        - count: 1
+        - count: 2
           kind: type
-          label: Paths
-          limitHit: true
-          value: type:path
-        - count: 1
+          value: type:symbol
+        - count: 2
           kind: lang
-          label: Go
-          limitHit: true
           value: lang:go
-        - count: 1
+        - count: 2
           kind: repo
-          label: github.com/gorilla/mux
-          limitHit: true
           value: repo:^github\.com/gorilla/mux$@v1.8.0
-        elapsedMilliseconds: 535
-        limitHit: true
-        matchCount: 1
-        missing: []
-        repositoriesCount: 1
+        - count: 2
+          kind: symbol type
+          value: select:symbol.function
+        elapsedMilliseconds: 15
+        limitHit: false
+        matchCount: 2
         results:
         - __typename: FileMatch
           chunkMatches: []
           file:
             commit:
               oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
-            path: ./
+            path: mux.go
           repository:
             name: github.com/gorilla/mux
           revSpec:
             expr: v1.8.0
-          symbols: []
+          symbols:
+          - containerName: mux
+            kind: FUNCTION
+            location:
+              range:
+                start:
+                  line: 24
+            name: NewRouter
+        - __typename: FileMatch
+          chunkMatches: []
+          file:
+            commit:
+              oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+            path: regexp.go
+          repository:
+            name: github.com/gorilla/mux
+          revSpec:
+            expr: v1.8.0
+          symbols:
+          - containerName: mux
+            kind: FUNCTION
+            location:
+              range:
+                start:
+                  line: 40
+            name: newRouteRegexp
         timedout: []

@@ -1,6 +1,6 @@
 operation: Search
 variables:
-  query: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx unable count:100"
+  query: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx unable"
 status: 200
 headers:
   content-type: application/json
@@ -12,10 +12,7 @@ response:
         matchCount: 0
         approximateResultCount: "0"
         limitHit: false
-        repositoriesCount: 0
         timedout: []
-        cloning: []
-        missing: []
         alert: 
           title: Unable To Process Query
           description: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"

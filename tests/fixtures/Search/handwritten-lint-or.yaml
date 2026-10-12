@@ -1,6 +1,6 @@
 operation: Search
 variables:
-  query: repo:x file:a or file:b count:100
+  query: repo:x file:a or file:b
 status: 200
 headers:
   content-type: application/json
@@ -12,10 +12,7 @@ response:
         matchCount: 0
         approximateResultCount: "0"
         limitHit: false
-        repositoriesCount: 0
         timedout: []
-        cloning: []
-        missing: []
         alert: null
         elapsedMilliseconds: 100
         dynamicFilters: []

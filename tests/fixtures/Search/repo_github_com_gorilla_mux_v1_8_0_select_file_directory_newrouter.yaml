@@ -1,15 +1,15 @@
 operation: Search
 variables:
-  query: repo:^github\.com/gorilla/mux$@v1.8.0 lnag:go NewRouter count:100
+  query: repo:^github\.com/gorilla/mux$@v1.8.0 select:file.directory NewRouter
 query: |
   query Search($query: String!) {
     search(query: $query, version: V3, patternType: keyword) {
       results {
-        matchCount approximateResultCount limitHit repositoriesCount
-        timedout { name } cloning { name } missing { name }
+        matchCount approximateResultCount limitHit
+        timedout { name }
         alert { title description kind proposedQueries { description query } }
         elapsedMilliseconds
-        dynamicFilters { value label count limitHit kind }
+        dynamicFilters { value count kind }
         results {
           __typename
           ... on FileMatch {
@@ -37,13 +37,30 @@ response:
     search:
       results:
         alert: null
-        approximateResultCount: "0"
-        cloning: []
-        dynamicFilters: []
-        elapsedMilliseconds: 502
-        limitHit: false
-        matchCount: 0
-        missing: []
-        repositoriesCount: 0
-        results: []
+        approximateResultCount: 1+
+        dynamicFilters:
+        - count: 1
+          kind: type
+          value: type:path
+        - count: 1
+          kind: lang
+          value: lang:go
+        - count: 1
+          kind: repo
+          value: repo:^github\.com/gorilla/mux$@v1.8.0
+        elapsedMilliseconds: 936
+        limitHit: true
+        matchCount: 1
+        results:
+        - __typename: FileMatch
+          chunkMatches: []
+          file:
+            commit:
+              oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+            path: ./
+          repository:
+            name: github.com/gorilla/mux
+          revSpec:
+            expr: v1.8.0
+          symbols: []
         timedout: []

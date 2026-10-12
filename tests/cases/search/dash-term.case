@@ -2,7 +2,7 @@
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0' '-file:_test\.go' NewRouter
 exit: 0
 --- stdout
-46 matches  1 repo  1.2 s
+30+ matches  1 repo  1.3 s
 query  repo:^github\.com/gorilla/mux$@v1.8.0 -file:_test\.go NewRouter
 
 github.com/gorilla/mux@98cb6bf42e08:README.md
@@ -125,64 +125,3 @@ github.com/gorilla/mux@98cb6bf42e08:doc.go
  260-
  261:	r := mux.NewRouter()
  262-	r.HandleFunc("/", handler)
---
- 294-
- 295:	r := mux.NewRouter()
- 296-	r.HandleFunc("/", handler)
-github.com/gorilla/mux@98cb6bf42e08:mux.go
-  23-
-  24:// NewRouter returns a new router instance.
-  25:func NewRouter() *Router {
-  26-	return &Router{namedRoutes: make(map[string]*Route)}
---
-  33-//
-  34://     var router = mux.NewRouter()
-  35-//
-github.com/gorilla/mux@98cb6bf42e08:regexp.go
-  30-
-  31:// newRouteRegexp parses a route template and returns a routeRegexp,
-  32-// used to match a host, a path or a query string.
---
-  40-// name and pattern can't be empty, and names can't contain a colon.
-  41:func newRouteRegexp(tpl string, typ regexpType, options routeRegexpOptions) (*routeRegexp, error) {
-  42-	// Check if it is well-formed.
-github.com/gorilla/mux@98cb6bf42e08:route.go
- 185-	}
- 186:	rr, err := newRouteRegexp(tpl, typ, routeRegexpOptions{
- 187-		strictSlash:    r.strictSlash,
---
- 232-//
- 233://     r := mux.NewRouter()
- 234-//     r.Headers("Content-Type", "application/json",
---
- 257-//
- 258://     r := mux.NewRouter()
- 259-//     r.HeadersRegexp("Content-Type", "application/(text|json)",
---
- 285-//
- 286://     r := mux.NewRouter()
- 287-//     r.Host("www.example.com")
---
- 344-//
- 345://     r := mux.NewRouter()
- 346-//     r.Path("/products/").Handler(ProductsHandler)
---
- 379-//
- 380://     r := mux.NewRouter()
- 381-//     r.Queries("foo", "bar", "id", "{id:[0-9]+}")
---
- 475-//
- 476://     r := mux.NewRouter()
- 477-//     s := r.Host("www.example.com").Subrouter()
---
- 499-//
- 500://     r := mux.NewRouter()
- 501-//     r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
---
- 513-//
- 514://     r := mux.NewRouter()
- 515-//     r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
---
- 526-//     // url.String() will be "https://example.com"
- 527://     r := mux.NewRouter()
- 528-//     url, err := r.Host("example.com")

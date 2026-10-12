@@ -5,11 +5,11 @@ query: |
   query Search($query: String!) {
     search(query: $query, version: V3, patternType: keyword) {
       results {
-        matchCount approximateResultCount limitHit repositoriesCount
-        timedout { name } cloning { name } missing { name }
+        matchCount approximateResultCount limitHit
+        timedout { name }
         alert { title description kind proposedQueries { description query } }
         elapsedMilliseconds
-        dynamicFilters { value label count limitHit kind }
+        dynamicFilters { value count kind }
         results {
           __typename
           ... on FileMatch {
@@ -38,33 +38,22 @@ response:
       results:
         alert: null
         approximateResultCount: 3+
-        cloning: []
         dynamicFilters:
         - count: 3
           kind: type
-          label: Diffs
-          limitHit: true
           value: type:diff
         - count: 3
           kind: repo
-          label: github.com/gorilla/mux
-          limitHit: true
           value: repo:^github\.com/gorilla/mux$
         - count: 1
           kind: author
-          label: Harshavardhana
-          limitHit: true
           value: author:harsha@minio\.io
         - count: 1
           kind: commit date
-          label: Older than 2 months
-          limitHit: true
           value: before:"2 months ago"
-        elapsedMilliseconds: 31
+        elapsedMilliseconds: 149
         limitHit: true
         matchCount: 3
-        missing: []
-        repositoriesCount: 1
         results:
         - __typename: CommitSearchResult
           commit:

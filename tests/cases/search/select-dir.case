@@ -2,7 +2,7 @@
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 select:file.directory NewRouter'
 exit: 0
 --- stdout
-1+ files  1 repo  0.5 s
+1+ files  1 repo  0.9 s
 query  repo:^github\.com/gorilla/mux$@v1.8.0 select:file.directory NewRouter
 
 github.com/gorilla/mux@98cb6bf42e08:./

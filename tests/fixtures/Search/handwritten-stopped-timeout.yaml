@@ -1,6 +1,7 @@
 operation: Search
 variables:
-  query: repo:sego-fake/timeout foo timeout:5s count:100
+  query: repo:sego-fake/timeout foo timeout:5s
+  unindexed: "repo:sego-fake/timeout type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:5s"
 status: 200
 headers:
   content-type: application/json
@@ -12,11 +13,15 @@ response:
         matchCount: 0
         approximateResultCount: "0"
         limitHit: false
-        repositoriesCount: 0
         timedout: []
-        cloning: []
-        missing: []
         alert: null
         elapsedMilliseconds: 5004
         dynamicFilters: []
+        results: []
+    unindexed:
+      results:
+        limitHit: false
+        elapsedMilliseconds: 10
+        timedout: []
+        alert: null
         results: []

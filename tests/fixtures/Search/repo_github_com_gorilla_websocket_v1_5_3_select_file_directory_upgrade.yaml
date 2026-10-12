@@ -1,17 +1,15 @@
 operation: Search
 variables:
-  query: >-
-    repo:^github\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade
-    count:100
+  query: repo:^github\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade
 query: |
   query Search($query: String!) {
     search(query: $query, version: V3, patternType: keyword) {
       results {
-        matchCount approximateResultCount limitHit repositoriesCount
-        timedout { name } cloning { name } missing { name }
+        matchCount approximateResultCount limitHit
+        timedout { name }
         alert { title description kind proposedQueries { description query } }
         elapsedMilliseconds
-        dynamicFilters { value label count limitHit kind }
+        dynamicFilters { value count kind }
         results {
           __typename
           ... on FileMatch {
@@ -39,29 +37,20 @@ response:
     search:
       results:
         alert: null
-        approximateResultCount: 6+
-        cloning: []
+        approximateResultCount: "4"
         dynamicFilters:
-        - count: 6
+        - count: 4
           kind: type
-          label: Paths
-          limitHit: true
           value: type:path
-        - count: 6
-          kind: repo
-          label: github.com/gorilla/websocket
-          limitHit: true
-          value: repo:^github\.com/gorilla/websocket$@v1.5.3
         - count: 4
           kind: lang
-          label: Go
-          limitHit: true
           value: lang:go
-        elapsedMilliseconds: 381
-        limitHit: true
-        matchCount: 6
-        missing: []
-        repositoriesCount: 1
+        - count: 4
+          kind: repo
+          value: repo:^github\.com/gorilla/websocket$@v1.5.3
+        elapsedMilliseconds: 558
+        limitHit: false
+        matchCount: 4
         results:
         - __typename: FileMatch
           chunkMatches: []
@@ -102,28 +91,6 @@ response:
             commit:
               oid: ce903f6d1d961af3a8602f2842c8b1c3fca58c4d
             path: ./
-          repository:
-            name: github.com/gorilla/websocket
-          revSpec:
-            expr: v1.5.3
-          symbols: []
-        - __typename: FileMatch
-          chunkMatches: []
-          file:
-            commit:
-              oid: ce903f6d1d961af3a8602f2842c8b1c3fca58c4d
-            path: examples/autobahn/
-          repository:
-            name: github.com/gorilla/websocket
-          revSpec:
-            expr: v1.5.3
-          symbols: []
-        - __typename: FileMatch
-          chunkMatches: []
-          file:
-            commit:
-              oid: ce903f6d1d961af3a8602f2842c8b1c3fca58c4d
-            path: examples/filewatch/
           repository:
             name: github.com/gorilla/websocket
           revSpec:

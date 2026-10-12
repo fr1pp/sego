@@ -2,7 +2,7 @@
 args: search '(repo:^github\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter) or (repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter) count:100'
 exit: 0
 --- stdout
-100 of 102+ matches  1 repo  0.7 s
+100 of 102+ matches  1 repo  0.4 s
 query  (repo:^github\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter) or (repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter) count:100
 
 github.com/gorilla/mux@98cb6bf42e08:mux.go
@@ -24,10 +24,6 @@ github.com/gorilla/mux@98cb6bf42e08:regexp.go
   41:func newRouteRegexp(tpl string, typ regexpType, options routeRegexpOptions) (*routeRegexp, error) {
   41:function  newRouteRegexp
   42-	// Check if it is well-formed.
-github.com/gorilla/mux@98cb6bf42e08:example_authentication_middleware_test.go
-  38-func Example_authenticationMiddleware() {
-  39:	r := mux.NewRouter()
-  40-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 github.com/gorilla/mux@98cb6bf42e08:mux_httpserver_test.go
   13-func TestSchemeMatchers(t *testing.T) {
   14:	router := NewRouter()
@@ -168,50 +164,50 @@ github.com/gorilla/mux@98cb6bf42e08:route.go
  344-//
  345://     r := mux.NewRouter()
  346-//     r.Path("/products/").Handler(ProductsHandler)
-github.com/gorilla/mux@98cb6bf42e08:doc.go
-  28-	func main() {
-  29:		r := mux.NewRouter()
-  30-		r.HandleFunc("/", HomeHandler)
+github.com/gorilla/mux@98cb6bf42e08:middleware_test.go
+  22-func TestMiddlewareAdd(t *testing.T) {
+  23:	router := NewRouter()
+  24-	router.HandleFunc("/", dummyHandler).Methods("GET")
 --
-  44-
-  45:	r := mux.NewRouter()
-  46-	r.HandleFunc("/products/{key}", ProductHandler)
+  47-func TestMiddleware(t *testing.T) {
+  48:	router := NewRouter()
+  49-	router.HandleFunc("/", dummyHandler).Methods("GET")
 --
-  70-
-  71:	r := mux.NewRouter()
-  72-	// Only matches if domain is "www.example.com".
+  90-func TestMiddlewareSubrouter(t *testing.T) {
+  91:	router := NewRouter()
+  92-	router.HandleFunc("/", dummyHandler).Methods("GET")
 --
- 117-
- 118:	r := mux.NewRouter()
- 119-	s := r.Host("www.example.com").Subrouter()
---
- 138-
- 139:	r := mux.NewRouter()
- 140-	s := r.PathPrefix("/products").Subrouter()
---
- 156-		flag.Parse()
- 157:		r := mux.NewRouter()
  158-
+ 159:	router := NewRouter()
+ 160-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
 --
- 177-
- 178:	r := mux.NewRouter()
- 179-	r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
+ 196-
+ 197:	router := NewRouter()
+ 198-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
 --
- 192-
- 193:	r := mux.NewRouter()
- 194-	r.Host("{subdomain}.domain.com").
+ 237-
+ 238:	router := NewRouter()
+ 239-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
 --
- 230-
- 231:	r := mux.NewRouter()
- 232-	s := r.Host("{subdomain}.domain.com").Subrouter()
+ 278-
+ 279:	router := NewRouter()
+ 280-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
 --
- 260-
- 261:	r := mux.NewRouter()
- 262-	r.HandleFunc("/", handler)
+ 324-
+ 325:	router := NewRouter()
+ 326-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
 --
- 294-
- 295:	r := mux.NewRouter()
- 296-	r.HandleFunc("/", handler)
+ 455-		t.Run(tt.name, func(t *testing.T) {
+ 456:			router := NewRouter()
+ 457-
+--
+ 481-func TestCORSMethodMiddlewareSubrouter(t *testing.T) {
+ 482:	router := NewRouter().StrictSlash(true)
+ 483-
+--
+ 505-
+ 506:	router := NewRouter()
+ 507-	firstSubRouter := router.PathPrefix("/").Subrouter()
 github.com/gorilla/mux@98cb6bf42e08:old_test.go
   71-
   72:	router := NewRouter()
@@ -260,50 +256,10 @@ github.com/gorilla/mux@98cb6bf42e08:old_test.go
  697-	for pattern, paths := range tests {
  698:		p, _ = newRouteRegexp(pattern, regexpTypePath, routeRegexpOptions{})
  699-		for path, result := range paths {
-github.com/gorilla/mux@98cb6bf42e08:middleware_test.go
-  22-func TestMiddlewareAdd(t *testing.T) {
-  23:	router := NewRouter()
-  24-	router.HandleFunc("/", dummyHandler).Methods("GET")
---
-  47-func TestMiddleware(t *testing.T) {
-  48:	router := NewRouter()
-  49-	router.HandleFunc("/", dummyHandler).Methods("GET")
---
-  90-func TestMiddlewareSubrouter(t *testing.T) {
-  91:	router := NewRouter()
-  92-	router.HandleFunc("/", dummyHandler).Methods("GET")
---
- 158-
- 159:	router := NewRouter()
- 160-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
---
- 196-
- 197:	router := NewRouter()
- 198-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
---
- 237-
- 238:	router := NewRouter()
- 239-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
---
- 278-
- 279:	router := NewRouter()
- 280-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
---
- 324-
- 325:	router := NewRouter()
- 326-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
---
- 455-		t.Run(tt.name, func(t *testing.T) {
- 456:			router := NewRouter()
- 457-
---
- 481-func TestCORSMethodMiddlewareSubrouter(t *testing.T) {
- 482:	router := NewRouter().StrictSlash(true)
- 483-
---
- 505-
- 506:	router := NewRouter()
- 507-	firstSubRouter := router.PathPrefix("/").Subrouter()
+github.com/gorilla/mux@98cb6bf42e08:example_cors_method_middleware_test.go
+  11-func ExampleCORSMethodMiddleware() {
+  12:	r := mux.NewRouter()
+  13-
 github.com/gorilla/mux@98cb6bf42e08:example_route_test.go
   13-func ExampleRoute_HeadersRegexp() {
   14:	r := mux.NewRouter()
@@ -312,10 +268,6 @@ github.com/gorilla/mux@98cb6bf42e08:example_route_test.go
   35-func ExampleRoute_HeadersRegexp_exactMatch() {
   36:	r := mux.NewRouter()
   37-	route := r.NewRoute().HeadersRegexp("Origin", "^https://example.co$")
-github.com/gorilla/mux@98cb6bf42e08:example_cors_method_middleware_test.go
-  11-func ExampleCORSMethodMiddleware() {
-  12:	r := mux.NewRouter()
-  13-
 github.com/gorilla/mux@98cb6bf42e08:README.md
   52-func main() {
   53:    r := mux.NewRouter()
@@ -388,3 +340,51 @@ github.com/gorilla/mux@98cb6bf42e08:README.md
  727-func main() {
  728:    r := mux.NewRouter()
  729-    // A route with a route variable:
+--
+ 761-	// Need to create a router that we can pass the request through so that the vars will be added to the context
+ 762:	router := mux.NewRouter()
+ 763-        router.HandleFunc("/metrics/{type}", MetricsHandler)
+--
+ 793-func main() {
+ 794:    r := mux.NewRouter()
+ 795-    // Routes consist of a path and a handler function.
+github.com/gorilla/mux@98cb6bf42e08:doc.go
+  28-	func main() {
+  29:		r := mux.NewRouter()
+  30-		r.HandleFunc("/", HomeHandler)
+--
+  44-
+  45:	r := mux.NewRouter()
+  46-	r.HandleFunc("/products/{key}", ProductHandler)
+--
+  70-
+  71:	r := mux.NewRouter()
+  72-	// Only matches if domain is "www.example.com".
+--
+ 117-
+ 118:	r := mux.NewRouter()
+ 119-	s := r.Host("www.example.com").Subrouter()
+--
+ 138-
+ 139:	r := mux.NewRouter()
+ 140-	s := r.PathPrefix("/products").Subrouter()
+--
+ 156-		flag.Parse()
+ 157:		r := mux.NewRouter()
+ 158-
+--
+ 177-
+ 178:	r := mux.NewRouter()
+ 179-	r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
+--
+ 192-
+ 193:	r := mux.NewRouter()
+ 194-	r.Host("{subdomain}.domain.com").
+--
+ 230-
+ 231:	r := mux.NewRouter()
+ 232-	s := r.Host("{subdomain}.domain.com").Subrouter()
+--
+ 260-
+ 261:	r := mux.NewRouter()
+ 262-	r.HandleFunc("/", handler)

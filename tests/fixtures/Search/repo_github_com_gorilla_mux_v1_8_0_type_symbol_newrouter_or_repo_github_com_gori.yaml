@@ -7,11 +7,11 @@ query: |
   query Search($query: String!) {
     search(query: $query, version: V3, patternType: keyword) {
       results {
-        matchCount approximateResultCount limitHit repositoriesCount
-        timedout { name } cloning { name } missing { name }
+        matchCount approximateResultCount limitHit
+        timedout { name }
         alert { title description kind proposedQueries { description query } }
         elapsedMilliseconds
-        dynamicFilters { value label count limitHit kind }
+        dynamicFilters { value count kind }
         results {
           __typename
           ... on FileMatch {
@@ -40,48 +40,31 @@ response:
       results:
         alert: null
         approximateResultCount: 102+
-        cloning: []
         dynamicFilters:
         - count: 100
           kind: type
-          label: Code
-          limitHit: true
           value: type:file
         - count: 2
           kind: type
-          label: Symbols
-          limitHit: true
           value: type:symbol
         - count: 102
           kind: repo
-          label: github.com/gorilla/mux
-          limitHit: true
           value: repo:^github\.com/gorilla/mux$@v1.8.0
         - count: 82
           kind: lang
-          label: go
-          limitHit: true
           value: lang:go
         - count: 59
           kind: file
-          label: Exclude _test.*
-          limitHit: true
           value: -file:_test\.\w+$
         - count: 20
           kind: lang
-          label: Markdown
-          limitHit: true
           value: lang:markdown
         - count: 2
           kind: symbol type
-          label: Function
-          limitHit: true
           value: select:symbol.function
-        elapsedMilliseconds: 681
+        elapsedMilliseconds: 434
         limitHit: true
         matchCount: 102
-        missing: []
-        repositoriesCount: 1
         results:
         - __typename: FileMatch
           chunkMatches:
@@ -178,30 +161,6 @@ response:
                 start:
                   line: 40
             name: newRouteRegexp
-        - __typename: FileMatch
-          chunkMatches:
-          - content: |
-              func Example_authenticationMiddleware() {
-              	r := mux.NewRouter()
-              	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-            contentStart:
-              line: 37
-            ranges:
-            - end:
-                character: 19
-                line: 38
-              start:
-                character: 10
-                line: 38
-          file:
-            commit:
-              oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
-            path: example_authentication_middleware_test.go
-          repository:
-            name: github.com/gorilla/mux
-          revSpec:
-            expr: v1.8.0
-          symbols: []
         - __typename: FileMatch
           chunkMatches:
           - content: |
@@ -702,152 +661,152 @@ response:
         - __typename: FileMatch
           chunkMatches:
           - content: |
-              	func main() {
-              		r := mux.NewRouter()
-              		r.HandleFunc("/", HomeHandler)
+              func TestMiddlewareAdd(t *testing.T) {
+              	router := NewRouter()
+              	router.HandleFunc("/", dummyHandler).Methods("GET")
             contentStart:
-              line: 27
+              line: 21
             ranges:
             - end:
                 character: 20
-                line: 28
+                line: 22
               start:
                 character: 11
-                line: 28
+                line: 22
           - content: |
-              
-              	r := mux.NewRouter()
-              	r.HandleFunc("/products/{key}", ProductHandler)
+              func TestMiddleware(t *testing.T) {
+              	router := NewRouter()
+              	router.HandleFunc("/", dummyHandler).Methods("GET")
             contentStart:
-              line: 43
+              line: 46
             ranges:
             - end:
-                character: 19
-                line: 44
+                character: 20
+                line: 47
               start:
-                character: 10
-                line: 44
+                character: 11
+                line: 47
           - content: |
-              
-              	r := mux.NewRouter()
-              	// Only matches if domain is "www.example.com".
+              func TestMiddlewareSubrouter(t *testing.T) {
+              	router := NewRouter()
+              	router.HandleFunc("/", dummyHandler).Methods("GET")
             contentStart:
-              line: 69
+              line: 89
             ranges:
             - end:
-                character: 19
-                line: 70
+                character: 20
+                line: 90
               start:
-                character: 10
-                line: 70
+                character: 11
+                line: 90
           - content: |
               
-              	r := mux.NewRouter()
-              	s := r.Host("www.example.com").Subrouter()
+              	router := NewRouter()
+              	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
             contentStart:
-              line: 116
+              line: 157
             ranges:
             - end:
-                character: 19
-                line: 117
+                character: 20
+                line: 158
               start:
-                character: 10
-                line: 117
+                character: 11
+                line: 158
           - content: |
               
-              	r := mux.NewRouter()
-              	s := r.PathPrefix("/products").Subrouter()
+              	router := NewRouter()
+              	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
             contentStart:
-              line: 137
+              line: 195
             ranges:
             - end:
-                character: 19
-                line: 138
+                character: 20
+                line: 196
               start:
-                character: 10
-                line: 138
+                character: 11
+                line: 196
+          - content: |
+              
+              	router := NewRouter()
+              	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
+            contentStart:
+              line: 236
+            ranges:
+            - end:
+                character: 20
+                line: 237
+              start:
+                character: 11
+                line: 237
+          - content: |
+              
+              	router := NewRouter()
+              	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
+            contentStart:
+              line: 277
+            ranges:
+            - end:
+                character: 20
+                line: 278
+              start:
+                character: 11
+                line: 278
+          - content: |
+              
+              	router := NewRouter()
+              	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
+            contentStart:
+              line: 323
+            ranges:
+            - end:
+                character: 20
+                line: 324
+              start:
+                character: 11
+                line: 324
           - content: |+
-              		flag.Parse()
-              		r := mux.NewRouter()
+              		t.Run(tt.name, func(t *testing.T) {
+              			router := NewRouter()
               
             contentStart:
-              line: 155
+              line: 454
+            ranges:
+            - end:
+                character: 22
+                line: 455
+              start:
+                character: 13
+                line: 455
+          - content: |+
+              func TestCORSMethodMiddlewareSubrouter(t *testing.T) {
+              	router := NewRouter().StrictSlash(true)
+              
+            contentStart:
+              line: 480
             ranges:
             - end:
                 character: 20
-                line: 156
+                line: 481
               start:
                 character: 11
-                line: 156
+                line: 481
           - content: |
               
-              	r := mux.NewRouter()
-              	r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
+              	router := NewRouter()
+              	firstSubRouter := router.PathPrefix("/").Subrouter()
             contentStart:
-              line: 176
+              line: 504
             ranges:
             - end:
-                character: 19
-                line: 177
+                character: 20
+                line: 505
               start:
-                character: 10
-                line: 177
-          - content: |
-              
-              	r := mux.NewRouter()
-              	r.Host("{subdomain}.domain.com").
-            contentStart:
-              line: 191
-            ranges:
-            - end:
-                character: 19
-                line: 192
-              start:
-                character: 10
-                line: 192
-          - content: |
-              
-              	r := mux.NewRouter()
-              	s := r.Host("{subdomain}.domain.com").Subrouter()
-            contentStart:
-              line: 229
-            ranges:
-            - end:
-                character: 19
-                line: 230
-              start:
-                character: 10
-                line: 230
-          - content: |
-              
-              	r := mux.NewRouter()
-              	r.HandleFunc("/", handler)
-            contentStart:
-              line: 259
-            ranges:
-            - end:
-                character: 19
-                line: 260
-              start:
-                character: 10
-                line: 260
-          - content: |
-              
-              	r := mux.NewRouter()
-              	r.HandleFunc("/", handler)
-            contentStart:
-              line: 293
-            ranges:
-            - end:
-                character: 19
-                line: 294
-              start:
-                character: 10
-                line: 294
+                character: 11
+                line: 505
           file:
             commit:
               oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
-            path: doc.go
+            path: middleware_test.go
           repository:
             name: github.com/gorilla/mux
           revSpec:
@@ -1022,153 +981,23 @@ response:
           symbols: []
         - __typename: FileMatch
           chunkMatches:
-          - content: |
-              func TestMiddlewareAdd(t *testing.T) {
-              	router := NewRouter()
-              	router.HandleFunc("/", dummyHandler).Methods("GET")
-            contentStart:
-              line: 21
-            ranges:
-            - end:
-                character: 20
-                line: 22
-              start:
-                character: 11
-                line: 22
-          - content: |
-              func TestMiddleware(t *testing.T) {
-              	router := NewRouter()
-              	router.HandleFunc("/", dummyHandler).Methods("GET")
-            contentStart:
-              line: 46
-            ranges:
-            - end:
-                character: 20
-                line: 47
-              start:
-                character: 11
-                line: 47
-          - content: |
-              func TestMiddlewareSubrouter(t *testing.T) {
-              	router := NewRouter()
-              	router.HandleFunc("/", dummyHandler).Methods("GET")
-            contentStart:
-              line: 89
-            ranges:
-            - end:
-                character: 20
-                line: 90
-              start:
-                character: 11
-                line: 90
-          - content: |
-              
-              	router := NewRouter()
-              	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
-            contentStart:
-              line: 157
-            ranges:
-            - end:
-                character: 20
-                line: 158
-              start:
-                character: 11
-                line: 158
-          - content: |
-              
-              	router := NewRouter()
-              	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
-            contentStart:
-              line: 195
-            ranges:
-            - end:
-                character: 20
-                line: 196
-              start:
-                character: 11
-                line: 196
-          - content: |
-              
-              	router := NewRouter()
-              	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
-            contentStart:
-              line: 236
-            ranges:
-            - end:
-                character: 20
-                line: 237
-              start:
-                character: 11
-                line: 237
-          - content: |
-              
-              	router := NewRouter()
-              	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
-            contentStart:
-              line: 277
-            ranges:
-            - end:
-                character: 20
-                line: 278
-              start:
-                character: 11
-                line: 278
-          - content: |
-              
-              	router := NewRouter()
-              	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
-            contentStart:
-              line: 323
-            ranges:
-            - end:
-                character: 20
-                line: 324
-              start:
-                character: 11
-                line: 324
           - content: |+
-              		t.Run(tt.name, func(t *testing.T) {
-              			router := NewRouter()
+              func ExampleCORSMethodMiddleware() {
+              	r := mux.NewRouter()
               
             contentStart:
-              line: 454
+              line: 10
             ranges:
             - end:
-                character: 22
-                line: 455
+                character: 19
+                line: 11
               start:
-                character: 13
-                line: 455
-          - content: |+
-              func TestCORSMethodMiddlewareSubrouter(t *testing.T) {
-              	router := NewRouter().StrictSlash(true)
-              
-            contentStart:
-              line: 480
-            ranges:
-            - end:
-                character: 20
-                line: 481
-              start:
-                character: 11
-                line: 481
-          - content: |
-              
-              	router := NewRouter()
-              	firstSubRouter := router.PathPrefix("/").Subrouter()
-            contentStart:
-              line: 504
-            ranges:
-            - end:
-                character: 20
-                line: 505
-              start:
-                character: 11
-                line: 505
+                character: 10
+                line: 11
           file:
             commit:
               oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
-            path: middleware_test.go
+            path: example_cors_method_middleware_test.go
           repository:
             name: github.com/gorilla/mux
           revSpec:
@@ -1206,30 +1035,6 @@ response:
             commit:
               oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
             path: example_route_test.go
-          repository:
-            name: github.com/gorilla/mux
-          revSpec:
-            expr: v1.8.0
-          symbols: []
-        - __typename: FileMatch
-          chunkMatches:
-          - content: |+
-              func ExampleCORSMethodMiddleware() {
-              	r := mux.NewRouter()
-              
-            contentStart:
-              line: 10
-            ranges:
-            - end:
-                character: 19
-                line: 11
-              start:
-                character: 10
-                line: 11
-          file:
-            commit:
-              oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
-            path: example_cors_method_middleware_test.go
           repository:
             name: github.com/gorilla/mux
           revSpec:
@@ -1501,6 +1306,184 @@ response:
             commit:
               oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
             path: README.md
+          repository:
+            name: github.com/gorilla/mux
+          revSpec:
+            expr: v1.8.0
+          symbols: []
+        - __typename: FileMatch
+          chunkMatches:
+          - content: |
+              	func main() {
+              		r := mux.NewRouter()
+              		r.HandleFunc("/", HomeHandler)
+            contentStart:
+              line: 27
+            ranges:
+            - end:
+                character: 20
+                line: 28
+              start:
+                character: 11
+                line: 28
+          - content: |
+              
+              	r := mux.NewRouter()
+              	r.HandleFunc("/products/{key}", ProductHandler)
+            contentStart:
+              line: 43
+            ranges:
+            - end:
+                character: 19
+                line: 44
+              start:
+                character: 10
+                line: 44
+          - content: |
+              
+              	r := mux.NewRouter()
+              	// Only matches if domain is "www.example.com".
+            contentStart:
+              line: 69
+            ranges:
+            - end:
+                character: 19
+                line: 70
+              start:
+                character: 10
+                line: 70
+          - content: |
+              
+              	r := mux.NewRouter()
+              	s := r.Host("www.example.com").Subrouter()
+            contentStart:
+              line: 116
+            ranges:
+            - end:
+                character: 19
+                line: 117
+              start:
+                character: 10
+                line: 117
+          - content: |
+              
+              	r := mux.NewRouter()
+              	s := r.PathPrefix("/products").Subrouter()
+            contentStart:
+              line: 137
+            ranges:
+            - end:
+                character: 19
+                line: 138
+              start:
+                character: 10
+                line: 138
+          - content: |+
+              		flag.Parse()
+              		r := mux.NewRouter()
+              
+            contentStart:
+              line: 155
+            ranges:
+            - end:
+                character: 20
+                line: 156
+              start:
+                character: 11
+                line: 156
+          - content: |
+              
+              	r := mux.NewRouter()
+              	r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
+            contentStart:
+              line: 176
+            ranges:
+            - end:
+                character: 19
+                line: 177
+              start:
+                character: 10
+                line: 177
+          - content: |
+              
+              	r := mux.NewRouter()
+              	r.Host("{subdomain}.domain.com").
+            contentStart:
+              line: 191
+            ranges:
+            - end:
+                character: 19
+                line: 192
+              start:
+                character: 10
+                line: 192
+          - content: |
+              
+              	r := mux.NewRouter()
+              	s := r.Host("{subdomain}.domain.com").Subrouter()
+            contentStart:
+              line: 229
+            ranges:
+            - end:
+                character: 19
+                line: 230
+              start:
+                character: 10
+                line: 230
+          - content: |
+              
+              	r := mux.NewRouter()
+              	r.HandleFunc("/", handler)
+            contentStart:
+              line: 259
+            ranges:
+            - end:
+                character: 19
+                line: 260
+              start:
+                character: 10
+                line: 260
+          - content: |
+              
+              	r := mux.NewRouter()
+              	r.HandleFunc("/", handler)
+            contentStart:
+              line: 293
+            ranges:
+            - end:
+                character: 19
+                line: 294
+              start:
+                character: 10
+                line: 294
+          file:
+            commit:
+              oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+            path: doc.go
+          repository:
+            name: github.com/gorilla/mux
+          revSpec:
+            expr: v1.8.0
+          symbols: []
+        - __typename: FileMatch
+          chunkMatches:
+          - content: |
+              func Example_authenticationMiddleware() {
+              	r := mux.NewRouter()
+              	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+            contentStart:
+              line: 37
+            ranges:
+            - end:
+                character: 19
+                line: 38
+              start:
+                character: 10
+                line: 38
+          file:
+            commit:
+              oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+            path: example_authentication_middleware_test.go
           repository:
             name: github.com/gorilla/mux
           revSpec:

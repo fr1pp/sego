@@ -1,6 +1,6 @@
 operation: Search
 variables:
-  query: selftest-located-error count:100
+  query: selftest-located-error
 status: 200
 headers:
   content-type: application/json
@@ -12,10 +12,7 @@ response:
         matchCount: 1
         approximateResultCount: "1"
         limitHit: false
-        repositoriesCount: 1
         timedout: []
-        cloning: []
-        missing: []
         alert: null
         elapsedMilliseconds: 1
         dynamicFilters: []

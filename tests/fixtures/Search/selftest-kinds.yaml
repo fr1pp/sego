@@ -1,6 +1,6 @@
 operation: Search
 variables:
-  query: selftest-kinds count:100
+  query: selftest-kinds
 status: 200
 headers:
   content-type: application/json
@@ -12,17 +12,12 @@ response:
         matchCount: 4
         approximateResultCount: "4"
         limitHit: false
-        repositoriesCount: 1
         timedout: []
-        cloning: []
-        missing: []
         alert: null
         elapsedMilliseconds: 12
         dynamicFilters:
           - value: "lang:go"
-            label: Go
             count: 3
-            limitHit: false
             kind: lang
         results:
           - __typename: FileMatch

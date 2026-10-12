@@ -2,7 +2,7 @@
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0:v1.7.4 "func NewRouter"'
 exit: 0
 --- stdout
-4 matches  1 repo  0.7 s
+4 matches  1 repo  1.4 s
 query  repo:^github\.com/gorilla/mux$@v1.8.0:v1.7.4 "func NewRouter"
 
 github.com/gorilla/mux@75dcda0896e1:mux.go

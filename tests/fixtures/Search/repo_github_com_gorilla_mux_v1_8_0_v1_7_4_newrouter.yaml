@@ -1,15 +1,15 @@
 operation: Search
 variables:
-  query: repo:^github\.com/gorilla/mux$@v1.8.0 -file:_test\.go NewRouter count:100
+  query: repo:^github\.com/gorilla/mux$@v1.8.0..v1.7.4 NewRouter
 query: |
   query Search($query: String!) {
     search(query: $query, version: V3, patternType: keyword) {
       results {
-        matchCount approximateResultCount limitHit repositoriesCount
-        timedout { name } cloning { name } missing { name }
+        matchCount approximateResultCount limitHit
+        timedout { name }
         alert { title description kind proposedQueries { description query } }
         elapsedMilliseconds
-        dynamicFilters { value label count limitHit kind }
+        dynamicFilters { value count kind }
         results {
           __typename
           ... on FileMatch {
@@ -37,35 +37,112 @@ response:
     search:
       results:
         alert: null
-        approximateResultCount: "46"
-        cloning: []
+        approximateResultCount: 30+
         dynamicFilters:
-        - count: 46
+        - count: 30
           kind: type
-          label: Code
-          limitHit: true
           value: type:file
-        - count: 46
+        - count: 30
           kind: repo
-          label: github.com/gorilla/mux
-          limitHit: true
-          value: repo:^github\.com/gorilla/mux$@v1.8.0
-        - count: 26
-          kind: lang
-          label: Go
-          limitHit: true
-          value: lang:go
+          value: repo:^github\.com/gorilla/mux$@v1.8.0..v1.7.4
         - count: 20
           kind: lang
-          label: Markdown
-          limitHit: true
           value: lang:markdown
-        elapsedMilliseconds: 1201
-        limitHit: false
-        matchCount: 46
-        missing: []
-        repositoriesCount: 1
+        - count: 10
+          kind: lang
+          value: lang:go
+        - count: 4
+          kind: file
+          value: -file:_test\.\w+$
+        elapsedMilliseconds: 978
+        limitHit: true
+        matchCount: 30
         results:
+        - __typename: FileMatch
+          chunkMatches:
+          - content: |
+              func ExampleRoute_HeadersRegexp() {
+              	r := mux.NewRouter()
+              	route := r.NewRoute().HeadersRegexp("Accept", "html")
+            contentStart:
+              line: 12
+            ranges:
+            - end:
+                character: 19
+                line: 13
+              start:
+                character: 10
+                line: 13
+          - content: |
+              func ExampleRoute_HeadersRegexp_exactMatch() {
+              	r := mux.NewRouter()
+              	route := r.NewRoute().HeadersRegexp("Origin", "^https://example.co$")
+            contentStart:
+              line: 34
+            ranges:
+            - end:
+                character: 19
+                line: 35
+              start:
+                character: 10
+                line: 35
+          file:
+            commit:
+              oid: 75dcda0896e109a2a22c9315bca3bb21b87b2ba5
+            path: example_route_test.go
+          repository:
+            name: github.com/gorilla/mux
+          revSpec:
+            expr: v1.8.0..v1.7.4
+          symbols: []
+        - __typename: FileMatch
+          chunkMatches:
+          - content: |+
+              func ExampleCORSMethodMiddleware() {
+              	r := mux.NewRouter()
+              
+            contentStart:
+              line: 10
+            ranges:
+            - end:
+                character: 19
+                line: 11
+              start:
+                character: 10
+                line: 11
+          file:
+            commit:
+              oid: 75dcda0896e109a2a22c9315bca3bb21b87b2ba5
+            path: example_cors_method_middleware_test.go
+          repository:
+            name: github.com/gorilla/mux
+          revSpec:
+            expr: v1.8.0..v1.7.4
+          symbols: []
+        - __typename: FileMatch
+          chunkMatches:
+          - content: |
+              func Example_authenticationMiddleware() {
+              	r := mux.NewRouter()
+              	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+            contentStart:
+              line: 37
+            ranges:
+            - end:
+                character: 19
+                line: 38
+              start:
+                character: 10
+                line: 38
+          file:
+            commit:
+              oid: 75dcda0896e109a2a22c9315bca3bb21b87b2ba5
+            path: example_authentication_middleware_test.go
+          repository:
+            name: github.com/gorilla/mux
+          revSpec:
+            expr: v1.8.0..v1.7.4
+          symbols: []
         - __typename: FileMatch
           chunkMatches:
           - content: |
@@ -330,12 +407,12 @@ response:
                 line: 793
           file:
             commit:
-              oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+              oid: 75dcda0896e109a2a22c9315bca3bb21b87b2ba5
             path: README.md
           repository:
             name: github.com/gorilla/mux
           revSpec:
-            expr: v1.8.0
+            expr: v1.8.0..v1.7.4
           symbols: []
         - __typename: FileMatch
           chunkMatches:
@@ -417,300 +494,13 @@ response:
               start:
                 character: 11
                 line: 156
-          - content: |
-              
-              	r := mux.NewRouter()
-              	r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
-            contentStart:
-              line: 176
-            ranges:
-            - end:
-                character: 19
-                line: 177
-              start:
-                character: 10
-                line: 177
-          - content: |
-              
-              	r := mux.NewRouter()
-              	r.Host("{subdomain}.domain.com").
-            contentStart:
-              line: 191
-            ranges:
-            - end:
-                character: 19
-                line: 192
-              start:
-                character: 10
-                line: 192
-          - content: |
-              
-              	r := mux.NewRouter()
-              	s := r.Host("{subdomain}.domain.com").Subrouter()
-            contentStart:
-              line: 229
-            ranges:
-            - end:
-                character: 19
-                line: 230
-              start:
-                character: 10
-                line: 230
-          - content: |
-              
-              	r := mux.NewRouter()
-              	r.HandleFunc("/", handler)
-            contentStart:
-              line: 259
-            ranges:
-            - end:
-                character: 19
-                line: 260
-              start:
-                character: 10
-                line: 260
-          - content: |
-              
-              	r := mux.NewRouter()
-              	r.HandleFunc("/", handler)
-            contentStart:
-              line: 293
-            ranges:
-            - end:
-                character: 19
-                line: 294
-              start:
-                character: 10
-                line: 294
           file:
             commit:
-              oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
+              oid: 75dcda0896e109a2a22c9315bca3bb21b87b2ba5
             path: doc.go
           repository:
             name: github.com/gorilla/mux
           revSpec:
-            expr: v1.8.0
-          symbols: []
-        - __typename: FileMatch
-          chunkMatches:
-          - content: |
-              
-              // NewRouter returns a new router instance.
-              func NewRouter() *Router {
-              	return &Router{namedRoutes: make(map[string]*Route)}
-            contentStart:
-              line: 22
-            ranges:
-            - end:
-                character: 12
-                line: 23
-              start:
-                character: 3
-                line: 23
-            - end:
-                character: 14
-                line: 24
-              start:
-                character: 5
-                line: 24
-          - content: |
-              //
-              //     var router = mux.NewRouter()
-              //
-            contentStart:
-              line: 32
-            ranges:
-            - end:
-                character: 33
-                line: 33
-              start:
-                character: 24
-                line: 33
-          file:
-            commit:
-              oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
-            path: mux.go
-          repository:
-            name: github.com/gorilla/mux
-          revSpec:
-            expr: v1.8.0
-          symbols: []
-        - __typename: FileMatch
-          chunkMatches:
-          - content: |
-              
-              // newRouteRegexp parses a route template and returns a routeRegexp,
-              // used to match a host, a path or a query string.
-            contentStart:
-              line: 29
-            ranges:
-            - end:
-                character: 12
-                line: 30
-              start:
-                character: 3
-                line: 30
-          - content: |
-              // name and pattern can't be empty, and names can't contain a colon.
-              func newRouteRegexp(tpl string, typ regexpType, options routeRegexpOptions) (*routeRegexp, error) {
-              	// Check if it is well-formed.
-            contentStart:
-              line: 39
-            ranges:
-            - end:
-                character: 14
-                line: 40
-              start:
-                character: 5
-                line: 40
-          file:
-            commit:
-              oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
-            path: regexp.go
-          repository:
-            name: github.com/gorilla/mux
-          revSpec:
-            expr: v1.8.0
-          symbols: []
-        - __typename: FileMatch
-          chunkMatches:
-          - content: |
-              	}
-              	rr, err := newRouteRegexp(tpl, typ, routeRegexpOptions{
-              		strictSlash:    r.strictSlash,
-            contentStart:
-              line: 184
-            ranges:
-            - end:
-                character: 21
-                line: 185
-              start:
-                character: 12
-                line: 185
-          - content: |
-              //
-              //     r := mux.NewRouter()
-              //     r.Headers("Content-Type", "application/json",
-            contentStart:
-              line: 231
-            ranges:
-            - end:
-                character: 25
-                line: 232
-              start:
-                character: 16
-                line: 232
-          - content: |
-              //
-              //     r := mux.NewRouter()
-              //     r.HeadersRegexp("Content-Type", "application/(text|json)",
-            contentStart:
-              line: 256
-            ranges:
-            - end:
-                character: 25
-                line: 257
-              start:
-                character: 16
-                line: 257
-          - content: |
-              //
-              //     r := mux.NewRouter()
-              //     r.Host("www.example.com")
-            contentStart:
-              line: 284
-            ranges:
-            - end:
-                character: 25
-                line: 285
-              start:
-                character: 16
-                line: 285
-          - content: |
-              //
-              //     r := mux.NewRouter()
-              //     r.Path("/products/").Handler(ProductsHandler)
-            contentStart:
-              line: 343
-            ranges:
-            - end:
-                character: 25
-                line: 344
-              start:
-                character: 16
-                line: 344
-          - content: |
-              //
-              //     r := mux.NewRouter()
-              //     r.Queries("foo", "bar", "id", "{id:[0-9]+}")
-            contentStart:
-              line: 378
-            ranges:
-            - end:
-                character: 25
-                line: 379
-              start:
-                character: 16
-                line: 379
-          - content: |
-              //
-              //     r := mux.NewRouter()
-              //     s := r.Host("www.example.com").Subrouter()
-            contentStart:
-              line: 474
-            ranges:
-            - end:
-                character: 25
-                line: 475
-              start:
-                character: 16
-                line: 475
-          - content: |
-              //
-              //     r := mux.NewRouter()
-              //     r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
-            contentStart:
-              line: 498
-            ranges:
-            - end:
-                character: 25
-                line: 499
-              start:
-                character: 16
-                line: 499
-          - content: |
-              //
-              //     r := mux.NewRouter()
-              //     r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
-            contentStart:
-              line: 512
-            ranges:
-            - end:
-                character: 25
-                line: 513
-              start:
-                character: 16
-                line: 513
-          - content: |
-              //     // url.String() will be "https://example.com"
-              //     r := mux.NewRouter()
-              //     url, err := r.Host("example.com")
-            contentStart:
-              line: 525
-            ranges:
-            - end:
-                character: 25
-                line: 526
-              start:
-                character: 16
-                line: 526
-          file:
-            commit:
-              oid: 98cb6bf42e086f6af920b965c38cacc07402d51b
-            path: route.go
-          repository:
-            name: github.com/gorilla/mux
-          revSpec:
-            expr: v1.8.0
+            expr: v1.8.0..v1.7.4
           symbols: []
         timedout: []

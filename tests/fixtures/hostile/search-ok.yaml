@@ -1,6 +1,6 @@
 operation: Search
 variables:
-  query: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx ok count:100"
+  query: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx ok"
 status: 200
 headers:
   content-type: application/json
@@ -12,12 +12,7 @@ response:
         matchCount: 10
         approximateResultCount: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
         limitHit: false
-        repositoriesCount: 1
         timedout: 
-          - name: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
-        cloning: 
-          - name: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
-        missing: 
           - name: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
         alert: 
           title: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
@@ -29,14 +24,10 @@ response:
         elapsedMilliseconds: 100
         dynamicFilters: 
           - value: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
-            label: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
             count: 1
-            limitHit: false
             kind: lang
           - value: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
-            label: "esc\e[0mrtl\u202Exzw\u200Bxnew\nlinecr\rnul\0xls\u2028xdel\x7Fx"
             count: 2
-            limitHit: false
             kind: utility
         results: 
           - __typename: FileMatch

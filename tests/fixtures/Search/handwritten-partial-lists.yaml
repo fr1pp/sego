@@ -1,6 +1,7 @@
 operation: Search
 variables:
-  query: repo:sego-fake/partial foo count:100
+  query: repo:sego-fake/partial foo
+  unindexed: "repo:sego-fake/partial type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"
 status: 200
 headers:
   content-type: application/json
@@ -12,16 +13,17 @@ response:
         matchCount: 1
         approximateResultCount: "1"
         limitHit: false
-        repositoriesCount: 1
         timedout: []
-        cloning: 
-          - name: github.com/sego-fake/c1
-          - name: github.com/sego-fake/c2
-        missing: 
-          - name: github.com/sego-fake/m1
         alert: null
         elapsedMilliseconds: 800
         dynamicFilters: []
         results: 
           - __typename: Repository
             name: github.com/sego-fake/found
+    unindexed:
+      results:
+        limitHit: false
+        elapsedMilliseconds: 10
+        timedout: []
+        alert: null
+        results: []

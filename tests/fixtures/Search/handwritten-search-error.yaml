@@ -1,15 +1,15 @@
 operation: Search
 variables:
-  query: repo:^github\.com/gorilla/mux$@v1.8.0:^v1.7.4 NewRouter count:100
+  query: repo:^github\.com/gorilla/mux$@v1.8.0:^v1.7.4 NewRouter
 query: |
   query Search($query: String!) {
     search(query: $query, version: V3, patternType: keyword) {
       results {
-        matchCount approximateResultCount limitHit repositoriesCount
-        timedout { name } cloning { name } missing { name }
+        matchCount approximateResultCount limitHit
+        timedout { name }
         alert { title description kind proposedQueries { description query } }
         elapsedMilliseconds
-        dynamicFilters { value label count limitHit kind }
+        dynamicFilters { value count kind }
         results {
           __typename
           ... on FileMatch {

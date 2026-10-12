@@ -1,6 +1,6 @@
 operation: Search
 variables:
-  query: selftest-null-search count:100
+  query: selftest-null-search
 status: 200
 headers:
   content-type: application/json
