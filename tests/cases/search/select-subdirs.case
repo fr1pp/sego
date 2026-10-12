@@ -2,7 +2,7 @@
 args: search 'repo:^github\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade'
 exit: 0
 --- stdout
-4 files  1 repo  0.6 s
+4+ files  1 repo  0.6 s
 query  repo:^github\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade
 
 github.com/gorilla/websocket@ce903f6d1d96:examples/chat/

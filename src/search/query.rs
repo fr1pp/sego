@@ -64,7 +64,7 @@ pub struct Prepared {
     pub pattern_type: String,
     pub cap: Option<u64>,
     pub unit: Unit,
-    pub diff: bool,
+    pub lower_bound: bool,
     pub deadline_ms: u64,
     pub unindexed: Option<String>,
     pub notes: Vec<String>,
@@ -79,7 +79,7 @@ pub fn prepare(query: &str) -> Prepared {
         notes: check(&tokens),
         cap: cap(&tokens),
         unit: unit(&tokens),
-        diff: values(&tokens, "type").any(|value| value == "diff"),
+        lower_bound: lower_bound(&tokens),
         unindexed: unindexed_query(&tokens, deadline_ms),
         deadline_ms,
     }
@@ -142,6 +142,14 @@ pub fn unit(tokens: &[Token]) -> Unit {
     } else {
         Unit::Files
     }
+}
+
+/// Whether the count can fall short of the answer without `limitHit`: a
+/// diff's count is of highlights in truncated text, and the server cuts a
+/// `select:file.directory` answer at the default cap without saying so.
+pub fn lower_bound(tokens: &[Token]) -> bool {
+    values(tokens, "type").any(|value| value == "diff")
+        || values(tokens, "select").any(|value| value == "file.directory")
 }
 
 pub fn duration_text(ms: u64) -> String {

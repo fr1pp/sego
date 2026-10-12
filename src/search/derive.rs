@@ -48,7 +48,8 @@ pub fn counted(
     Counted {
         count,
         // A zero has nothing to be a lower bound of.
-        at_least: count > 0 && (results.limit_hit || stopped || prepared.diff),
+        at_least: count > 0
+            && (results.limit_hit || stopped || prepared.lower_bound),
         stopped,
     }
 }

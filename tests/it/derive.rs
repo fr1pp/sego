@@ -103,6 +103,14 @@ fn placeholders_use_the_cap_but_not_the_count() {
 }
 
 #[test]
+fn a_directory_count_is_a_lower_bound() {
+    assert_eq!(
+        c(4, false, &[], 400, "repo:x select:file.directory foo", 0),
+        (4, true, false)
+    );
+}
+
+#[test]
 fn a_diff_count_is_a_lower_bound() {
     assert_eq!(
         c(4, false, &[], 400, "repo:x type:diff Vars count:30", 0),

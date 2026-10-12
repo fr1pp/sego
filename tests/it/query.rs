@@ -2,8 +2,8 @@ use std::time::Duration;
 
 use sego::internal::search::lint::{Token, tokenize};
 use sego::internal::search::query::{
-    Unit, cap, deadline_ms, duration_text, go_duration, pattern_type, prepare,
-    tenths, unindexed_query, unit,
+    Unit, cap, deadline_ms, duration_text, go_duration, lower_bound,
+    pattern_type, prepare, tenths, unindexed_query, unit,
 };
 
 const OVERFLOW: &str = "340282366920938463463374607431.9s";
@@ -205,18 +205,35 @@ fn tenths_rounds_to_one_decimal() {
 }
 
 #[test]
+fn lower_bound_queries() {
+    let rows = [
+        ("repo:x type:diff foo", true),
+        ("repo:x SELECT:file.directory foo", true),
+        ("repo:x select:file.directory", true),
+        ("repo:x select:file foo", false),
+        ("repo:x select:file.owners foo", false),
+        ("repo:x type:commit foo", false),
+        ("repo:x foo", false),
+    ];
+    for (query, expected) in rows {
+        assert_eq!(prepare(query).lower_bound, expected, "{query}");
+        assert_eq!(lower_bound(&tokenize(query)), expected, "{query}");
+    }
+}
+
+#[test]
 fn prepared_carries_the_facts() {
     let prepared = prepare("repo:x type:diff foo");
     assert_eq!(prepared.query, "repo:x type:diff foo");
     assert_eq!(prepared.cap, Some(30));
     assert_eq!(prepared.unit, Unit::Matches);
-    assert!(prepared.diff);
+    assert!(prepared.lower_bound);
     assert_eq!(prepared.deadline_ms, 20_000);
     assert_eq!(prepared.unindexed, None);
 
     let prepared = prepare("repo:x file:a$ count:all");
     assert_eq!(prepared.cap, None);
     assert_eq!(prepared.unit, Unit::Files);
-    assert!(!prepared.diff);
+    assert!(!prepared.lower_bound);
     assert!(prepared.unindexed.is_some());
 }
