@@ -109,7 +109,6 @@ pub fn refusal(reply: &Reply, host: &str) -> Option<Error> {
     None
 }
 
-/// Posts `request` to the GraphQL endpoint and classifies the reply.
 pub fn exchange(
     transport: &dyn Transport,
     request: &Request,

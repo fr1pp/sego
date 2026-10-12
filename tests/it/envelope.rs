@@ -1,8 +1,13 @@
 use sego::internal::error::{Error, Kind, report};
-use serde_json::json;
+use std::time::{Duration, Instant};
 
-use sego::internal::upstream::{Envelope, Seg, classify, text_at};
+use serde_json::{Map, json};
 
+use sego::internal::upstream::{
+    Envelope, Request, Seg, TransportError, classify, exchange, text_at,
+};
+
+use crate::support::fake::Fake;
 use crate::support::fixture::reply;
 
 const NOT_GRAPHQL: &str = "sourcegraph.com's answer isn't a GraphQL response";
@@ -133,6 +138,34 @@ fn messages_name_the_host_given() {
     let envelope = classify(reply("envelope/partial"), "127.0.0.1:9")
         .unwrap_or_else(|e| panic!("{e}"));
     assert_eq!(envelope.host, "127.0.0.1:9");
+}
+
+#[test]
+fn exchange_names_the_transports_host() {
+    let request = Request {
+        operation: "Op".to_owned(),
+        document: "query Op { x }".to_owned(),
+        variables: Map::new(),
+    };
+    let deadline = Instant::now() + Duration::from_secs(5);
+    let server_error = || {
+        let mut reply = reply("envelope/bad-gateway");
+        reply.status = 500;
+        reply
+    };
+
+    let fake = Fake::scripted(vec![Ok(server_error())]).named("h.example:7");
+    let Err(error) = exchange(&fake, &request, deadline) else {
+        panic!("a 500 was accepted");
+    };
+    assert_eq!(error.to_string(), "h.example:7 answered HTTP 500");
+
+    let fake = Fake::scripted(vec![Err(TransportError::Deadline)])
+        .named("h.example:7");
+    let Err(error) = exchange(&fake, &request, deadline) else {
+        panic!("a deadline was accepted");
+    };
+    assert_eq!(error.to_string(), "no answer from h.example:7 within 90 s");
 }
 
 #[test]

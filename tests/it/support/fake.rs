@@ -30,13 +30,21 @@ struct Inner {
 #[derive(Clone)]
 pub struct Fake {
     inner: Arc<Mutex<Inner>>,
+    host: Option<String>,
 }
 
 impl Fake {
     fn with(source: Source) -> Fake {
         Fake {
             inner: Arc::new(Mutex::new(Inner { source, calls: Vec::new() })),
+            host: None,
         }
+    }
+
+    /// Reports `host` from `Transport::host` instead of the default.
+    pub fn named(mut self, host: &str) -> Fake {
+        self.host = Some(host.to_owned());
+        self
     }
 
     /// Answers each request with the next queued result; an empty queue is a
@@ -81,6 +89,10 @@ impl Fake {
 }
 
 impl Transport for Fake {
+    fn host(&self) -> String {
+        self.host.clone().unwrap_or_else(|| "sourcegraph.com".to_owned())
+    }
+
     fn post(
         &self,
         path: &str,

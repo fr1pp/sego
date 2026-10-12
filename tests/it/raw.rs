@@ -52,6 +52,29 @@ fn a_404_is_not_found() {
 }
 
 #[test]
+fn failures_name_the_transports_host() {
+    let fake = Fake::scripted(vec![
+        Ok(reply(500, "text/plain", b"bad")),
+        Err(TransportError::Network("connection refused")),
+    ])
+    .named("h.example:7");
+    let deadline = Instant::now() + Duration::from_secs(90);
+    let messages: Vec<String> = (0..2)
+        .map(|_| match read(&fake, "/r/x/-/raw/a", deadline) {
+            Err(RawError::Failed(error)) => error.to_string(),
+            other => panic!("{other:?}"),
+        })
+        .collect();
+    assert_eq!(
+        messages,
+        [
+            "h.example:7 answered HTTP 500",
+            "could not reach h.example:7: connection refused"
+        ]
+    );
+}
+
+#[test]
 fn everything_else_is_a_failure() {
     assert_eq!(
         failure(Ok(reply(200, "text/html; charset=utf-8", b"<html>"))),

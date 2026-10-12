@@ -3,8 +3,11 @@ use std::net::TcpListener;
 use std::time::{Duration, Instant};
 
 use sego::internal::error::Error;
+use serde_json::Map;
+
 use sego::internal::upstream::{
-    BODY_LIMIT, Endpoint, GRAPHQL_PATH, Transport, TransportError, Ureq,
+    BODY_LIMIT, Endpoint, GRAPHQL_PATH, RawError, Request, Transport,
+    TransportError, Ureq, exchange, read,
 };
 
 use crate::support::http::{Response, Server};
@@ -240,6 +243,56 @@ fn endpoint_host_is_host_and_port_without_credentials() {
     assert_eq!(host("http://127.0.0.1:1"), "127.0.0.1:1");
     assert_eq!(host("https://u:p@example.com:8443/base/"), "example.com:8443");
     assert_eq!(host("http://[::1]:8080"), "[::1]:8080");
+}
+
+fn endpoint_host_of(url: &str) -> String {
+    url.strip_prefix("http://").unwrap_or(url).to_owned()
+}
+
+#[test]
+fn errors_name_the_endpoint_a_client_talks_to() {
+    let server = Server::start(|_| Response::new(500).body("down"));
+    let host = endpoint_host_of(&server.url());
+    let client = client(&server);
+    assert_eq!(client.host(), host);
+
+    let request = Request {
+        operation: "Op".to_owned(),
+        document: "query Op { x }".to_owned(),
+        variables: Map::new(),
+    };
+    let Err(error) = exchange(&client, &request, soon()) else {
+        panic!("a 500 was accepted");
+    };
+    assert_eq!(error.to_string(), format!("{host} answered HTTP 500"));
+    let Err(RawError::Failed(error)) = read(&client, "/raw", soon()) else {
+        panic!("a 500 was read");
+    };
+    assert_eq!(error.to_string(), format!("{host} answered HTTP 500"));
+}
+
+#[test]
+fn a_refused_connection_names_the_endpoint() {
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .unwrap_or_else(|e| panic!("bind: {e}"));
+    let address = listener.local_addr().unwrap_or_else(|e| panic!("{e}"));
+    drop(listener);
+    let url = format!("http://{address}");
+    let endpoint = Endpoint::from_env(Some(OsStr::new(&url)))
+        .unwrap_or_else(|e| panic!("{e}"));
+    let client = Ureq::without_proxy(endpoint);
+    let request = Request {
+        operation: "Op".to_owned(),
+        document: "query Op { x }".to_owned(),
+        variables: Map::new(),
+    };
+    let Err(error) = exchange(&client, &request, soon()) else {
+        panic!("a closed port answered");
+    };
+    assert_eq!(
+        error.to_string(),
+        format!("could not reach {address}: connection refused")
+    );
 }
 
 #[test]
