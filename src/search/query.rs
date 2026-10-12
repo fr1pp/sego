@@ -125,6 +125,7 @@ pub fn cap(tokens: &[Token]) -> Option<u64> {
 pub fn unit(tokens: &[Token]) -> Unit {
     let selects = || values(tokens, "select");
     let types = || values(tokens, "type");
+    let has_or = tokens.iter().any(|t| matches!(t, Token::Op(Op::Or)));
     if selects().any(|v| v.starts_with("repo")) || types().any(|v| v == "repo")
     {
         Unit::Repos
@@ -132,7 +133,9 @@ pub fn unit(tokens: &[Token]) -> Unit {
         || types().any(|v| v == "path")
     {
         Unit::Files
-    } else if types().any(|v| v == "symbol") && types().all(|v| v == "symbol")
+    } else if types().any(|v| v == "symbol")
+        && types().all(|v| v == "symbol")
+        && !has_or
     {
         Unit::Symbols
     } else if types().any(|v| v == "commit" || v == "diff")

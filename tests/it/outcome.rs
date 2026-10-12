@@ -238,6 +238,33 @@ fn a_zero_in_time_exits_zero_with_no_note() {
 }
 
 #[test]
+fn a_real_result_left_after_the_placeholders_is_not_a_zero() {
+    let file = |path: &str, chunks: Value| {
+        json!({
+            "__typename": "FileMatch",
+            "repository": {"name": "r/a"},
+            "file": {"path": path, "commit": {"oid": "c1"}},
+            "revSpec": null,
+            "chunkMatches": chunks,
+            "symbols": [],
+        })
+    };
+    let placeholder = json!([{
+        "content": "NOT-INDEXED: exceeds the maximum size limit",
+        "contentStart": {"line": 0},
+        "ranges": [{"start": {"line": 0, "character": 0},
+                    "end": {"line": 0, "character": 3}}],
+    }]);
+    let r = results(&json!({
+        "matchCount": 1,
+        "results": [file("big", placeholder), file("a.go", json!([]))],
+        "timedout": named(&["t"]),
+        "elapsedMilliseconds": 21_300,
+    }));
+    assert_eq!(run(r, 20_000), (String::new(), String::new()));
+}
+
+#[test]
 fn a_stopped_answer_with_results_is_not_an_error() {
     let r = results(&json!({
         "matchCount": 1,

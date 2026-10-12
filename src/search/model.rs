@@ -544,6 +544,12 @@ impl Searched {
         }
     }
 
+    /// Nothing was found: no matches counted, and no results held, of any
+    /// kind.
+    pub fn is_zero(&self) -> bool {
+        self.count == 0 && self.groups.is_empty() && self.unshown.is_empty()
+    }
+
     /// Every unit fetched: the budget the text output is limited by.
     pub fn units(&self) -> u32 {
         self.groups.iter().map(Group::units).sum()

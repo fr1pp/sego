@@ -4,7 +4,7 @@ use std::io;
 use super::model::{
     Chunk, FileItem, Group, Row, Searched, SymbolRow, file_items, rows,
 };
-use super::query::tenths;
+use super::query::{Unit, tenths};
 use crate::address::pinned;
 use crate::escape::{escape, one_line, render_line};
 use crate::output::text::{code_line, gutter_width, header};
@@ -44,6 +44,7 @@ impl Searched {
         let time = tenths(self.elapsed_ms);
         let mut fields = vec![counted];
         match self.repos {
+            _ if self.unit == Unit::Repos => {}
             0 => {}
             1 => fields.push("1 repo".to_owned()),
             n => fields.push(format!("{n} repos")),
@@ -57,7 +58,7 @@ impl Searched {
     }
 
     fn widen_line(&self) -> Option<String> {
-        if self.count != 0 || self.widen.is_empty() {
+        if !self.is_zero() || self.widen.is_empty() {
             return None;
         }
         let values: Vec<String> = self

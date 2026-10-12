@@ -220,7 +220,12 @@ fn count_forms() {
     s.unit = Unit::Files;
     assert_eq!(first_line(&s), "1 file  1 repo  0.7 s");
     s.unit = Unit::Repos;
-    assert_eq!(first_line(&s), "1 repo  1 repo  0.7 s");
+    assert_eq!(first_line(&s), "1 repo  0.7 s");
+    s.count = 3;
+    s.repos = 3;
+    assert_eq!(first_line(&s), "3 repos  0.7 s");
+    s.count = 1;
+    s.repos = 1;
     s.unit = Unit::Matches;
 
     s.count = 100;
@@ -289,6 +294,15 @@ fn widen_on_a_zero() {
 
     s.widen.clear();
     assert_eq!(s.text().lines().count(), 2);
+}
+
+#[test]
+fn widen_waits_for_a_real_zero() {
+    let mut s = base("lang:go Foo");
+    s.count = 0;
+    s.groups = vec![path_group(0)];
+    s.widen = vec![widen("fork:yes", 4)];
+    assert!(!s.text().contains("widen"));
 }
 
 #[test]

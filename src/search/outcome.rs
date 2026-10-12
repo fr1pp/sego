@@ -18,7 +18,7 @@ pub fn judge(searched: &Searched, notes: &mut Notes) -> Result<(), Error> {
                 description(alert).unwrap_or(&alert.title),
             ));
         }
-        if searched.groups.is_empty() && searched.unshown.is_empty() {
+        if searched.is_zero() {
             if alert.title == REVISIONS {
                 return Err(revisions(alert));
             }
@@ -27,7 +27,7 @@ pub fn judge(searched: &Searched, notes: &mut Notes) -> Result<(), Error> {
             }
         }
     }
-    if searched.count == 0 && searched.stopped {
+    if searched.is_zero() && searched.stopped {
         return Err(Error::missing(format!(
             "the search stopped at {} s with no results",
             tenths(searched.elapsed_ms)

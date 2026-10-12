@@ -125,6 +125,7 @@ fn unit_from_the_query() {
         (r"repo:x file:\.go$", Unit::Files),
         ("type:symbol Route", Unit::Symbols),
         ("type:symbol type:file Route", Unit::Matches),
+        ("(type:symbol X) or (Y type:symbol X)", Unit::Matches),
         ("repo:x type:commit author:a", Unit::Matches),
         ("repo:x type:diff", Unit::Matches),
         ("type:Symbol foo", Unit::Matches),
