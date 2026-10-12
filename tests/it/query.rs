@@ -134,6 +134,9 @@ fn unit_from_the_query() {
         ("repo:x type:commit author:a", Unit::Matches),
         ("repo:x type:diff", Unit::Matches),
         ("type:Symbol foo", Unit::Matches),
+        ("-type:symbol foo", Unit::Matches),
+        ("-type:path foo", Unit::Matches),
+        ("-select:repo foo", Unit::Matches),
         ("foo", Unit::Matches),
         ("\"foo bar\"", Unit::Matches),
         ("/foo/", Unit::Matches),
@@ -171,6 +174,13 @@ fn unindexed_query_for_an_eligible_query() {
             r"R:x -F:y type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\ (exceeds\ the\ maximum\ size\ limit|contains\ too\ many\ trigrams)$ count:all timeout:1500ms"
         ),
     );
+    assert_eq!(
+        unindexed_query(&t("repo:x g:team foo case:yes content:y"), 20_000)
+            .as_deref(),
+        Some(
+            r"repo:x g:team type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\ (exceeds\ the\ maximum\ size\ limit|contains\ too\ many\ trigrams)$ count:all timeout:20s"
+        ),
+    );
     assert_eq!(duration_text(500), "500ms");
     assert_eq!(duration_text(20_000), "20s");
 }
@@ -191,6 +201,13 @@ fn unindexed_query_absent_when_not_eligible() {
         "repo:x type:commit foo",
         "repo:x type:repo",
         r#"repo:x file:"a b" foo"#,
+        r"repo:x repohasfile:go\.mod foo",
+        "repo:x repohascommitafter:2024 foo",
+        "repo:x author:a foo",
+        "repo:x file:has.content(x) foo",
+        "repo:x path:contains.file(a) foo",
+        r"repo:x file:\.go$",
+        "repo:x type:path foo",
     ] {
         assert_eq!(unindexed_query(&t(q), 20_000), None, "{q}");
     }
@@ -213,6 +230,8 @@ fn lower_bound_queries() {
         ("repo:x select:file foo", false),
         ("repo:x select:file.owners foo", false),
         ("repo:x type:commit foo", false),
+        ("repo:x -type:diff foo", false),
+        ("repo:x -select:file.directory foo", false),
         ("repo:x foo", false),
     ];
     for (query, expected) in rows {
@@ -231,7 +250,7 @@ fn prepared_carries_the_facts() {
     assert_eq!(prepared.deadline_ms, 20_000);
     assert_eq!(prepared.unindexed, None);
 
-    let prepared = prepare("repo:x file:a$ count:all");
+    let prepared = prepare("repo:x foo select:file count:all");
     assert_eq!(prepared.cap, None);
     assert_eq!(prepared.unit, Unit::Files);
     assert!(!prepared.lower_bound);

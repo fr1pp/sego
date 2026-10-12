@@ -1,4 +1,4 @@
-# A NOT-INDEXED placeholder is dropped and its range leaves the count.
+# A NOT-INDEXED placeholder is dropped and its range leaves the count. Its file is binary, which the unindexed list leaves out, so the side alias is empty.
 args: search 'repo:sego-fake/ph binary'
 exit: 0
 --- stdout

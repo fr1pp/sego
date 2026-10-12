@@ -5,7 +5,7 @@ use super::lint::{Filter, Op, Token, check, tokenize};
 const MAX_DEADLINE_MS: u64 = 60_000;
 const DEFAULT_DEADLINE_MS: u64 = 20_000;
 const DEFAULT_CAP: u64 = 30;
-const SCOPE_FIELDS: [&str; 12] = [
+const SCOPE_FIELDS: [&str; 13] = [
     "repo",
     "r",
     "file",
@@ -18,6 +18,18 @@ const SCOPE_FIELDS: [&str; 12] = [
     "archived",
     "visibility",
     "context",
+    "g",
+];
+/// Filters that don't change which files the query searches.
+const SETTING_FIELDS: [&str; 8] = [
+    "count",
+    "timeout",
+    "type",
+    "select",
+    "case",
+    "patterntype",
+    "index",
+    "content",
 ];
 pub const UNINDEXED_PATTERN: &str = r"^NOT-INDEXED:\ (exceeds\ the\ maximum\ size\ limit|contains\ too\ many\ trigrams)$";
 const PATTERN_TYPES: [&str; 8] = [
@@ -64,6 +76,9 @@ pub struct Prepared {
     pub pattern_type: String,
     pub cap: Option<u64>,
     pub unit: Unit,
+    /// The query states no unit, so the unit is `Repos` when every result
+    /// is a repository and `unit` otherwise.
+    pub by_results: bool,
     pub lower_bound: bool,
     pub deadline_ms: u64,
     pub unindexed: Option<String>,
@@ -79,6 +94,7 @@ pub fn prepare(query: &str) -> Prepared {
         notes: check(&tokens),
         cap: cap(&tokens),
         unit: unit(&tokens),
+        by_results: stated_unit(&tokens).is_none(),
         lower_bound: lower_bound(&tokens),
         unindexed: unindexed_query(&tokens, deadline_ms),
         deadline_ms,
@@ -101,6 +117,22 @@ fn values<'a>(
     })
 }
 
+/// The values of the non-negated `name:` filters; a negated `type:` or
+/// `select:` doesn't choose what the results are.
+fn chosen<'a>(
+    tokens: &'a [Token],
+    name: &'a str,
+) -> impl Iterator<Item = &'a str> {
+    tokens.iter().filter_map(move |token| match token {
+        Token::Filter(f)
+            if !f.negated && f.field.eq_ignore_ascii_case(name) =>
+        {
+            Some(f.value.as_str())
+        }
+        _ => None,
+    })
+}
+
 /// How many results the query asks for: the last `count:` value, 30 when
 /// there is none. `all`, or a value that isn't a number, is no cap.
 pub fn cap(tokens: &[Token]) -> Option<u64> {
@@ -114,22 +146,28 @@ pub fn cap(tokens: &[Token]) -> Option<u64> {
 }
 
 /// What the results count, from the query's `select:` and `type:` values.
+/// A query with none of those and no pattern searches for files by name or
+/// for repositories; the results tell which (`Prepared::by_results`).
 pub fn unit(tokens: &[Token]) -> Unit {
-    let selects = || values(tokens, "select");
-    let types = || values(tokens, "type");
+    stated_unit(tokens).unwrap_or(Unit::Files)
+}
+
+fn stated_unit(tokens: &[Token]) -> Option<Unit> {
+    let selects = || chosen(tokens, "select");
+    let types = || chosen(tokens, "type");
     let has_or = tokens.iter().any(|t| matches!(t, Token::Op(Op::Or)));
     if selects().any(|v| v.starts_with("repo")) || types().any(|v| v == "repo")
     {
-        Unit::Repos
+        Some(Unit::Repos)
     } else if selects().any(|v| v.starts_with("file"))
         || types().any(|v| v == "path")
     {
-        Unit::Files
+        Some(Unit::Files)
     } else if types().any(|v| v == "symbol")
         && types().all(|v| v == "symbol")
         && !has_or
     {
-        Unit::Symbols
+        Some(Unit::Symbols)
     } else if types().any(|v| v == "commit" || v == "diff")
         || tokens.iter().any(|token| {
             matches!(
@@ -138,9 +176,9 @@ pub fn unit(tokens: &[Token]) -> Unit {
             )
         })
     {
-        Unit::Matches
+        Some(Unit::Matches)
     } else {
-        Unit::Files
+        None
     }
 }
 
@@ -148,8 +186,8 @@ pub fn unit(tokens: &[Token]) -> Unit {
 /// diff's count is of highlights in truncated text, and the server cuts a
 /// `select:file.directory` answer at the default cap without saying so.
 pub fn lower_bound(tokens: &[Token]) -> bool {
-    values(tokens, "type").any(|value| value == "diff")
-        || values(tokens, "select").any(|value| value == "file.directory")
+    chosen(tokens, "type").any(|value| value == "diff")
+        || chosen(tokens, "select").any(|value| value == "file.directory")
 }
 
 pub fn duration_text(ms: u64) -> String {
@@ -167,7 +205,9 @@ pub fn tenths(ms: u64) -> String {
 }
 
 /// A second search for the files the index skipped, within the query's
-/// scope. `None` when the query's scope can't be restated that way.
+/// scope. `None` unless the query is plainly a text search of named
+/// repositories: every filter is a scope field or a setting, and what the
+/// scope restates is all that narrows the files searched.
 pub fn unindexed_query(tokens: &[Token], deadline_ms: u64) -> Option<String> {
     let filters = || {
         tokens.iter().filter_map(|token| match token {
@@ -179,12 +219,23 @@ pub fn unindexed_query(tokens: &[Token], deadline_ms: u64) -> Option<String> {
         names.iter().any(|name| f.field.eq_ignore_ascii_case(name))
     };
     let repo = |f: &Filter| is(f, &["repo", "r"]);
+    let has_pattern = tokens.iter().any(|token| {
+        matches!(token, Token::Term(_) | Token::Quoted(_) | Token::Pattern(_))
+    });
+    let path_function = |f: &Filter| {
+        is(f, &["file", "f", "path"])
+            && (f.value.starts_with("has.")
+                || f.value.starts_with("contains."))
+    };
     let eligible = filters().any(|f| repo(f) && !f.negated)
+        && has_pattern
+        && filters().all(|f| is(f, &SCOPE_FIELDS) || is(f, &SETTING_FIELDS))
+        && !filters().any(path_function)
         && !tokens.iter().any(|t| matches!(t, Token::Op(Op::Or | Op::Not)))
         && !filters().any(|f| repo(f) && f.value.contains('@'))
         && !filters().any(|f| is(f, &["rev", "revision"]))
-        && !values(tokens, "type")
-            .any(|v| matches!(v, "commit" | "diff" | "repo"));
+        && !chosen(tokens, "type")
+            .any(|v| matches!(v, "commit" | "diff" | "repo" | "path"));
     let scope: Vec<String> =
         filters().filter(|f| is(f, &SCOPE_FIELDS)).map(Filter::raw).collect();
     if !eligible || scope.iter().any(|raw| raw.contains(char::is_whitespace)) {

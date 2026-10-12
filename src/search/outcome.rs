@@ -111,10 +111,11 @@ fn push_notes(searched: &Searched, notes: &mut Notes) {
 
 /// The note on the text files in scope that the search index doesn't hold,
 /// for a zero or a complete answer; a lower bound or a stopped answer says
-/// nothing about them.
+/// nothing about them. A path is relative only when the results and the
+/// files are all in one repository, which the results already name.
 pub fn unindexed_note(searched: &Searched) -> Option<(String, Vec<String>)> {
     let files = searched.unindexed.as_deref().filter(|f| !f.is_empty())?;
-    if searched.stopped || (searched.count != 0 && searched.at_least) {
+    if searched.stopped || searched.at_least {
         return None;
     }
     let (mut over, mut dense): (Vec<&UnindexedFile>, Vec<&UnindexedFile>) =
@@ -135,13 +136,17 @@ pub fn unindexed_note(searched: &Searched) -> Option<(String, Vec<String>)> {
         noun(files.len()),
         reasons.join(", ")
     );
-    let one_repo = files.iter().all(|file| file.repo == files[0].repo);
+    let relative = !searched.groups.is_empty()
+        && searched
+            .groups
+            .iter()
+            .all(|group| files.iter().all(|file| file.repo == group.repo()));
     let mut rest: Vec<String> = over
         .iter()
         .chain(&dense)
         .take(LISTED)
         .map(|file| {
-            let path = if one_repo {
+            let path = if relative {
                 shell_word(&file.path).into_owned()
             } else {
                 pinned(&file.repo, &file.commit, Some(&file.path)).to_string()

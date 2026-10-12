@@ -103,6 +103,22 @@ fn placeholders_use_the_cap_but_not_the_count() {
 }
 
 #[test]
+fn a_capped_answer_of_only_placeholders_is_at_least_even_at_zero() {
+    let query = "repo:x binary count:30";
+    assert_eq!(c(30, true, &[], 2000, query, 30), (0, true, false));
+    assert_eq!(c(30, false, &[], 2000, query, 30), (0, false, false));
+    assert_eq!(c(29, true, &[], 2000, query, 29), (0, false, false));
+    assert_eq!(
+        c(30, true, &[], 2000, "repo:x binary count:all", 30),
+        (0, false, false)
+    );
+    assert_eq!(
+        c(0, true, &[], 2000, "repo:x binary count:0", 0),
+        (0, false, false)
+    );
+}
+
+#[test]
 fn a_directory_count_is_a_lower_bound() {
     assert_eq!(
         c(4, false, &[], 400, "repo:x select:file.directory foo", 0),

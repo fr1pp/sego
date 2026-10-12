@@ -58,7 +58,7 @@ impl Searched {
     }
 
     fn widen_line(&self) -> Option<String> {
-        if !self.is_zero() || self.widen.is_empty() {
+        if !self.is_zero() || self.at_least || self.widen.is_empty() {
             return None;
         }
         let values: Vec<String> = self

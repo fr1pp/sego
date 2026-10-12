@@ -306,6 +306,15 @@ fn widen_waits_for_a_real_zero() {
 }
 
 #[test]
+fn widen_waits_for_an_answer_that_is_not_at_least() {
+    let mut s = base("lang:go Foo");
+    s.count = 0;
+    s.at_least = true;
+    s.widen = vec![widen("fork:yes", 4)];
+    assert_eq!(s.text(), "0+ matches  1 repo  0.7 s\nquery  lang:go Foo\n");
+}
+
+#[test]
 fn widen_is_for_a_zero_only() {
     let mut s = base("lang:go Foo");
     s.groups = vec![path_group(0)];

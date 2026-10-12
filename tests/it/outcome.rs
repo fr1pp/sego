@@ -355,6 +355,10 @@ fn zero(unindexed: Vec<UnindexedFile>) -> Searched {
     answer(&json!({}), Some(unindexed))
 }
 
+fn in_repo(name: &str, unindexed: Vec<UnindexedFile>) -> Searched {
+    answer(&json!({"matchCount": 1, "results": [repo(name)]}), Some(unindexed))
+}
+
 fn lines(rest: &[&str]) -> Vec<String> {
     rest.iter().map(|line| (*line).to_string()).collect()
 }
@@ -371,7 +375,7 @@ fn binary_sizes() {
 
 #[test]
 fn one_unindexed_file() {
-    let searched = zero(vec![file("r", "c_src/sqlite3.c", 9_542_041)]);
+    let searched = in_repo("r", vec![file("r", "c_src/sqlite3.c", 9_542_041)]);
     assert_eq!(
         unindexed_note(&searched),
         Some((
@@ -385,11 +389,14 @@ fn one_unindexed_file() {
 
 #[test]
 fn three_unindexed_files_have_no_tail() {
-    let searched = zero(vec![
-        file("r", "small.txt", 5000),
-        file("r", "big.txt", 2 * MIB),
-        file("r", "bigger.txt", 3 * MIB),
-    ]);
+    let searched = in_repo(
+        "r",
+        vec![
+            file("r", "small.txt", 5000),
+            file("r", "big.txt", 2 * MIB),
+            file("r", "bigger.txt", 3 * MIB),
+        ],
+    );
     assert_eq!(
         unindexed_note(&searched),
         Some((
@@ -407,12 +414,15 @@ fn three_unindexed_files_have_no_tail() {
 
 #[test]
 fn four_unindexed_files_order_by_reason_then_size() {
-    let searched = zero(vec![
-        file("r", "t1", 100),
-        file("r", "o1", 2 * MIB),
-        file("r", "t2", 900),
-        file("r", "o2", 5 * MIB),
-    ]);
+    let searched = in_repo(
+        "r",
+        vec![
+            file("r", "t1", 100),
+            file("r", "o1", 2 * MIB),
+            file("r", "t2", 900),
+            file("r", "o2", 5 * MIB),
+        ],
+    );
     assert_eq!(
         unindexed_note(&searched),
         Some((
@@ -465,8 +475,47 @@ fn files_of_two_repositories_print_full_addresses() {
 }
 
 #[test]
+fn a_zero_pins_the_files_of_one_repository() {
+    let searched = zero(vec![file("r", "c_src/sqlite3.c", 9_542_041)]);
+    let Some((_, rest)) = unindexed_note(&searched) else {
+        panic!("no note");
+    };
+    assert_eq!(rest, lines(&["  r@0123456789ab:c_src/sqlite3.c  9.1 MiB"]));
+}
+
+#[test]
+fn files_of_another_repository_than_the_results_are_pinned() {
+    let searched = in_repo("a", vec![file("b", "p", 2 * MIB)]);
+    let Some((_, rest)) = unindexed_note(&searched) else {
+        panic!("no note");
+    };
+    assert_eq!(rest, lines(&["  b@0123456789ab:p  2.0 MiB"]));
+}
+
+#[test]
+fn results_from_two_repositories_pin_the_files() {
+    let searched = answer(
+        &json!({"matchCount": 2, "results": [repo("a"), repo("b")]}),
+        Some(vec![file("a", "p", 2 * MIB)]),
+    );
+    let Some((_, rest)) = unindexed_note(&searched) else {
+        panic!("no note");
+    };
+    assert_eq!(rest, lines(&["  a@0123456789ab:p  2.0 MiB"]));
+}
+
+#[test]
+fn files_of_the_results_repository_are_relative() {
+    let searched = in_repo("a", vec![file("a", "p", 2 * MIB)]);
+    let Some((_, rest)) = unindexed_note(&searched) else {
+        panic!("no note");
+    };
+    assert_eq!(rest, lines(&["  p  2.0 MiB"]));
+}
+
+#[test]
 fn a_path_with_a_space_is_quoted() {
-    let searched = zero(vec![file("r", "my file.txt", 2 * MIB)]);
+    let searched = in_repo("r", vec![file("r", "my file.txt", 2 * MIB)]);
     let Some((_, rest)) = unindexed_note(&searched) else {
         panic!("no note");
     };
@@ -486,6 +535,13 @@ fn a_lower_bound_has_no_unindexed_note_unless_zero() {
         answer(&json!({"matchCount": 1, "results": [repo("a")]}), listed());
     assert!(!complete.at_least);
     assert!(unindexed_note(&complete).is_some());
+}
+
+#[test]
+fn a_capped_zero_has_no_unindexed_note() {
+    let mut searched = zero(vec![file("r", "p", 2 * MIB)]);
+    searched.at_least = true;
+    assert!(unindexed_note(&searched).is_none());
 }
 
 #[test]
@@ -516,6 +572,6 @@ fn judge_prints_the_unindexed_note_after_the_others() {
         String::from_utf8_lossy(&printed),
         "sego: note: 1 result of kind NewKind not shown\n\
          sego: note: the contents of 1 file in scope aren't in the search \
-         index (1 over 1 MiB):\n  p  2.0 MiB\n"
+         index (1 over 1 MiB):\n  r@0123456789ab:p  2.0 MiB\n"
     );
 }

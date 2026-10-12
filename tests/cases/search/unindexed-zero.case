@@ -6,4 +6,4 @@ exit: 0
 query  repo:^github\.com/elixir-sqlite/exqlite$ sqlite3VdbeExec
 --- stderr
 sego: note: the contents of 1 file in scope aren't in the search index (1 over 1 MiB):
-  c_src/sqlite3.c  9.1 MiB
+  github.com/elixir-sqlite/exqlite@dc8c2f5d55c8:c_src/sqlite3.c  9.1 MiB

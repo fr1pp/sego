@@ -195,6 +195,14 @@ fn unindexed_unknown() {
                 "path": ["unindexed", "results"],
             }]),
         ),
+        (
+            "error beneath",
+            clean_side(),
+            json!([{
+                "message": "boom",
+                "path": ["unindexed", "results", "results", 0, "file"],
+            }]),
+        ),
         ("null", Value::Null, json!([])),
         ("alert", side(false, 10, &json!([]), &alert), json!([])),
         ("limitHit", side(true, 10, &json!([]), &Value::Null), json!([])),
@@ -219,20 +227,28 @@ fn unindexed_unknown() {
 
 #[test]
 fn main_error_fails_the_search() {
-    let body = json!({
-        "data": {
-            "search": { "results": results(&Value::Null, &json!([])) },
-            "unindexed": clean_side(),
-        },
-        "errors": [{ "message": "boom", "path": ["search", "results"] }],
-    });
-    let fake = Fake::scripted(vec![Ok(envelope_of(&body))]);
-    let error = fetch(&prepare("repo:x foo"), &fake, deadline())
-        .err()
-        .unwrap_or_else(|| panic!("accepted"));
-    assert!(
-        rendered(&error).contains("Sourcegraph failed to answer the search")
-    );
+    let paths = [
+        json!(["search", "results"]),
+        json!(["search", "results", "results", 0, "file"]),
+    ];
+    for path in paths {
+        let body = json!({
+            "data": {
+                "search": { "results": results(&Value::Null, &json!([])) },
+                "unindexed": clean_side(),
+            },
+            "errors": [{ "message": "boom", "path": path }],
+        });
+        let fake = Fake::scripted(vec![Ok(envelope_of(&body))]);
+        let error = fetch(&prepare("repo:x foo"), &fake, deadline())
+            .err()
+            .unwrap_or_else(|| panic!("{path}: accepted"));
+        assert!(
+            rendered(&error)
+                .contains("Sourcegraph failed to answer the search"),
+            "{path}"
+        );
+    }
 }
 
 fn envelope(results: &Value) -> Reply {

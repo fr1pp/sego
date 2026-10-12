@@ -40,6 +40,7 @@ pub fn counted(
     let count = results.match_count.saturating_sub(placeholder_ranges);
     let in_time = in_time(results.elapsed_milliseconds, prepared.deadline_ms);
     let capped = results.limit_hit
+        && results.match_count > 0
         && prepared.cap.is_some_and(|cap| results.match_count >= cap);
     // `limitHit` below the cap is not a cut: select:symbol, select:file.owners
     // and select:file.directory set it without one, and a cut by the clock
@@ -47,9 +48,13 @@ pub fn counted(
     let stopped = !capped && (!results.timedout.is_empty() || !in_time);
     Counted {
         count,
-        // A zero has nothing to be a lower bound of.
-        at_least: count > 0
-            && (results.limit_hit || stopped || prepared.lower_bound),
+        // A zero has nothing to be a lower bound of, unless the placeholders
+        // used up the cap.
+        at_least: if count > 0 {
+            results.limit_hit || stopped || prepared.lower_bound
+        } else {
+            capped
+        },
         stopped,
     }
 }

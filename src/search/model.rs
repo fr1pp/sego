@@ -439,7 +439,7 @@ pub fn rows<'a>(
 }
 
 impl Group {
-    fn repo(&self) -> &str {
+    pub fn repo(&self) -> &str {
         match self {
             Group::File { repo, .. }
             | Group::Commit { repo, .. }
@@ -509,12 +509,20 @@ impl Searched {
                 Slot::Done(group) => group,
             })
             .collect();
+        let unit = if prepared.by_results
+            && !groups.is_empty()
+            && groups.iter().all(|group| matches!(group, Group::Repo { .. }))
+        {
+            Unit::Repos
+        } else {
+            prepared.unit
+        };
         let answer = counted(&results, prepared, placeholder_ranges);
         let repos = groups.iter().map(Group::repo).collect::<HashSet<_>>();
         Searched {
             query: prepared.query.clone(),
             pattern_type: prepared.pattern_type.clone(),
-            unit: prepared.unit,
+            unit,
             count: answer.count,
             at_least: answer.at_least,
             stopped: answer.stopped,

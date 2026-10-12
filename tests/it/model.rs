@@ -4,10 +4,14 @@ use sego::internal::output::Answer;
 use sego::internal::output::json::write;
 use sego::internal::output::vocab::symbol_kind;
 use sego::internal::search::model::{Chunk, Group, Searched};
-use sego::internal::search::query::prepare;
+use sego::internal::search::query::{Unit, prepare};
 use sego::internal::search::response::Results;
 
 fn searched(items: &Value) -> Searched {
+    searched_for("foo", items)
+}
+
+fn searched_for(query: &str, items: &Value) -> Searched {
     let Ok(results) = serde_json::from_value::<Results>(json!({
         "matchCount": 5,
         "approximateResultCount": "5",
@@ -23,7 +27,7 @@ fn searched(items: &Value) -> Searched {
     })) else {
         panic!("results do not parse")
     };
-    Searched::new(results, &prepare("foo"))
+    Searched::new(results, &prepare(query))
 }
 
 fn chunk(content: &str, start: u32, ranges: &Value) -> Value {
@@ -536,6 +540,26 @@ fn widen_keeps_only_the_utility_filters_in_the_servers_order() {
     let widen: Vec<(&str, u64)> =
         s.widen.iter().map(|w| (w.filter.as_str(), w.repos)).collect();
     assert_eq!(widen, [("fork:yes", 4), ("archived:yes", 68912)]);
+}
+
+#[test]
+fn a_patternless_query_of_repository_results_counts_repos() {
+    let repos = json!([
+        {"__typename": "Repository", "name": "r/a"},
+        {"__typename": "Repository", "name": "r/b"},
+    ]);
+    let query = r"repo:^github\.com/gorilla/mux$";
+    assert_eq!(searched_for(query, &repos).unit, Unit::Repos);
+    assert_eq!(searched_for("foo", &repos).unit, Unit::Matches);
+    assert_eq!(searched_for("repo:x select:file", &repos).unit, Unit::Files);
+
+    let files = json!([file("a.go", &[], &[])]);
+    assert_eq!(searched_for(query, &files).unit, Unit::Files);
+
+    let mixed = json!([repos[0], file("a.go", &[], &[])]);
+    assert_eq!(searched_for(query, &mixed).unit, Unit::Files);
+
+    assert_eq!(searched_for(query, &json!([])).unit, Unit::Files);
 }
 
 #[test]
