@@ -186,6 +186,8 @@ fn unindexed_query_absent_when_not_eligible() {
         "foo",
         "-repo:x foo",
         "repo:x a or b",
+        "repo:x NOT file:test foo",
+        "NOT repo:x repo:y foo",
         "repo:x@v1 foo",
         "repo:x -r:y@v1 foo",
         "repo:x rev:v1 foo",

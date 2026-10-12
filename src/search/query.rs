@@ -179,7 +179,7 @@ pub fn unindexed_query(tokens: &[Token], deadline_ms: u64) -> Option<String> {
     };
     let repo = |f: &Filter| is(f, &["repo", "r"]);
     let eligible = filters().any(|f| repo(f) && !f.negated)
-        && !tokens.contains(&Token::Op(Op::Or))
+        && !tokens.iter().any(|t| matches!(t, Token::Op(Op::Or | Op::Not)))
         && !filters().any(|f| repo(f) && f.value.contains('@'))
         && !filters().any(|f| is(f, &["rev", "revision"]))
         && !values(tokens, "type")
