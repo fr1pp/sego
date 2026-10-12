@@ -20,7 +20,13 @@ pub trait Answer {
 }
 
 #[derive(Debug, Default)]
-pub struct Notes(Vec<String>);
+pub struct Notes(Vec<Note>);
+
+#[derive(Debug)]
+struct Note {
+    first: String,
+    rest: Vec<String>,
+}
 
 impl Notes {
     pub fn new() -> Notes {
@@ -28,12 +34,20 @@ impl Notes {
     }
 
     pub fn push(&mut self, note: impl Into<String>) {
-        self.0.push(note.into());
+        self.push_lines(note, Vec::new());
+    }
+
+    /// A note whose `rest` lines print under the first, each as given.
+    pub fn push_lines(&mut self, first: impl Into<String>, rest: Vec<String>) {
+        self.0.push(Note { first: first.into(), rest });
     }
 
     pub fn write(&self, err: &mut dyn Write) -> io::Result<()> {
         for note in &self.0 {
-            writeln!(err, "sego: note: {}", escape::one_line(note))?;
+            writeln!(err, "sego: note: {}", escape::one_line(&note.first))?;
+            for line in &note.rest {
+                writeln!(err, "{}", escape::one_line(line))?;
+            }
         }
         Ok(())
     }

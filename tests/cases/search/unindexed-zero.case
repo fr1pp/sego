@@ -1,0 +1,9 @@
+# A zero names the exqlite amalgamation, which the index leaves out for its size.
+args: search 'repo:^github\.com/elixir-sqlite/exqlite$ sqlite3VdbeExec'
+exit: 0
+--- stdout
+0 matches  1.1 s
+query  repo:^github\.com/elixir-sqlite/exqlite$ sqlite3VdbeExec
+--- stderr
+sego: note: the contents of 1 file in scope aren't in the search index (1 over 1 MiB):
+  c_src/sqlite3.c  9.1 MiB

@@ -1,0 +1,62 @@
+operation: Search
+variables:
+  query: repo:sego-fake/ux zzq
+  unindexed: "repo:sego-fake/ux type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"
+status: 200
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    search:
+      results:
+        matchCount: 0
+        approximateResultCount: "0"
+        limitHit: false
+        timedout: []
+        alert: null
+        elapsedMilliseconds: 200
+        dynamicFilters: []
+        results: []
+    unindexed:
+      results:
+        limitHit: false
+        elapsedMilliseconds: 10
+        timedout: []
+        alert: null
+        results:
+          - repository:
+              name: github.com/sego-fake/ux
+            file:
+              path: data/dump.sql
+              byteSize: 3500000
+              commit:
+                oid: "1111111111111111111111111111111111111111"
+          - repository:
+              name: github.com/sego-fake/uy
+            file:
+              path: vendor/big.js
+              byteSize: 1200000
+              commit:
+                oid: "2222222222222222222222222222222222222222"
+          - repository:
+              name: github.com/sego-fake/ux
+            file:
+              path: docs/huge.txt
+              byteSize: 7340032
+              commit:
+                oid: "1111111111111111111111111111111111111111"
+          - repository:
+              name: github.com/sego-fake/uy
+            file:
+              path: gen/table.go
+              byteSize: 52000
+              commit:
+                oid: "2222222222222222222222222222222222222222"
+          - repository:
+              name: github.com/sego-fake/ux
+            file:
+              path: gen/ids.go
+              byteSize: 9000
+              commit:
+                oid: "1111111111111111111111111111111111111111"

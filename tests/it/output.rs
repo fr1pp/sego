@@ -24,6 +24,24 @@ fn notes_are_prefixed_and_one_line() {
 }
 
 #[test]
+fn notes_print_continuation_lines() {
+    let mut notes = Notes::new();
+    notes.push_lines(
+        "head:",
+        vec![
+            "  a  1 B".into(),
+            "  … (+1 more file; --json has the full list)".into(),
+        ],
+    );
+    let mut out = Vec::new();
+    notes.write(&mut out).unwrap();
+    assert_eq!(
+        String::from_utf8(out).unwrap(),
+        "sego: note: head:\n  a  1 B\n  … (+1 more file; --json has the full list)\n"
+    );
+}
+
+#[test]
 fn no_notes_write_nothing() {
     let mut out = Vec::new();
     Notes::new().write(&mut out).unwrap();
