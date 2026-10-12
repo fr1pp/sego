@@ -11,8 +11,8 @@ use crate::escape::one_line;
 use crate::output::text::header_line;
 use crate::output::{Answer, Notes, date};
 use crate::upstream::{
-    GRAPHQL_PATH, RepoPlan, Root, Transport, Var, View, build_repository,
-    classify, locate_repository, repository_lookup_failed,
+    RepoPlan, Root, Transport, Var, View, build_repository, exchange,
+    locate_repository, repository_lookup_failed,
 };
 
 const TEXT_ROWS: usize = 100;
@@ -202,8 +202,7 @@ pub fn run(
 ) -> Result<Refs, Error> {
     let plan = plan(text, json);
     let request = build_repository(&plan, repo);
-    let reply = transport.post(GRAPHQL_PATH, &request.body(), deadline)?;
-    let envelope = classify(reply)?;
+    let envelope = exchange(transport, &request, deadline)?;
     let found = locate_repository(repo, &envelope, &plan)?;
     let at = found.at("r");
     let view = View::new(&envelope, slice::from_ref(&at));

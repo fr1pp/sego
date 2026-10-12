@@ -392,7 +392,7 @@ fn find_root(
             {
                 return Err(error);
             }
-            Err(Error::missing(format!("{name} is not on sourcegraph.com"))
+            Err(Error::missing(format!("{name} is not on {}", env.host))
                 .fact(NOT_INDEXED))
         }
         [i] => match failed_root(env, alias, candidates.len(), parts) {

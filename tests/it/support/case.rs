@@ -175,7 +175,8 @@ impl Case {
         for name in PROXY_VARIABLES {
             command.env_remove(name);
         }
-        command.env("SEGO_ENDPOINT", replay.url());
+        let url = replay.url();
+        command.env("SEGO_ENDPOINT", &url);
         for (name, value) in &self.env {
             command.env(name, value);
         }
@@ -190,8 +191,8 @@ impl Case {
             .unwrap_or_else(|e| panic!("{}: {e}", self.path.display()));
         Outcome {
             exit: output.status.code().unwrap_or(-1),
-            stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
-            stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+            stdout: stand_in(&output.stdout, &url),
+            stderr: stand_in(&output.stderr, &url),
             requests: replay.take_requests(),
         }
     }
@@ -244,6 +245,13 @@ impl Case {
         fs::write(&self.path, text)
             .unwrap_or_else(|e| panic!("{}: {e}", self.path.display()));
     }
+}
+
+/// The replay server stands in for sourcegraph.com, so its address reads as
+/// that host in what sego printed.
+fn stand_in(output: &[u8], url: &str) -> String {
+    let host = url.strip_prefix("http://").unwrap_or(url);
+    String::from_utf8_lossy(output).replace(host, "sourcegraph.com")
 }
 
 /// A longest-common-subsequence diff: `-` lines are expected only, `+` lines

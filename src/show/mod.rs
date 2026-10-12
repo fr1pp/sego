@@ -11,8 +11,8 @@ use crate::output::text::{code_line, gutter_width, header};
 use crate::output::{Answer, Marker, Notes};
 use crate::submodule::{self, Submodule};
 use crate::upstream::{
-    Candidate, GRAPHQL_PATH, Located, Plan, RawError, Transport, Var, View,
-    build, classify, locate, raw,
+    Candidate, Located, Plan, RawError, Transport, Var, View, build, exchange,
+    locate, raw,
 };
 
 const DEFAULT_WINDOW: u32 = 500;
@@ -137,8 +137,7 @@ pub fn run(
 ) -> Result<Shown, Error> {
     let window = Window::new(lines);
     let request = build(&plan(&window), address);
-    let reply = transport.post(GRAPHQL_PATH, &request.body(), deadline)?;
-    let envelope = classify(reply)?;
+    let envelope = exchange(transport, &request, deadline)?;
     let located = locate(address, &envelope)?;
     let view = View::new(&envelope, &located.at);
     interpret(&view, &located, &window, transport, deadline, notes)

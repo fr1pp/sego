@@ -30,6 +30,11 @@ pub enum TransportError {
 }
 
 pub trait Transport {
+    /// The `host[:port]` that error messages name.
+    fn host(&self) -> String {
+        "sourcegraph.com".to_owned()
+    }
+
     fn post(
         &self,
         path: &str,
@@ -74,6 +79,14 @@ impl Endpoint {
 
     pub fn url(&self, path: &str) -> String {
         format!("{}{path}", self.base)
+    }
+
+    /// The base URL's `host[:port]`, without any `user[:pw]@`.
+    pub fn host(&self) -> String {
+        let (_, rest) =
+            self.base.split_once("://").unwrap_or(("", &self.base));
+        let authority = rest.split('/').next().unwrap_or_default();
+        authority.rsplit('@').next().unwrap_or_default().to_owned()
     }
 }
 
@@ -146,6 +159,10 @@ fn remaining(deadline: Instant) -> Result<Duration, TransportError> {
 }
 
 impl Transport for Ureq {
+    fn host(&self) -> String {
+        self.endpoint.host()
+    }
+
     fn post(
         &self,
         path: &str,
@@ -250,15 +267,15 @@ fn classify_io(error: io::Error) -> TransportError {
     }
 }
 
-impl From<TransportError> for Error {
-    fn from(error: TransportError) -> Error {
-        match error {
-            TransportError::Network(cause) => Error::network(format!(
-                "could not reach sourcegraph.com: {cause}"
-            )),
-            TransportError::Deadline => Error::deadline(),
+impl TransportError {
+    pub fn into_error(self, host: &str) -> Error {
+        match self {
+            TransportError::Network(cause) => {
+                Error::network(format!("could not reach {host}: {cause}"))
+            }
+            TransportError::Deadline => Error::deadline(host),
             TransportError::TooLarge => {
-                Error::upstream("sourcegraph.com's answer is over 64 MiB")
+                Error::upstream(format!("{host}'s answer is over 64 MiB"))
             }
         }
     }

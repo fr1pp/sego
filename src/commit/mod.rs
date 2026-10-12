@@ -13,9 +13,9 @@ use crate::escape::{render_line, strip_cr};
 use crate::output::text::header;
 use crate::output::{Answer, Notes, date};
 use crate::upstream::{
-    GRAPHQL_PATH, RepoPlan, Root, Transport, Var, View, build_repository,
-    classify, locate_repository, missing_revisions, no_commits,
-    revision_lookup_failed, text_at,
+    RepoPlan, Root, Transport, Var, View, build_repository, exchange,
+    locate_repository, missing_revisions, no_commits, revision_lookup_failed,
+    text_at,
 };
 
 const MESSAGE_INDENT: &str = "    ";
@@ -163,8 +163,7 @@ pub fn run(
     };
     let plan = plan(rev);
     let request = build_repository(&plan, &address.repo);
-    let reply = transport.post(GRAPHQL_PATH, &request.body(), deadline)?;
-    let envelope = classify(reply)?;
+    let envelope = exchange(transport, &request, deadline)?;
     let found = locate_repository(&address.repo, &envelope, &plan)?;
     let repo = &found.repo;
     let (at_m, at_d) = (found.at("m"), found.at("d"));

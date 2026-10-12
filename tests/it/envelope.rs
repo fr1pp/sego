@@ -7,6 +7,8 @@ use crate::support::fixture::reply;
 
 const NOT_GRAPHQL: &str = "sourcegraph.com's answer isn't a GraphQL response";
 
+const HOST: &str = "sourcegraph.com";
+
 fn rendered(error: &Error) -> String {
     let mut out = Vec::new();
     report(error, &mut out).unwrap_or_else(|e| panic!("{e}"));
@@ -14,14 +16,14 @@ fn rendered(error: &Error) -> String {
 }
 
 fn refused(name: &str) -> Error {
-    match classify(reply(&format!("envelope/{name}"))) {
+    match classify(reply(&format!("envelope/{name}")), HOST) {
         Ok(envelope) => panic!("{name}: accepted {envelope:?}"),
         Err(error) => error,
     }
 }
 
 fn partial() -> Envelope {
-    classify(reply("envelope/partial")).unwrap_or_else(|e| panic!("{e}"))
+    classify(reply("envelope/partial"), HOST).unwrap_or_else(|e| panic!("{e}"))
 }
 
 #[test]
@@ -116,7 +118,21 @@ fn classification() {
         assert_eq!(error.kind(), kind, "{name}");
         assert_eq!(error.to_string(), message, "{name}");
     }
-    assert!(classify(reply("envelope/partial")).is_ok());
+    assert!(classify(reply("envelope/partial"), HOST).is_ok());
+}
+
+#[test]
+fn messages_name_the_host_given() {
+    let mut server_error = reply("envelope/bad-gateway");
+    server_error.status = 500;
+    let Err(error) = classify(server_error, "127.0.0.1:9") else {
+        panic!("a 500 was accepted");
+    };
+    assert_eq!(error.to_string(), "127.0.0.1:9 answered HTTP 500");
+
+    let envelope = classify(reply("envelope/partial"), "127.0.0.1:9")
+        .unwrap_or_else(|e| panic!("{e}"));
+    assert_eq!(envelope.host, "127.0.0.1:9");
 }
 
 #[test]
@@ -167,8 +183,8 @@ fn errors_beneath_a_path() {
 
 #[test]
 fn odd_paths_stay_located() {
-    let envelope =
-        classify(reply("envelope/odd-path")).unwrap_or_else(|e| panic!("{e}"));
+    let envelope = classify(reply("envelope/odd-path"), HOST)
+        .unwrap_or_else(|e| panic!("{e}"));
     let key = |k: &str| Seg::Key(k.to_owned());
     assert_eq!(envelope.errors.len(), 2);
     assert_eq!(envelope.errors[0].path, [Seg::Invalid]);

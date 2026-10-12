@@ -12,8 +12,7 @@ use crate::output::{Answer, Notes};
 use crate::quote::shell_word;
 use crate::submodule::{self, Submodule};
 use crate::upstream::{
-    Candidate, GRAPHQL_PATH, Located, Plan, Transport, Var, View, build,
-    classify, locate,
+    Candidate, Located, Plan, Transport, Var, View, build, exchange, locate,
 };
 
 const TEXT_ROWS: usize = 200;
@@ -174,8 +173,7 @@ pub fn run(
     _notes: &mut Notes,
 ) -> Result<Listed, Error> {
     let request = build(&plan(recursive), address);
-    let reply = transport.post(GRAPHQL_PATH, &request.body(), deadline)?;
-    let envelope = classify(reply)?;
+    let envelope = exchange(transport, &request, deadline)?;
     let located = locate(address, &envelope)?;
     let view = View::new(&envelope, &located.at);
     let entries = entries_of(&view, &located)?;

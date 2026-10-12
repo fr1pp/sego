@@ -17,8 +17,8 @@ use crate::output::text::{header, header_line};
 use crate::output::{Answer, Notes, date};
 use crate::quote::shell_word;
 use crate::upstream::{
-    GRAPHQL_PATH, RepoPlan, Root, Transport, Var, View, build_repository,
-    classify, locate_repository, missing_revisions, missing_sides, no_commits,
+    RepoPlan, Root, Transport, Var, View, build_repository, exchange,
+    locate_repository, missing_revisions, missing_sides, no_commits,
     revision_lookup_failed, text_at,
 };
 
@@ -314,8 +314,7 @@ fn revision(
     let sent = rev.map_or("HEAD", String::as_str);
     let plan = revision_plan(sent, path);
     let request = build_repository(&plan, &address.repo);
-    let reply = transport.post(GRAPHQL_PATH, &request.body(), deadline)?;
-    let envelope = classify(reply)?;
+    let envelope = exchange(transport, &request, deadline)?;
     let found = locate_repository(&address.repo, &envelope, &plan)?;
     let repo = &found.repo;
     let (at_r, at_t) = (found.at("r"), found.at("t"));
@@ -372,8 +371,7 @@ fn range(
 ) -> Result<Logged, Error> {
     let plan = range_plan(rev_a, rev_b, path, json);
     let request = build_repository(&plan, &address.repo);
-    let reply = transport.post(GRAPHQL_PATH, &request.body(), deadline)?;
-    let envelope = classify(reply)?;
+    let envelope = exchange(transport, &request, deadline)?;
     let found = locate_repository(&address.repo, &envelope, &plan)?;
     let repo = &found.repo;
     let (at_a, at_b) = (found.at("a"), found.at("b"));

@@ -1,9 +1,11 @@
+use std::time::Instant;
+
 use serde_json::Value;
 
-use super::transport::Reply;
+use super::resolve::Request;
+use super::transport::{GRAPHQL_PATH, Reply, Transport};
 use crate::error::Error;
 
-const NOT_GRAPHQL: &str = "sourcegraph.com's answer isn't a GraphQL response";
 const COMPLEXITY_CODE: &str = "ErrQueryComplexityLimitExceeded";
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -25,6 +27,7 @@ pub struct GqlError {
 pub struct Envelope {
     pub data: Value,
     pub errors: Vec<GqlError>,
+    pub host: String,
 }
 
 impl Envelope {
@@ -77,30 +80,27 @@ pub fn is_html(reply: &Reply) -> bool {
 
 /// The refusals every reply shares, whatever it was asked for: an edge
 /// challenge, a redirect, a rate limit or a server error.
-pub fn refusal(reply: &Reply) -> Option<Error> {
+pub fn refusal(reply: &Reply, host: &str) -> Option<Error> {
     let status = reply.status;
     if reply.cf_mitigated.as_deref() == Some("challenge")
         || (is_html(reply) && matches!(status, 403 | 429))
     {
         return Some(Error::edge(format!(
-            "sourcegraph.com's edge refused the request (HTTP {status}, \
+            "{host}'s edge refused the request (HTTP {status}, \
              Cloudflare challenge)"
         )));
     }
     if (300..400).contains(&status) {
         return Some(Error::upstream(match &reply.location {
             Some(location) => format!(
-                "sourcegraph.com answered HTTP {status} with Location \
+                "{host} answered HTTP {status} with Location \
                  {location}"
             ),
-            None => format!(
-                "sourcegraph.com answered HTTP {status} with no Location"
-            ),
+            None => format!("{host} answered HTTP {status} with no Location"),
         }));
     }
     if status == 429 || status >= 500 {
-        let error =
-            Error::upstream(format!("sourcegraph.com answered HTTP {status}"));
+        let error = Error::upstream(format!("{host} answered HTTP {status}"));
         return Some(match &reply.retry_after {
             Some(value) => error.fact(format!("Retry-After: {value}")),
             None => error,
@@ -109,8 +109,21 @@ pub fn refusal(reply: &Reply) -> Option<Error> {
     None
 }
 
-pub fn classify(reply: Reply) -> Result<Envelope, Error> {
-    if let Some(error) = refusal(&reply) {
+/// Posts `request` to the GraphQL endpoint and classifies the reply.
+pub fn exchange(
+    transport: &dyn Transport,
+    request: &Request,
+    deadline: Instant,
+) -> Result<Envelope, Error> {
+    let host = transport.host();
+    let reply = transport
+        .post(GRAPHQL_PATH, &request.body(), deadline)
+        .map_err(|error| error.into_error(&host))?;
+    classify(reply, &host)
+}
+
+pub fn classify(reply: Reply, host: &str) -> Result<Envelope, Error> {
+    if let Some(error) = refusal(&reply, host) {
         return Err(error);
     }
     let Reply { status, content_type, body, .. } = reply;
@@ -127,20 +140,20 @@ pub fn classify(reply: Reply) -> Result<Envelope, Error> {
     }
     if status != 200 && !(json_type && parsed.is_ok()) {
         return Err(Error::upstream(format!(
-            "sourcegraph.com answered HTTP {status} {}",
+            "{host} answered HTTP {status} {}",
             media.unwrap_or("without a content type")
         )));
     }
     if body.iter().all(u8::is_ascii_whitespace) {
-        return Err(not_graphql("empty"));
+        return Err(not_graphql(host, "empty"));
     }
     if !json_type {
-        return Err(not_graphql("not JSON"));
+        return Err(not_graphql(host, "not JSON"));
     }
     let json = match parsed {
         Ok(json) => json,
-        Err(e) if e.is_eof() => return Err(not_graphql("truncated")),
-        Err(_) => return Err(not_graphql("not JSON")),
+        Err(e) if e.is_eof() => return Err(not_graphql(host, "truncated")),
+        Err(_) => return Err(not_graphql(host, "not JSON")),
     };
     let data = json.get("data").cloned().unwrap_or(Value::Null);
     let errors = read_errors(&json);
@@ -150,7 +163,7 @@ pub fn classify(reply: Reply) -> Result<Envelope, Error> {
         _ => false,
     };
     if no_data && errors.is_empty() {
-        return Err(not_graphql("empty"));
+        return Err(not_graphql(host, "empty"));
     }
     if let Some(error) = errors.iter().find(|error| error.path.is_empty()) {
         let message = if error.message.is_empty() {
@@ -160,11 +173,13 @@ pub fn classify(reply: Reply) -> Result<Envelope, Error> {
         };
         return Err(Error::upstream(message));
     }
-    Ok(Envelope { data, errors: dedup(errors) })
+    Ok(Envelope { data, errors: dedup(errors), host: host.to_owned() })
 }
 
-fn not_graphql(which: &str) -> Error {
-    Error::upstream(format!("{NOT_GRAPHQL}: {which}"))
+fn not_graphql(host: &str, which: &str) -> Error {
+    Error::upstream(format!(
+        "{host}'s answer isn't a GraphQL response: {which}"
+    ))
 }
 
 pub fn media_type(content_type: &str) -> &str {

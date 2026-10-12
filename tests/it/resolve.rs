@@ -306,8 +306,17 @@ fn hex_and_tilde_prefixes_get_ref_lookups() {
 }
 
 fn envelope(name: &str) -> Envelope {
-    classify(reply(&format!("resolve/{name}")))
+    classify(reply(&format!("resolve/{name}")), "sourcegraph.com")
         .unwrap_or_else(|e| panic!("{name}: {e}"))
+}
+
+fn on_host(fixture: &str, token: &str, host: &str) -> String {
+    let envelope = classify(reply(&format!("resolve/{fixture}")), host)
+        .unwrap_or_else(|e| panic!("{fixture}: {e}"));
+    match locate(&address(token), &envelope) {
+        Ok(found) => panic!("{fixture}: located {found:?}"),
+        Err(error) => rendered(&error),
+    }
 }
 
 fn rendered(error: &Error) -> String {
@@ -367,6 +376,13 @@ fn locate_cases() {
     assert!(
         refused("no-repo", "gorilla/mux")
             .contains("gorilla/mux is not on sourcegraph.com")
+    );
+
+    let elsewhere = on_host("no-repo", "github.com/x/y", "h:1");
+    assert!(elsewhere.contains("github.com/x/y is not on h:1"), "{elsewhere}");
+    assert!(
+        elsewhere.contains("sourcegraph.com serves indexed repositories from"),
+        "{elsewhere}"
     );
 
     assert!(refused("both-hosts", "gorilla/mux").contains(

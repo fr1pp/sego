@@ -5,7 +5,7 @@ use serde_json::Value;
 use crate::error::Error;
 use crate::output::Notes;
 use crate::upstream::top_level;
-use crate::upstream::{GRAPHQL_PATH, Request, Transport, Var, classify};
+use crate::upstream::{Request, Transport, Var, exchange};
 
 pub mod lint;
 pub mod model;
@@ -63,9 +63,7 @@ pub fn fetch(
     deadline: Instant,
 ) -> Result<response::Results, Error> {
     let failed = || Error::failed("the search");
-    let reply =
-        transport.post(GRAPHQL_PATH, &request(prepared).body(), deadline)?;
-    let envelope = classify(reply)?;
+    let envelope = exchange(transport, &request(prepared), deadline)?;
     if !envelope.errors.is_empty() {
         return Err(failed());
     }

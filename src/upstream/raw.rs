@@ -22,20 +22,23 @@ pub fn read(
     route: &str,
     deadline: Instant,
 ) -> Result<Vec<u8>, RawError> {
-    let reply = transport.get(route, deadline).map_err(Error::from)?;
-    if let Some(error) = refusal(&reply) {
+    let host = transport.host();
+    let reply = transport
+        .get(route, deadline)
+        .map_err(|error| error.into_error(&host))?;
+    if let Some(error) = refusal(&reply, &host) {
         return Err(error.into());
     }
     match reply.status {
         404 => Err(RawError::NotFound),
         200 if is_html(&reply) => {
-            Err(Error::upstream("sourcegraph.com answered HTTP 200 text/html")
+            Err(Error::upstream(format!("{host} answered HTTP 200 text/html"))
                 .into())
         }
         200 => Ok(reply.body),
-        status => Err(Error::upstream(format!(
-            "sourcegraph.com answered HTTP {status}"
-        ))
-        .into()),
+        status => {
+            Err(Error::upstream(format!("{host} answered HTTP {status}"))
+                .into())
+        }
     }
 }

@@ -13,7 +13,7 @@ fn exit_codes() {
     assert_eq!(Error::upstream("x").exit_code(), 1);
     assert_eq!(Error::edge("x").exit_code(), 1);
     assert_eq!(Error::network("x").exit_code(), 1);
-    assert_eq!(Error::deadline().exit_code(), 1);
+    assert_eq!(Error::deadline("sourcegraph.com").exit_code(), 1);
 }
 
 #[test]
@@ -53,7 +53,7 @@ fn server_text_stays_on_one_line() {
 #[test]
 fn deadline_message() {
     assert_eq!(
-        Error::deadline().to_string(),
+        Error::deadline("sourcegraph.com").to_string(),
         "no answer from sourcegraph.com within 90 s"
     );
 }

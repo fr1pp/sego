@@ -227,19 +227,37 @@ fn network_causes() {
 }
 
 #[test]
-fn errors_convert() {
-    let network: Error = TransportError::Network("connection reset").into();
+fn endpoint_host_is_host_and_port_without_credentials() {
+    let host = |s: &str| {
+        Endpoint::from_env(Some(OsStr::new(s)))
+            .unwrap_or_else(|e| panic!("{e:?}"))
+            .host()
+    };
     assert_eq!(
-        network.to_string(),
-        "could not reach sourcegraph.com: connection reset"
+        Endpoint::from_env(None).unwrap_or_else(|e| panic!("{e:?}")).host(),
+        "sourcegraph.com"
     );
-    let deadline: Error = TransportError::Deadline.into();
+    assert_eq!(host("http://127.0.0.1:1"), "127.0.0.1:1");
+    assert_eq!(host("https://u:p@example.com:8443/base/"), "example.com:8443");
+    assert_eq!(host("http://[::1]:8080"), "[::1]:8080");
+}
+
+#[test]
+fn transport_errors_name_the_host() {
     assert_eq!(
-        deadline.to_string(),
-        "no answer from sourcegraph.com within 90 s"
+        TransportError::Deadline.into_error("127.0.0.1:1").to_string(),
+        "no answer from 127.0.0.1:1 within 90 s"
     );
-    let large: Error = TransportError::TooLarge.into();
-    assert_eq!(large.to_string(), "sourcegraph.com's answer is over 64 MiB");
+    assert_eq!(
+        TransportError::Network("connection refused")
+            .into_error("127.0.0.1:1")
+            .to_string(),
+        "could not reach 127.0.0.1:1: connection refused"
+    );
+    assert_eq!(
+        TransportError::TooLarge.into_error("h:9").to_string(),
+        "h:9's answer is over 64 MiB"
+    );
 }
 
 fn crc32(data: &[u8]) -> u32 {

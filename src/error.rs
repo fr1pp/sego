@@ -58,10 +58,10 @@ impl Error {
         Error::new(Kind::Network, message)
     }
 
-    pub fn deadline() -> Error {
+    pub fn deadline(host: &str) -> Error {
         Error::new(
             Kind::Deadline,
-            "no answer from sourcegraph.com within 90 s",
+            format!("no answer from {host} within 90 s"),
         )
     }
 
