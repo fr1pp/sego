@@ -2,7 +2,7 @@
 args: search 'repo:sego-fake/unknown foo'
 exit: 0
 --- stdout
-1 match  1 repo  0.1 s, deadline 60 s
-query  repo:sego-fake/unknown foo count:100  (count:100 added by sego)
+1 match  0.1 s
+query  repo:sego-fake/unknown foo
 --- stderr
 sego: note: 1 result of kind Weird not shown

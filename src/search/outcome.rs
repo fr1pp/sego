@@ -3,29 +3,22 @@ use std::collections::HashMap;
 use crate::error::Error;
 use crate::output::Notes;
 
-use super::query::{Prepared, seconds};
-use super::response::{Alert, Item, Named, Results};
+use super::model::{AlertOut, Searched};
+use super::query::tenths;
 
-const LISTED: usize = 5;
 const FACTS: usize = 2;
 const PROCESS_FAILURE: &str = "Unable To Process Query";
 const REVISIONS: &str = "Some revisions could not be searched";
 const NO_REPOSITORIES: &str = "No repositories found";
 
-pub fn judge(
-    results: &Results,
-    prepared: &Prepared,
-    notes: &mut Notes,
-) -> Result<(), Error> {
-    let stopped = !results.timedout.is_empty()
-        || results.elapsed_milliseconds >= prepared.deadline_ms;
-    if let Some(alert) = &results.alert {
+pub fn judge(searched: &Searched, notes: &mut Notes) -> Result<(), Error> {
+    if let Some(alert) = &searched.alert {
         if alert.title == PROCESS_FAILURE {
             return Err(Error::upstream(
                 description(alert).unwrap_or(&alert.title),
             ));
         }
-        if results.results.is_empty() {
+        if searched.groups.is_empty() && searched.unshown.is_empty() {
             if alert.title == REVISIONS {
                 return Err(revisions(alert));
             }
@@ -34,35 +27,21 @@ pub fn judge(
             }
         }
     }
-    if results.results.is_empty() && stopped {
-        let error = Error::missing(format!(
-            "the search stopped at its {} s deadline with no results",
-            seconds(prepared.deadline_ms)
-        ));
-        return Err(if results.timedout.is_empty() {
-            error
-        } else {
-            error.fact(format!("timed out: {}", names(&results.timedout)))
-        });
+    if searched.count == 0 && searched.stopped {
+        return Err(Error::missing(format!(
+            "the search stopped at {} s with no results",
+            tenths(searched.elapsed_ms)
+        )));
     }
-    push_notes(results, prepared, stopped, notes);
+    push_notes(searched, notes);
     Ok(())
 }
 
-pub fn names(list: &[Named]) -> String {
-    let shown: Vec<&str> =
-        list.iter().take(LISTED).map(|n| n.name.as_str()).collect();
-    match list.len().checked_sub(LISTED).filter(|&more| more > 0) {
-        Some(more) => format!("{}, and {more} more", shown.join(", ")),
-        None => shown.join(", "),
-    }
-}
-
-fn description(alert: &Alert) -> Option<&str> {
+fn description(alert: &AlertOut) -> Option<&str> {
     alert.description.as_deref().filter(|d| !d.trim().is_empty())
 }
 
-fn revisions(alert: &Alert) -> Error {
+fn revisions(alert: &AlertOut) -> Error {
     let Some(text) = description(alert) else {
         return Error::missing(&alert.title);
     };
@@ -87,53 +66,31 @@ fn revisions(alert: &Alert) -> Error {
     }
 }
 
-fn proposals(alert: &Alert, mut error: Error) -> Error {
-    for proposed in alert.proposed_queries.iter().flatten().take(FACTS) {
+fn proposals(alert: &AlertOut, mut error: Error) -> Error {
+    for proposed in alert.proposed.iter().take(FACTS) {
         error = error.fact(format!("the server proposes: {}", proposed.query));
     }
     error
 }
 
-fn push_notes(
-    results: &Results,
-    prepared: &Prepared,
-    stopped: bool,
-    notes: &mut Notes,
-) {
-    if let Some(alert) = &results.alert {
+fn push_notes(searched: &Searched, notes: &mut Notes) {
+    if let Some(alert) = &searched.alert {
         match description(alert) {
             Some(text) => notes.push(format!("{}: {text}", alert.title)),
             None => notes.push(&alert.title),
         }
-        for proposed in alert.proposed_queries.iter().flatten() {
+        for proposed in &alert.proposed {
             notes.push(format!("the server proposes: {}", proposed.query));
         }
     }
-    for (label, list) in [
-        ("timed out", &results.timedout),
-        ("cloning", &results.cloning),
-        ("missing", &results.missing),
-    ] {
-        if !list.is_empty() {
-            notes.push(format!("{label}: {}", names(list)));
-        }
-    }
-    if stopped && !results.results.is_empty() {
-        notes.push(format!(
-            "the search stopped at its {} s deadline",
-            seconds(prepared.deadline_ms)
-        ));
-    }
     let mut order: Vec<&str> = Vec::new();
     let mut counts: HashMap<&str, usize> = HashMap::new();
-    for item in &results.results {
-        if let Item::Other(kind) = item {
-            let count = counts.entry(kind).or_insert(0);
-            if *count == 0 {
-                order.push(kind);
-            }
-            *count += 1;
+    for kind in &searched.unshown {
+        let count = counts.entry(kind).or_insert(0);
+        if *count == 0 {
+            order.push(kind);
         }
+        *count += 1;
     }
     for kind in order {
         match counts[kind] {

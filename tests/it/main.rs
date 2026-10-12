@@ -2,6 +2,7 @@ mod address;
 mod cases;
 mod cli;
 mod commit;
+mod derive;
 mod diff;
 mod drift;
 mod envelope;

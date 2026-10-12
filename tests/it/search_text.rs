@@ -1,7 +1,8 @@
 use sego::internal::output::Answer;
 use sego::internal::search::model::{
-    Chunk, FilterOut, Group, LineOut, Searched, SymbolRow,
+    Chunk, Group, LineOut, Searched, ServerOut, SymbolRow, Widen,
 };
+use sego::internal::search::query::Unit;
 use sego::internal::search::text::TEXT_UNITS;
 
 const COMMIT: &str = "3fce3b5bb023aaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -9,32 +10,30 @@ const COMMIT: &str = "3fce3b5bb023aaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 fn base(query: &str) -> Searched {
     Searched {
         query: query.to_owned(),
-        added: Vec::new(),
         pattern_type: "keyword".to_owned(),
-        match_count: 30,
-        approximate_count: "30".to_owned(),
-        limit_hit: false,
-        repo_count: 1,
+        unit: Unit::Matches,
+        count: 30,
+        at_least: false,
+        stopped: false,
         elapsed_ms: 700,
-        deadline_ms: 60_000,
+        limit_ms: 60_000,
+        repos: 1,
+        widen: Vec::new(),
+        unindexed: None,
         alert: None,
-        timedout: Vec::new(),
-        cloning: Vec::new(),
-        missing: Vec::new(),
-        filters: Vec::new(),
-        unshown: 0,
+        unshown: Vec::new(),
         groups: Vec::new(),
+        server: ServerOut {
+            match_count: 30,
+            approximate_count: "30".to_owned(),
+            limit_hit: false,
+            timedout: Vec::new(),
+        },
     }
 }
 
-fn filter(kind: &str, value: &str, count: u64) -> FilterOut {
-    FilterOut {
-        kind: kind.to_owned(),
-        value: value.to_owned(),
-        label: value.to_owned(),
-        count,
-        limit_hit: false,
-    }
+fn widen(filter: &str, repos: u64) -> Widen {
+    Widen { filter: filter.to_owned(), repos }
 }
 
 fn line(number: u32, text: &str, range: Option<[u32; 2]>) -> LineOut {
@@ -127,7 +126,7 @@ fn the_two_spec_examples() {
         ],
     )];
     let expected = "\
-30 matches  1 repo  0.7 s, deadline 60 s
+30 matches  1 repo  0.7 s
 query  repo:^github\\.com/BurntSushi/ripgrep$ fn main count:30
 
 github.com/BurntSushi/ripgrep@3fce3b5bb023:crates/core/main.rs
@@ -142,15 +141,10 @@ github.com/BurntSushi/ripgrep@3fce3b5bb023:crates/core/main.rs
     assert_eq!(s.text(), expected);
 
     let mut s = base("file:(^|/)error\\.rs$ lang:rust type:path count:all");
-    s.match_count = 28900;
-    s.approximate_count = "28900".to_owned();
-    s.repo_count = 8133;
+    s.count = 28900;
+    s.repos = 8133;
     s.elapsed_ms = 16_200;
-    s.filters = vec![
-        filter("file", "file:(^|/)error\\.rs$", 900),
-        filter("file", "-file:_test\\.\\w+$", 55),
-        filter("repo", "repo:^github\\.com/awslabs/aws-sdk-rust$", 27),
-    ];
+    s.unit = Unit::Files;
     s.groups = (0..101).map(path_group).collect();
     s.groups[0] = file(
         "github.com/BurntSushi/ripgrep",
@@ -163,13 +157,12 @@ github.com/BurntSushi/ripgrep@3fce3b5bb023:crates/core/main.rs
         Vec::new(),
     );
     let text = s.text();
-    let head: Vec<&str> = text.lines().take(7).collect();
+    let head: Vec<&str> = text.lines().take(6).collect();
     assert_eq!(
         head,
         [
-            "100 of 28900 matches  8133 repos  16.2 s, deadline 60 s",
+            "100 of 28900 files  8133 repos  16.2 s",
             "query  file:(^|/)error\\.rs$ lang:rust type:path count:all",
-            "narrow  -file:_test\\.\\w+$ 55  repo:^github\\.com/awslabs/aws-sdk-rust$ 27",
             "",
             "github.com/BurntSushi/ripgrep@3fce3b5bb023:crates/core/error.rs",
             "github.com/awslabs/aws-sdk-rust@3fce3b5bb023:sdk/s3/src/error.rs",
@@ -178,30 +171,76 @@ github.com/BurntSushi/ripgrep@3fce3b5bb023:crates/core/main.rs
     );
 }
 
+fn first_line(s: &Searched) -> String {
+    s.text().lines().next().unwrap_or_default().to_owned()
+}
+
+#[test]
+fn line_one_for_each_row_of_the_spec_table() {
+    let mut s = base("q");
+    s.count = 3;
+    s.elapsed_ms = 1200;
+    s.groups = vec![path_group(0)];
+    assert_eq!(first_line(&s), "3 matches  1 repo  1.2 s");
+
+    s.count = 30;
+    s.at_least = true;
+    s.repos = 4;
+    s.elapsed_ms = 2000;
+    assert_eq!(first_line(&s), "30+ matches  4 repos  2.0 s");
+
+    s.count = 2;
+    s.repos = 1;
+    s.stopped = true;
+    s.elapsed_ms = 21_300;
+    assert_eq!(first_line(&s), "2+ matches  1 repo  stopped at 21.3 s");
+
+    s.count = 0;
+    s.at_least = false;
+    s.stopped = false;
+    s.repos = 0;
+    s.elapsed_ms = 700;
+    s.groups.clear();
+    assert_eq!(first_line(&s), "0 matches  0.7 s");
+}
+
 #[test]
 fn count_forms() {
     let mut s = base("q");
-    s.match_count = 1;
-    s.approximate_count = "1".to_owned();
+    s.count = 1;
     s.groups = vec![path_group(0)];
-    assert_eq!(
-        s.text().lines().next(),
-        Some("1 match  1 repo  0.7 s, deadline 60 s")
-    );
+    assert_eq!(first_line(&s), "1 match  1 repo  0.7 s");
 
-    s.match_count = 100;
-    s.approximate_count = "100+".to_owned();
-    assert_eq!(
-        s.text().lines().next(),
-        Some("100+ matches  1 repo  0.7 s, deadline 60 s")
-    );
+    s.at_least = true;
+    assert_eq!(first_line(&s), "1+ matches  1 repo  0.7 s");
 
-    s.match_count = 836;
-    s.approximate_count = "836".to_owned();
+    s.at_least = false;
+    s.unit = Unit::Symbols;
+    assert_eq!(first_line(&s), "1 symbol  1 repo  0.7 s");
+    s.unit = Unit::Files;
+    assert_eq!(first_line(&s), "1 file  1 repo  0.7 s");
+    s.unit = Unit::Repos;
+    assert_eq!(first_line(&s), "1 repo  1 repo  0.7 s");
+    s.unit = Unit::Matches;
+
+    s.count = 100;
+    s.at_least = true;
+    assert_eq!(first_line(&s), "100+ matches  1 repo  0.7 s");
+}
+
+#[test]
+fn text_fewer_than_held_uses_the_of_form() {
+    let mut s = base("q");
+    s.count = 836;
     s.groups = (0..101).map(path_group).collect();
+    assert_eq!(first_line(&s), "100 of 836 matches  1 repo  0.7 s");
+
+    s.at_least = true;
+    s.stopped = true;
+    s.elapsed_ms = 21_300;
     assert_eq!(
-        s.text().lines().next(),
-        Some("100 of 836 matches  1 repo  0.7 s, deadline 60 s")
+        first_line(&s),
+        "100 of 836+ matches  1 repo  stopped at 21.3 s"
     );
 }
 
@@ -209,15 +248,13 @@ fn count_forms() {
 fn limit_at_and_past_the_boundary() {
     assert_eq!(TEXT_UNITS, 100);
     let mut s = base("q");
-    s.match_count = 100;
-    s.approximate_count = "100".to_owned();
+    s.count = 100;
     s.groups = (0..100).map(path_group).collect();
     let text = s.text();
     assert!(text.starts_with("100 matches  "), "{text}");
     assert_eq!(text.lines().count(), 3 + 100);
 
-    s.match_count = 101;
-    s.approximate_count = "101".to_owned();
+    s.count = 101;
     s.groups = (1..=101).map(|n| file("r", "p", vec![one_range(n)])).collect();
     assert_eq!(s.units(), 101);
     let text = s.text();
@@ -228,8 +265,7 @@ fn limit_at_and_past_the_boundary() {
     let mut groups: Vec<Group> = (0..99).map(path_group).collect();
     groups.push(file("r", "wide", vec![wide]));
     groups.push(path_group(100));
-    s.match_count = 105;
-    s.approximate_count = "105".to_owned();
+    s.count = 105;
     s.groups = groups;
     assert_eq!(s.units(), 105);
     let text = s.text();
@@ -239,38 +275,28 @@ fn limit_at_and_past_the_boundary() {
 }
 
 #[test]
-fn narrow_and_widen() {
+fn widen_on_a_zero() {
     let mut s = base("lang:go Foo");
-    s.groups = vec![path_group(0)];
-    s.filters = vec![
-        filter("lang", "LANG:GO", 9),
-        filter("utility", "fork:yes", 4),
-        filter("repo", "repo:full", 30),
-        filter("repo", "repo:a", 1),
-        filter("repo", "repo:b", 2),
-        filter("repo", "repo:c", 3),
-        filter("repo", "repo:d", 4),
-        filter("repo", "repo:e", 5),
-        filter("repo", "repo:f", 6),
-    ];
-    let text = s.text();
-    assert_eq!(
-        text.lines().nth(2),
-        Some("narrow  repo:a 1  repo:b 2  repo:c 3  repo:d 4  repo:e 5")
-    );
-
-    s.groups.clear();
-    s.match_count = 0;
-    s.approximate_count = "0".to_owned();
+    s.count = 0;
+    s.repos = 0;
+    s.widen = vec![widen("archived:yes", 68_912), widen("fork:yes", 1)];
     assert_eq!(
         s.text(),
-        "0 matches  1 repo  0.7 s, deadline 60 s\n\
+        "0 matches  0.7 s\n\
          query  lang:go Foo\n\
-         widen  fork:yes 4\n"
+         widen  archived:yes (68912 repos)  fork:yes (1 repo)\n"
     );
 
-    s.filters = vec![filter("repo", "repo:a", 1)];
+    s.widen.clear();
     assert_eq!(s.text().lines().count(), 2);
+}
+
+#[test]
+fn widen_is_for_a_zero_only() {
+    let mut s = base("lang:go Foo");
+    s.groups = vec![path_group(0)];
+    s.widen = vec![widen("fork:yes", 4)];
+    assert!(!s.text().contains("widen"));
 }
 
 #[test]
@@ -295,7 +321,7 @@ fn symbols_merge_with_chunks() {
         ],
     )];
     let expected = "\
-30 matches  1 repo  0.7 s, deadline 60 s
+30 matches  1 repo  0.7 s
 query  q
 
 r@3fce3b5bb023:a.rs
@@ -340,7 +366,7 @@ fn commit_results() {
         false,
     )];
     let expected = "\
-30 matches  1 repo  0.7 s, deadline 60 s
+30 matches  1 repo  0.7 s
 query  type:commit q
 
 r@3fce3b5bb023  2026-07-23  Ann  Fix it
@@ -432,9 +458,6 @@ fn binary_files() {
 #[test]
 fn hostile_strings_print_escaped() {
     let mut s = base("a\nb");
-    s.added = vec!["count:100".to_owned()];
-    s.approximate_count = "3\u{1b}[31m".to_owned();
-    s.filters = vec![filter("lang", "lang:\u{1b}[31m", 1)];
     s.groups = vec![
         file("r\u{1b}x", "p\u{1b}y", Vec::new()),
         Group::Commit {
@@ -450,11 +473,16 @@ fn hostile_strings_print_escaped() {
     ];
     let text = s.text();
     assert!(!text.contains('\u{1b}'), "{text:?}");
-    assert!(text.contains("query  a\\u{a}b  (count:100 added by sego)\n"));
-    assert!(text.starts_with("3\\u{1b}[31m matches  "), "{text:?}");
-    assert!(text.contains("narrow  lang:\\u{1b}[31m 1\n"));
+    assert!(text.contains("query  a\\u{a}b\n"));
     assert!(text.contains("\\u{1b}"));
     assert!(text.contains("s\\u{1b}z"));
+
+    let mut s = base("q");
+    s.count = 0;
+    s.widen = vec![widen("archived:\u{1b}[31m", 2)];
+    let text = s.text();
+    assert!(!text.contains('\u{1b}'), "{text:?}");
+    assert!(text.contains("widen  archived:\\u{1b}[31m (2 repos)\n"));
 }
 
 #[test]
@@ -464,15 +492,14 @@ fn elapsed_rounding() {
         let mut s = base("q");
         s.elapsed_ms = ms;
         let first = s.text().lines().next().unwrap_or_default().to_owned();
-        assert!(first.contains(&format!("  {shown}, deadline")), "{first}");
+        assert!(first.ends_with(&format!("  {shown}")), "{first}");
     }
 }
 
 #[test]
 fn a_binary_file_with_symbols_prints_what_units_counts() {
     let mut s = base("q");
-    s.match_count = 3;
-    s.approximate_count = "3".to_owned();
+    s.count = 3;
     s.groups = vec![Group::File {
         repo: "r".to_owned(),
         commit: COMMIT.to_owned(),
@@ -489,7 +516,7 @@ fn a_binary_file_with_symbols_prints_what_units_counts() {
     assert_eq!(s.units(), 3);
     assert_eq!(
         s.text(),
-        "3 matches  1 repo  0.7 s, deadline 60 s\n\
+        "3 matches  1 repo  0.7 s\n\
          query  q\n\
          \n\
          r@3fce3b5bb023:a.bin\n\
@@ -502,8 +529,7 @@ fn a_binary_file_with_symbols_prints_what_units_counts() {
 #[test]
 fn symbols_without_a_line_leave_a_path_match() {
     let mut s = base("q");
-    s.match_count = 1;
-    s.approximate_count = "1".to_owned();
+    s.count = 1;
     s.groups = vec![file_with(
         "r",
         "a.rs",
@@ -513,7 +539,7 @@ fn symbols_without_a_line_leave_a_path_match() {
     assert_eq!(s.units(), 1);
     assert_eq!(
         s.text(),
-        "1 match  1 repo  0.7 s, deadline 60 s\n\
+        "1 match  1 repo  0.7 s\n\
          query  q\n\
          \n\
          r@3fce3b5bb023:a.rs\n"
@@ -523,8 +549,7 @@ fn symbols_without_a_line_leave_a_path_match() {
 #[test]
 fn symbols_sit_between_the_chunk_lines_around_them() {
     let mut s = base("q");
-    s.match_count = 6;
-    s.approximate_count = "6".to_owned();
+    s.count = 6;
     s.groups = vec![file_with(
         "r",
         "a.rs",
@@ -548,7 +573,7 @@ fn symbols_sit_between_the_chunk_lines_around_them() {
         ],
     )];
     let expected = "\
-6 matches  1 repo  0.7 s, deadline 60 s
+6 matches  1 repo  0.7 s
 query  q
 
 r@3fce3b5bb023:a.rs
@@ -566,17 +591,6 @@ r@3fce3b5bb023:a.rs
   40:h
 ";
     assert_eq!(s.text(), expected);
-}
-
-#[test]
-fn unknown_kinds_alone_are_not_zero_results() {
-    let mut s = base("q");
-    s.match_count = 0;
-    s.approximate_count = "0".to_owned();
-    s.filters = vec![filter("utility", "fork:yes", 4)];
-    assert!(s.text().contains("widen  fork:yes 4"));
-    s.unshown = 1;
-    assert_eq!(s.text().lines().count(), 2);
 }
 
 #[test]

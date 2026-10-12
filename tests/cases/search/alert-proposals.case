@@ -2,8 +2,8 @@
 args: search 'repo:sego-fake/alert foo'
 exit: 0
 --- stdout
-1 match  1 repo  0.8 s, deadline 60 s
-query  repo:sego-fake/alert foo count:100  (count:100 added by sego)
+1 match  1 repo  0.8 s
+query  repo:sego-fake/alert foo
 
 github.com/sego-fake/found
 --- stderr

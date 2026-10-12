@@ -2,8 +2,8 @@
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 type:commit wildcard'
 exit: 0
 --- stdout
-1 match  1 repo  0.0 s, deadline 60 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0 type:commit wildcard count:100  (count:100 added by sego)
+1 match  1 repo  0.0 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0 type:commit wildcard
 
 github.com/gorilla/mux@98cb6bf42e08  2020-07-11  Harshavardhana  fix: regression in vars extract for wildcard host (#579)
     fix: regression in vars extract for wildcard host (#579)

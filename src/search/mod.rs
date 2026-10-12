@@ -7,6 +7,7 @@ use crate::output::Notes;
 use crate::upstream::top_level;
 use crate::upstream::{Request, Transport, Var, exchange};
 
+pub mod derive;
 pub mod lint;
 pub mod model;
 pub mod outcome;
@@ -83,6 +84,7 @@ pub fn run(
         notes.push(note);
     }
     let results = fetch(&prepared, transport, deadline)?;
-    outcome::judge(&results, &prepared, notes)?;
-    Ok(Searched::new(results, &prepared))
+    let searched = Searched::new(results, &prepared);
+    outcome::judge(&searched, notes)?;
+    Ok(searched)
 }

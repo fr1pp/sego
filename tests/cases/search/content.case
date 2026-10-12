@@ -2,7 +2,7 @@
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 "func NewRouter" count:100'
 exit: 0
 --- stdout
-2 matches  1 repo  3.2 s, deadline 60 s
+2 matches  1 repo  3.2 s
 query  repo:^github\.com/gorilla/mux$@v1.8.0 "func NewRouter" count:100
 
 github.com/gorilla/mux@98cb6bf42e08:mux.go

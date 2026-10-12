@@ -2,9 +2,8 @@
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 type:path file:\.go$'
 exit: 0
 --- stdout
-15 matches  1 repo  0.6 s, deadline 60 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0 type:path file:\.go$ count:100  (count:100 added by sego)
-narrow  -file:_test\.\w+$ 9
+15 files  1 repo  0.6 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0 type:path file:\.go$
 
 github.com/gorilla/mux@98cb6bf42e08:test_helpers.go
 github.com/gorilla/mux@98cb6bf42e08:example_authentication_middleware_test.go

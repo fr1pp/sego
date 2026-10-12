@@ -2,9 +2,8 @@
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0:^v1.7.4 type:diff count:3 route'
 exit: 0
 --- stdout
-3+ matches  1 repo  0.0 s, deadline 60 s
+3+ matches  1 repo  0.0 s
 query  repo:^github\.com/gorilla/mux$@v1.8.0:^v1.7.4 type:diff count:3 route
-narrow  author:harsha@minio\.io 1  before:"2 months ago" 1
 
 github.com/gorilla/mux@98cb6bf42e08  2020-07-11  Harshavardhana  fix: regression in vars extract for wildcard host (#579)
     old_test.go old_test.go

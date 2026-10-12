@@ -2,7 +2,7 @@
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter\('
 exit: 0
 --- stdout
-0 matches  0 repos  1.5 s, deadline 60 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter\( count:100  (count:100 added by sego)
+0 matches  1.5 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter\(
 --- stderr
 sego: note: keyword mode matches `NewRouter\(` literally; a regex goes inside /.../

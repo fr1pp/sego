@@ -2,9 +2,8 @@
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0..v1.7.4 NewRouter'
 exit: 0
 --- stdout
-100+ matches  1 repo  1.2 s, deadline 60 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0..v1.7.4 NewRouter count:100  (count:100 added by sego)
-narrow  lang:go 80  -file:_test\.\w+$ 57  lang:markdown 20
+100+ matches  1 repo  1.2 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0..v1.7.4 NewRouter
 
 github.com/gorilla/mux@75dcda0896e1:example_route_test.go
   13-func ExampleRoute_HeadersRegexp() {

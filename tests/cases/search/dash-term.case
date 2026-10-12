@@ -2,9 +2,8 @@
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0' '-file:_test\.go' NewRouter
 exit: 0
 --- stdout
-46 matches  1 repo  1.2 s, deadline 60 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0 -file:_test\.go NewRouter count:100  (count:100 added by sego)
-narrow  lang:go 26  lang:markdown 20
+46 matches  1 repo  1.2 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0 -file:_test\.go NewRouter
 
 github.com/gorilla/mux@98cb6bf42e08:README.md
   52-func main() {

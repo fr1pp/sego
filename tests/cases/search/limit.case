@@ -2,9 +2,8 @@
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 Route count:all'
 exit: 0
 --- stdout
-105 of 1864 matches  1 repo  1.6 s, deadline 60 s
+105 of 1864 matches  1 repo  1.6 s
 query  repo:^github\.com/gorilla/mux$@v1.8.0 Route count:all
-narrow  type:path 2  lang:go 1744  -file:_test\.\w+$ 1239  lang:markdown 120
 
 github.com/gorilla/mux@98cb6bf42e08:old_test.go
   66-

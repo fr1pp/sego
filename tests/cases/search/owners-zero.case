@@ -1,8 +1,5 @@
 # select:file.owners answers 0+ at once with an alert.
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 select:file.owners NewRouter'
-exit: 0
---- stdout
-0+ matches  0 repos  0.4 s, deadline 60 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0 select:file.owners NewRouter count:100  (count:100 added by sego)
+exit: 1
 --- stderr
-sego: note: Some results have no owners: For some results, no ownership data was found, or no rule applied to the result. [Learn more about configuring code ownership](/help/own).
+sego: error: the search stopped at 0.4 s with no results

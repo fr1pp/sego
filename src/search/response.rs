@@ -1,5 +1,5 @@
-use serde::Deserialize;
 use serde::de::{DeserializeOwned, Deserializer, Error as _};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 #[derive(Debug, Deserialize)]
@@ -16,6 +16,14 @@ pub struct Results {
     pub elapsed_milliseconds: u64,
     pub dynamic_filters: Vec<DynamicFilter>,
     pub results: Vec<Item>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct UnindexedFile {
+    pub repo: String,
+    pub commit: String,
+    pub path: String,
+    pub bytes: u64,
 }
 
 #[derive(Debug, Deserialize)]

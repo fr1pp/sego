@@ -2,8 +2,8 @@
 args: search 'repo:sego-fake/binary foo'
 exit: 0
 --- stdout
-1 match  1 repo  0.1 s, deadline 60 s
-query  repo:sego-fake/binary foo count:100  (count:100 added by sego)
+1 match  1 repo  0.1 s
+query  repo:sego-fake/binary foo
 
 github.com/sego-fake/binary@0123456789ab:blob.bin
 binary file; lines not shown

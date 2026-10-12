@@ -2,9 +2,8 @@
 args: search '(repo:^github\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter) or (repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter) count:100'
 exit: 0
 --- stdout
-100 of 102+ matches  1 repo  0.7 s, deadline 60 s
+100 of 102+ symbols  1 repo  0.7 s
 query  (repo:^github\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter) or (repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter) count:100
-narrow  type:file 100  lang:go 82  -file:_test\.\w+$ 59  lang:markdown 20  select:symbol.function 2
 
 github.com/gorilla/mux@98cb6bf42e08:mux.go
   23-

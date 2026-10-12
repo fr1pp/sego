@@ -7,11 +7,3 @@ pub fn symbol_kind(server: &str) -> String {
         other => other.to_lowercase(),
     }
 }
-
-pub fn filter_kind(server: &str) -> String {
-    match server {
-        "commit date" => "commit_date".to_owned(),
-        "symbol type" => "symbol_type".to_owned(),
-        other => other.to_lowercase(),
-    }
-}

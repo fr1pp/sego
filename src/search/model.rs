@@ -1,33 +1,54 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use serde::Serialize;
 
-use super::query::Prepared;
+use super::derive::{counted, is_placeholder};
+use super::query::{Prepared, Unit};
 use super::response::{
-    Alert, CommitResult, DynamicFilter, FileMatch, Item, Named, Range,
-    Results, Symbol,
+    Alert, CommitResult, FileMatch, Item, Range, Results, Symbol,
+    UnindexedFile,
 };
 use crate::escape::strip_cr;
-use crate::output::vocab::{filter_kind, symbol_kind};
+use crate::output::vocab::symbol_kind;
 
+/// An answer: the facts sego derives, then the results it holds.
 pub struct Searched {
+    /// The query as written.
     pub query: String,
-    pub added: Vec<String>,
     pub pattern_type: String,
+    pub unit: Unit,
+    pub count: u64,
+    pub at_least: bool,
+    pub stopped: bool,
+    pub elapsed_ms: u64,
+    pub limit_ms: u64,
+    /// The distinct repositories among `groups`.
+    pub repos: u64,
+    pub widen: Vec<Widen>,
+    /// `None` when it isn't known which files the index skipped.
+    pub unindexed: Option<Vec<UnindexedFile>>,
+    pub alert: Option<AlertOut>,
+    /// The `__typename` of each result of a kind sego doesn't read; they
+    /// are not in the JSON.
+    pub unshown: Vec<String>,
+    pub groups: Vec<Group>,
+    pub server: ServerOut,
+}
+
+/// The server's own fields, untrusted.
+#[derive(Serialize)]
+pub struct ServerOut {
     pub match_count: u64,
     pub approximate_count: String,
     pub limit_hit: bool,
-    pub repo_count: u64,
-    pub elapsed_ms: u64,
-    pub deadline_ms: u64,
-    pub alert: Option<AlertOut>,
     pub timedout: Vec<String>,
-    pub cloning: Vec<String>,
-    pub missing: Vec<String>,
-    pub filters: Vec<FilterOut>,
-    /// Results of a kind sego doesn't read; they are not in the JSON.
-    pub unshown: u64,
-    pub groups: Vec<Group>,
+}
+
+/// A filter that would widen the search, and the repositories it would add.
+#[derive(Serialize)]
+pub struct Widen {
+    pub filter: String,
+    pub repos: u64,
 }
 
 #[derive(Serialize)]
@@ -42,15 +63,6 @@ pub struct AlertOut {
 pub struct ProposedOut {
     pub description: Option<String>,
     pub query: String,
-}
-
-#[derive(Serialize)]
-pub struct FilterOut {
-    pub kind: String,
-    pub value: String,
-    pub label: String,
-    pub count: u64,
-    pub limit_hit: bool,
 }
 
 pub enum Group {
@@ -124,10 +136,6 @@ fn count(len: usize) -> u32 {
     u32::try_from(len).unwrap_or(u32::MAX)
 }
 
-fn names(named: Vec<Named>) -> Vec<String> {
-    named.into_iter().map(|n| n.name).collect()
-}
-
 fn alert_out(alert: Alert) -> AlertOut {
     AlertOut {
         title: alert.title,
@@ -142,16 +150,6 @@ fn alert_out(alert: Alert) -> AlertOut {
                 query: p.query,
             })
             .collect(),
-    }
-}
-
-fn filter_out(filter: DynamicFilter) -> FilterOut {
-    FilterOut {
-        kind: filter_kind(&filter.kind),
-        value: filter.value,
-        label: filter.label,
-        count: filter.count,
-        limit_hit: filter.limit_hit,
     }
 }
 
@@ -441,6 +439,14 @@ pub fn rows<'a>(
 }
 
 impl Group {
+    fn repo(&self) -> &str {
+        match self {
+            Group::File { repo, .. }
+            | Group::Commit { repo, .. }
+            | Group::Repo { repo } => repo,
+        }
+    }
+
     /// The units this group counts: what the text limit and the count line
     /// are measured in.
     pub fn units(&self) -> u32 {
@@ -458,13 +464,21 @@ impl Group {
 }
 
 impl Searched {
-    pub fn new(results: Results, prepared: &Prepared) -> Searched {
+    pub fn new(mut results: Results, prepared: &Prepared) -> Searched {
         let mut slots: Vec<Slot> = Vec::new();
-        let mut unshown = 0;
+        let mut unshown = Vec::new();
+        let mut placeholder_ranges = 0;
         let mut index: HashMap<(String, String, String), usize> =
             HashMap::new();
-        for item in results.results {
+        for item in std::mem::take(&mut results.results) {
             match item {
+                Item::FileMatch(file) if is_placeholder(&file) => {
+                    placeholder_ranges += file
+                        .chunk_matches
+                        .iter()
+                        .map(|chunk| chunk.ranges.len() as u64)
+                        .sum::<u64>();
+                }
                 Item::FileMatch(file) => {
                     let key = (
                         file.repository.name.clone(),
@@ -485,37 +499,48 @@ impl Searched {
                 Item::Repository(named) => {
                     slots.push(Slot::Done(Group::Repo { repo: named.name }));
                 }
-                Item::Other(_) => unshown += 1,
+                Item::Other(kind) => unshown.push(kind),
             }
         }
-        let groups = slots
+        let groups: Vec<Group> = slots
             .into_iter()
             .map(|slot| match slot {
                 Slot::File(acc) => acc.finish(),
                 Slot::Done(group) => group,
             })
             .collect();
+        let answer = counted(&results, prepared, placeholder_ranges);
+        let repos = groups.iter().map(Group::repo).collect::<HashSet<_>>();
         Searched {
-            query: prepared.sent.clone(),
-            added: prepared.added.clone(),
+            query: prepared.query.clone(),
             pattern_type: prepared.pattern_type.clone(),
-            match_count: results.match_count,
-            approximate_count: results.approximate_result_count,
-            limit_hit: results.limit_hit,
-            repo_count: results.repositories_count,
+            unit: prepared.unit,
+            count: answer.count,
+            at_least: answer.at_least,
+            stopped: answer.stopped,
             elapsed_ms: results.elapsed_milliseconds,
-            deadline_ms: prepared.deadline_ms,
-            alert: results.alert.map(alert_out),
-            timedout: names(results.timedout),
-            cloning: names(results.cloning),
-            missing: names(results.missing),
-            filters: results
+            limit_ms: prepared.deadline_ms,
+            repos: repos.len() as u64,
+            widen: results
                 .dynamic_filters
                 .into_iter()
-                .map(filter_out)
+                .filter(|f| f.kind.eq_ignore_ascii_case("utility"))
+                .map(|f| Widen { filter: f.value, repos: f.count })
                 .collect(),
+            unindexed: None,
+            alert: results.alert.map(alert_out),
             unshown,
             groups,
+            server: ServerOut {
+                match_count: results.match_count,
+                approximate_count: results.approximate_result_count,
+                limit_hit: results.limit_hit,
+                timedout: results
+                    .timedout
+                    .into_iter()
+                    .map(|n| n.name)
+                    .collect(),
+            },
         }
     }
 
@@ -527,20 +552,18 @@ impl Searched {
     pub fn json(&self) -> impl Serialize + '_ {
         Document {
             query: &self.query,
-            added: &self.added,
             pattern_type: &self.pattern_type,
-            match_count: self.match_count,
-            approximate_count: &self.approximate_count,
-            limit_hit: self.limit_hit,
-            repo_count: self.repo_count,
+            unit: self.unit.plural(),
+            count: self.count,
+            at_least: self.at_least,
+            stopped: self.stopped,
             elapsed_ms: self.elapsed_ms,
-            deadline_ms: self.deadline_ms,
+            limit_ms: self.limit_ms,
+            widen: &self.widen,
+            unindexed: self.unindexed.as_deref(),
             alert: self.alert.as_ref(),
-            timedout: &self.timedout,
-            cloning: &self.cloning,
-            missing: &self.missing,
-            filters: &self.filters,
             results: self.groups.iter().flat_map(records).collect(),
+            server: &self.server,
         }
     }
 }
@@ -548,20 +571,18 @@ impl Searched {
 #[derive(Serialize)]
 struct Document<'a> {
     query: &'a str,
-    added: &'a [String],
     pattern_type: &'a str,
-    match_count: u64,
-    approximate_count: &'a str,
-    limit_hit: bool,
-    repo_count: u64,
+    unit: &'a str,
+    count: u64,
+    at_least: bool,
+    stopped: bool,
     elapsed_ms: u64,
-    deadline_ms: u64,
+    limit_ms: u64,
+    widen: &'a [Widen],
+    unindexed: Option<&'a [UnindexedFile]>,
     alert: Option<&'a AlertOut>,
-    timedout: &'a [String],
-    cloning: &'a [String],
-    missing: &'a [String],
-    filters: &'a [FilterOut],
     results: Vec<Record<'a>>,
+    server: &'a ServerOut,
 }
 
 #[derive(Serialize)]

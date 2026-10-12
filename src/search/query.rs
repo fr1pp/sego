@@ -62,7 +62,6 @@ impl Unit {
 pub struct Prepared {
     pub query: String,
     pub sent: String,
-    pub added: Vec<String>,
     pub pattern_type: String,
     pub cap: Option<u64>,
     pub unit: Unit,
@@ -74,10 +73,10 @@ pub struct Prepared {
 
 pub fn prepare(query: &str) -> Prepared {
     let has_count = tokenize(query).iter().any(|token| field(token, "count"));
-    let (sent, added) = if has_count {
-        (query.to_owned(), Vec::new())
+    let sent = if has_count {
+        query.to_owned()
     } else {
-        (format!("{query} count:100"), vec!["count:100".to_owned()])
+        format!("{query} count:100")
     };
     let tokens = tokenize(&sent);
     let deadline_ms = deadline_ms(&tokens);
@@ -91,7 +90,6 @@ pub fn prepare(query: &str) -> Prepared {
         unindexed: unindexed_query(&tokens, deadline_ms),
         deadline_ms,
         sent,
-        added,
     }
 }
 
@@ -320,13 +318,4 @@ fn parse(text: &str) -> Option<(bool, Duration)> {
 fn digits(text: &str) -> (&str, &str) {
     let end = text.find(|c: char| !c.is_ascii_digit()).unwrap_or(text.len());
     text.split_at(end)
-}
-
-pub fn seconds(ms: u64) -> String {
-    let (whole, part) = (ms / 1000, ms % 1000);
-    if part == 0 {
-        return whole.to_string();
-    }
-    let part = format!("{part:03}");
-    format!("{whole}.{}", part.trim_end_matches('0'))
 }

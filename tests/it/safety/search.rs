@@ -45,14 +45,13 @@ fn assert_search_layout(out: &str) {
     assert!(out.ends_with('\n'), "{out:?}");
     let lines: Vec<&str> =
         out.strip_suffix('\n').unwrap_or(out).split('\n').collect();
-    assert!(lines[0].contains(" s, deadline "), "{:?}", lines[0]);
+    assert!(lines[0].contains(" matches  "), "{:?}", lines[0]);
+    assert!(lines[0].ends_with(" s"), "{:?}", lines[0]);
     assert!(lines[1].starts_with("query  "), "{:?}", lines[1]);
     let (mut headers, mut binary, mut code, mut symbols, mut commit) =
         (0, 0, 0, 0, 0);
     for (i, line) in lines.iter().enumerate().skip(2) {
-        let filter_line = i == 2
-            && (line.starts_with("narrow  ") || line.starts_with("widen  "));
-        if filter_line || line.is_empty() || *line == "--" {
+        if line.is_empty() || *line == "--" {
             continue;
         }
         if search_code_line(line) {
@@ -112,7 +111,7 @@ fn search_text_has_only_the_layout_lines() {
     assert_eq!(ran.code, ExitCode::SUCCESS, "{}", ran.err);
     assert_search_layout(&ran.out);
     assert_search_stderr(&ran);
-    assert_eq!(ran.err.lines().count(), 7, "{:?}", ran.err);
+    assert_eq!(ran.err.lines().count(), 3, "{:?}", ran.err);
 }
 
 #[test]
@@ -122,19 +121,15 @@ fn search_json_values_equal_the_hostile_originals() {
     assert_search_stderr(&ran);
     let h = hostile();
     let value = json(&ran);
-    assert_eq!(value["query"], format!("{h} ok count:100"));
+    assert_eq!(value["query"], format!("{h} ok"));
     let name = hostile_name();
-    assert_eq!(value["timedout"][0], h);
-    assert_eq!(value["cloning"][0], h);
-    assert_eq!(value["missing"][0], h);
-    assert_eq!(value["approximate_count"], h);
+    assert_eq!(value["server"]["timedout"][0], h);
+    assert_eq!(value["server"]["approximate_count"], h);
     assert_eq!(value["alert"]["title"], h);
     assert_eq!(value["alert"]["description"], h);
     assert_eq!(value["alert"]["proposed"][0]["description"], h);
     assert_eq!(value["alert"]["proposed"][0]["query"], h);
-    assert_eq!(value["filters"][0]["value"], h);
-    assert_eq!(value["filters"][0]["label"], h);
-    assert_eq!(value["filters"][1]["value"], h);
+    assert_eq!(value["widen"][0]["filter"], h);
 
     let results = value["results"].as_array().expect("results array");
     let of = |kind: &str| -> Vec<&Value> {
@@ -190,8 +185,7 @@ fn search_error_paths_fail_with_a_clean_message() {
             assert_search_stderr(&ran);
             let lines = ran.err.lines().count();
             let expected = match tag {
-                "unable" => 1,
-                "stopped" => 2,
+                "unable" | "stopped" => 1,
                 _ => 3,
             };
             assert_eq!(lines, expected, "{what}: {:?}", ran.err);

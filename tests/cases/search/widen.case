@@ -2,6 +2,6 @@
 args: search 'repo:sego-fake/widen foo'
 exit: 0
 --- stdout
-0 matches  0 repos  0.1 s, deadline 60 s
-query  repo:sego-fake/widen foo count:100  (count:100 added by sego)
-widen  archived:yes 4  fork:yes 9
+0 matches  0.1 s
+query  repo:sego-fake/widen foo
+widen  archived:yes (4 repos)  fork:yes (9 repos)

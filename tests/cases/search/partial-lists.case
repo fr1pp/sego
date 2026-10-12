@@ -1,11 +1,8 @@
-# Cloning and missing repositories are notes; the results still print.
+# Cloning and missing repositories get no note; the results still print.
 args: search 'repo:sego-fake/partial foo'
 exit: 0
 --- stdout
-1 match  1 repo  0.8 s, deadline 60 s
-query  repo:sego-fake/partial foo count:100  (count:100 added by sego)
+1 match  1 repo  0.8 s
+query  repo:sego-fake/partial foo
 
 github.com/sego-fake/found
---- stderr
-sego: note: cloning: github.com/sego-fake/c1, github.com/sego-fake/c2
-sego: note: missing: github.com/sego-fake/m1

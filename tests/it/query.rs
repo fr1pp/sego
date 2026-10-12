@@ -3,7 +3,7 @@ use std::time::Duration;
 use sego::internal::search::lint::{Token, tokenize};
 use sego::internal::search::query::{
     Unit, cap, deadline_ms, duration_text, go_duration, pattern_type, prepare,
-    seconds, tenths, unindexed_query, unit,
+    tenths, unindexed_query, unit,
 };
 
 const OVERFLOW: &str = "340282366920938463463374607431.9s";
@@ -14,12 +14,10 @@ fn facts() {
     for query in ["NewRouter", "\"count:5\" foo"] {
         let prepared = prepare(query);
         assert_eq!(prepared.sent, appended(query), "{query}");
-        assert_eq!(prepared.added, ["count:100"], "{query}");
     }
     for query in ["COUNT:5 foo", "foo (bar count:all)", "-count:5 x"] {
         let prepared = prepare(query);
         assert_eq!(prepared.sent, query);
-        assert!(prepared.added.is_empty(), "{query}");
     }
 }
 
@@ -92,15 +90,6 @@ fn go_durations() {
     for (text, expected) in rows {
         assert_eq!(go_duration(text), expected, "{text:?}");
     }
-}
-
-#[test]
-fn seconds_text() {
-    let rows = [(60_000, "60"), (1_500, "1.5"), (200, "0.2"), (1, "0.001")];
-    for (ms, text) in rows {
-        assert_eq!(seconds(ms), text);
-    }
-    assert_eq!(seconds(0), "0");
 }
 
 fn t(query: &str) -> Vec<Token> {

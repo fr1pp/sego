@@ -1,20 +1,16 @@
 use std::fmt::Write as _;
 use std::io;
 
-use super::lint::tokenize;
 use super::model::{
-    Chunk, FileItem, FilterOut, Group, Row, Searched, SymbolRow, file_items,
-    rows,
+    Chunk, FileItem, Group, Row, Searched, SymbolRow, file_items, rows,
 };
-use super::query::seconds;
+use super::query::tenths;
 use crate::address::pinned;
 use crate::escape::{escape, one_line, render_line};
 use crate::output::text::{code_line, gutter_width, header};
 use crate::output::{Answer, Marker, json};
 
 pub const TEXT_UNITS: u32 = 100;
-
-const NARROW_VALUES: usize = 5;
 
 impl Answer for Searched {
     fn write_json(&self, out: &mut dyn io::Write) -> io::Result<()> {
@@ -24,7 +20,7 @@ impl Answer for Searched {
     fn text(&self) -> String {
         let (results, printed) = self.results();
         let mut out = self.summary(printed);
-        if let Some(line) = self.filter_line() {
+        if let Some(line) = self.widen_line() {
             out.push_str(&line);
         }
         if !results.is_empty() {
@@ -37,65 +33,42 @@ impl Answer for Searched {
 
 impl Searched {
     fn summary(&self, printed: u32) -> String {
-        let count = if self.approximate_count == self.match_count.to_string() {
-            self.match_count.to_string()
-        } else {
-            one_line(&self.approximate_count)
-        };
+        let plus = if self.at_least { "+" } else { "" };
         let counted = if printed < self.units() {
-            format!("{printed} of {count} matches")
-        } else if count == "1" {
-            format!("{count} match")
+            format!("{printed} of {}{plus} {}", self.count, self.unit.plural())
+        } else if self.count == 1 && !self.at_least {
+            format!("1 {}", self.unit.singular())
         } else {
-            format!("{count} matches")
+            format!("{}{plus} {}", self.count, self.unit.plural())
         };
-        let repos = if self.repo_count == 1 { "repo" } else { "repos" };
-        let tenths = (self.elapsed_ms + 50) / 100;
-        let mut out = format!(
-            "{counted}  {} {repos}  {}.{} s, deadline {} s\n",
-            self.repo_count,
-            tenths / 10,
-            tenths % 10,
-            seconds(self.deadline_ms),
-        );
-        let _ = write!(out, "query  {}", escape(&self.query));
-        if !self.added.is_empty() {
-            let _ = write!(
-                out,
-                "  ({} added by sego)",
-                escape(&self.added.join(" "))
-            );
+        let time = tenths(self.elapsed_ms);
+        let mut fields = vec![counted];
+        match self.repos {
+            0 => {}
+            1 => fields.push("1 repo".to_owned()),
+            n => fields.push(format!("{n} repos")),
         }
-        out.push('\n');
-        out
+        fields.push(if self.stopped {
+            format!("stopped at {time} s")
+        } else {
+            format!("{time} s")
+        });
+        format!("{}\nquery  {}\n", fields.join("  "), escape(&self.query))
     }
 
-    fn filter_line(&self) -> Option<String> {
-        let (label, values): (&str, Vec<&FilterOut>) =
-            if self.groups.is_empty() && self.unshown == 0 {
-                let utility =
-                    self.filters.iter().filter(|f| f.kind == "utility");
-                ("widen", utility.collect())
-            } else {
-                let written: Vec<String> = tokenize(&self.query)
-                    .iter()
-                    .map(|t| t.raw().to_lowercase())
-                    .collect();
-                let narrowing = self.filters.iter().filter(|f| {
-                    f.kind != "utility"
-                        && f.count != self.match_count
-                        && !written.contains(&f.value.to_lowercase())
-                });
-                ("narrow", narrowing.take(NARROW_VALUES).collect())
-            };
-        if values.is_empty() {
+    fn widen_line(&self) -> Option<String> {
+        if self.count != 0 || self.widen.is_empty() {
             return None;
         }
-        let values: Vec<String> = values
+        let values: Vec<String> = self
+            .widen
             .iter()
-            .map(|f| format!("{} {}", one_line(&f.value), f.count))
+            .map(|w| {
+                let repos = if w.repos == 1 { "repo" } else { "repos" };
+                format!("{} ({} {repos})", one_line(&w.filter), w.repos)
+            })
             .collect();
-        Some(format!("{label}  {}\n", values.join("  ")))
+        Some(format!("widen  {}\n", values.join("  ")))
     }
 
     fn results(&self) -> (String, u32) {

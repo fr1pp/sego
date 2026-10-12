@@ -2,9 +2,8 @@
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0:v1.7.4 "func NewRouter"'
 exit: 0
 --- stdout
-4 matches  1 repo  0.7 s, deadline 60 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0:v1.7.4 "func NewRouter" count:100  (count:100 added by sego)
-narrow  repo:^github\.com/gorilla/mux$@v1.7.4 2  repo:^github\.com/gorilla/mux$@v1.8.0 2
+4 matches  1 repo  0.7 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0:v1.7.4 "func NewRouter"
 
 github.com/gorilla/mux@75dcda0896e1:mux.go
   24-// NewRouter returns a new router instance.

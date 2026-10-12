@@ -2,7 +2,7 @@ use serde_json::{Value, json};
 
 use sego::internal::output::Answer;
 use sego::internal::output::json::write;
-use sego::internal::output::vocab::{filter_kind, symbol_kind};
+use sego::internal::output::vocab::symbol_kind;
 use sego::internal::search::model::{Chunk, Group, Searched};
 use sego::internal::search::query::prepare;
 use sego::internal::search::response::Results;
@@ -115,13 +115,6 @@ fn vocabularies() {
     assert_eq!(symbol_kind("ENUMMEMBER"), "enum_member");
     assert_eq!(symbol_kind("TYPEPARAMETER"), "type_parameter");
     assert_eq!(symbol_kind("NEWKIND"), "newkind");
-
-    for kind in ["repo", "lang", "file", "type", "utility", "author"] {
-        assert_eq!(filter_kind(kind), kind);
-    }
-    assert_eq!(filter_kind("commit date"), "commit_date");
-    assert_eq!(filter_kind("symbol type"), "symbol_type");
-    assert_eq!(filter_kind("New Kind"), "new kind");
 }
 
 #[test]
@@ -395,8 +388,14 @@ fn json_order_and_kinds() {
         "alert": {"title": "T", "description": null, "kind": "k",
                   "proposedQueries": [{"description": null, "query": "q"}]},
         "elapsedMilliseconds": 12,
-        "dynamicFilters": [{"value": "go", "label": "Go", "count": 3,
-                            "limitHit": false, "kind": "lang"}],
+        "dynamicFilters": [
+            {"value": "go", "label": "Go", "count": 3,
+             "limitHit": false, "kind": "lang"},
+            {"value": "fork:yes", "label": "fork", "count": 4,
+             "limitHit": false, "kind": "utility"},
+            {"value": "archived:yes", "label": "archived", "count": 9,
+             "limitHit": false, "kind": "utility"},
+        ],
         "results": [
             file("a.go", &[chunk("x\nfoo", 4, &json!([range(5, 0, 5, 3)]))],
                  &[symbol("Foo", Some(4))]),
@@ -411,15 +410,12 @@ fn json_order_and_kinds() {
     .unwrap();
     let s = Searched::new(results, &prepare("foo"));
     let expected = concat!(
-        r#"{"query":"foo count:100","added":["count:100"],"#,
-        r#""pattern_type":"keyword","match_count":5,"#,
-        r#""approximate_count":"5","limit_hit":false,"repo_count":3,"#,
-        r#""elapsed_ms":12,"deadline_ms":60000,"#,
+        r#"{"query":"foo","pattern_type":"keyword","unit":"matches","#,
+        r#""count":5,"at_least":true,"stopped":true,"elapsed_ms":12,"#,
+        r#""limit_ms":60000,"widen":[{"filter":"fork:yes","repos":4},"#,
+        r#"{"filter":"archived:yes","repos":9}],"unindexed":null,"#,
         r#""alert":{"title":"T","description":null,"kind":"k","#,
-        r#""proposed":[{"description":null,"query":"q"}]},"#,
-        r#""timedout":["t/x"],"cloning":[],"missing":[],"#,
-        r#""filters":[{"kind":"lang","value":"go","label":"Go","#,
-        r#""count":3,"limit_hit":false}],"results":["#,
+        r#""proposed":[{"description":null,"query":"q"}]},"results":["#,
         r#"{"kind":"line","repo":"r/a","commit":"c1","rev":"main","#,
         r#""path":"a.go","line":5,"text":"x","match":false,"ranges":[],"#,
         r#""chunk":1},"#,
@@ -436,7 +432,9 @@ fn json_order_and_kinds() {
         r#"{"kind":"commit","repo":"r2","commit":"c2","#,
         r#""date":"2024-05-06","author":"Ann","subject":"fix","#,
         r#""lines":["x","+y"],"highlights":[[1,1,3]]},"#,
-        r#"{"kind":"repo","repo":"r3"}]}"#,
+        r#"{"kind":"repo","repo":"r3"}],"#,
+        r#""server":{"match_count":5,"approximate_count":"5","#,
+        r#""limit_hit":false,"timedout":["t/x"]}}"#,
         "\n"
     );
     assert_eq!(json_of(&s), expected);
@@ -471,31 +469,73 @@ fn units() {
 }
 
 #[test]
-fn author_filters_are_kept() {
+fn a_placeholder_is_dropped_from_the_results() {
+    let placeholder = file(
+        "big.bin",
+        &[chunk(
+            "NOT-INDEXED: exceeds the maximum size limit",
+            0,
+            &json!([range(0, 0, 0, 3)]),
+        )],
+        &[],
+    );
+    let mut other = file("a.go", &[chunk("x", 4, &json!([]))], &[]);
+    other["repository"] = json!({"name": "r/b"});
+    let mut placeholder_elsewhere = placeholder.clone();
+    placeholder_elsewhere["repository"] = json!({"name": "r/c"});
+    let s = searched(&json!([placeholder, other, placeholder_elsewhere]));
+    assert_eq!(s.groups.len(), 1);
+    assert_eq!(s.count, 3);
+    assert_eq!(s.repos, 1);
+    assert_eq!(s.server.match_count, 5);
+    let out = json_of(&s);
+    assert!(!out.contains("big.bin"), "{out}");
+    assert!(!out.contains("NOT-INDEXED"), "{out}");
+    assert!(out.contains(r#""path":"a.go""#), "{out}");
+}
+
+#[test]
+fn repos_are_the_distinct_repositories_of_the_groups() {
+    let mut elsewhere = file("b.go", &[], &[]);
+    elsewhere["repository"] = json!({"name": "r/z"});
+    let s = searched(&json!([
+        file("a.go", &[], &[]),
+        file("b.go", &[], &[]),
+        elsewhere,
+        commit("```\nx\n```", &json!([])),
+        json!({"__typename": "Repository", "name": "r/a"}),
+    ]));
+    assert_eq!(s.repos, 3);
+}
+
+#[test]
+fn widen_keeps_only_the_utility_filters_in_the_servers_order() {
     let Ok(results) = serde_json::from_value::<Results>(json!({
-        "matchCount": 5,
-        "approximateResultCount": "5",
+        "matchCount": 0,
+        "approximateResultCount": "0",
         "limitHit": false,
-        "repositoriesCount": 1,
+        "repositoriesCount": 0,
         "timedout": [],
         "cloning": [],
         "missing": [],
         "alert": null,
         "elapsedMilliseconds": 1,
         "dynamicFilters": [
-            {"value": "author:a@b\\.io", "label": "a", "count": 1,
-             "limitHit": false, "kind": "author"},
             {"value": "lang:go", "label": "Go", "count": 2,
-             "limitHit": false, "kind": "lang"}
+             "limitHit": false, "kind": "lang"},
+            {"value": "fork:yes", "label": "fork", "count": 4,
+             "limitHit": false, "kind": "utility"},
+            {"value": "archived:yes", "label": "archived", "count": 68912,
+             "limitHit": false, "kind": "utility"}
         ],
         "results": [],
     })) else {
         panic!("results do not parse")
     };
     let s = Searched::new(results, &prepare("foo"));
-    let out = serde_json::to_string(&s.json()).unwrap();
-    assert!(out.contains(r#""kind":"author""#), "{out}");
-    assert!(out.contains(r#""kind":"lang""#), "{out}");
+    let widen: Vec<(&str, u64)> =
+        s.widen.iter().map(|w| (w.filter.as_str(), w.repos)).collect();
+    assert_eq!(widen, [("fork:yes", 4), ("archived:yes", 68912)]);
 }
 
 #[test]
@@ -525,8 +565,8 @@ fn a_binary_file_counts_itself_and_its_symbols_with_a_line() {
     assert_eq!(s.units(), 3);
     assert_eq!(
         s.text(),
-        "5 matches  3 repos  0.0 s, deadline 60 s\n\
-         query  foo count:100  (count:100 added by sego)\n\
+        "5+ matches  1 repo  stopped at 0.0 s\n\
+         query  foo\n\
          \n\
          r/a@c1:a.bin\n\
          binary file; lines not shown\n\
@@ -563,6 +603,6 @@ fn results_of_unknown_kinds_are_counted() {
         {"__typename": "Other"},
     ]));
     assert!(s.groups.is_empty());
-    assert_eq!(s.unshown, 2);
+    assert_eq!(s.unshown, ["Unknown", "Other"]);
     assert!(!json_of(&s).contains("unshown"));
 }
