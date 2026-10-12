@@ -53,9 +53,16 @@ fn cap_reached() {
 #[test]
 fn cut_below_the_cap() {
     assert_eq!(
-        c(2, true, &[], 21_300, "repo:x foo count:30", 0),
+        c(2, true, &[], 21_300, "repo:x foo timeout:20s count:30", 0),
         (2, true, true)
     );
+}
+
+#[test]
+fn limit_hit_below_the_cap_in_time_is_not_a_cut() {
+    let query = "repo:x select:file.directory foo count:30";
+    assert_eq!(c(3, true, &[], 400, query, 0), (3, true, false));
+    assert_eq!(c(0, true, &[], 400, query, 0), (0, false, false));
 }
 
 #[test]

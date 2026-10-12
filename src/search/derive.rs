@@ -37,12 +37,14 @@ pub fn counted(
         results.elapsed_milliseconds + MARGIN_MS < prepared.deadline_ms;
     let capped = results.limit_hit
         && prepared.cap.is_some_and(|cap| results.match_count >= cap);
-    let stopped = !capped
-        && (results.limit_hit || !results.timedout.is_empty() || !in_time);
+    // `limitHit` below the cap is not a cut: select:symbol, select:file.owners
+    // and select:file.directory set it without one, and a cut by the clock
+    // always lands past the deadline.
+    let stopped = !capped && (!results.timedout.is_empty() || !in_time);
     Counted {
         count,
         // A zero has nothing to be a lower bound of.
-        at_least: count > 0 && (capped || stopped || prepared.diff),
+        at_least: count > 0 && (results.limit_hit || stopped || prepared.diff),
         stopped,
     }
 }
