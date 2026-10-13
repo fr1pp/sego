@@ -78,7 +78,16 @@ fn assert_search_layout(out: &str) {
     assert_eq!(code, content_text().len(), "{out:?}");
     assert_eq!(symbols, 1, "{out:?}");
     assert_eq!(commit, content_text().len(), "{out:?}");
-    assert_eq!(lines.iter().filter(|l| l.is_empty()).count(), 1, "{out:?}");
+    assert!(lines[2].is_empty(), "{out:?}");
+    for (i, line) in lines.iter().enumerate().skip(2) {
+        if line.is_empty() {
+            let next = lines.get(i + 1).copied().unwrap_or_default();
+            assert!(
+                next.starts_with(REPO) || next.starts_with("$'"),
+                "a blank line at {i} is not followed by a header: {out:?}"
+            );
+        }
+    }
 }
 
 fn assert_search_stderr(ran: &Ran) {

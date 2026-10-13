@@ -13,14 +13,17 @@ github.com/gorilla/mux@75dcda0896e1:example_route_test.go
 35-func ExampleRoute_HeadersRegexp_exactMatch() {
 36:	r := mux.NewRouter()
 37-	route := r.NewRoute().HeadersRegexp("Origin", "^https://example.co$")
+
 github.com/gorilla/mux@75dcda0896e1:example_cors_method_middleware_test.go
 11-func ExampleCORSMethodMiddleware() {
 12:	r := mux.NewRouter()
 13-
+
 github.com/gorilla/mux@75dcda0896e1:example_authentication_middleware_test.go
 38-func Example_authenticationMiddleware() {
 39:	r := mux.NewRouter()
 40-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+
 github.com/gorilla/mux@75dcda0896e1:README.md
 52-func main() {
 53:    r := mux.NewRouter()
@@ -101,6 +104,7 @@ github.com/gorilla/mux@75dcda0896e1:README.md
 793-func main() {
 794:    r := mux.NewRouter()
 795-    // Routes consist of a path and a handler function.
+
 github.com/gorilla/mux@75dcda0896e1:doc.go
 28-	func main() {
 29:		r := mux.NewRouter()

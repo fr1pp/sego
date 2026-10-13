@@ -634,3 +634,40 @@ fn the_focus_is_the_leftmost_range() {
     let row = out.lines().last().unwrap_or_default();
     assert!(row.starts_with("1:aaaaaaaaaaLEFT_"), "{row}");
 }
+
+#[test]
+fn a_blank_line_follows_a_result_with_lines() {
+    let mut s = base("q");
+    s.groups = vec![
+        file("r", "a.go", vec![one_range(1)]),
+        file("r", "b.go", vec![one_range(2)]),
+        path_group(1),
+        path_group(2),
+        file("r", "c.go", vec![one_range(3)]),
+        commit_group(vec!["Fix it".to_owned()], vec![[0, 0, 3]], false),
+        Group::Repo { repo: "r1".to_owned() },
+        Group::Repo { repo: "r2".to_owned() },
+    ];
+    let expected = "\
+30 matches  1 repo  0.7 s
+query  q
+
+r@3fce3b5bb023:a.go
+10:x
+
+r@3fce3b5bb023:b.go
+20:x
+
+r@3fce3b5bb023:p1
+r@3fce3b5bb023:p2
+r@3fce3b5bb023:c.go
+30:x
+
+r@3fce3b5bb023  2026-07-23  Ann  Fix it
+    Fix it
+
+r1
+r2
+";
+    assert_eq!(s.text(), expected);
+}

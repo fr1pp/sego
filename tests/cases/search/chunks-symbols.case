@@ -15,6 +15,7 @@ github.com/gorilla/mux@98cb6bf42e08:mux.go
 33-//
 34://     var router = mux.NewRouter()
 35-//
+
 github.com/gorilla/mux@98cb6bf42e08:regexp.go
 30-
 31:// newRouteRegexp parses a route template and returns a routeRegexp,
@@ -24,10 +25,12 @@ github.com/gorilla/mux@98cb6bf42e08:regexp.go
 41:func newRouteRegexp(tpl string, typ regexpType, options routeRegexpOptions) (*routeRegexp, error) {
 41:function  newRouteRegexp
 42-	// Check if it is well-formed.
+
 github.com/gorilla/mux@98cb6bf42e08:mux_httpserver_test.go
 13-func TestSchemeMatchers(t *testing.T) {
 14:	router := NewRouter()
 15-	router.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
+
 github.com/gorilla/mux@98cb6bf42e08:mux_test.go
 1433-func TestNamedRoutes(t *testing.T) {
 1434:	r1 := NewRouter()
@@ -144,6 +147,7 @@ github.com/gorilla/mux@98cb6bf42e08:mux_test.go
 2817-
 2818:	r := NewRouter()
 2819-	r.Handle("/path/{foo}", withTimeout(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 github.com/gorilla/mux@98cb6bf42e08:route.go
 185-	}
 186:	rr, err := newRouteRegexp(tpl, typ, routeRegexpOptions{
@@ -164,6 +168,7 @@ github.com/gorilla/mux@98cb6bf42e08:route.go
 344-//
 345://     r := mux.NewRouter()
 346-//     r.Path("/products/").Handler(ProductsHandler)
+
 github.com/gorilla/mux@98cb6bf42e08:middleware_test.go
 22-func TestMiddlewareAdd(t *testing.T) {
 23:	router := NewRouter()
@@ -208,6 +213,7 @@ github.com/gorilla/mux@98cb6bf42e08:middleware_test.go
 505-
 506:	router := NewRouter()
 507-	firstSubRouter := router.PathPrefix("/").Subrouter()
+
 github.com/gorilla/mux@98cb6bf42e08:old_test.go
 71-
 72:	router := NewRouter()
@@ -256,10 +262,12 @@ github.com/gorilla/mux@98cb6bf42e08:old_test.go
 697-	for pattern, paths := range tests {
 698:		p, _ = newRouteRegexp(pattern, regexpTypePath, routeRegexpOptions{})
 699-		for path, result := range paths {
+
 github.com/gorilla/mux@98cb6bf42e08:example_cors_method_middleware_test.go
 11-func ExampleCORSMethodMiddleware() {
 12:	r := mux.NewRouter()
 13-
+
 github.com/gorilla/mux@98cb6bf42e08:example_route_test.go
 13-func ExampleRoute_HeadersRegexp() {
 14:	r := mux.NewRouter()
@@ -268,6 +276,7 @@ github.com/gorilla/mux@98cb6bf42e08:example_route_test.go
 35-func ExampleRoute_HeadersRegexp_exactMatch() {
 36:	r := mux.NewRouter()
 37-	route := r.NewRoute().HeadersRegexp("Origin", "^https://example.co$")
+
 github.com/gorilla/mux@98cb6bf42e08:README.md
 52-func main() {
 53:    r := mux.NewRouter()
@@ -348,6 +357,7 @@ github.com/gorilla/mux@98cb6bf42e08:README.md
 793-func main() {
 794:    r := mux.NewRouter()
 795-    // Routes consist of a path and a handler function.
+
 github.com/gorilla/mux@98cb6bf42e08:doc.go
 28-	func main() {
 29:		r := mux.NewRouter()

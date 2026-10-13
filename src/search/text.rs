@@ -75,10 +75,15 @@ impl Searched {
     fn results(&self) -> (String, u32) {
         let mut out = String::new();
         let mut printed = 0;
+        let mut after_lines = false;
         for group in &self.groups {
             if printed >= TEXT_UNITS {
                 break;
             }
+            if after_lines {
+                out.push('\n');
+            }
+            let header_end;
             match group {
                 Group::File {
                     repo,
@@ -94,6 +99,7 @@ impl Searched {
                         &pinned(repo, commit, Some(shown)),
                         &[],
                     ));
+                    header_end = out.len();
                     printed += file_body(
                         &mut out,
                         &file_items(*binary, chunks, symbols),
@@ -114,15 +120,18 @@ impl Searched {
                         &pinned(repo, commit, None),
                         &[date.clone(), author.clone(), subject.clone()],
                     ));
+                    header_end = out.len();
                     commit_body(&mut out, lines, highlights, *diff);
                     printed += group.units();
                 }
                 Group::Repo { repo } => {
                     out.push_str(&one_line(repo));
                     out.push('\n');
+                    header_end = out.len();
                     printed += group.units();
                 }
             }
+            after_lines = out.len() > header_end;
         }
         (out, printed)
     }
