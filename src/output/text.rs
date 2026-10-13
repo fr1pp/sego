@@ -17,13 +17,8 @@ pub fn header_line(lead: &str, fields: &[String]) -> String {
     line
 }
 
-pub fn gutter_width(last_line: u32) -> usize {
-    (last_line.checked_ilog10().unwrap_or(0) as usize + 1).max(4)
-}
-
 pub fn code_line(
     number: u32,
-    width: usize,
     marker: Marker,
     text: &str,
     focus: Option<usize>,
@@ -32,5 +27,5 @@ pub fn code_line(
         Marker::Match => ':',
         Marker::Context => '-',
     };
-    format!("{number:>width$}{marker}{}\n", escape::render_line(text, focus))
+    format!("{number}{marker}{}\n", escape::render_line(text, focus))
 }

@@ -6,6 +6,6 @@ exit: 0
 query  repo:^github\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter
 
 github.com/gorilla/mux@98cb6bf42e08:mux.go
-  25:function  NewRouter
+25:function  NewRouter
 github.com/gorilla/mux@98cb6bf42e08:regexp.go
-  41:function  newRouteRegexp
+41:function  newRouteRegexp

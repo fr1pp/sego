@@ -3,8 +3,8 @@ args: show github.com/golang/go@e3c3d2f9e7ca88e6f240fe00faa67efb03d851a1:src/cmd
 exit: 0
 --- stdout
 github.com/golang/go@e3c3d2f9e7ca:src/cmd/go/testdata/script/go_version.txt  lines 1-5 of 9  CRLF
-   1:# test that go version doesn't panic on non-go binaries
-   2:# See Issue #49181
-   3:
-   4:[exec:/bin/true] cp /bin/true true
-   5:[exec:C:\windows\system32\help.exe] cp C:\windows\system32\help.exe help.exe
+1:# test that go version doesn't panic on non-go binaries
+2:# See Issue #49181
+3:
+4:[exec:/bin/true] cp /bin/true true
+5:[exec:C:\windows\system32\help.exe] cp C:\windows\system32\help.exe help.exe

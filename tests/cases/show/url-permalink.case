@@ -3,6 +3,6 @@ args: show https://github.com/gorilla/mux/blob/98cb6bf42e086f6af920b965c38cacc07
 exit: 0
 --- stdout
 github.com/gorilla/mux@98cb6bf42e08:mux.go  lines 1-3 of 606
-   1:// Copyright 2012 The Gorilla Authors. All rights reserved.
-   2:// Use of this source code is governed by a BSD-style
-   3:// license that can be found in the LICENSE file.
+1:// Copyright 2012 The Gorilla Authors. All rights reserved.
+2:// Use of this source code is governed by a BSD-style
+3:// license that can be found in the LICENSE file.

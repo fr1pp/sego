@@ -354,8 +354,8 @@ fn a_file_prints_its_header_and_lines() {
     );
     assert_eq!(
         text(&ran.out),
-        "github.com/x/y@d81fd54f1a2b:a.go  lines 2-3 of 3  rev main\n   \
-         2:b\n   3:c\n"
+        "github.com/x/y@d81fd54f1a2b:a.go  lines 2-3 of 3  rev main\n\
+2:b\n3:c\n"
     );
 }
 
@@ -431,8 +431,8 @@ fn over_the_limit_reads_the_raw_route() {
     );
     assert_eq!(
         text(&ran.out),
-        "github.com/x/y@d81fd54f1a2b:big.c  lines 2-3 of 5  CRLF  rev main\n   \
-         2:2\n   3:3\n"
+        "github.com/x/y@d81fd54f1a2b:big.c  lines 2-3 of 5  CRLF  rev main\n\
+2:2\n3:3\n"
     );
     assert_eq!(calls.len(), 2);
     assert_eq!(
@@ -599,8 +599,8 @@ fn a_parent_listing_error_does_not_fail_a_file_that_read() {
     assert_eq!(ran.code, ExitCode::SUCCESS, "{}", text(&ran.err));
     assert_eq!(
         text(&ran.out),
-        "github.com/x/y@d81fd54f1a2b:a.go  lines 1-3 of 3  rev main\n   \
-         1:a\n   2:b\n   3:c\n"
+        "github.com/x/y@d81fd54f1a2b:a.go  lines 1-3 of 3  rev main\n\
+1:a\n2:b\n3:c\n"
     );
 }
 
@@ -773,7 +773,7 @@ fn the_raw_route_shares_the_refusal_rules() {
 #[test]
 fn a_failed_raw_read_still_writes_the_raw_route_note() {
     let note = "sego: note: big.c is 2000000 bytes, over GraphQL's \
-                1572864-byte content limit; read through the raw route (a \
+1572864-byte content limit; read through the raw route (a \
                 second request)\n";
     let cases: Vec<(Result<Reply, TransportError>, &str)> = vec![
         (

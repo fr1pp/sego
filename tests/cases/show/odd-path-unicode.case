@@ -3,6 +3,6 @@ args: show 'github.com/nodejs/node@aa1bf2cc37539bfeeef8faf80c9d31a64cb78026:test
 exit: 0
 --- stdout
 'github.com/nodejs/node@aa1bf2cc3753:test/fixtures/copy/utf/新建文件夹/index.js'  lines 1-3 of 3
-   1:module.exports = {
-   2:  purpose: 'testing copy'
-   3:};
+1:module.exports = {
+2:  purpose: 'testing copy'
+3:};

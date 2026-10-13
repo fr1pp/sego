@@ -130,13 +130,13 @@ fn the_two_spec_examples() {
 query  repo:^github\\.com/BurntSushi/ripgrep$ fn main count:30
 
 github.com/BurntSushi/ripgrep@3fce3b5bb023:crates/core/main.rs
-  42-/// Then, as it was, then again it will be.
-  43:fn main() -> ExitCode {
-  44-    match run(flags::parse()) {
+42-/// Then, as it was, then again it will be.
+43:fn main() -> ExitCode {
+44-    match run(flags::parse()) {
 --
-  76-
-  77:fn run(result: crate::flags::ParseResult<HiArgs>) -> anyhow::Result<ExitCode> {
-  78-    use crate::flags::{Mode, SearchMode};
+76-
+77:fn run(result: crate::flags::ParseResult<HiArgs>) -> anyhow::Result<ExitCode> {
+78-    use crate::flags::{Mode, SearchMode};
 ";
     assert_eq!(s.text(), expected);
 
@@ -275,7 +275,7 @@ fn limit_at_and_past_the_boundary() {
     assert_eq!(s.units(), 105);
     let text = s.text();
     assert!(text.starts_with("104 of 105 matches  "), "{text}");
-    assert!(text.ends_with("   5:x\n"), "{text}");
+    assert!(text.ends_with("5:x\n"), "{text}");
     assert!(!text.contains(":p100"));
 }
 
@@ -348,13 +348,13 @@ fn symbols_merge_with_chunks() {
 query  q
 
 r@3fce3b5bb023:a.rs
-   9-a
-  10:fn one() {
-  10:function  one
-  11:b
-  20:struct  Mid
-  30:c
-  40:struct  Tail
+9-a
+10:fn one() {
+10:function  one
+11:b
+20:struct  Mid
+30:c
+40:struct  Tail
 ";
     assert_eq!(s.text(), expected);
 }
@@ -445,7 +445,7 @@ fn cut_centres_on_the_match() {
     )];
     let out = s.text();
     let row = out.lines().last().unwrap_or_default();
-    assert!(row.starts_with("   1:…"), "{row}");
+    assert!(row.starts_with("1:…"), "{row}");
     assert!(row.contains("NEEDL"));
     assert!(row.len() < 700, "{}", row.len());
 }
@@ -544,8 +544,8 @@ fn a_binary_file_with_symbols_prints_what_units_counts() {
          \n\
          r@3fce3b5bb023:a.bin\n\
          binary file; lines not shown\n\
-         \x20  3:function  a\n\
-         \x20  5:function  b\n"
+3:function  a\n\
+5:function  b\n"
     );
 }
 
@@ -600,18 +600,18 @@ fn symbols_sit_between_the_chunk_lines_around_them() {
 query  q
 
 r@3fce3b5bb023:a.rs
-  20:a
-  21-b
+20:a
+21-b
 --
-  23-c
-  24-d
-  25:e
-  25:function  inner
-  26-f
-  26:function  edge
-  30:g
+23-c
+24-d
+25:e
+25:function  inner
+26-f
+26:function  edge
+30:g
 --
-  40:h
+40:h
 ";
     assert_eq!(s.text(), expected);
 }
@@ -632,5 +632,5 @@ fn the_focus_is_the_leftmost_range() {
     }
     let out = s.text();
     let row = out.lines().last().unwrap_or_default();
-    assert!(row.starts_with("   1:aaaaaaaaaaLEFT_"), "{row}");
+    assert!(row.starts_with("1:aaaaaaaaaaLEFT_"), "{row}");
 }

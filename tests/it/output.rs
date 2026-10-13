@@ -2,9 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use sego::internal::address::pinned;
 use sego::internal::output::json;
-use sego::internal::output::text::{
-    code_line, gutter_width, header, header_line,
-};
+use sego::internal::output::text::{code_line, header, header_line};
 use sego::internal::output::{Marker, Notes, date};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -75,12 +73,11 @@ fn header_line_escapes_fields_but_not_the_lead() {
 
 #[test]
 fn gutter() {
-    assert_eq!(gutter_width(606), 4);
-    assert_eq!(gutter_width(10000), 5);
-    assert_eq!(code_line(5, 4, Marker::Match, "x", None), "   5:x\n");
-    assert_eq!(code_line(463, 4, Marker::Context, "", None), " 463-\n");
+    assert_eq!(code_line(5, Marker::Match, "x", None), "5:x\n");
+    assert_eq!(code_line(463, Marker::Context, "", None), "463-\n");
+    assert_eq!(code_line(10000, Marker::Match, "y", None), "10000:y\n");
     let long = "x".repeat(600);
-    let line = code_line(1, 4, Marker::Match, &long, None);
+    let line = code_line(1, Marker::Match, &long, None);
     assert!(line.contains("more columns"), "{line}");
     assert!(line.len() < 600);
 }

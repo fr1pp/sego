@@ -7,7 +7,7 @@ use serde_json::{Value, json};
 use crate::address::{Address, End, LineRange, pinned, rev_field};
 use crate::error::Error;
 use crate::escape::strip_cr;
-use crate::output::text::{code_line, gutter_width, header};
+use crate::output::text::{code_line, header};
 use crate::output::{Answer, Marker, Notes};
 use crate::submodule::{self, Submodule};
 use crate::upstream::{
@@ -60,11 +60,9 @@ impl Answer for Shown {
     fn text(&self) -> String {
         let address = pinned(&self.repo, &self.commit, Some(&self.path));
         let mut out = header(&address, &self.fields);
-        let width = gutter_width(self.end.unwrap_or(0));
         for line in &self.lines {
             out.push_str(&code_line(
                 line.line,
-                width,
                 Marker::Match,
                 &line.text,
                 None,

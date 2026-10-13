@@ -3,14 +3,14 @@ args: show 'https://github.com/gorilla/mux/blob/v1.8.0/mux.go#L10-L20'
 exit: 0
 --- stdout
 github.com/gorilla/mux@98cb6bf42e08:mux.go  lines 10-20 of 606  rev v1.8.0
-  10:	"fmt"
-  11:	"net/http"
-  12:	"path"
-  13:	"regexp"
-  14:)
-  15:
-  16:var (
-  17:	// ErrMethodMismatch is returned when the method in the request does not match
-  18:	// the method defined against the route.
-  19:	ErrMethodMismatch = errors.New("method is not allowed")
-  20:	// ErrNotFound is returned when no route match is found.
+10:	"fmt"
+11:	"net/http"
+12:	"path"
+13:	"regexp"
+14:)
+15:
+16:var (
+17:	// ErrMethodMismatch is returned when the method in the request does not match
+18:	// the method defined against the route.
+19:	ErrMethodMismatch = errors.New("method is not allowed")
+20:	// ErrNotFound is returned when no route match is found.

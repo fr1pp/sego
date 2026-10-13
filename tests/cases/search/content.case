@@ -6,10 +6,10 @@ exit: 0
 query  repo:^github\.com/gorilla/mux$@v1.8.0 "func NewRouter" count:100
 
 github.com/gorilla/mux@98cb6bf42e08:mux.go
-  24-// NewRouter returns a new router instance.
-  25:func NewRouter() *Router {
-  26-	return &Router{namedRoutes: make(map[string]*Route)}
+24-// NewRouter returns a new router instance.
+25:func NewRouter() *Router {
+26-	return &Router{namedRoutes: make(map[string]*Route)}
 github.com/gorilla/mux@98cb6bf42e08:regexp.go
-  40-// name and pattern can't be empty, and names can't contain a colon.
-  41:func newRouteRegexp(tpl string, typ regexpType, options routeRegexpOptions) (*routeRegexp, error) {
-  42-	// Check if it is well-formed.
+40-// name and pattern can't be empty, and names can't contain a colon.
+41:func newRouteRegexp(tpl string, typ regexpType, options routeRegexpOptions) (*routeRegexp, error) {
+42-	// Check if it is well-formed.

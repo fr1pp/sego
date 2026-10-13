@@ -594,8 +594,8 @@ fn a_binary_file_counts_itself_and_its_symbols_with_a_line() {
          \n\
          r/a@c1:a.bin\n\
          binary file; lines not shown\n\
-         \x20  3:function  S\n\
-         \x20  5:function  T\n"
+3:function  S\n\
+5:function  T\n"
     );
 }
 

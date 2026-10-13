@@ -6,5 +6,5 @@ exit: 0
 query  repo:sego-fake/ph binary
 
 github.com/sego-fake/ph@0123456789ab:src/real.txt
-  10:a binary value
-  11:another binary
+10:a binary value
+11:another binary

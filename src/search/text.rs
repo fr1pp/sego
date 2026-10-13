@@ -7,7 +7,7 @@ use super::model::{
 use super::query::{Unit, tenths};
 use crate::address::pinned;
 use crate::escape::{escape, one_line, render_line};
-use crate::output::text::{code_line, gutter_width, header};
+use crate::output::text::{code_line, header};
 use crate::output::{Answer, Marker, json};
 
 pub const TEXT_UNITS: u32 = 100;
@@ -186,15 +186,6 @@ fn file_body(out: &mut String, items: &[FileItem], before: u32) -> u32 {
         }
     }
     let ordered = rows(&chunks, &symbols);
-    let last = ordered
-        .iter()
-        .map(|row| match row {
-            Row::Line(_, line) => line.number,
-            Row::Symbol(symbol) => symbol.line.unwrap_or(0),
-        })
-        .max()
-        .unwrap_or(0);
-    let width = gutter_width(last);
 
     let mut previous: Option<(usize, u32)> = None;
     for row in ordered {
@@ -214,7 +205,6 @@ fn file_body(out: &mut String, items: &[FileItem], before: u32) -> u32 {
                 };
                 out.push_str(&code_line(
                     line.number,
-                    width,
                     marker,
                     &line.text,
                     focus,
@@ -224,7 +214,7 @@ fn file_body(out: &mut String, items: &[FileItem], before: u32) -> u32 {
             Row::Symbol(symbol) => {
                 let _ = writeln!(
                     out,
-                    "{:>width$}:{}  {}",
+                    "{}:{}  {}",
                     symbol.line.unwrap_or(0),
                     escape(&symbol.kind),
                     one_line(&symbol.name),
