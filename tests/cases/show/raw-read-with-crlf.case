@@ -1,0 +1,83 @@
+# CRLF is dropped from the lines of a raw read and named in the header.
+args: show example.com/handwritten/big@main:big.c 2-3
+exit: 0
+--- stdout
+example.com/handwritten/big@d81fd54f1a2b:big.c  lines 2-3 of 5  CRLF  rev main
+2:2
+3:3
+--- request ShowFile {"end_0":3,"parent_0":"","path_0":"big.c","repo0":"example.com/handwritten/big","rev0":"main","start_0":2}
+--- query
+query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    c0: commit(rev: $rev0) {
+      oid
+      meta: blob(path: $path_0) { byteSize totalLines binary rawURL lfs { byteSize } }
+      body: blob(path: $path_0) { content(startLine: $start_0, endLine: $end_0, textOnly: true) }
+      dir: tree(path: $path_0) { entries { path } }
+      parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "body": null,
+        "dir": null,
+        "meta": {
+          "binary": false,
+          "byteSize": 2000000,
+          "lfs": null,
+          "rawURL": "/r/example.com/handwritten/big@d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809/-/raw/big.c",
+          "totalLines": 5
+        },
+        "oid": "d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809",
+        "parent": {
+          "entries": [
+            {
+              "path": "big.c",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/handwritten/big"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a directory: \"big.c\"",
+      "path": [
+        "r0",
+        "c0",
+        "dir"
+      ]
+    },
+    {
+      "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
+      "path": [
+        "r0",
+        "c0",
+        "body",
+        "content"
+      ]
+    },
+    {
+      "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
+      "path": [
+        "r0",
+        "c0",
+        "meta",
+        "lfs"
+      ]
+    }
+  ]
+}
+--- request GET /r/example.com/handwritten/big@d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809/-/raw/big.c
+--- response 200 text/plain; charset=utf-8

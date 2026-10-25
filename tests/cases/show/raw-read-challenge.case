@@ -1,9 +1,9 @@
 # A Cloudflare challenge on the raw read is reported as the edge's refusal.
-args: show github.com/azadkuh/sqlite-amalgamation@15d0ff10ebc7e7225eced1de84bb52137000899b:sqlite3.c 1-4
+args: show example.com/handwritten/big@main:big.c 1-4
 exit: 1
 --- stderr
 sego: error: sourcegraph.com's edge refused the request (HTTP 429, Cloudflare challenge)
---- request ShowFile {"end_0":4,"parent_0":"","path_0":"sqlite3.c","repo0":"github.com/azadkuh/sqlite-amalgamation","rev0":"15d0ff10ebc7e7225eced1de84bb52137000899b","start_0":1}
+--- request ShowFile {"end_0":4,"parent_0":"","path_0":"big.c","repo0":"example.com/handwritten/big","rev0":"main","start_0":1}
 --- query
 query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
   r0: repository(name: $repo0) {
@@ -27,62 +27,30 @@ query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: Str
         "dir": null,
         "meta": {
           "binary": false,
-          "byteSize": 8462111,
+          "byteSize": 2000000,
           "lfs": null,
-          "rawURL": "/r/github.com/azadkuh/sqlite-amalgamation@15d0ff10ebc7e7225eced1de84bb52137000899b/-/raw/sqlite3.c?refused",
-          "totalLines": 239379
+          "rawURL": "/r/example.com/handwritten/big@d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809/-/raw/big.c",
+          "totalLines": 5
         },
-        "oid": "15d0ff10ebc7e7225eced1de84bb52137000899b",
+        "oid": "d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809",
         "parent": {
           "entries": [
             {
-              "path": ".gitignore",
-              "submodule": null
-            },
-            {
-              "path": "CMakeLists.txt",
-              "submodule": null
-            },
-            {
-              "path": "LICENSE",
-              "submodule": null
-            },
-            {
-              "path": "README.md",
-              "submodule": null
-            },
-            {
-              "path": "shell.c",
-              "submodule": null
-            },
-            {
-              "path": "sqlite3.c",
-              "submodule": null
-            },
-            {
-              "path": "sqlite3.h",
-              "submodule": null
-            },
-            {
-              "path": "sqlite3_config.h.in",
-              "submodule": null
-            },
-            {
-              "path": "sqlite3ext.h",
+              "path": "big.c",
               "submodule": null
             }
           ]
         }
       },
       "defaultBranch": {
-        "displayName": "master"
+        "displayName": "main"
       },
-      "name": "github.com/azadkuh/sqlite-amalgamation"
+      "name": "example.com/handwritten/big"
     }
   },
   "errors": [
     {
-      "message": "not a directory: \"sqlite3.c\"",
+      "message": "not a directory: \"big.c\"",
       "path": [
         "r0",
         "c0",
@@ -109,5 +77,5 @@ query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: Str
     }
   ]
 }
---- request GET /r/github.com/azadkuh/sqlite-amalgamation@15d0ff10ebc7e7225eced1de84bb52137000899b/-/raw/sqlite3.c?refused
+--- request GET /r/example.com/handwritten/big@d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809/-/raw/big.c
 --- response html challenge

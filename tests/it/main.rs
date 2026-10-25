@@ -19,7 +19,6 @@ mod quote;
 mod raw;
 mod refs;
 mod resolve;
-mod run;
 mod safety;
 mod search_cli;
 mod search_request;

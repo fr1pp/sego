@@ -1,0 +1,69 @@
+# A directory with one entry says entry in the singular.
+args: show example.com/handwritten/dir@main:docs
+exit: 1
+--- stderr
+sego: error: docs is a directory at example.com/handwritten/dir@d81fd54f1a2b (1 entry)
+--- request ShowFile {"end_0":500,"parent_0":"","path_0":"docs","repo0":"example.com/handwritten/dir","rev0":"main","start_0":1}
+--- query
+query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    c0: commit(rev: $rev0) {
+      oid
+      meta: blob(path: $path_0) { byteSize totalLines binary rawURL lfs { byteSize } }
+      body: blob(path: $path_0) { content(startLine: $start_0, endLine: $end_0, textOnly: true) }
+      dir: tree(path: $path_0) { entries { path } }
+      parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "body": null,
+        "dir": {
+          "entries": [
+            {
+              "path": "docs/0.md"
+            }
+          ]
+        },
+        "meta": null,
+        "oid": "d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809",
+        "parent": {
+          "entries": [
+            {
+              "path": "docs",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/handwritten/dir"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a blob",
+      "path": [
+        "r0",
+        "c0",
+        "meta"
+      ]
+    },
+    {
+      "message": "not a blob",
+      "path": [
+        "r0",
+        "c0",
+        "body"
+      ]
+    }
+  ]
+}

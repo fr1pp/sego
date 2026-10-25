@@ -1,9 +1,9 @@
-# A missing revision is an error.
-args: show github.com/gorilla/mux@v9.9:mux.go
+# A dropped connection is a network error.
+args: show example.com/handwritten/mux@v1.8.0:mux.go 25-26
 exit: 1
 --- stderr
-sego: error: revision v9.9 not found in github.com/gorilla/mux
---- request ShowFile {"end_0":500,"parent_0":"","path_0":"mux.go","repo0":"github.com/gorilla/mux","rev0":"v9.9","start_0":1}
+sego: error: could not reach sourcegraph.com: connection closed
+--- request ShowFile {"end_0":26,"parent_0":"","path_0":"mux.go","repo0":"example.com/handwritten/mux","rev0":"v1.8.0","start_0":25}
 --- query
 query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
   r0: repository(name: $repo0) {
@@ -18,15 +18,4 @@ query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: Str
     }
   }
 }
---- response 200 application/json recorded 2026-10-07 https://sourcegraph.com
-{
-  "data": {
-    "r0": {
-      "c0": null,
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "github.com/gorilla/mux"
-    }
-  }
-}
+--- response network error
