@@ -1,0 +1,109 @@
+# A commit search prints the commit line and the message lines around each
+# highlight.
+args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 type:commit wildcard'
+exit: 0
+--- stdout
+1 commit  1 repo  0.0 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0 type:commit wildcard
+
+github.com/gorilla/mux@98cb6bf42e08  2020-07-11  Harshavardhana  fix: regression in vars extract for wildcard host (#579)
+    fix: regression in vars extract for wildcard host (#579)
+    
+--- request Search {"query":"repo:^github\\.com/gorilla/mux$@v1.8.0 type:commit wildcard"}
+--- query
+query Search($query: String!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+}
+--- response 200 application/json recorded 2026-10-12 https://sourcegraph.com live: values
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "1",
+        "dynamicFilters": [
+          {
+            "count": 1,
+            "kind": "type",
+            "value": "type:commit"
+          },
+          {
+            "count": 1,
+            "kind": "author",
+            "value": "author:harsha@minio\\.io"
+          },
+          {
+            "count": 1,
+            "kind": "commit date",
+            "value": "before:\"2 months ago\""
+          },
+          {
+            "count": 1,
+            "kind": "repo",
+            "value": "repo:^github\\.com/gorilla/mux$"
+          }
+        ],
+        "elapsedMilliseconds": 32,
+        "limitHit": false,
+        "matchCount": 1,
+        "results": [
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2020-07-11T20:05:21Z",
+                "person": {
+                  "displayName": "Harshavardhana"
+                }
+              },
+              "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+              "repository": {
+                "name": "github.com/gorilla/mux"
+              },
+              "subject": "fix: regression in vars extract for wildcard host (#579)"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```COMMIT_EDITMSG\nfix: regression in vars extract for wildcard host (#579)\n\nContinuing from PR #447 we have to add extra\ncheck to ignore the port as well\n\nadd tests to cover this case\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 36,
+                    "length": 8,
+                    "line": 1
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}
