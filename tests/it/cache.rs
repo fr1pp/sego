@@ -4,11 +4,11 @@ use std::io::{self, ErrorKind, Write};
 use std::path::Path;
 use std::time::{Duration, SystemTime};
 
+use sego::Endpoint;
 use sego::internal::cache::{
     Key, Root, TEMP_PREFIX, Unavailable, due, entry_path, init_root,
     init_root_with, open_entry, read_entry, refresh, root, trim, write_entry,
 };
-use sego::internal::upstream::Endpoint;
 use tempfile::TempDir;
 
 #[test]

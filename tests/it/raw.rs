@@ -1,7 +1,8 @@
 use std::time::{Duration, Instant};
 
 use sego::internal::error::Kind;
-use sego::internal::upstream::{RawError, Reply, TransportError, read};
+use sego::internal::upstream::{RawError, read};
+use sego::{Reply, TransportError};
 
 use crate::support::fake::Fake;
 

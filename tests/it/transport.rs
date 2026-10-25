@@ -6,9 +6,9 @@ use sego::internal::error::Error;
 use serde_json::Map;
 
 use sego::internal::upstream::{
-    BODY_LIMIT, Endpoint, GRAPHQL_PATH, RawError, Request, Transport,
-    TransportError, Ureq, exchange, read,
+    BODY_LIMIT, GRAPHQL_PATH, RawError, Request, Ureq, exchange, read,
 };
+use sego::{Endpoint, Transport, TransportError};
 
 use crate::support::http::{Response, Server};
 

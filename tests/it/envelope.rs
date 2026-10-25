@@ -3,8 +3,9 @@ use std::time::{Duration, Instant};
 
 use serde_json::{Map, json};
 
+use sego::TransportError;
 use sego::internal::upstream::{
-    Envelope, Request, Seg, TransportError, classify, exchange, text_at,
+    Envelope, Request, Seg, classify, exchange, text_at,
 };
 
 use crate::support::fake::Fake;

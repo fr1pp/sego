@@ -12,29 +12,42 @@ pub const DEADLINE: Duration = Duration::from_secs(90);
 pub const BODY_LIMIT: u64 = 64 * 1024 * 1024;
 pub const GRAPHQL_PATH: &str = "/.api/graphql";
 
+/// What the server answered to one request.
 #[derive(Debug)]
 pub struct Reply {
+    /// The HTTP status code.
     pub status: u16,
+    /// The `Content-Type` header.
     pub content_type: Option<String>,
+    /// The `Location` header of a redirect.
     pub location: Option<String>,
+    /// The `Retry-After` header.
     pub retry_after: Option<String>,
+    /// The `CF-Mitigated` header, set on a Cloudflare challenge.
     pub cf_mitigated: Option<String>,
+    /// The response body.
     pub body: Vec<u8>,
 }
 
+/// Why a request got no reply.
 #[derive(Debug, PartialEq, Eq)]
 pub enum TransportError {
+    /// The connection failed; the text says how, without naming the host.
     Network(&'static str),
+    /// The deadline passed before the reply arrived.
     Deadline,
+    /// The body was larger than sego reads.
     TooLarge,
 }
 
+/// How `run` talks to the server.
 pub trait Transport {
     /// The `host[:port]` that error messages name.
     fn host(&self) -> String {
         "sourcegraph.com".to_owned()
     }
 
+    /// Posts `body` as JSON to `path` on the endpoint.
     fn post(
         &self,
         path: &str,
@@ -42,6 +55,7 @@ pub trait Transport {
         deadline: Instant,
     ) -> Result<Reply, TransportError>;
 
+    /// Gets `path` from the endpoint.
     fn get(
         &self,
         path: &str,
@@ -49,12 +63,15 @@ pub trait Transport {
     ) -> Result<Reply, TransportError>;
 }
 
+/// The server `run` reads from, validated from `SEGO_ENDPOINT`.
 #[derive(Clone, Debug)]
 pub struct Endpoint {
     base: String,
 }
 
 impl Endpoint {
+    /// The endpoint named by `SEGO_ENDPOINT`, or sourcegraph.com when it is
+    /// unset or empty.
     pub fn from_env(value: Option<&OsStr>) -> Result<Endpoint, Error> {
         let Some(value) = value.filter(|value| !value.is_empty()) else {
             return Ok(Endpoint { base: DEFAULT_ENDPOINT.to_owned() });
@@ -77,6 +94,7 @@ impl Endpoint {
         Ok(Endpoint { base: text.trim_end_matches('/').to_owned() })
     }
 
+    /// The URL of `path` on this endpoint.
     pub fn url(&self, path: &str) -> String {
         format!("{}{path}", self.base)
     }

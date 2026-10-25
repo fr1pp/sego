@@ -4,7 +4,8 @@ use std::process::ExitCode;
 use serde_json::{Value, json};
 
 use sego::internal::address::{self, Repo, Rev, pinned};
-use sego::internal::upstream::{Endpoint, GRAPHQL_PATH, Reply, Transport};
+use sego::internal::upstream::GRAPHQL_PATH;
+use sego::{Endpoint, Reply, Transport};
 
 use crate::support::case::shell_words;
 use crate::support::exec::{Ran, exec};

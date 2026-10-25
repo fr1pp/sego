@@ -1,7 +1,8 @@
 use std::io;
 use std::process::ExitCode;
 
-use sego::internal::upstream::{Transport, Ureq};
+use sego::Transport;
+use sego::internal::upstream::Ureq;
 use sego::{Env, run};
 
 fn main() -> ExitCode {

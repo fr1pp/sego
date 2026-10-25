@@ -11,9 +11,9 @@ use serde_json::{Value, json};
 use sego::internal::search::query::prepare;
 use sego::internal::search::response::{Listing, UnindexedFile};
 use sego::internal::upstream::{
-    DEADLINE, Endpoint, Envelope, GRAPHQL_PATH, Reply, Transport, Ureq, Var,
-    exchange, top_level,
+    DEADLINE, Envelope, GRAPHQL_PATH, Ureq, Var, exchange, top_level,
 };
+use sego::{Endpoint, Reply, Transport};
 
 use crate::support::fixture::{Fixture, load_all};
 

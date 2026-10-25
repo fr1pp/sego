@@ -5,9 +5,8 @@ use std::time::{Duration, Instant};
 
 use serde_json::{Value, json};
 
-use sego::internal::upstream::{
-    Endpoint, GRAPHQL_PATH, Reply, Transport, TransportError, Ureq,
-};
+use sego::internal::upstream::{GRAPHQL_PATH, Ureq};
+use sego::{Endpoint, Reply, Transport, TransportError};
 
 use crate::support::fixture::{Fault, Fixture, load_all};
 use crate::support::http::{Response, Server};

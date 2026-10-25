@@ -47,3 +47,6 @@ pub fn shell_word(s: &str) -> Cow<'_, str> {
     }
     Cow::Owned(out)
 }
+
+#[cfg(test)]
+mod tests;

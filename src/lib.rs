@@ -73,13 +73,24 @@ use cache::Cache;
 use cli::Command;
 use error::Error;
 use output::{Answer, Notes};
-use upstream::{DEADLINE, Endpoint, Transport};
+use upstream::DEADLINE;
 
+pub use upstream::{Endpoint, Reply, Transport, TransportError};
+
+/// The process environment that `run` reads.
 pub struct Env {
+    /// `SEGO_ENDPOINT`, the server to read from; `None` for sourcegraph.com.
     pub endpoint: Option<OsString>,
+    /// `SEGO_CACHE_DIR`, the root of the raw-file cache; `None` for the
+    /// default location.
     pub cache_dir: Option<OsString>,
 }
 
+/// Runs one sego invocation, writes its answer to `out` and its notes and
+/// errors to `err`, and returns the process exit code.
+///
+/// `connect` is handed the endpoint once the command needs the server and
+/// returns the transport that carries every request.
 #[expect(
     clippy::needless_pass_by_value,
     reason = "main hands over the arguments it collected"
