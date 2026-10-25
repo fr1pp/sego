@@ -3,11 +3,10 @@ use std::time::Instant;
 
 use serde_json::Value;
 
-use sego::Endpoint;
-use sego::internal::search::query::prepare;
-use sego::internal::search::response::{Listing, UnindexedFile};
-use sego::internal::upstream::{
-    DEADLINE, Envelope, Ureq, Var, exchange, top_level,
+use crate::search::query::prepare;
+use crate::search::response::{Listing, UnindexedFile};
+use crate::upstream::{
+    DEADLINE, Endpoint, Envelope, Ureq, Var, exchange, top_level,
 };
 
 type Rule = fn(&Envelope) -> Result<(), String>;

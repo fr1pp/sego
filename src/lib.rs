@@ -15,55 +15,6 @@ mod show;
 mod submodule;
 mod upstream;
 
-#[doc(hidden)]
-pub mod internal {
-    pub mod address {
-        pub use crate::address::*;
-    }
-    pub mod cache {
-        pub use crate::cache::*;
-    }
-    pub mod cli {
-        pub use crate::cli::*;
-    }
-    pub mod commit {
-        pub use crate::commit::*;
-    }
-    pub mod diff {
-        pub use crate::diff::*;
-    }
-    pub mod error {
-        pub use crate::error::*;
-    }
-    pub mod escape {
-        pub use crate::escape::*;
-    }
-    pub mod log {
-        pub use crate::log::*;
-    }
-    pub mod ls {
-        pub use crate::ls::*;
-    }
-    pub mod output {
-        pub use crate::output::*;
-    }
-    pub mod quote {
-        pub use crate::quote::*;
-    }
-    pub mod refs {
-        pub use crate::refs::*;
-    }
-    pub mod search {
-        pub use crate::search::*;
-    }
-    pub mod submodule {
-        pub use crate::submodule::*;
-    }
-    pub mod upstream {
-        pub use crate::upstream::*;
-    }
-}
-
 use std::ffi::OsString;
 use std::io::{self, Write};
 use std::process::ExitCode;
@@ -76,6 +27,12 @@ use output::{Answer, Notes};
 use upstream::DEADLINE;
 
 pub use upstream::{Endpoint, Reply, Transport, TransportError};
+
+/// The transport that reads from `endpoint` over HTTP, for `run`'s `connect`.
+#[must_use]
+pub fn connect(endpoint: Endpoint) -> Box<dyn Transport> {
+    Box::new(upstream::Ureq::new(endpoint))
+}
 
 /// The process environment that `run` reads.
 pub struct Env {

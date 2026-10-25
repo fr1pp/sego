@@ -2,8 +2,6 @@ use std::collections::HashSet;
 
 use serde_json::Value;
 
-use sego::internal::escape::{escape, is_unsafe};
-
 use crate::case::{Case, Exchange, Request, Served};
 use crate::replay::Replay;
 use crate::run::{self, Outcome};
@@ -11,7 +9,11 @@ use crate::run::{self, Outcome};
 #[cfg(test)]
 mod tests;
 
+#[path = "../../../src/escape/table.rs"]
+mod table;
+
 const ESC: &str = "esc\u{1b}[0m";
+const ESC_ESCAPED: &str = "esc\\u{1b}[0m";
 const RTL: &str = "rtl\u{202e}x";
 const ZERO_WIDTH: &str = "zw\u{200b}x";
 const NEWLINE: &str = "new\nline";
@@ -146,6 +148,10 @@ fn in_lines(text: &str, kept: impl Fn(&str) -> bool) -> String {
     out
 }
 
+fn is_unsafe(c: char) -> bool {
+    table::UNSAFE.iter().any(|&(first, last)| (first..=last).contains(&c))
+}
+
 /// A line of `text` with a character that sego must have escaped. A newline
 /// is layout.
 pub fn unsafe_character(stream: &str, text: &str) -> Option<String> {
@@ -156,9 +162,8 @@ pub fn unsafe_character(stream: &str, text: &str) -> Option<String> {
 /// A line of `text` that starts with the corpus: injected text standing alone
 /// at column 0, or the corpus after a newline that was not escaped.
 pub fn corpus_starts_a_line(stream: &str, text: &str) -> Option<String> {
-    let head = escape(ESC);
     let line = text.split('\n').find(|line| {
-        line.starts_with(&*head) || line.starts_with(AFTER_NEWLINE)
+        line.starts_with(ESC_ESCAPED) || line.starts_with(AFTER_NEWLINE)
     })?;
     Some(format!("{stream} has a line that starts with server text: {line}"))
 }

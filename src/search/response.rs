@@ -1,4 +1,4 @@
-use serde::de::{DeserializeOwned, Deserializer, Error as _};
+use serde::de::{DeserializeOwned, Deserializer, Error as _, IgnoredAny};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -12,7 +12,8 @@ pub struct Results {
     pub alert: Option<Alert>,
     pub elapsed_milliseconds: u64,
     pub dynamic_filters: Vec<DynamicFilter>,
-    pub results: Vec<Item>,
+    #[serde(rename = "results")]
+    pub items: Vec<Item>,
 }
 
 #[derive(Debug, Serialize)]
@@ -30,14 +31,9 @@ pub struct Listing {
     pub limit_hit: bool,
     pub elapsed_milliseconds: u64,
     pub timedout: Vec<Named>,
-    pub alert: Option<Titled>,
+    pub alert: Option<IgnoredAny>,
     /// A selection naming only `FileMatch` leaves `{}` for any other kind.
     pub results: Vec<Value>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Titled {
-    pub title: String,
 }
 
 #[derive(Debug, Deserialize)]

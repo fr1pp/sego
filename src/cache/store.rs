@@ -35,7 +35,7 @@ pub fn read_entry(path: &Path, size: u64) -> Option<Vec<u8>> {
 /// On Unix the open refuses a symlink, so one swapped in after the check
 /// isn't followed, and doesn't wait for a FIFO's writer. Elsewhere it
 /// follows a symlink.
-pub fn open_entry(path: &Path) -> io::Result<File> {
+fn open_entry(path: &Path) -> io::Result<File> {
     #[cfg(unix)]
     {
         use rustix::fs::{Mode, OFlags};
@@ -50,7 +50,7 @@ pub fn open_entry(path: &Path) -> io::Result<File> {
 }
 
 /// Errors are ignored: a stale time only shortens the entry's life.
-pub fn refresh(path: &Path, now: SystemTime) {
+pub(super) fn refresh(path: &Path, now: SystemTime) {
     let Ok(modified) =
         fs::symlink_metadata(path).and_then(|metadata| metadata.modified())
     else {
@@ -88,7 +88,7 @@ pub fn init_root(root: &Path) -> io::Result<()> {
 /// A root that already exists is used as it is. A missing one is made
 /// tagged in a temporary directory beside it and renamed into place, so it
 /// never exists untagged.
-pub fn init_root_with(
+fn init_root_with(
     root: &Path,
     write: impl FnOnce(&mut File) -> io::Result<()>,
 ) -> io::Result<()> {

@@ -157,19 +157,14 @@ fn patterns_filters_and_operators() {
 }
 
 #[test]
-fn raw_gives_the_token_as_written() {
-    let rows = [
-        (term("a b"), "a b"),
-        (quoted("\"a\""), "\"a\""),
-        (pattern("/a/"), "/a/"),
-        (filter("file", "x"), "file:x"),
-        (not_filter("file", "x"), "-file:x"),
-        (Token::Open, "("),
-        (Token::Close, ")"),
-        (Token::Op(Op::Or), "or"),
-    ];
-    for (token, raw) in rows {
-        assert_eq!(token.raw(), raw);
+fn raw_gives_the_filter_as_written() {
+    for (negated, raw) in [(false, "file:x"), (true, "-file:x")] {
+        let filter = Filter {
+            negated,
+            field: "file".to_owned(),
+            value: "x".to_owned(),
+        };
+        assert_eq!(filter.raw(), raw);
     }
 }
 

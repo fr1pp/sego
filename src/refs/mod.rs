@@ -78,7 +78,7 @@ impl Kind {
 }
 
 #[derive(Serialize)]
-pub struct Ref {
+struct Ref {
     kind: Kind,
     name: String,
     commit: Option<String>,

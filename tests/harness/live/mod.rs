@@ -7,7 +7,6 @@ use std::time::{Duration, Instant};
 
 use serde_json::{Value, json};
 
-use sego::internal::upstream::Ureq;
 use sego::{Endpoint, Reply, Transport, TransportError};
 
 use crate::case::{Case, Exchange, Request, Served};
@@ -135,10 +134,10 @@ static BLOCKED: AtomicBool = AtomicBool::new(false);
 pub fn connect(endpoint: &str) -> Result<Box<dyn Transport>, String> {
     let endpoint = Endpoint::from_env(Some(OsStr::new(endpoint)))
         .map_err(|e| e.to_string())?;
-    Ok(Box::new(Paced(Ureq::new(endpoint))))
+    Ok(Box::new(Paced(sego::connect(endpoint))))
 }
 
-struct Paced(Ureq);
+struct Paced(Box<dyn Transport>);
 
 fn pace() -> Result<(), TransportError> {
     let mut last = LAST_SENT.lock().unwrap_or_else(PoisonError::into_inner);
