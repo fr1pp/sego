@@ -1,9 +1,17 @@
-use sego::internal::address::{
-    Address, AddressError, Dots, End, LineRange, Repo, Rev, UrlKind, parse,
-    submodule_target,
+use crate::address::{
+    Address, AddressError, Dots, End, LineRange, Repo, Rev, UrlKind,
+    is_oid_like, parse, parse_lines, submodule_target,
 };
 
 const SHA: &str = "98cb6bf42e086f6af920b965c38cacc07402d51b";
+
+fn exact(s: &str) -> Repo {
+    Repo::Exact(s.to_owned())
+}
+
+fn one(s: &str) -> Rev {
+    Rev::One(s.to_owned())
+}
 
 fn ok(token: &str) -> Address {
     parse(token).unwrap_or_else(|e| panic!("{token}: {e}"))
@@ -13,12 +21,204 @@ fn split(parts: &[&str]) -> Rev {
     Rev::Split(parts.iter().map(ToString::to_string).collect())
 }
 
-fn range(start: u32, end: u32) -> LineRange {
+fn span(start: u32, end: u32) -> LineRange {
     LineRange { start, end: End::Line(end) }
 }
 
-fn repo(name: &str) -> Repo {
-    Repo::Exact(name.to_owned())
+#[test]
+fn repos() {
+    let cases = [
+        (
+            "github.com/gorilla/mux",
+            exact("github.com/gorilla/mux"),
+            Rev::Default,
+        ),
+        (
+            "GitHub.com/Gorilla/Mux",
+            exact("GitHub.com/Gorilla/Mux"),
+            Rev::Default,
+        ),
+        ("gorilla/mux", Repo::OwnerName("gorilla/mux".into()), Rev::Default),
+        (
+            "gitlab-org/charts/gitlab",
+            exact("gitlab.com/gitlab-org/charts/gitlab"),
+            Rev::Default,
+        ),
+        (
+            "src.fedoraproject.org/rpms/x",
+            exact("src.fedoraproject.org/rpms/x"),
+            Rev::Default,
+        ),
+        (
+            "git@github.com:gorilla/mux.git@v1.7.0",
+            exact("github.com/gorilla/mux"),
+            one("v1.7.0"),
+        ),
+        (
+            "https://u:pw@github.com:443/x/y.git",
+            exact("github.com/x/y"),
+            Rev::Default,
+        ),
+        ("ssh://git@github.com:22/x/y", exact("github.com/x/y"), Rev::Default),
+        ("https://github.com/x/y/", exact("github.com/x/y"), Rev::Default),
+        ("github.com/x/y.git@v1", exact("github.com/x/y"), one("v1")),
+    ];
+    for (token, repo, rev) in cases {
+        let address = ok(token);
+        assert_eq!(address.repo, repo, "{token}");
+        assert_eq!(address.rev, rev, "{token}");
+        assert_eq!(address.lines, None, "{token}");
+        assert_eq!(address.kind, UrlKind::Plain, "{token}");
+    }
+}
+
+#[test]
+fn revisions_and_paths() {
+    let cases = [
+        (
+            "github.com/x/y@feature/x:src/a.go",
+            one("feature/x"),
+            Some("src/a.go"),
+        ),
+        ("github.com/x/y:dir/a@b:c.txt", Rev::Default, Some("dir/a@b:c.txt")),
+        ("github.com/x/y@v1:/src/", one("v1"), Some("src")),
+        ("github.com/x/y:.", Rev::Default, Some("")),
+        ("github.com/x/y:", Rev::Default, Some("")),
+        ("github.com/x/y@v1:", one("v1"), Some("")),
+        ("github.com/x/y@HEAD~3:a", one("HEAD~3"), Some("a")),
+        ("github.com/x/y", Rev::Default, None),
+    ];
+    for (token, rev, path) in cases {
+        let address = ok(token);
+        assert_eq!(address.rev, rev, "{token}");
+        assert_eq!(address.path.as_deref(), path, "{token}");
+    }
+}
+
+#[test]
+fn ranges() {
+    let range = |base: &str, head: &str, dots| Rev::Range {
+        base: base.into(),
+        head: head.into(),
+        dots,
+    };
+    let cases = [
+        ("github.com/x/y@v1..v2", range("v1", "v2", Dots::Two)),
+        ("github.com/x/y@v1...v2", range("v1", "v2", Dots::Three)),
+    ];
+    for (token, rev) in cases {
+        assert_eq!(ok(token).rev, rev, "{token}");
+    }
+    let errors = [
+        ("@...v2", "the range ...v2 has an empty side"),
+        ("@v1..", "the range v1.. has an empty side"),
+        ("@...", "the range ... has an empty side"),
+        ("@a...b..c", "invalid range a...b..c; a range is A..B or A...B"),
+        ("@a....b", "invalid range a....b; a range is A..B or A...B"),
+        ("@a....", "invalid range a....; a range is A..B or A...B"),
+    ];
+    for (token, message) in errors {
+        assert_eq!(parse(token).unwrap_err().to_string(), message, "{token}");
+    }
+}
+
+#[test]
+fn rejected() {
+    let cases = [
+        (
+            "github.com/x/y@",
+            "the address has an empty revision: github.com/x/y@",
+        ),
+        (
+            "github.com/x/y@:src",
+            "the address has an empty revision: github.com/x/y@:src",
+        ),
+        ("@v1", "the address has no repository: @v1"),
+        (
+            "github.com/x/y@-x",
+            "invalid revision '-x'; a revision cannot start with - or \
+             contain whitespace or control characters",
+        ),
+        (
+            "github.com/x/y@a b",
+            "invalid revision 'a b'; a revision cannot start with - or \
+             contain whitespace or control characters",
+        ),
+        (
+            "github.com/x/y@a\u{1}b",
+            "invalid revision 'a\u{1}b'; a revision cannot start with - or \
+             contain whitespace or control characters",
+        ),
+        (
+            "github.com/x/a\u{1b}b",
+            "invalid repository name 'github.com/x/a\u{1b}b'",
+        ),
+        ("github.com/x /y", "invalid repository name 'github.com/x /y'"),
+    ];
+    for (token, message) in cases {
+        assert_eq!(parse(token).unwrap_err().to_string(), message, "{token}");
+    }
+}
+
+#[test]
+fn empty_side_wins_over_no_repository() {
+    assert_eq!(
+        parse("github.com/x/y@...").unwrap_err(),
+        AddressError::EmptyRangeSide("...".into())
+    );
+}
+
+#[test]
+fn lines() {
+    let range = |start, end| LineRange { start, end };
+    let cases = [
+        ("10", range(10, End::Line(10)), "10"),
+        ("10-20", range(10, End::Line(20)), "10-20"),
+        ("10,20", range(10, End::Line(20)), "10-20"),
+        ("10-", range(10, End::Open), "10-"),
+        (
+            "2147483647",
+            range(2_147_483_647, End::Line(2_147_483_647)),
+            "2147483647",
+        ),
+    ];
+    for (s, expected, shown) in cases {
+        let lines = parse_lines(s).unwrap();
+        assert_eq!(lines, expected, "{s}");
+        assert_eq!(lines.display(), shown, "{s}");
+    }
+    let form = "lines are N, N-M, N,M, or N-";
+    let errors = [
+        ("3:4", "N:M reads as line and column, a range is N-M"),
+        ("0", "lines are numbered from 1"),
+        ("0-3", "lines are numbered from 1"),
+        ("3-0", "lines are numbered from 1"),
+        ("5-3", "the end is before the start"),
+        ("2147483648", form),
+        ("+3", form),
+        ("-3", form),
+        ("3,", form),
+        ("3-4-5", form),
+        ("a-b", form),
+        ("", form),
+    ];
+    for (s, reason) in errors {
+        assert_eq!(
+            parse_lines(s).unwrap_err().to_string(),
+            format!("invalid line range {s}; {reason}"),
+            "{s:?}"
+        );
+    }
+}
+
+#[test]
+fn four_to_forty_hex_digits_look_like_an_oid() {
+    for yes in ["abcd", "ABCD", "0123456789", &"a".repeat(40)] {
+        assert!(is_oid_like(yes), "{yes}");
+    }
+    for no in ["abc", "abcg", "", "v1.8.0", &"a".repeat(41)] {
+        assert!(!is_oid_like(no), "{no}");
+    }
 }
 
 #[test]
@@ -30,9 +230,9 @@ fn github_forms() {
         format!("{base}#L10-L20"),
     ] {
         let a = ok(&token);
-        assert_eq!(a.repo, repo("github.com/gorilla/mux"), "{token}");
+        assert_eq!(a.repo, exact("github.com/gorilla/mux"), "{token}");
         assert_eq!(a.rev, split(&["v1.8.0", "mux.go"]), "{token}");
-        assert_eq!(a.lines, Some(range(10, 20)), "{token}");
+        assert_eq!(a.lines, Some(span(10, 20)), "{token}");
         assert_eq!(a.kind, UrlKind::Blob, "{token}");
         assert_eq!(a.path, None, "{token}");
     }
@@ -79,7 +279,7 @@ fn plain_forms_stay_plain() {
 }
 
 #[test]
-fn permalink_is_pinned() {
+fn a_blob_url_at_a_commit_names_the_commit() {
     let a = ok(&format!("https://github.com/gorilla/mux/blob/{SHA}/mux.go"));
     assert_eq!(a.rev, Rev::One(SHA.into()));
     assert_eq!(a.path.as_deref(), Some("mux.go"));
@@ -92,7 +292,7 @@ fn permalink_is_pinned() {
 #[test]
 fn raw_githubusercontent() {
     let a = ok("https://raw.githubusercontent.com/gorilla/mux/v1.8.0/mux.go");
-    assert_eq!(a.repo, repo("github.com/gorilla/mux"));
+    assert_eq!(a.repo, exact("github.com/gorilla/mux"));
     assert_eq!(a.rev, split(&["v1.8.0", "mux.go"]));
     assert_eq!(a.kind, UrlKind::Blob);
 }
@@ -102,15 +302,15 @@ fn gitlab_forms() {
     let a = ok(
         "https://gitlab.com/gitlab-org/api/client-go/-/blob/main/README.md#L5",
     );
-    assert_eq!(a.repo, repo("gitlab.com/gitlab-org/api/client-go"));
+    assert_eq!(a.repo, exact("gitlab.com/gitlab-org/api/client-go"));
     assert_eq!(a.rev, split(&["main", "README.md"]));
-    assert_eq!(a.lines, Some(range(5, 5)));
+    assert_eq!(a.lines, Some(span(5, 5)));
     assert_eq!(a.kind, UrlKind::Blob);
     let a = ok("gitlab.com/g/r/-/tree/main/src");
     assert_eq!(a.kind, UrlKind::Tree);
     let a = ok(&format!("gitlab.com/g/r/-/commit/{SHA}"));
     assert_eq!(a.kind, UrlKind::Commit);
-    assert_eq!(a.repo, repo("gitlab.com/g/r"));
+    assert_eq!(a.repo, exact("gitlab.com/g/r"));
 }
 
 #[test]
@@ -120,10 +320,10 @@ fn sourcegraph_forms() {
         "sourcegraph.com/r/github.com/gorilla/mux@v1.8.0/-/blob/mux.go?L3-5",
     ] {
         let a = ok(token);
-        assert_eq!(a.repo, repo("github.com/gorilla/mux"), "{token}");
+        assert_eq!(a.repo, exact("github.com/gorilla/mux"), "{token}");
         assert_eq!(a.rev, Rev::One("v1.8.0".into()), "{token}");
         assert_eq!(a.path.as_deref(), Some("mux.go"), "{token}");
-        assert_eq!(a.lines, Some(range(3, 5)), "{token}");
+        assert_eq!(a.lines, Some(span(3, 5)), "{token}");
         assert_eq!(a.kind, UrlKind::Blob, "{token}");
     }
     let a = ok("sourcegraph.com/github.com/gorilla/mux@v1.8.0/-/tree/docs");
@@ -141,12 +341,12 @@ fn sourcegraph_forms() {
 #[test]
 fn fragments() {
     let cases = [
-        ("#L10", Some(range(10, 10))),
-        ("#L10-L20", Some(range(10, 20))),
-        ("#L10-20", Some(range(10, 20))),
-        ("#L10C5-L12C8", Some(range(10, 12))),
-        ("?L10-20", Some(range(10, 20))),
-        ("?plain=1&L7", Some(range(7, 7))),
+        ("#L10", Some(span(10, 10))),
+        ("#L10-L20", Some(span(10, 20))),
+        ("#L10-20", Some(span(10, 20))),
+        ("#L10C5-L12C8", Some(span(10, 12))),
+        ("?L10-20", Some(span(10, 20))),
+        ("?plain=1&L7", Some(span(7, 7))),
         ("?plain=1", None),
         ("#readme", None),
     ];
@@ -282,7 +482,7 @@ fn sourcegraph_without_revision() {
         "sourcegraph.com/r/github.com/o/r/-/blob/a.go",
     ] {
         let a = ok(token);
-        assert_eq!(a.repo, repo("github.com/o/r"), "{token}");
+        assert_eq!(a.repo, exact("github.com/o/r"), "{token}");
         assert_eq!(a.rev, Rev::Default, "{token}");
         assert_eq!(a.path.as_deref(), Some("a.go"), "{token}");
     }
@@ -385,7 +585,7 @@ fn repository_urls() {
     ];
     for (token, name, rev) in cases {
         let a = ok(token);
-        assert_eq!(a.repo, repo(name), "{token}");
+        assert_eq!(a.repo, exact(name), "{token}");
         assert_eq!(a.rev, rev, "{token}");
         assert_eq!(a.path, None, "{token}");
         assert_eq!(a.lines, None, "{token}");

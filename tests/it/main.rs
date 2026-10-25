@@ -1,4 +1,3 @@
-mod address;
 mod cli;
 mod commit;
 mod diff;
@@ -21,4 +20,3 @@ mod search_request;
 mod search_text;
 mod submodule;
 mod support;
-mod url;

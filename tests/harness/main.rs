@@ -33,6 +33,13 @@ mod drift;
     reason = "cargo compiles the module's tests here but runs them in the \
               harness target"
 )]
+mod hostile;
+#[allow(
+    dead_code,
+    unused_imports,
+    reason = "cargo compiles the module's tests here but runs them in the \
+              harness target"
+)]
 mod live;
 #[allow(
     dead_code,
@@ -128,6 +135,7 @@ fn run_case(path: &Path) -> datatest_stable::Result<()> {
         failures.extend(compare::expectations(&case, &outcome));
         failures.extend(check::requests_match(&case, &outcome));
     }
+    failures.extend(hostile::check(&case, &outcome));
     if failures.is_empty() {
         Ok(())
     } else {
