@@ -28,7 +28,7 @@ mod case;
 mod record;
 #[path = "../harness/replay.rs"]
 mod replay;
-#[path = "../harness/run.rs"]
+#[path = "../harness/run/mod.rs"]
 mod run;
 #[path = "../harness/shell/mod.rs"]
 mod shell;
