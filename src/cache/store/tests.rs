@@ -80,7 +80,7 @@ fn a_fifo_entry_is_a_miss_and_its_open_does_not_wait() {
 
 #[cfg(unix)]
 #[test]
-fn modes_are_private() {
+fn cache_directories_are_owner_only_and_entries_are_owner_read_write() {
     use std::os::unix::fs::PermissionsExt;
     let dir = TempDir::new().unwrap();
     let root = dir.path().join("root");
