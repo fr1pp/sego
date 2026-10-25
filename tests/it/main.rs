@@ -13,7 +13,6 @@ mod outcome;
 mod output;
 mod quote;
 mod refs;
-mod run;
 mod safety;
 mod search_cli;
 mod search_request;

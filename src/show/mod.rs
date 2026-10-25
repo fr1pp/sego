@@ -440,3 +440,6 @@ fn split_lines(content: &str) -> Vec<&str> {
     }
     lines
 }
+
+#[cfg(test)]
+mod tests;
