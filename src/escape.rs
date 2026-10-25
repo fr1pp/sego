@@ -166,3 +166,6 @@ pub fn render_line(line: &str, focus: Option<usize>) -> String {
     }
     out
 }
+
+#[cfg(test)]
+mod tests;

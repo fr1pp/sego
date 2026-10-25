@@ -109,3 +109,6 @@ pub fn report(error: &Error, out: &mut dyn Write) -> io::Result<()> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;
