@@ -1,5 +1,4 @@
 mod commit;
-mod diff;
 mod drift;
 mod guard;
 mod log;
