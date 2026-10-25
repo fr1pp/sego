@@ -4,22 +4,14 @@ use std::time::Instant;
 
 use sego::{Reply, Transport, TransportError};
 
-use super::fixture::Fixture;
-use super::replay;
-
 #[derive(Clone)]
 pub struct Call {
     pub path: String,
     pub body: Vec<u8>,
 }
 
-enum Source {
-    Script(VecDeque<Result<Reply, TransportError>>),
-    Fixtures(Vec<Fixture>),
-}
-
 struct Inner {
-    source: Source,
+    script: VecDeque<Result<Reply, TransportError>>,
     calls: Vec<Call>,
 }
 
@@ -31,20 +23,15 @@ pub struct Fake {
 }
 
 impl Fake {
-    fn with(source: Source) -> Fake {
-        Fake {
-            inner: Arc::new(Mutex::new(Inner { source, calls: Vec::new() })),
-        }
-    }
-
     /// Answers each request with the next queued result; an empty queue is a
     /// network error.
     pub fn scripted(replies: Vec<Result<Reply, TransportError>>) -> Fake {
-        Fake::with(Source::Script(replies.into()))
-    }
-
-    pub fn fixtures(fixtures: Vec<Fixture>) -> Fake {
-        Fake::with(Source::Fixtures(fixtures))
+        Fake {
+            inner: Arc::new(Mutex::new(Inner {
+                script: replies.into(),
+                calls: Vec::new(),
+            })),
+        }
     }
 
     pub fn calls(&self) -> Vec<Call> {
@@ -54,21 +41,16 @@ impl Fake {
 
     fn request(
         &self,
-        method: &'static str,
         path: &str,
         body: &[u8],
     ) -> Result<Reply, TransportError> {
         let mut inner =
             self.inner.lock().unwrap_or_else(PoisonError::into_inner);
         inner.calls.push(Call { path: path.to_owned(), body: body.to_vec() });
-        match &mut inner.source {
-            Source::Script(queue) => queue
-                .pop_front()
-                .unwrap_or(Err(TransportError::Network("script exhausted"))),
-            Source::Fixtures(fixtures) => {
-                replay::answer(fixtures, method, path, body)
-            }
-        }
+        inner
+            .script
+            .pop_front()
+            .unwrap_or(Err(TransportError::Network("script exhausted")))
     }
 }
 
@@ -79,10 +61,10 @@ impl Transport for Fake {
         body: &[u8],
         _: Instant,
     ) -> Result<Reply, TransportError> {
-        self.request("POST", path, body)
+        self.request(path, body)
     }
 
     fn get(&self, path: &str, _: Instant) -> Result<Reply, TransportError> {
-        self.request("GET", path, &[])
+        self.request(path, &[])
     }
 }

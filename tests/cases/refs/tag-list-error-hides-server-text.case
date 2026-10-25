@@ -1,9 +1,9 @@
 # A located list error names the part, not the server's text.
-args: refs example.com/handwritten/broken
+args: refs example.com/acme/widget
 exit: 1
 --- stderr
 sego: error: Sourcegraph failed to answer the tag list
---- request Refs {"first":101,"query":null,"repo0":"example.com/handwritten/broken"}
+--- request Refs {"first":101,"query":null,"repo0":"example.com/acme/widget"}
 --- query
 query Refs($repo0: String!, $first: Int!, $query: String) {
   r0: repository(name: $repo0) {

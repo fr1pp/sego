@@ -1,0 +1,91 @@
+# Totals past the JSON page size set branches_more and tags_more.
+args: refs --json example.com/acme/widget
+exit: 0
+--- stdout
+{"repo":"example.com/acme/widget","query":null,"default_branch":"b0","branches_total":17001,"tags_total":17002,"branches_all":null,"tags_all":null,"branches_more":true,"tags_more":true,"refs":[{"kind":"branch","name":"b0","commit":"0000000000000000000000000000000000000001","date":"2026-01-01"},{"kind":"branch","name":"b1","commit":"0000000000000000000000000000000000000002","date":"2026-01-02"},{"kind":"branch","name":"b2","commit":"0000000000000000000000000000000000000003","date":"2026-01-03"},{"kind":"tag","name":"t0","commit":"0000000000000000000000000000000000000001","date":"2026-01-01"},{"kind":"tag","name":"t1","commit":"0000000000000000000000000000000000000002","date":"2026-01-02"}]}
+--- request Refs {"first":17000,"query":null,"repo0":"example.com/acme/widget"}
+--- query
+query Refs($repo0: String!, $first: Int!, $query: String) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    branches(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+    tags(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "branches": {
+        "nodes": [
+          {
+            "displayName": "b0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-01-01T03:04:05Z"
+                }
+              },
+              "oid": "0000000000000000000000000000000000000001"
+            }
+          },
+          {
+            "displayName": "b1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-01-02T03:04:05Z"
+                }
+              },
+              "oid": "0000000000000000000000000000000000000002"
+            }
+          },
+          {
+            "displayName": "b2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-01-03T03:04:05Z"
+                }
+              },
+              "oid": "0000000000000000000000000000000000000003"
+            }
+          }
+        ],
+        "totalCount": 17001
+      },
+      "defaultBranch": {
+        "displayName": "b0"
+      },
+      "name": "example.com/acme/widget",
+      "tags": {
+        "nodes": [
+          {
+            "displayName": "t0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-01-01T03:04:05Z"
+                }
+              },
+              "oid": "0000000000000000000000000000000000000001"
+            }
+          },
+          {
+            "displayName": "t1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-01-02T03:04:05Z"
+                }
+              },
+              "oid": "0000000000000000000000000000000000000002"
+            }
+          }
+        ],
+        "totalCount": 17002
+      }
+    }
+  }
+}

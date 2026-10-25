@@ -1,8 +1,8 @@
 # More than 100 matches print 100 rows, and the header says `100 shown`.
-args: refs example.com/handwritten/many rel
+args: refs example.com/acme/widget rel
 exit: 0
 --- stdout
-example.com/handwritten/many  0 of 12 branches match "rel"  130 of 400 tags match "rel"  100 shown
+example.com/acme/widget  0 of 12 branches match "rel"  130 of 400 tags match "rel"  100 shown
 tag     abc000000001  2026-06-29  rel-001
 tag     abc000000002  2026-06-28  rel-002
 tag     abc000000003  2026-06-27  rel-003
@@ -103,7 +103,7 @@ tag     abc000000061  2026-03-25  rel-097
 tag     abc000000062  2026-03-24  rel-098
 tag     abc000000063  2026-03-23  rel-099
 tag     abc000000064  2026-03-22  rel-100
---- request Refs {"first":101,"query":"rel","repo0":"example.com/handwritten/many"}
+--- request Refs {"first":101,"query":"rel","repo0":"example.com/acme/widget"}
 --- query
 query Refs($repo0: String!, $first: Int!, $query: String) {
   r0: repository(name: $repo0) {
@@ -132,7 +132,7 @@ query Refs($repo0: String!, $first: Int!, $query: String) {
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/many",
+      "name": "example.com/acme/widget",
       "tags": {
         "nodes": [
           {

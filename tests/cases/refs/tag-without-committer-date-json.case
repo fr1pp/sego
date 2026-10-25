@@ -1,0 +1,42 @@
+# In JSON a tag whose commit has no committer has the commit and a null date.
+args: refs --json example.com/acme/widget
+exit: 0
+--- stdout
+{"repo":"example.com/acme/widget","query":null,"default_branch":null,"branches_total":0,"tags_total":1,"branches_all":null,"tags_all":null,"branches_more":false,"tags_more":false,"refs":[{"kind":"tag","name":"v1","commit":"0000000000000000000000000000000000000007","date":null}]}
+--- request Refs {"first":17000,"query":null,"repo0":"example.com/acme/widget"}
+--- query
+query Refs($repo0: String!, $first: Int!, $query: String) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    branches(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+    tags(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "branches": {
+        "nodes": [],
+        "totalCount": 0
+      },
+      "defaultBranch": null,
+      "name": "example.com/acme/widget",
+      "tags": {
+        "nodes": [
+          {
+            "displayName": "v1",
+            "target": {
+              "commit": {
+                "committer": null
+              },
+              "oid": "0000000000000000000000000000000000000007"
+            }
+          }
+        ],
+        "totalCount": 1
+      }
+    }
+  }
+}

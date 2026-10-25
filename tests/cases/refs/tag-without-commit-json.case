@@ -1,12 +1,9 @@
-# A tag whose commit Sourcegraph can't dereference prints `-` twice.
-args: refs example.com/handwritten/tagged
+# In JSON a tag whose commit Sourcegraph can't dereference has a null commit and date.
+args: refs --json example.com/acme/widget
 exit: 0
 --- stdout
-example.com/handwritten/tagged  1 branch  2 tags
-branch  a1b2c3d4e5f6  2026-03-01  main  (default)
-tag     0f1e2d3c4b5a  2026-02-01  v2
-tag     -             -           v1-tree
---- request Refs {"first":101,"query":null,"repo0":"example.com/handwritten/tagged"}
+{"repo":"example.com/acme/widget","query":null,"default_branch":"main","branches_total":1,"tags_total":2,"branches_all":null,"tags_all":null,"branches_more":false,"tags_more":false,"refs":[{"kind":"branch","name":"main","commit":"0000000000000000000000000000000000000001","date":"2026-03-01"},{"kind":"tag","name":"v2","commit":"0000000000000000000000000000000000000002","date":"2026-02-01"},{"kind":"tag","name":"v1-tree","commit":null,"date":null}]}
+--- request Refs {"first":17000,"query":null,"repo0":"example.com/acme/widget"}
 --- query
 query Refs($repo0: String!, $first: Int!, $query: String) {
   r0: repository(name: $repo0) {
@@ -30,7 +27,7 @@ query Refs($repo0: String!, $first: Int!, $query: String) {
                   "date": "2026-03-01T12:00:00Z"
                 }
               },
-              "oid": "a1b2c3d4e5f6071829304a5b6c7d8e9f0a1b2c3d"
+              "oid": "0000000000000000000000000000000000000001"
             }
           }
         ],
@@ -39,7 +36,7 @@ query Refs($repo0: String!, $first: Int!, $query: String) {
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/tagged",
+      "name": "example.com/acme/widget",
       "tags": {
         "nodes": [
           {
@@ -50,14 +47,14 @@ query Refs($repo0: String!, $first: Int!, $query: String) {
                   "date": "2026-02-01T08:30:00Z"
                 }
               },
-              "oid": "0f1e2d3c4b5a69788796a5b4c3d2e1f0a9b8c7d6"
+              "oid": "0000000000000000000000000000000000000002"
             }
           },
           {
             "displayName": "v1-tree",
             "target": {
               "commit": null,
-              "oid": "9a8b7c6d5e4f30211203f4e5d6c7b8a990817263"
+              "oid": "0000000000000000000000000000000000000003"
             }
           }
         ],

@@ -1,0 +1,32 @@
+# A repository without refs prints zero of each.
+args: refs github.com/ascoders/blog
+exit: 0
+--- stdout
+github.com/ascoders/blog  0 branches  0 tags
+--- request Refs {"first":101,"query":null,"repo0":"github.com/ascoders/blog"}
+--- query
+query Refs($repo0: String!, $first: Int!, $query: String) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    branches(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+    tags(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+  }
+}
+--- response 200 application/json recorded 2026-10-07 https://sourcegraph.com live: values
+{
+  "data": {
+    "r0": {
+      "branches": {
+        "nodes": [],
+        "totalCount": 0
+      },
+      "defaultBranch": null,
+      "name": "github.com/ascoders/blog",
+      "tags": {
+        "nodes": [],
+        "totalCount": 0
+      }
+    }
+  }
+}

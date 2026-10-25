@@ -95,56 +95,6 @@ impl Fixture {
             Some(value) => value.to_string().into_bytes(),
         }
     }
-
-    pub fn key(&self) -> String {
-        match (&self.operation, &self.request) {
-            (Some(operation), _) => format!(
-                "{operation} {}",
-                self.variables.as_ref().unwrap_or(&Value::Null)
-            ),
-            (None, Some(request)) => {
-                format!("{} {}", request.method, request.path)
-            }
-            (None, None) => String::new(),
-        }
-    }
-}
-
-pub fn load_all(root: &Path) -> Vec<Fixture> {
-    let mut files = Vec::new();
-    collect(root, &mut files);
-    files.sort();
-    let mut seen: BTreeMap<String, PathBuf> = BTreeMap::new();
-    let mut fixtures = Vec::new();
-    for file in files {
-        let text = fs::read_to_string(&file)
-            .unwrap_or_else(|e| panic!("{}: {e}", file.display()));
-        let fixture = Fixture::parse(&text, &file)
-            .unwrap_or_else(|e| panic!("{}: {e}", file.display()));
-        if let Some(first) = seen.insert(fixture.key(), file.clone()) {
-            panic!(
-                "duplicate fixture {}: {} and {}",
-                fixture.key(),
-                first.display(),
-                file.display()
-            );
-        }
-        fixtures.push(fixture);
-    }
-    fixtures
-}
-
-fn collect(dir: &Path, files: &mut Vec<PathBuf>) {
-    let entries =
-        fs::read_dir(dir).unwrap_or_else(|e| panic!("{}: {e}", dir.display()));
-    for entry in entries {
-        let path = entry.unwrap_or_else(|e| panic!("{e}")).path();
-        if path.is_dir() {
-            collect(&path, files);
-        } else if path.extension().is_some_and(|ext| ext == "yaml") {
-            files.push(path);
-        }
-    }
 }
 
 pub fn reply(name: &str) -> Reply {
