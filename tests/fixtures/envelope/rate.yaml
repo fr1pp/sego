@@ -1,8 +1,0 @@
-operation: EnvelopeRate
-status: 429
-headers:
-  content-type: application/json
-  retry-after: "30"
-handwritten: true
-response:
-  error: rate limited

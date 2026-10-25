@@ -1,7 +1,0 @@
-operation: EnvelopeNeither
-status: 200
-headers:
-  content-type: application/json
-handwritten: true
-response:
-  hello: world
