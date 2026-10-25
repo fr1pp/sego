@@ -37,9 +37,14 @@ type Forward<'a> = &'a dyn Fn(&dyn Transport) -> Result<Reply, TransportError>;
 
 impl Replay {
     pub fn new(case: &Case) -> Replay {
+        Replay::serving(case, case.exchanges.clone())
+    }
+
+    /// A replay of `case` that serves `exchanges` in its place.
+    pub fn serving(case: &Case, exchanges: Vec<Exchange>) -> Replay {
         Replay {
             state: Rc::new(RefCell::new(State {
-                exchanges: case.exchanges.clone(),
+                exchanges,
                 path: case.path.clone(),
                 body_path: case.body_path(),
                 sent: Vec::new(),
