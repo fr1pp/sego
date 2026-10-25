@@ -166,8 +166,8 @@ impl Ureq {
 
     /// Ignores `HTTP_PROXY` and friends, so tests that talk to 127.0.0.1
     /// don't depend on the environment of the process running them.
-    #[doc(hidden)]
-    pub fn without_proxy(endpoint: Endpoint) -> Ureq {
+    #[cfg(test)]
+    fn without_proxy(endpoint: Endpoint) -> Ureq {
         Ureq::build(endpoint, false)
     }
 
