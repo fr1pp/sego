@@ -1,9 +1,9 @@
 # A failed commit count fails the range, and the server's text is not printed.
-args: log example.com/handwritten/count-error@v1..v2
+args: log example.com/acme/widget@v1..v2
 exit: 1
 --- stderr
 sego: error: Sourcegraph failed to answer the commit count
---- request Log {"a":"v1","b":"v2","path":null,"repo0":"example.com/handwritten/count-error"}
+--- request Log {"a":"v1","b":"v2","path":null,"repo0":"example.com/acme/widget"}
 --- query
 query Log($repo0: String!, $a: String!, $b: String!, $path: String) {
   a0: repository(name: $repo0) {
@@ -42,7 +42,7 @@ query Log($repo0: String!, $a: String!, $b: String!, $path: String) {
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/count-error"
+      "name": "example.com/acme/widget"
     },
     "b0": {
       "commit": {
@@ -51,7 +51,7 @@ query Log($repo0: String!, $a: String!, $b: String!, $path: String) {
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/count-error"
+      "name": "example.com/acme/widget"
     },
     "c0": {
       "comparison": {
@@ -81,7 +81,7 @@ query Log($repo0: String!, $a: String!, $b: String!, $path: String) {
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/count-error"
+      "name": "example.com/acme/widget"
     },
     "n0": {
       "commit": {
@@ -90,7 +90,7 @@ query Log($repo0: String!, $a: String!, $b: String!, $path: String) {
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/count-error"
+      "name": "example.com/acme/widget"
     },
     "t0": {
       "defaultBranch": {
@@ -100,7 +100,7 @@ query Log($repo0: String!, $a: String!, $b: String!, $path: String) {
         "nodes": [],
         "totalCount": 0
       },
-      "name": "example.com/handwritten/count-error"
+      "name": "example.com/acme/widget"
     }
   },
   "errors": [

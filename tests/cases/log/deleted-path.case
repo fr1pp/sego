@@ -19,7 +19,7 @@ query Log($repo0: String!, $rev: String!, $path: String) {
     gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
   }
 }
---- response 200 application/json recorded 2026-10-07 https://sourcegraph.com
+--- response 200 application/json recorded 2026-10-07 https://sourcegraph.com live: values
 {
   "data": {
     "r0": {

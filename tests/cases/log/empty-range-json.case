@@ -1,0 +1,183 @@
+# In JSON an empty range has a total of 0.
+args: log --json github.com/gorilla/mux@v1.8.0..v1.7.0
+exit: 0
+--- stdout
+{"repo":"github.com/gorilla/mux","rev":null,"commit":null,"rev_a":"v1.8.0","rev_b":"v1.7.0","commit_a":"98cb6bf42e086f6af920b965c38cacc07402d51b","commit_b":"a7962380ca08b5a188038c69871b8d3fbdf31e89","path":null,"total":0,"more":false,"commits":[]}
+--- request Log {"a":"v1.8.0","b":"v1.7.0","path":null,"repo0":"github.com/gorilla/mux"}
+--- query
+query Log($repo0: String!, $a: String!, $b: String!, $path: String) {
+  a0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $a) { oid }
+  }
+  b0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $b) { oid }
+  }
+  n0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $b) { behindAhead(revspec: $a) { ahead } }
+  }
+  c0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    comparison(base: $a, head: $b) { commits(path: $path) { nodes { oid subject author { date person { displayName } } parents { oid } } pageInfo { hasNextPage } } }
+  }
+  t0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
+  }
+}
+--- response 200 application/json recorded 2026-10-25 https://sourcegraph.com live: values
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    },
+    "b0": {
+      "commit": {
+        "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    },
+    "c0": {
+      "comparison": {
+        "commits": {
+          "nodes": [],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    },
+    "n0": {
+      "commit": {
+        "behindAhead": {
+          "ahead": 0
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    },
+    "t0": {
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "gitRefs": {
+        "nodes": [
+          {
+            "displayName": "v1.8.1",
+            "target": {
+              "oid": "b4617d0b9670ad14039b2739167fd35a60f557c5"
+            }
+          },
+          {
+            "displayName": "v1.8.0",
+            "target": {
+              "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+            }
+          },
+          {
+            "displayName": "v1.7.4",
+            "target": {
+              "oid": "75dcda0896e109a2a22c9315bca3bb21b87b2ba5"
+            }
+          },
+          {
+            "displayName": "v1.7.3",
+            "target": {
+              "oid": "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15"
+            }
+          },
+          {
+            "displayName": "v1.7.2",
+            "target": {
+              "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+            }
+          },
+          {
+            "displayName": "v1.7.1",
+            "target": {
+              "oid": "c5c6c98bc25355028a63748a498942a6398ccd22"
+            }
+          },
+          {
+            "displayName": "v1.7.0",
+            "target": {
+              "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+            }
+          },
+          {
+            "displayName": "v1.6.2",
+            "target": {
+              "oid": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+            }
+          },
+          {
+            "displayName": "v1.6.1",
+            "target": {
+              "oid": "53c1911da2b537f792e7cafcb446b05ffe33b996"
+            }
+          },
+          {
+            "displayName": "v1.6.0",
+            "target": {
+              "oid": "7f08801859139f86dfafd1c296e2cba9a80d292e"
+            }
+          },
+          {
+            "displayName": "v1.5.0",
+            "target": {
+              "oid": "24fca303ac6da784b9e8269f724ddeb0b2eea5e7"
+            }
+          },
+          {
+            "displayName": "v1.4.0",
+            "target": {
+              "oid": "bcd8bc72b08df0f70df986b97f95590779502d31"
+            }
+          },
+          {
+            "displayName": "v1.3.0",
+            "target": {
+              "oid": "392c28fe23e1c45ddba891b0320b3b5df220beea"
+            }
+          },
+          {
+            "displayName": "v1.2.0",
+            "target": {
+              "oid": "b12896167c61cb7a17ee5f15c2ba0729d78793db"
+            }
+          },
+          {
+            "displayName": "v1.1",
+            "target": {
+              "oid": "0eeaf8392f5b04950925b8a69fe70f110fa7cbfc"
+            }
+          }
+        ],
+        "totalCount": 15
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  }
+}

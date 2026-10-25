@@ -1,14 +1,14 @@
 # More than 1000 tags: only the newest 1000 mark commits, and a note says so.
-args: log example.com/handwritten/tag-note@v3.0.0
+args: log example.com/acme/widget@v3.0.0
 exit: 0
 --- stdout
-example.com/handwritten/tag-note@aaaa11111111  3 commits  rev v3.0.0
+example.com/acme/widget@aaaa11111111  3 commits  rev v3.0.0
 aaaa11111111  2026-08-01  Ada Lovelace  (tag: v3.0.0) Release 3.0.0
 bbbb22222222  2026-07-30  Grace Hopper  Fix the parser
 cccc33333333  2026-07-29  Ada Lovelace  (tag: v3.0.0-rc.1) Start 3.0.0
 --- stderr
 sego: note: tags marked from the 1000 newest of 1250
---- request Log {"path":null,"repo0":"example.com/handwritten/tag-note","rev":"v3.0.0"}
+--- request Log {"path":null,"repo0":"example.com/acme/widget","rev":"v3.0.0"}
 --- query
 query Log($repo0: String!, $rev: String!, $path: String) {
   r0: repository(name: $repo0) {
@@ -84,7 +84,7 @@ query Log($repo0: String!, $rev: String!, $path: String) {
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/tag-note"
+      "name": "example.com/acme/widget"
     },
     "t0": {
       "defaultBranch": {
@@ -113,7 +113,7 @@ query Log($repo0: String!, $rev: String!, $path: String) {
         ],
         "totalCount": 1250
       },
-      "name": "example.com/handwritten/tag-note"
+      "name": "example.com/acme/widget"
     }
   }
 }
