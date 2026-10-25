@@ -1,8 +1,8 @@
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
-use sego::internal::search::lint::{Token, tokenize};
-use sego::internal::search::plan::plan;
-use sego::internal::search::query::{
+use crate::search::lint::{Token, tokenize};
+use crate::search::plan::plan;
+use crate::search::query::{
     Unit, cap, content_search, deadline_ms, duration_text, go_duration,
     index_no, lower_bound, prepare, select_cut, select_drops, tenths,
     unindexed_query, unit,
@@ -375,7 +375,7 @@ fn prepared_carries_the_facts() {
 }
 
 #[test]
-fn pinned_queries() {
+fn pinned_searches() {
     for q in ["repo:x@v1 foo", "repo:x rev:v1 foo", "repo:x revision:v1 foo"] {
         let prepared = prepare(q);
         assert!(prepared.pinned, "{q}");
@@ -566,5 +566,67 @@ fn index_no_queries() {
     ] {
         assert!(!index_no(&t(q), &plan(q)), "{q}");
         assert!(!prepare(q).index_no, "{q}");
+    }
+}
+
+/// The least time of three that `prepare` takes for a query of `bytes`:
+/// `head`, then repeats of `unit`, then `tail` repeated as often.
+fn preparing(head: &str, unit: &str, tail: &str, bytes: usize) -> Duration {
+    let units = bytes / (unit.len() + tail.len());
+    let query = format!("{head}{}{}", unit.repeat(units), tail.repeat(units));
+    let time = || {
+        let started = Instant::now();
+        prepare(&query);
+        started.elapsed()
+    };
+    (0..3).map(|_| time()).min().unwrap_or_default()
+}
+
+/// 64 KiB of each shape takes at most a few times sixteen times what 4 KiB
+/// does: time that grows with the square of the length would take some 256
+/// times as long. The ratio, not the time, is checked, so a loaded machine
+/// doesn't fail it.
+#[test]
+fn prepares_in_linear_time() {
+    let nests = [
+        "(f:x a ",
+        "(a f:x ",
+        "(f:x a b ",
+        "(-f:x a ",
+        "(not f:x a ",
+        "(content:x a ",
+    ];
+    let mut shapes: Vec<(&str, &str, &str)> = vec![
+        ("", "f:a ", ""),
+        ("", "\"a ", ""),
+        ("", "a(b ", ""),
+        ("", "foo or ", ""),
+        ("", "repo:x foo or bar ", ""),
+        ("", "(repo:a or repo:b) ", ""),
+        ("patterntype:standard ", "( a", ""),
+        ("", "(a)or x ", ""),
+        ("", "(a b ", ""),
+        ("", "a or (", ""),
+        ("", "x and (a ", ""),
+        ("", "(", ""),
+    ];
+    for unit in nests {
+        shapes.push(("", unit, ")"));
+    }
+    for head in [
+        "patterntype:regexp ",
+        "patterntype:literal ",
+        "patterntype:standard ",
+        "patterntype:structural ",
+    ] {
+        shapes.push((head, "(f:x a ", ")"));
+    }
+    for (head, unit, tail) in shapes {
+        let small = preparing(head, unit, tail, 4 << 10);
+        let large = preparing(head, unit, tail, 64 << 10);
+        assert!(
+            large < small * 48 + Duration::from_millis(20),
+            "{head}{unit:?}: {large:?}, against {small:?} for a sixteenth"
+        );
     }
 }

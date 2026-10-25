@@ -6,7 +6,7 @@ instead of 1), structural searches the server cuts without saying so, and `index
 that plan locally, written from a behavioural description of the server, without its source in
 view.
 
-`tests/fixtures/plan/examples.jsonl` holds 1,825 queries with the plans a Sourcegraph server
+`src/search/plan/examples.jsonl` holds 1,825 queries with the plans a Sourcegraph server
 (2024-08-22) gives them, and sego's plan must match every one. `just live` also checks a sample
 against sourcegraph.com's `parseSearchQuery`.
 

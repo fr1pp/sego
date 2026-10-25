@@ -604,3 +604,6 @@ fn digits(text: &str) -> (&str, &str) {
     let end = text.find(|c: char| !c.is_ascii_digit()).unwrap_or(text.len());
     text.split_at(end)
 }
+
+#[cfg(test)]
+mod tests;

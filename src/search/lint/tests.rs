@@ -1,5 +1,5 @@
-use sego::internal::search::lint::{Filter, Op, Token, tokenize};
-use sego::internal::search::query::prepare;
+use crate::search::lint::{Filter, Op, Token, tokenize};
+use crate::search::query::prepare;
 
 fn term(text: &str) -> Token {
     Token::Term(text.to_owned())

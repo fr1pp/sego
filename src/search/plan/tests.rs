@@ -1,10 +1,14 @@
-use std::path::Path;
+use std::ffi::OsStr;
+use std::thread::sleep;
 use std::time::{Duration, Instant};
 
-use serde_json::Value;
+use serde_json::{Value, json};
 
-use sego::internal::search::plan::{Filter, Plan, plan};
-use sego::internal::search::query::prepare;
+use crate::search::plan::{Filter, Plan, plan};
+use crate::upstream::{DEADLINE, Endpoint, Ureq, Var, exchange, top_level};
+
+const EXAMPLES: &str = include_str!("examples.jsonl");
+const PAUSE: Duration = Duration::from_secs(1);
 
 /// A plan as one line: `rejected`, `unread`, or the pattern type, the number
 /// of searches, and each listed search's filters in the fixture's notation.
@@ -114,16 +118,14 @@ fn expected(row: &Value) -> (String, bool) {
     (line, row[4] != "rejected by checks")
 }
 
-/// The fixture's rows whose plan sego's differs from, and the number of
-/// rows compared.
-fn disagreements(path: &Path) -> (usize, Vec<String>) {
-    let text = std::fs::read_to_string(path)
-        .unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+/// The recorded rows whose plan sego's differs from, and the number of rows
+/// compared.
+fn disagreements() -> (usize, Vec<String>) {
     let mut found = Vec::new();
     let mut rows = 0;
-    for line in text.lines() {
-        let row: Value = serde_json::from_str(line)
-            .unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+    for line in EXAMPLES.lines() {
+        let row: Value =
+            serde_json::from_str(line).unwrap_or_else(|e| panic!("{e}"));
         rows += 1;
         let query = row[0].as_str().unwrap_or_default();
         let (theirs, revised) = expected(&row);
@@ -137,7 +139,7 @@ fn disagreements(path: &Path) -> (usize, Vec<String>) {
     (rows, found)
 }
 
-/// A few rows of `tests/fixtures/plan/examples.jsonl` for each kind of
+/// A few rows of `examples.jsonl` for each kind of
 /// planning rule, written out.
 const RULE_EXAMPLES: &[(&str, &str)] = &[
     // outcomes
@@ -419,68 +421,6 @@ fn plans_the_costliest_queries_of_2_048_bytes() {
     }
 }
 
-/// The least time of three that `prepare` takes for a query of `bytes`:
-/// `head`, then repeats of `unit`, then `tail` repeated as often.
-fn preparing(head: &str, unit: &str, tail: &str, bytes: usize) -> Duration {
-    let units = bytes / (unit.len() + tail.len());
-    let query = format!("{head}{}{}", unit.repeat(units), tail.repeat(units));
-    let time = || {
-        let started = Instant::now();
-        prepare(&query);
-        started.elapsed()
-    };
-    (0..3).map(|_| time()).min().unwrap_or_default()
-}
-
-/// 64 KiB of each shape takes at most a few times sixteen times what 4 KiB
-/// does: time that grows with the square of the length would take some 256
-/// times as long. The ratio, not the time, is checked, so a loaded machine
-/// doesn't fail it.
-#[test]
-fn prepares_in_linear_time() {
-    let nests = [
-        "(f:x a ",
-        "(a f:x ",
-        "(f:x a b ",
-        "(-f:x a ",
-        "(not f:x a ",
-        "(content:x a ",
-    ];
-    let mut shapes: Vec<(&str, &str, &str)> = vec![
-        ("", "f:a ", ""),
-        ("", "\"a ", ""),
-        ("", "a(b ", ""),
-        ("", "foo or ", ""),
-        ("", "repo:x foo or bar ", ""),
-        ("", "(repo:a or repo:b) ", ""),
-        ("patterntype:standard ", "( a", ""),
-        ("", "(a)or x ", ""),
-        ("", "(a b ", ""),
-        ("", "a or (", ""),
-        ("", "x and (a ", ""),
-        ("", "(", ""),
-    ];
-    for unit in nests {
-        shapes.push(("", unit, ")"));
-    }
-    for head in [
-        "patterntype:regexp ",
-        "patterntype:literal ",
-        "patterntype:standard ",
-        "patterntype:structural ",
-    ] {
-        shapes.push((head, "(f:x a ", ")"));
-    }
-    for (head, unit, tail) in shapes {
-        let small = preparing(head, unit, tail, 4 << 10);
-        let large = preparing(head, unit, tail, 64 << 10);
-        assert!(
-            large < small * 48 + Duration::from_millis(20),
-            "{head}{unit:?}: {large:?}, against {small:?} for a sixteenth"
-        );
-    }
-}
-
 /// One search can hold a filter for every few bytes; listing it, as
 /// `prepare` does for `index:no`, gives each of them once.
 #[test]
@@ -490,18 +430,146 @@ fn lists_a_mebibyte_of_filters() {
     assert_eq!(searches, Some(1 << 18));
 }
 
-/// Every row of the fixture of the server's plans agrees, and there is at
-/// least one.
+/// Every recorded plan of the server agrees, and there is at least one.
 #[test]
 fn plans_match_the_servers() {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/plan/examples.jsonl");
-    let (rows, found) = disagreements(&path);
-    assert!(rows > 0, "{}: no plans to compare", path.display());
+    let (rows, found) = disagreements();
+    assert!(rows > 0, "no plans to compare");
     assert!(
         found.is_empty(),
         "{} of {rows} plans differ\n{}",
         found.len(),
         found.iter().take(40).cloned().collect::<Vec<_>>().join("\n")
+    );
+}
+
+/// Queries from `examples.jsonl`, across the plan's
+/// rules, in the three modes sourcegraph.com can be asked to read a query
+/// in. Keyword mode can't be checked this way: `parseSearchQuery` reads a
+/// query sent as keyword as literal.
+const PLANNED: [&str; 13] = [
+    "repo:x patterntype:literal (a or b) or c",
+    "repo:x patterntype:literal (a -file:x) or c",
+    "repo:x patterntype:literal (\"a or b\") or baz",
+    "repo:x patterntype:regexp (\"b or c\") or d",
+    "a (file:y b) or c \"q (z\" patterntype:regexp",
+    "patterntype:regexp (\"x(\" b) (c or repo:d e) \"q (z\"",
+    "repo:x patterntype:regexp (foo and bar) or baz",
+    "patterntype:structural foo(...) or (lang:go bar(...))",
+    r"repo:x patterntype:structural (file:^a\.go$ foo(...) or file:^b\.go$ bar(...))",
+    r"foo(...) or bar(...) file:^a\.go$ patterntype:structural",
+    r"repo:x not file:y file:^a\.go$ patterntype:structural foo(...) or bar(...)",
+    r"repo:x file:has.content(x) file:\.go$ patterntype:structural foo(...)",
+    r"repo:x l:go file:^Makefile$ patterntype:structural foo(...)",
+];
+
+/// The searches a parse tree from `parseSearchQuery` implies, each filter
+/// written `-field:value`, with ` [p]` after a predicate: an `or` with a
+/// filter inside splits, and an `and` multiplies its items' searches.
+fn tree_searches(node: &Value) -> Vec<Vec<String>> {
+    fn holds_filter(node: &Value) -> bool {
+        match node {
+            Value::Array(items) => items.iter().any(holds_filter),
+            Value::Object(map) if map.contains_key("field") => true,
+            Value::Object(map) => map.values().any(holds_filter),
+            _ => false,
+        }
+    }
+    let and = |items: &[Value]| {
+        let mut searches = vec![Vec::new()];
+        for item in items {
+            let mut next = Vec::new();
+            for own in tree_searches(item) {
+                for sofar in &searches {
+                    next.push([sofar.clone(), own.clone()].concat());
+                }
+            }
+            searches = next;
+        }
+        searches
+    };
+    match node {
+        Value::Array(items) => and(items),
+        Value::Object(map) => {
+            if let Some(Value::Array(items)) = map.get("and") {
+                and(items)
+            } else if let Some(Value::Array(items)) = map.get("or") {
+                if holds_filter(node) {
+                    items.iter().flat_map(tree_searches).collect()
+                } else {
+                    vec![Vec::new()]
+                }
+            } else if let Some(field) =
+                map.get("field").and_then(Value::as_str)
+            {
+                let dash = if map["negated"] == true { "-" } else { "" };
+                let value = map["value"].as_str().unwrap_or_default();
+                let labels = map["labels"].as_array().into_iter().flatten();
+                let predicate = labels.into_iter().any(|l| l == "IsPredicate");
+                let mark = if predicate { " [p]" } else { "" };
+                vec![vec![format!("{dash}{field}:{value}{mark}")]]
+            } else {
+                vec![Vec::new()]
+            }
+        }
+        _ => vec![Vec::new()],
+    }
+}
+
+/// sourcegraph.com's parse tree for each query of `PLANNED`, asked for one
+/// at a time in the query's mode, implies the searches and filters the plan
+/// module gives it.
+#[test]
+#[ignore = "sends requests to sourcegraph.com"]
+fn plans_match_the_live_server() {
+    let endpoint =
+        Endpoint::from_env(None::<&OsStr>).unwrap_or_else(|e| panic!("{e}"));
+    let upstream = Ureq::new(endpoint);
+    let mut failures = Vec::new();
+    for query in PLANNED {
+        let Plan::Read(searches) = plan(query) else { panic!("{query}") };
+        let mode = searches.pattern_type.name();
+        let mine: Vec<Vec<String>> = searches
+            .list(4096)
+            .unwrap_or_default()
+            .into_iter()
+            .map(|filters| {
+                filters
+                    .into_iter()
+                    .map(|f| {
+                        let dash = if f.negated { "-" } else { "" };
+                        let mark = if f.predicate { " [p]" } else { "" };
+                        format!("{dash}{}:{}{mark}", f.field, f.value)
+                    })
+                    .collect()
+            })
+            .collect();
+        let var = Var { name: "q", ty: "String!", value: json!(query) };
+        let selection = format!(
+            "parseSearchQuery(query: $q, patternType: {mode}, \
+             outputPhase: PARSE_TREE, outputFormat: JSON)"
+        );
+        let request = top_level("DriftPlan", vec![var], &selection);
+        let envelope =
+            exchange(&upstream, &request, Instant::now() + DEADLINE)
+                .unwrap_or_else(|e| panic!("{query}: {e}"));
+        let tree =
+            envelope.data["parseSearchQuery"].as_str().unwrap_or("null");
+        let tree: Value =
+            serde_json::from_str(tree).unwrap_or_else(|e| panic!("{e}"));
+        let theirs = tree_searches(&tree);
+        if mine != theirs {
+            failures.push(format!(
+                "{query}\n  sego:   {mine:?}\n  server: {theirs:?}"
+            ));
+        }
+        sleep(PAUSE);
+    }
+    assert!(
+        failures.is_empty(),
+        "{} of {} plans differ from the server's parse tree:\n{}",
+        failures.len(),
+        PLANNED.len(),
+        failures.join("\n")
     );
 }
