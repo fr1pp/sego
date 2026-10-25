@@ -12,9 +12,9 @@ ci:
     just check
     git diff --exit-code
 
-# Record the fixtures that are missing, one request at a time.
+# Record the responses that cases lack, one request at a time.
 record:
-    SEGO_RECORD=missing cargo test --test it cases -- --test-threads=1
+    SEGO_RECORD=1 cargo test --test cases -- --test-threads=1
 
 # Run the live drift tests against sourcegraph.com.
 live:
