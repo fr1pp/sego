@@ -1,0 +1,6 @@
+# A regexp error at search, with no gRPC wrapper and no structural pattern: the
+# reason, no fact.
+args: search 'repo:sego-fake/rx@v1 /(a/'
+exit: 1
+--- stderr
+sego: error: the search's regular expression doesn't compile: missing closing ): `(a`

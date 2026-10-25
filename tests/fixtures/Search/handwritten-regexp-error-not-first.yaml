@@ -1,0 +1,14 @@
+operation: Search
+variables:
+  query: repo:sego-fake/rx6@v1 /f/
+status: 200
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    search: null
+  errors:
+  - message: "rpc error: code = Unknown desc = foo: error parsing regexp: x"
+    path:
+    - search

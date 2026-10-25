@@ -1,4 +1,5 @@
-use super::query::pattern_type;
+use super::plan::{self, Filter as Planned, PatternType, Plan};
+use super::query::{chosen, has_pattern, search_type};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Token {
@@ -58,18 +59,68 @@ impl Token {
 /// parentheses don't balance is read again with every parenthesis as text.
 pub fn tokenize(query: &str) -> Vec<Token> {
     let chars: Vec<char> = query.chars().collect();
-    scan(&chars, true).or_else(|| scan(&chars, false)).unwrap_or_default()
+    let closes = closes(&chars);
+    scan(&chars, &closes, true)
+        .or_else(|| scan(&chars, &closes, false))
+        .unwrap_or_default()
+}
+
+/// For each `(`, the index after the `)` that balances it when the text is
+/// read from that `(` with `\` escaping the next character, or `None`.
+/// One pass from the start gives every answer: read from any `(`, the text
+/// after it escapes the same way, so its `)` is the first one after it
+/// where the depth falls one below the depth just after it.
+fn closes(chars: &[char]) -> Vec<Option<usize>> {
+    let mut after = vec![0i64; chars.len()];
+    let mut active = vec![false; chars.len()];
+    let (mut depth, mut i) = (0i64, 0);
+    while i < chars.len() {
+        match chars[i] {
+            '\\' => {
+                after[i] = depth;
+                if let Some(next) = after.get_mut(i + 1) {
+                    *next = depth;
+                }
+                i += 2;
+                continue;
+            }
+            '(' => depth += 1,
+            ')' => depth -= 1,
+            _ => {}
+        }
+        after[i] = depth;
+        active[i] = true;
+        i += 1;
+    }
+    let mut out = vec![None; chars.len()];
+    let mut next_close: std::collections::HashMap<i64, usize> =
+        std::collections::HashMap::new();
+    for i in (0..chars.len()).rev() {
+        match chars[i] {
+            '(' => out[i] = next_close.get(&(after[i] - 1)).map(|at| at + 1),
+            ')' if active[i] => {
+                next_close.insert(after[i], i);
+            }
+            _ => {}
+        }
+    }
+    out
 }
 
 struct Scanner<'a> {
     chars: &'a [char],
+    closes: &'a [Option<usize>],
     pos: usize,
     groups: bool,
     depth: usize,
 }
 
-fn scan(chars: &[char], groups: bool) -> Option<Vec<Token>> {
-    let mut scanner = Scanner { chars, pos: 0, groups, depth: 0 };
+fn scan(
+    chars: &[char],
+    closes: &[Option<usize>],
+    groups: bool,
+) -> Option<Vec<Token>> {
+    let mut scanner = Scanner { chars, closes, pos: 0, groups, depth: 0 };
     let mut tokens = Vec::new();
     while scanner.skip_space() {
         scanner.next(&mut tokens)?;
@@ -171,23 +222,7 @@ impl Scanner<'_> {
 
     /// From the `(` at `open`, the index after its matching `)`.
     fn balanced_end(&self, open: usize) -> Option<usize> {
-        let mut depth = 0;
-        let mut i = open;
-        while i < self.chars.len() {
-            match self.chars[i] {
-                '\\' => i += 1,
-                '(' => depth += 1,
-                ')' => {
-                    depth -= 1;
-                    if depth == 0 {
-                        return Some(i + 1);
-                    }
-                }
-                _ => {}
-            }
-            i += 1;
-        }
-        None
+        self.closes[open]
     }
 
     /// `()` or `( )` standing alone is the text `()`, not an empty group.
@@ -288,7 +323,7 @@ fn classify(text: String) -> Token {
     Token::Term(text)
 }
 
-const KNOWN: &[&str] = &[
+pub(super) const KNOWN: &[&str] = &[
     "repo",
     "r",
     "file",
@@ -332,18 +367,27 @@ const RESULT_TYPES: &[&str] =
 const PATTERN_FIELDS: &[&str] =
     &["file", "f", "path", "lang", "l", "language", "content"];
 
-/// The notes for a query, in check order. Each check fires only on a query
-/// that can't be meant as written.
-pub fn check(tokens: &[Token]) -> Vec<String> {
-    let operands = Operands::of(tokens);
+/// The notes for a query, in check order. Checks 1-7 and 10 fire only on a
+/// query that can't be meant as written; checks 8 and 9 fire on a
+/// structural search whose answer the server can cut without saying so.
+/// Checks 4, 8 and 9 read the query's plan, and skip a query the server
+/// rejects while reading it.
+pub fn check(tokens: &[Token], plan: &Plan) -> Vec<String> {
     let mut notes = Vec::new();
     unknown_filters(tokens, &mut notes);
-    different_languages(&operands, &mut notes);
-    regex_in_keyword_mode(tokens, &mut notes);
-    escaped_or(tokens, &operands, &mut notes);
+    different_languages(&operands(tokens), &mut notes);
+    let ty = search_type(tokens, plan);
+    regex_in_keyword_mode(tokens, ty, &mut notes);
+    if let Plan::Read(searches) = plan {
+        escaped_or(searches, &mut notes);
+    }
     unknown_types(tokens, &mut notes);
     path_without_pattern(tokens, &mut notes);
     revision_ranges(tokens, &mut notes);
+    if let Plan::Read(searches) = plan {
+        structural_scope(searches, &mut notes);
+    }
+    symbol_select_without_pattern(tokens, ty, &mut notes);
     notes
 }
 
@@ -358,70 +402,34 @@ fn is_field(filter: &Filter, names: &[&str]) -> bool {
     names.iter().any(|name| filter.field.eq_ignore_ascii_case(name))
 }
 
-/// One operand of OR: its own filters, and whether a group inside it holds
-/// a `repo:` filter.
-#[derive(Default)]
-struct Operand<'a> {
-    filters: Vec<&'a Filter>,
-    nested_repo: bool,
-}
-
-impl Operand<'_> {
-    fn repo(&self) -> bool {
-        self.nested_repo || self.filters.iter().any(|f| is_repo(f))
-    }
-}
-
-fn is_repo(filter: &Filter) -> bool {
-    is_field(filter, &["repo", "r"])
-}
-
-/// The operands of OR at every depth. A filter inside a group belongs to the
-/// group's operands, not to the enclosing one.
-struct Operands<'a> {
-    all: Vec<Operand<'a>>,
-    top: Vec<Operand<'a>>,
-}
-
-impl<'a> Operands<'a> {
-    fn of(tokens: &'a [Token]) -> Self {
-        let mut done: Vec<Operand<'a>> = Vec::new();
-        let mut stack: Vec<Vec<Operand<'a>>> = vec![vec![Operand::default()]];
-        for token in tokens {
-            match token {
-                Token::Open => stack.push(vec![Operand::default()]),
-                Token::Close if stack.len() > 1 => {
-                    let level = stack.pop().unwrap_or_default();
-                    let repo = level.iter().any(Operand::repo);
-                    if let Some(operand) =
-                        stack.last_mut().and_then(|l| l.last_mut())
-                    {
-                        operand.nested_repo |= repo;
-                    }
-                    done.extend(level);
-                }
-                Token::Op(Op::Or) => {
-                    if let Some(level) = stack.last_mut() {
-                        level.push(Operand::default());
-                    }
-                }
-                Token::Filter(filter) => {
-                    if let Some(operand) =
-                        stack.last_mut().and_then(|l| l.last_mut())
-                    {
-                        operand.filters.push(filter);
-                    }
-                }
-                _ => {}
+/// The filters of each operand of OR, at every depth. A filter inside a
+/// group belongs to the group's operands, not to the enclosing one.
+fn operands(tokens: &[Token]) -> Vec<Vec<&Filter>> {
+    let mut done = Vec::new();
+    let mut stack: Vec<Vec<Vec<&Filter>>> = vec![vec![Vec::new()]];
+    for token in tokens {
+        match token {
+            Token::Open => stack.push(vec![Vec::new()]),
+            Token::Close if stack.len() > 1 => {
+                done.extend(stack.pop().unwrap_or_default());
             }
+            Token::Op(Op::Or) => {
+                if let Some(level) = stack.last_mut() {
+                    level.push(Vec::new());
+                }
+            }
+            Token::Filter(filter) => {
+                if let Some(operand) =
+                    stack.last_mut().and_then(|l| l.last_mut())
+                {
+                    operand.push(filter);
+                }
+            }
+            _ => {}
         }
-        let top = stack.into_iter().next().unwrap_or_default();
-        done.extend(top.iter().map(|o| Operand {
-            filters: o.filters.clone(),
-            nested_repo: o.nested_repo,
-        }));
-        Operands { all: done, top }
     }
+    done.extend(stack.into_iter().next().unwrap_or_default());
+    done
 }
 
 fn unknown_filters(tokens: &[Token], notes: &mut Vec<String>) {
@@ -482,10 +490,9 @@ fn drops_one(long: &[char], short: &[char]) -> bool {
         .any(|i| long[..i].iter().chain(&long[i + 1..]).eq(short.iter()))
 }
 
-fn different_languages(operands: &Operands, notes: &mut Vec<String>) {
-    let differ = operands.all.iter().any(|operand| {
+fn different_languages(operands: &[Vec<&Filter>], notes: &mut Vec<String>) {
+    let differ = operands.iter().any(|operand| {
         let mut langs = operand
-            .filters
             .iter()
             .filter(|f| !f.negated && is_field(f, &["lang", "l", "language"]))
             .map(|f| f.value.to_ascii_lowercase());
@@ -498,12 +505,20 @@ fn different_languages(operands: &Operands, notes: &mut Vec<String>) {
     }
 }
 
-fn regex_in_keyword_mode(tokens: &[Token], notes: &mut Vec<String>) {
-    if pattern_type(tokens) != "keyword" {
+fn regex_in_keyword_mode(
+    tokens: &[Token],
+    ty: PatternType,
+    notes: &mut Vec<String>,
+) {
+    if ty != PatternType::Keyword {
         return;
     }
     let first = tokens.iter().find_map(|token| match token {
-        Token::Term(term) if looks_like_regex(term) => Some(term),
+        Token::Term(term)
+            if looks_like_regex(term) && flags(term).is_none() =>
+        {
+            Some(term)
+        }
         _ => None,
     });
     if let Some(term) = first {
@@ -571,51 +586,15 @@ fn class_of_ranges(rest: &[char]) -> bool {
             && matches!(rest.get(end + 1), Some('+' | '*' | '?' | '{')))
 }
 
-/// The server hoists the filters around a flat run of operands of OR to
-/// apply to all of them.
-fn hoisted(tokens: &[Token]) -> bool {
-    let is_filter = |t: &Token| matches!(t, Token::Filter(_));
-    let lead = tokens.iter().take_while(|t| is_filter(t)).count();
-    let run_end = lead
-        + tokens[lead..]
-            .iter()
-            .take_while(|t| {
-                !is_filter(t) && !matches!(t, Token::Open | Token::Close)
-            })
-            .count();
-    let run = &tokens[lead..run_end];
-    let operand = |t: Option<&Token>| {
-        matches!(
-            t,
-            Some(Token::Term(_) | Token::Quoted(_) | Token::Pattern(_))
-        )
-    };
-    lead > 0
-        && operand(run.first())
-        && operand(run.last())
-        && tokens[run_end..].iter().all(is_filter)
-}
-
-fn escaped_or(tokens: &[Token], operands: &Operands, notes: &mut Vec<String>) {
-    let has_or = tokens
-        .iter()
-        .scan(0usize, |depth, t| {
-            match t {
-                Token::Open => *depth += 1,
-                Token::Close => *depth = depth.saturating_sub(1),
-                _ => {}
-            }
-            Some((*depth, t))
-        })
-        .any(|(depth, t)| depth == 0 && matches!(t, Token::Op(Op::Or)));
-    let positive = |operand: &Operand| {
-        operand.filters.iter().any(|f| !f.negated && is_repo(f))
-    };
-    if has_or
-        && operands.top.iter().any(positive)
-        && !operands.top.iter().all(Operand::repo)
-        && !hoisted(tokens)
-    {
+/// Check 4: some search is scoped by a positive `repo:` filter and another
+/// has no `repo:` filter at all, as when a filter sits beside one operand
+/// of OR.
+fn escaped_or(searches: &plan::Searches, notes: &mut Vec<String>) {
+    let ends = searches.reach((false, false), |(positive, any), f| {
+        let repo = f.field == "repo";
+        (positive || (repo && !f.negated), any || repo)
+    });
+    if ends.iter().any(|end| end.0) && ends.iter().any(|end| !end.1) {
         notes.push(
             "filters outside parentheses apply only to the operand of OR \
              they sit in; the other operands search every repository"
@@ -630,10 +609,7 @@ fn unknown_types(tokens: &[Token], notes: &mut Vec<String>) {
         filters(tokens).filter(|f| !f.negated && is_field(f, &["type"]))
     {
         let value = filter.value.as_str();
-        let bare = ['"', '\'']
-            .iter()
-            .find_map(|q| value.strip_prefix(*q)?.strip_suffix(*q))
-            .unwrap_or(value);
+        let bare = unquoted(value);
         if RESULT_TYPES.contains(&bare) || seen.contains(&value) {
             continue;
         }
@@ -677,4 +653,237 @@ fn revision_ranges(tokens: &[Token], notes: &mut Vec<String>) {
             }
         }
     }
+}
+
+const STRUCTURAL_SCOPE: &str = "a structural search over more than one file \
+can miss matches without a +; file:^PATH$ makes it complete, and a regex \
+search marks a cut with +";
+const STRUCTURAL_LANGUAGE: &str = "with no lang: and no file: extension, a \
+structural search can parse files as the wrong language and miss matches; \
+lang: names the language";
+
+/// The server runs a structural search only on the candidate files its
+/// literals select, up to a cap, and reports no cut; it picks the matcher
+/// from the first `lang:`, or with no `lang:` from the first `file:`
+/// path's extension, and a generic one when Comby has none for either.
+/// Each search of the plan is checked with its own filters. The server
+/// rejects a structural search with `type:`, so that query gets neither
+/// note.
+fn structural_scope(searches: &plan::Searches, notes: &mut Vec<String>) {
+    if searches.pattern_type != PatternType::Structural
+        || searches.reach(false, |t, f| t || f.field == "type").contains(&true)
+    {
+        return;
+    }
+    let path = |f: &Planned| f.field == "file" && !f.negated && !f.predicate;
+    let one_file = searches
+        .reach(false, |one, f| one || (path(f) && one_literal_path(&f.value)));
+    let language = searches.reach((false, None), |(lang, ext), f| {
+        let named = lang || (f.field == "lang" && !f.negated);
+        (named, ext.or_else(|| path(f).then(|| ends_in_extension(&f.value))))
+    });
+    if one_file.contains(&false) {
+        notes.push(STRUCTURAL_SCOPE.to_owned());
+    }
+    if language.iter().any(|&(lang, ext)| !lang && ext != Some(true)) {
+        notes.push(STRUCTURAL_LANGUAGE.to_owned());
+    }
+}
+
+/// Whether the query can search only one repository: each search of its
+/// plan has a non-negated `repo:` whose value is one exact name, the same in
+/// every search. Two `repo:` filters in a search intersect, so one exact
+/// name among them is enough. A plan of 64 or more searches isn't read.
+pub fn one_repository(plan: &Plan) -> bool {
+    let Some(searches) = plan.each() else {
+        return false;
+    };
+    let mut names = searches.iter().map(|search| {
+        search
+            .iter()
+            .filter(|f| f.field == "repo" && !f.negated)
+            .find_map(|f| exact_repository(&f.value))
+    });
+    let Some(Some(first)) = names.next() else {
+        return false;
+    };
+    names.all(|name| name == Some(first))
+}
+
+/// The name in a `repo:` value that matches one repository: `^NAME$`, with
+/// an optional `@` revision, where NAME is `/`-separated segments that each
+/// hold a letter or digit, made of letters, digits, `_`, `-` and `.`, each
+/// punctuation mark (and `/`) escaped or not.
+fn exact_repository(value: &str) -> Option<&str> {
+    let name = value.split_once('@').map_or(value, |(name, _)| name);
+    let body = name.strip_prefix('^')?.strip_suffix('$')?;
+    let mut chars = body.chars();
+    while let Some(c) = chars.next() {
+        let literal = if c == '\\' {
+            matches!(chars.next(), Some('.' | '-' | '_' | '/'))
+        } else {
+            c.is_ascii_alphanumeric() || "_-./".contains(c)
+        };
+        if !literal {
+            return None;
+        }
+    }
+    body.split('/')
+        .all(|segment| segment.chars().any(|c| c.is_ascii_alphanumeric()))
+        .then_some(body)
+}
+
+/// A `content:` filter or a path's content predicate supplies the pattern:
+/// the server searches the predicate's argument as one. Negated,
+/// the server rejects either, so neither gets the note. A field the server
+/// doesn't know is searched as text. In literal and structural mode `/./`
+/// is text, and the server rejects a second `patterntype:`, so the note
+/// names the one to replace.
+fn symbol_select_without_pattern(
+    tokens: &[Token],
+    ty: PatternType,
+    notes: &mut Vec<String>,
+) {
+    let symbols = chosen(tokens, "type").any(|v| unquoted(v) == "symbol");
+    let selected =
+        chosen(tokens, "select").any(|v| unquoted(v).starts_with("symbol"));
+    let supplies = |f: &Filter| {
+        is_field(f, &["content"])
+            || !is_field(f, KNOWN)
+            || (is_field(f, &["file", "f", "path"])
+                && (f.value.starts_with("has.content(")
+                    || f.value.starts_with("contains.content(")))
+    };
+    if !symbols
+        || !selected
+        || has_pattern(tokens)
+        || filters(tokens).any(supplies)
+    {
+        return;
+    }
+    let remedy =
+        if matches!(ty, PatternType::Literal | PatternType::Structural) {
+            let mode = ty.name();
+            format!(
+                "with patterntype:regexp in place of patterntype:{mode}, /./"
+            )
+        } else {
+            "/./".to_owned()
+        };
+    notes.push(format!(
+        "type:symbol with select:symbol and no pattern returns nothing; \
+         {remedy} matches every symbol"
+    ));
+}
+
+const FLAGS: &str = "gims";
+const ROOTS: &[&str] = &[
+    "bin", "boot", "dev", "etc", "home", "lib", "media", "mnt", "opt", "proc",
+    "root", "run", "sbin", "srv", "sys", "tmp", "usr", "var",
+];
+
+/// The flags of `/RE/FLAGS`: a `/`, text up to the first unescaped `/`,
+/// then one or more of `FLAGS`, each at most once, in any order. The server
+/// searches the whole term as text. Text that is a top-level Unix directory
+/// makes it a path, such as `/usr/i`.
+fn flags(term: &str) -> Option<&str> {
+    let rest = term.strip_prefix('/')?;
+    let mut chars = rest.char_indices();
+    while let Some((i, c)) = chars.next() {
+        match c {
+            '\\' => {
+                chars.next();
+            }
+            '/' => {
+                let (body, flags) = (&rest[..i], &rest[i + 1..]);
+                let set = !flags.is_empty()
+                    && flags.char_indices().all(|(at, flag)| {
+                        FLAGS.contains(flag) && !flags[..at].contains(flag)
+                    });
+                return (!body.is_empty() && set && !ROOTS.contains(&body))
+                    .then_some(flags);
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+/// The note for the first `/RE/FLAGS` term in `keyword` or `standard`
+/// mode. It is for a zero answer only: such a term can be meant as written,
+/// as a regex literal in code or a path prefix.
+pub fn flag_note(tokens: &[Token], ty: PatternType) -> Option<String> {
+    if !matches!(ty, PatternType::Keyword | PatternType::Standard) {
+        return None;
+    }
+    let (term, flags) = tokens.iter().find_map(|token| match token {
+        Token::Term(term) => Some((term, flags(term)?)),
+        _ => None,
+    })?;
+    let inline: String =
+        ['s', 'm'].into_iter().filter(|&f| flags.contains(f)).collect();
+    let mut clauses = Vec::new();
+    if flags.contains('i') || inline.is_empty() {
+        clauses.push(
+            if chosen(tokens, "case").any(|v| unquoted(v) == "yes") {
+                "case:yes matches case even with (?i)"
+            } else {
+                "it ignores case by default"
+            },
+        );
+    }
+    let example = format!("flags go inside: /(?{inline}).../");
+    if !inline.is_empty() {
+        clauses.push(&example);
+    }
+    Some(format!(
+        "the server searches `{term}` as text; {}",
+        clauses.join(", and ")
+    ))
+}
+
+/// A quoted value without its quotes.
+pub fn unquoted(value: &str) -> &str {
+    ['"', '\'']
+        .iter()
+        .find_map(|q| value.strip_prefix(*q)?.strip_suffix(*q))
+        .unwrap_or(value)
+}
+
+/// `^PATH$`, where PATH is literal text that names a file, not a
+/// directory: `.` and escaped punctuation are allowed, and an escaped
+/// letter or digit (`\d`, `\w`, `\b`) is a pattern.
+fn one_literal_path(value: &str) -> bool {
+    let Some(body) = value.strip_prefix('^').and_then(|v| v.strip_suffix('$'))
+    else {
+        return false;
+    };
+    if body.is_empty() || body.ends_with('/') {
+        return false;
+    }
+    let mut chars = body.chars();
+    while let Some(c) = chars.next() {
+        match c {
+            '\\' => {
+                if chars.next().is_none_or(|n| n.is_ascii_alphanumeric()) {
+                    return false;
+                }
+            }
+            '*' | '+' | '?' | '(' | ')' | '[' | ']' | '{' | '}' | '|'
+            | '^' | '$' => return false,
+            _ => {}
+        }
+    }
+    true
+}
+
+/// Whether the value, less a trailing `$`, ends in `.` or `\.` and an
+/// extension of lower-case letters and digits: the server matches the
+/// extensions it knows, all lower-case, case-sensitively.
+fn ends_in_extension(value: &str) -> bool {
+    let value = value.strip_suffix('$').unwrap_or(value);
+    let stem = value.trim_end_matches(|c: char| {
+        c.is_ascii_lowercase() || c.is_ascii_digit()
+    });
+    stem.len() < value.len() && stem.ends_with('.')
 }

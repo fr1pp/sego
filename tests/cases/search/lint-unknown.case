@@ -6,3 +6,4 @@ exit: 0
 query  repo:^github\.com/gorilla/mux$@v1.8.0 lnag:go NewRouter
 --- stderr
 sego: note: 'lnag:' is not a filter; the server searches `lnag:go` as text
+sego: note: at a pinned revision the search can't tell which files it skipped; files over 1 MiB are never searched

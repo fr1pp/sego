@@ -6,3 +6,4 @@ exit: 0
 query  repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter\(
 --- stderr
 sego: note: keyword mode matches `NewRouter\(` literally; a regex goes inside /.../
+sego: note: at a pinned revision the search can't tell which files it skipped; files over 1 MiB are never searched

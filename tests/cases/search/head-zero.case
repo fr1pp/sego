@@ -1,0 +1,9 @@
+# A zero at @HEAD whose side query is cut gets the default-branch note, not the
+# pinned one.
+args: search 'repo:sego-fake/hz@HEAD foo'
+exit: 0
+--- stdout
+0 matches  0.2 s
+query  repo:sego-fake/hz@HEAD foo
+--- stderr
+sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched

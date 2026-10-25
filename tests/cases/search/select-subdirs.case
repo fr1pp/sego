@@ -2,10 +2,12 @@
 args: search 'repo:^github\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade'
 exit: 0
 --- stdout
-4+ files  1 repo  0.6 s
+4+ directories  1 repo  0.6 s
 query  repo:^github\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade
 
 github.com/gorilla/websocket@ce903f6d1d96:examples/chat/
 github.com/gorilla/websocket@ce903f6d1d96:examples/echo/
 github.com/gorilla/websocket@ce903f6d1d96:examples/command/
 github.com/gorilla/websocket@ce903f6d1d96:./
+--- stderr
+sego: note: at a pinned revision, select: keeps only what each repository's first 30 matches hold; count:all gives every one

@@ -1,0 +1,8 @@
+# A structural regex hole the server's Go regexp can't compile: the reason, and
+# why.
+args: search 'repo:^github\.com/gorilla/mux$ lang:go patterntype:structural fmt.:[fn~Err(?=orf)\w+](...)'
+exit: 1
+--- stderr
+sego: note: a structural search over more than one file can miss matches without a +; file:^PATH$ makes it complete, and a regex search marks a cut with +
+sego: error: the search's regular expression doesn't compile: invalid or unsupported Perl syntax: `(?=`
+  structural search compiles each :[name~regex] hole as an RE2 regular expression

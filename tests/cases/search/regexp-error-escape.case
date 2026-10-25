@@ -1,0 +1,5 @@
+# A control character in the reason is escaped.
+args: search 'repo:sego-fake/rx5@v1 /e/'
+exit: 1
+--- stderr
+sego: error: the search's regular expression doesn't compile: bad \u{1b}[31m

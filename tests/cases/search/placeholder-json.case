@@ -1,4 +1,5 @@
-# The JSON form drops the placeholder too, and lists no unindexed file: a binary file is not one.
+# The JSON form drops the placeholder too, and lists no unindexed file: a
+# binary file is not one.
 args: search --json 'repo:sego-fake/ph binary'
 exit: 0
 --- stdout

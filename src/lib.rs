@@ -1,4 +1,5 @@
 mod address;
+mod cache;
 mod cli;
 mod commit;
 mod diff;
@@ -18,6 +19,9 @@ mod upstream;
 pub mod internal {
     pub mod address {
         pub use crate::address::*;
+    }
+    pub mod cache {
+        pub use crate::cache::*;
     }
     pub mod cli {
         pub use crate::cli::*;
@@ -63,8 +67,9 @@ pub mod internal {
 use std::ffi::OsString;
 use std::io::{self, Write};
 use std::process::ExitCode;
-use std::time::Instant;
+use std::time::{Instant, SystemTime};
 
+use cache::Cache;
 use cli::Command;
 use error::Error;
 use output::{Answer, Notes};
@@ -72,6 +77,7 @@ use upstream::{DEADLINE, Endpoint, Transport};
 
 pub struct Env {
     pub endpoint: Option<OsString>,
+    pub cache_dir: Option<OsString>,
 }
 
 #[expect(
@@ -142,10 +148,10 @@ fn dispatch(
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> Result<(), Failure> {
-    let open = || -> Result<_, Error> {
-        let endpoint = Endpoint::from_env(env.endpoint.as_deref())?;
-        Ok((connect(endpoint), Instant::now() + DEADLINE))
-    };
+    let endpoint = || Endpoint::from_env(env.endpoint.as_deref());
+    let open =
+        |endpoint: Endpoint| (connect(endpoint), Instant::now() + DEADLINE);
+    let mut cache = None;
     let (answer, json): (Box<dyn Answer>, bool) = match cli::parse(args)? {
         Command::Help(topic) => {
             out.write_all(cli::help(topic).as_bytes())?;
@@ -156,29 +162,35 @@ fn dispatch(
             return Ok(());
         }
         Command::Search { query, json } => {
-            let (transport, deadline) = open()?;
+            let (transport, deadline) = open(endpoint()?);
             let searched = search::run(&query, &*transport, deadline, notes)?;
             (Box::new(searched), json)
         }
         Command::Show { address, lines, json } => {
-            let (transport, deadline) = open()?;
+            let endpoint = endpoint()?;
+            let cache = cache.insert(Cache::new(
+                env.cache_dir.as_deref(),
+                endpoint.cache_key(),
+            ));
+            let (transport, deadline) = open(endpoint);
             let shown = show::run(
                 &address,
                 lines.as_ref(),
                 &*transport,
                 deadline,
+                cache,
                 notes,
             )?;
             (Box::new(shown), json)
         }
         Command::Ls { address, recursive, json } => {
-            let (transport, deadline) = open()?;
+            let (transport, deadline) = open(endpoint()?);
             let listed =
                 ls::run(&address, recursive, &*transport, deadline, notes)?;
             (Box::new(listed), json)
         }
         Command::Refs { repo, text, json } => {
-            let (transport, deadline) = open()?;
+            let (transport, deadline) = open(endpoint()?);
             let listed = refs::run(
                 &repo,
                 text.as_deref(),
@@ -190,13 +202,13 @@ fn dispatch(
             (Box::new(listed), json)
         }
         Command::ShowCommit { address, json } => {
-            let (transport, deadline) = open()?;
+            let (transport, deadline) = open(endpoint()?);
             let committed =
                 commit::run(&address, &*transport, deadline, notes)?;
             (Box::new(committed), json)
         }
         Command::Log { address, path, json } => {
-            let (transport, deadline) = open()?;
+            let (transport, deadline) = open(endpoint()?);
             let logged = log::run(
                 &address,
                 path.as_deref(),
@@ -208,7 +220,7 @@ fn dispatch(
             (Box::new(logged), json)
         }
         Command::Diff { address, paths, json } => {
-            let (transport, deadline) = open()?;
+            let (transport, deadline) = open(endpoint()?);
             let diffed = diff::run(
                 &address,
                 &paths,
@@ -225,6 +237,10 @@ fn dispatch(
         answer.write_json(out)?;
     } else {
         out.write_all(answer.text().as_bytes())?;
+    }
+    if let Some(cache) = &cache {
+        out.flush()?;
+        cache.trim_if_used(SystemTime::now());
     }
     Ok(())
 }

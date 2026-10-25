@@ -2,7 +2,7 @@
 args: diff github.com/evilmartians/lefthook@v2.0.0...v2.1.0 internal/run/controller/filters/detect_text.go internal/run/controller/filter/detect_text.go
 exit: 0
 --- stdout
-github.com/evilmartians/lefthook@509b737647ad...c43361a52db7  1 file  +1 -1  base 509b737647ad  rev v2.0.0...v2.1.0
+github.com/evilmartians/lefthook@509b737647ad...c43361a52db7  1 file  +1 -1  paths internal/run/controller/filters/detect_text.go internal/run/controller/filter/detect_text.go  base 509b737647ad  rev v2.0.0...v2.1.0
 R  +1 -1  internal/run/controller/filters/detect_text.go -> internal/run/controller/filter/detect_text.go
 
     diff --git internal/run/controller/filters/detect_text.go internal/run/controller/filter/detect_text.go

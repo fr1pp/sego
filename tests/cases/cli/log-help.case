@@ -1,4 +1,4 @@
-# log --help prints log's synopses, operands, options and facts.
+# log --help prints log's synopses, operands, options, text and JSON fields.
 args: log --help
 exit: 0
 --- stdout
@@ -18,5 +18,18 @@ options:
   -h, --help   this help, or a command's help after its name
   --version    sego's version
 
-Text and JSON list the newest 150 commits of a REV; a range lists them all
-in JSON. Tags that point at a listed commit are marked.
+text:
+  REPO@COMMIT[:PATH]  N commits  rev REV, then a row per commit,
+  "COMMIT  DATE  AUTHOR  SUBJECT", with "(tag: NAME)" before the subject
+  of a tagged commit.
+  Text and JSON list the newest 150 commits of a REV; a range lists them
+  all in JSON.
+
+json:
+  repo rev commit rev_a rev_b commit_a commit_b path total more
+  commits[{commit date author subject parents tags}]; date is the UTC day
+  of the author date
+
+examples:
+  sego log github.com/gorilla/mux:mux.go
+  sego log github.com/gorilla/mux@v1.7.4..v1.8.0 mux.go

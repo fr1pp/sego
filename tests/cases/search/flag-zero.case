@@ -1,0 +1,8 @@
+# A regex flag after the closing slash, on a zero.
+args: search 'repo:sego-fake/flag /cloudflare/i'
+exit: 0
+--- stdout
+0 matches  0.1 s
+query  repo:sego-fake/flag /cloudflare/i
+--- stderr
+sego: note: the server searches `/cloudflare/i` as text; it ignores case by default

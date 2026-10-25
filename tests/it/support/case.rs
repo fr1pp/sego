@@ -3,6 +3,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
+use tempfile::TempDir;
+
 use super::replay::Replay;
 
 const PROXY_VARIABLES: [&str; 6] = [
@@ -169,17 +171,27 @@ impl Case {
             .unwrap_or_else(|e| panic!("{}: {e}", path.display()))
     }
 
-    pub fn run(&self, replay: &Replay) -> Outcome {
+    /// The command that runs the case against `url`, with `cache` as its
+    /// `SEGO_CACHE_DIR`.
+    pub fn command(&self, url: &str, cache: &Path) -> Command {
         let mut command = Command::new(env!("CARGO_BIN_EXE_sego"));
         command.args(&self.args).stdin(Stdio::null());
         for name in PROXY_VARIABLES {
             command.env_remove(name);
         }
-        let url = replay.url();
-        command.env("SEGO_ENDPOINT", &url);
+        command.env("SEGO_ENDPOINT", url);
+        command.env("SEGO_CACHE_DIR", cache);
         for (name, value) in &self.env {
             command.env(name, value);
         }
+        command
+    }
+
+    pub fn run(&self, replay: &Replay) -> Outcome {
+        let url = replay.url();
+        let cache = TempDir::new()
+            .unwrap_or_else(|e| panic!("{}: {e}", self.path.display()));
+        let mut command = self.command(&url, cache.path());
         if self.stdout_closed {
             let (reader, writer) =
                 std::io::pipe().unwrap_or_else(|e| panic!("pipe: {e}"));

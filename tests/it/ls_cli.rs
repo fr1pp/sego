@@ -264,8 +264,7 @@ fn non_utf8_after_ls_or_refs_carries_that_synopsis() {
     }
 }
 
-const LS_HELP: &str = "\
-usage: sego ls [--json] [--recursive] REPO[@REV][:PATH]
+const LS_HELP: &str = r#"usage: sego ls [--json] [--recursive] REPO[@REV][:PATH]
 
 addresses:
   REPO     host/owner/name, owner/name, or a GitHub, GitLab or
@@ -279,26 +278,50 @@ options:
   -h, --help    this help, or a command's help after its name
   --version     sego's version
 
-Rows are paths from the repository root, sorted segment by segment.
-Text prints 200 entries; --json carries every entry.
-";
+text:
+  REPO@COMMIT[:PATH]  N entries  D dirs  F files  S submodules  rev REV,
+  then a row per entry, "KIND  PATH", with KIND dir, file or submodule.
+  Paths are from the repository root, sorted segment by segment.
+  Text prints 200 entries; --json carries every entry.
 
-const REFS_HELP: &str = "\
-usage: sego refs [--json] REPO [TEXT]
+json:
+  repo rev commit path recursive
+  entries[{path kind submodule_url submodule_target submodule_commit}]
+
+examples:
+  sego ls github.com/gorilla/mux@v1.8.0
+  sego ls --recursive github.com/gorilla/mux@v1.8.0:.github
+"#;
+
+const REFS_HELP: &str = r#"usage: sego refs [--json] REPO [TEXT]
 
 operands:
   REPO     host/owner/name, owner/name, or a GitHub, GitLab or
            Sourcegraph URL
-  TEXT     only refs whose name contains TEXT, in any case
+  TEXT     only refs whose name contains TEXT, in any case: 1.8
+           matches v1.8.0, 1.8.0 and release-1.8 alike
 
 options:
   --json       one JSON document on stdout
   -h, --help   this help, or a command's help after its name
   --version    sego's version
 
-Branches come default first, then newest first; tags newest first.
-Text prints 100 branches and 100 tags; --json carries up to 17000 of each.
-";
+text:
+  REPO  N branches  M tags, or with TEXT, "X of Y branches match" and
+  "X of Y tags match", then a row per ref, "KIND  COMMIT  DATE  NAME",
+  the default branch marked.
+  Branches come default first, then newest first; tags newest first.
+  Text prints 100 branches and 100 tags; --json carries up to 17000 of
+  each.
+
+json:
+  repo query default_branch branches_total tags_total branches_all
+  tags_all branches_more tags_more refs[{kind name commit date}]
+
+examples:
+  sego refs github.com/gorilla/mux 1.8
+  sego refs --json github.com/gorilla/mux | jq -r '.refs[].name'
+"#;
 
 #[test]
 fn help_texts_are_exact() {

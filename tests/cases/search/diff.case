@@ -2,7 +2,7 @@
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0:^v1.7.4 type:diff count:3 route'
 exit: 0
 --- stdout
-3+ matches  1 repo  0.1 s
+1+ commits  1 repo  0.1 s
 query  repo:^github\.com/gorilla/mux$@v1.8.0:^v1.7.4 type:diff count:3 route
 
 github.com/gorilla/mux@98cb6bf42e08  2020-07-11  Harshavardhana  fix: regression in vars extract for wildcard host (#579)
@@ -19,3 +19,4 @@ github.com/gorilla/mux@98cb6bf42e08  2020-07-11  Harshavardhana  fix: regression
     +	{
     +		route: new(Route).Host("{subdomain}.domain.com:{port:.*}"),
     +		vars:  []string{"subdomain", "bar", "port", "65535"},
+    preview limited to 5 files and 3 hunks a file; sego diff github.com/gorilla/mux@98cb6bf42e08 lists every changed file

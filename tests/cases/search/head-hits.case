@@ -1,0 +1,13 @@
+# @HEAD reads the index, so a complete answer lists the files in scope the
+# index doesn't hold.
+args: search 'repo:sego-fake/hd@HEAD foo'
+exit: 0
+--- stdout
+1 match  1 repo  0.1 s
+query  repo:sego-fake/hd@HEAD foo
+
+github.com/sego-fake/hd@0123456789ab:main.go
+1:foo
+--- stderr
+sego: note: the contents of 1 file in scope aren't in the search index (1 over 1 MiB):
+  big.sql  1.9 MiB

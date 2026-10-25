@@ -1,4 +1,5 @@
-# A zero lists the text files in scope the index doesn't hold: 3 of 5, across two repositories.
+# A zero lists the text files in scope the index doesn't hold: 3 of 5, across
+# two repositories.
 args: search 'repo:sego-fake/ux zzq'
 exit: 0
 --- stdout

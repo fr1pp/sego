@@ -1,5 +1,7 @@
-# No repositories found is an error.
+# No repositories found is an error; a fact points to the repositories the name
+# matches.
 args: search 'repo:^github\.com/sego-nonexistent-0/nope$ foo'
 exit: 1
 --- stderr
 sego: error: No repositories found
+  sego search 'repo:nope type:repo' lists the matching repositories

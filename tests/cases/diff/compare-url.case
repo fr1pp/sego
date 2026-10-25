@@ -2,7 +2,7 @@
 args: diff https://github.com/gorilla/mux/compare/v1.7.0...v1.7.1 route.go
 exit: 0
 --- stdout
-github.com/gorilla/mux@a7962380ca08...c5c6c98bc253  1 file  +1 -1  base a7962380ca08  rev v1.7.0...v1.7.1
+github.com/gorilla/mux@a7962380ca08...c5c6c98bc253:route.go  1 file  +1 -1  base a7962380ca08  rev v1.7.0...v1.7.1
 M  +1 -1  route.go
 
     diff --git route.go route.go

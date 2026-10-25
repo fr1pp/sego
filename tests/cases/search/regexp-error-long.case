@@ -1,0 +1,6 @@
+# A wrapped, two-line, long regexp error: the first line, cut at 200
+# characters.
+args: search 'repo:sego-fake/rx2@v1 /b/'
+exit: 1
+--- stderr
+sego: error: the search's regular expression doesn't compile: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx…

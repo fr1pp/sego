@@ -261,6 +261,14 @@ fn checks_filters_and_keywords() {
         ("/a.*b/", vec![]),
         ("file:\\.go$", vec![]),
         ("patterntype:regexp a.*b", vec![]),
+        // the pattern type as the server reads it
+        (r#"repo:x patterntype:"regexp" foo\.bar"#, vec![]),
+        (r"repo:x patterntype:'regexp' foo\.bar", vec![]),
+        (r"repo:x PaTtErNtYpE:regexp foo\.bar", vec![]),
+        (
+            "repo:x patterntype:literal foo (bar or baz) [a-z0-9]+",
+            vec![keyword("[a-z0-9]+")],
+        ),
         ("a?", vec![]),
         ("a+", vec![]),
         ("a*", vec![]),
@@ -296,6 +304,27 @@ fn checks_or_types_and_revisions() {
         ("repo:a x or (repo:b y)", vec![]),
         ("repo:a x or -repo:b y", vec![]),
         ("a -repo:x or b", vec![]),
+        // 4: the shared-filter rule
+        ("repo:x not file:y foo or bar", vec![]),
+        ("repo:x -file:y foo or bar", vec![]),
+        ("repo:x foo or bar file:y", vec![]),
+        ("repo:x file:y (a and b) or c", vec![ESCAPES_OR.to_owned()]),
+        ("repo:x (foo bar) or baz", vec![ESCAPES_OR.to_owned()]),
+        ("repo:x foo or (bar baz)", vec![ESCAPES_OR.to_owned()]),
+        // a leading space, other modes, and parentheses around the query
+        (" foo or bar repo:x", vec![]),
+        (" repo:x foo or bar", vec![]),
+        ("repo:x patterntype:regexp (foo bar) or baz", vec![]),
+        (
+            "repo:x patterntype:regexp (foo and bar) or baz",
+            vec![ESCAPES_OR.to_owned()],
+        ),
+        ("repo:x patterntype:literal (foo bar) or baz", vec![]),
+        ("(repo:x foo or bar)", vec![]),
+        ("(foo or bar repo:x)", vec![]),
+        ("(foo or repo:x bar)", vec![ESCAPES_OR.to_owned()]),
+        ("repo:x (a or file:y b) c", vec![]),
+        ("repo:x (foo or bar) file:y", vec![]),
         // 5
         ("type:File", vec![bad_type("File")]),
         ("type:structural", vec![]),
@@ -327,6 +356,69 @@ fn checks_or_types_and_revisions() {
 }
 
 #[test]
+fn checks_or_text_in_parentheses() {
+    run(vec![
+        // quoted and slash text inside parentheses, read as the server does
+        (
+            "repo:x patterntype:regexp (\"a or b\") or baz",
+            vec![ESCAPES_OR.to_owned()],
+        ),
+        (
+            "repo:x patterntype:standard (\"a or b\") or baz",
+            vec![ESCAPES_OR.to_owned()],
+        ),
+        (
+            "repo:x patterntype:literal (\"a or b\") or baz",
+            vec![ESCAPES_OR.to_owned()],
+        ),
+        (
+            "repo:x patterntype:regexp ('a or b') or baz",
+            vec![ESCAPES_OR.to_owned()],
+        ),
+        (
+            "repo:x patterntype:standard ('a or b') or baz",
+            vec![ESCAPES_OR.to_owned()],
+        ),
+        (
+            "repo:x patterntype:literal ('a or b') or baz",
+            vec![ESCAPES_OR.to_owned()],
+        ),
+        (
+            "repo:x patterntype:regexp (\"foo repo:y\") or baz",
+            vec![ESCAPES_OR.to_owned()],
+        ),
+        (
+            "repo:x patterntype:regexp (foo \"a and b\") or baz",
+            vec![ESCAPES_OR.to_owned()],
+        ),
+        (
+            "repo:x patterntype:standard (\"x not y\") or baz",
+            vec![ESCAPES_OR.to_owned()],
+        ),
+        (
+            "repo:x patterntype:standard (\"foo)\" bar) or baz",
+            vec![ESCAPES_OR.to_owned()],
+        ),
+        (
+            "repo:x patterntype:regexp foo or (\"a or b\")",
+            vec![ESCAPES_OR.to_owned()],
+        ),
+        (
+            "repo:x patterntype:regexp (/a or b/) or baz",
+            vec![ESCAPES_OR.to_owned()],
+        ),
+        (
+            "repo:x patterntype:standard (/a or b/) or baz",
+            vec![ESCAPES_OR.to_owned()],
+        ),
+        ("repo:x patterntype:regexp (foo or) or baz", vec![]),
+        ("repo:x patterntype:regexp (foo and) or baz", vec![]),
+        ("repo:x patterntype:regexp (foo\\ or bar) or baz", vec![]),
+        ("repo:x (foo or) or baz", vec![ESCAPES_OR.to_owned()]),
+    ]);
+}
+
+#[test]
 fn checks_several_at_once() {
     run(vec![(
         "lnag:go lang:go lang:rust foo\\.rs",
@@ -336,4 +428,546 @@ fn checks_several_at_once() {
             keyword("foo\\.rs"),
         ],
     )]);
+}
+
+const STRUCTURAL_SCOPE: &str = "a structural search over more than one file \
+can miss matches without a +; file:^PATH$ makes it complete, and a regex \
+search marks a cut with +";
+const STRUCTURAL_LANGUAGE: &str = "with no lang: and no file: extension, a \
+structural search can parse files as the wrong language and miss matches; \
+lang: names the language";
+
+#[test]
+fn checks_structural_scope() {
+    let both =
+        || vec![STRUCTURAL_SCOPE.to_owned(), STRUCTURAL_LANGUAGE.to_owned()];
+    let scope = || vec![STRUCTURAL_SCOPE.to_owned()];
+    let language = || vec![STRUCTURAL_LANGUAGE.to_owned()];
+    run(vec![
+        ("repo:x patterntype:structural foo(...)", both()),
+        ("repo:x file:^src/ patterntype:structural foo(...)", both()),
+        ("repo:x lang:go patterntype:structural foo(...)", scope()),
+        ("repo:x file:\\.go$ patterntype:structural foo(...)", scope()),
+        ("repo:x file:^pkg/a\\.go patterntype:structural foo(...)", scope()),
+        ("repo:x file:a.go patterntype:structural foo(...)", scope()),
+        (
+            "repo:x file:^pkg/(a|b)\\.go$ patterntype:structural foo(...)",
+            scope(),
+        ),
+        ("repo:x file:^pkg/.*\\.go$ patterntype:structural foo(...)", scope()),
+        (
+            "repo:x file:^src/a\\.go$|^b\\.go$ patterntype:structural foo(...)",
+            scope(),
+        ),
+        ("repo:x file:^Makefile$ patterntype:structural foo(...)", language()),
+        ("repo:x file:^pkg/a\\.go$ patterntype:structural foo(...)", vec![]),
+        ("repo:x file:\"^pkg/a.go$\" patterntype:structural foo(...)", vec![]),
+        (
+            "repo:x -file:^src/ file:^pkg/a\\.go$ patterntype:structural foo(...)",
+            vec![],
+        ),
+        (
+            "repo:x lang:go file:^Makefile$ patterntype:structural foo(...)",
+            vec![],
+        ),
+        ("repo:x foo(...)", vec![]),
+        ("repo:x patterntype:regexp foo", vec![]),
+        ("repo:x patterntype:structural patterntype:keyword foo", vec![]),
+        // stated rules
+        (
+            "repo:x -lang:go file:^Makefile$ patterntype:structural foo(...)",
+            language(),
+        ),
+        (
+            "repo:x file:^pkg/ file:\\.go$ patterntype:structural foo(...)",
+            both(),
+        ),
+        (
+            "repo:x file:\\.go$ file:^pkg/ patterntype:structural foo(...)",
+            scope(),
+        ),
+        ("repo:x file:^pkg/$ patterntype:structural foo(...)", both()),
+        ("repo:x file:^$ patterntype:structural foo(...)", both()),
+        ("repo:x file:^a\\+\\.go$ patterntype:structural foo(...)", vec![]),
+        ("repo:x path:^pkg/a\\.go$ PatternType:structural foo(...)", vec![]),
+        ("repo:x f:^pkg/a\\.go$ patterntype:structural foo(...)", vec![]),
+        // class escapes are patterns
+        ("repo:x file:^a\\d\\.go$ patterntype:structural foo(...)", scope()),
+        ("repo:x file:^\\w+\\.go$ patterntype:structural foo(...)", scope()),
+        // predicates aren't paths
+        (
+            "repo:x file:has.content(x) file:\\.go$ patterntype:structural foo(...)",
+            scope(),
+        ),
+        (
+            "repo:x file:contains.content(x) file:^pkg/a\\.go$ patterntype:structural foo(...)",
+            vec![],
+        ),
+        // the server's extensions are lower-case
+        ("repo:x file:\\.GO$ patterntype:structural foo(...)", both()),
+    ]);
+}
+
+#[test]
+fn checks_structural_branches() {
+    let both =
+        || vec![STRUCTURAL_SCOPE.to_owned(), STRUCTURAL_LANGUAGE.to_owned()];
+    run(vec![
+        // each search of the plan, with its own filters
+        ("patterntype:structural file:^a\\.go$", vec![]),
+        // parentheses as the server parses them, per mode and around the query
+        ("file:^a\\.go$ patterntype:structural (:[x]) or bar(...)", vec![]),
+        (
+            "file:^a\\.go$ patterntype:structural (foo(...) bar(...)) or baz(...)",
+            vec![],
+        ),
+        (
+            "repo:x patterntype:structural (foo(...) bar(...)) or baz(...)",
+            vec![STRUCTURAL_SCOPE.to_owned(), STRUCTURAL_LANGUAGE.to_owned()],
+        ),
+        (
+            "repo:x patterntype:structural (foo(...) and bar(...)) or baz(...)",
+            vec![
+                ESCAPES_OR.to_owned(),
+                STRUCTURAL_SCOPE.to_owned(),
+                STRUCTURAL_LANGUAGE.to_owned(),
+            ],
+        ),
+        (
+            "repo:x patterntype:structural (foo(...) x:y) or baz(...)",
+            vec![STRUCTURAL_SCOPE.to_owned(), STRUCTURAL_LANGUAGE.to_owned()],
+        ),
+        (
+            "repo:x patterntype:structural (foo(...)) bar(...) or baz(...)",
+            vec![STRUCTURAL_SCOPE.to_owned(), STRUCTURAL_LANGUAGE.to_owned()],
+        ),
+        (
+            "(file:^a\\.go$ foo(...) or bar(...)) patterntype:structural",
+            vec![],
+        ),
+        (
+            "(file:^a\\.go$ patterntype:structural foo(...) or bar(...))",
+            vec![],
+        ),
+        (
+            "((file:^a\\.go$ patterntype:structural foo(...) or bar(...)))",
+            vec![],
+        ),
+        (
+            "patterntype:structural ((file:^a\\.go$ foo(...) or bar(...)))",
+            vec![],
+        ),
+        (
+            "repo:x file:^a\\.go$ patterntype:structural ((foo(...) or bar(...)))",
+            vec![],
+        ),
+        (
+            "  foo(...) or bar(...) file:^a\\.go$ patterntype:structural",
+            vec![],
+        ),
+        (
+            "repo:x patterntype:structural (file:^a\\.go$ foo(...) or bar(...))",
+            vec![],
+        ),
+        (
+            "repo:x patterntype:structural (file:^a\\.go$ foo(...) or file:^b\\.go$ bar(...))",
+            vec![],
+        ),
+        (
+            "repo:x file:^a\\.go$ patterntype:structural (foo(...) or bar(...))",
+            vec![],
+        ),
+        (
+            "repo:x patterntype:structural (foo(...) or bar(...)) file:^a\\.go$",
+            vec![],
+        ),
+        (
+            "repo:x file:^a\\.go$ patterntype:structural foo(...) or bar(...)",
+            vec![],
+        ),
+        (
+            "repo:x not file:y file:^a\\.go$ patterntype:structural foo(...) or bar(...)",
+            vec![],
+        ),
+        ("foo(...) or bar(...) file:^a\\.go$ patterntype:structural", both()),
+        (
+            "file:^a\\.go$ patterntype:structural (foo(...) and bar(...)) or baz(...)",
+            both(),
+        ),
+        ("patterntype:structural foo(...) or file:^a\\.go$ bar(...)", both()),
+        (
+            "file:^a\\.go$ patterntype:structural foo(...) or (lang:go bar(...)) or baz(...)",
+            both(),
+        ),
+        // lang: aliases, and not before a filter
+        (
+            "repo:x l:go file:^Makefile$ patterntype:structural foo(...)",
+            vec![],
+        ),
+        (
+            "repo:x language:go file:^Makefile$ patterntype:structural foo(...)",
+            vec![],
+        ),
+        ("repo:x patterntype:structural foo(...) not file:^a\\.go$", both()),
+        // the server rejects structural search with type:
+        ("repo:x type:file patterntype:structural foo(...)", vec![]),
+        ("repo:x -type:diff patterntype:structural foo(...)", vec![]),
+    ]);
+}
+
+#[test]
+fn checks_structural_groups() {
+    let both =
+        || vec![STRUCTURAL_SCOPE.to_owned(), STRUCTURAL_LANGUAGE.to_owned()];
+    run(vec![
+        // quoted text, an empty field and deep parentheses inside a group
+        (
+            "file:^a\\.go$ patterntype:structural (\"a or b\") or bar(...)",
+            both(),
+        ),
+        (
+            "file:^a\\.go$ patterntype:structural (foo(...) \"x or y\") or bar(...)",
+            both(),
+        ),
+        ("patterntype:structural (foo(...) repo:) or baz(...)", both()),
+        (
+            "file:^a\\.go$ patterntype:structural (foo(...) repo:) or baz(...)",
+            both(),
+        ),
+        (
+            "repo:x patterntype:structural (foo(...) repo:) or baz(...)",
+            vec![
+                ESCAPES_OR.to_owned(),
+                STRUCTURAL_SCOPE.to_owned(),
+                STRUCTURAL_LANGUAGE.to_owned(),
+            ],
+        ),
+        (
+            "patterntype:structural repo:x (((file:^a\\.go$ foo(...) or bar(...))))",
+            vec![],
+        ),
+        // a stray ) makes the server search in keyword mode
+        ("patterntype:structural (\"foo)\" bar(...)) or baz(...)", vec![]),
+        (
+            "repo:x file:^a\\.go$ patterntype:structural (\"foo)\" bar(...)) or baz(...)",
+            vec![ESCAPES_OR.to_owned()],
+        ),
+    ]);
+}
+
+const SYMBOL_SELECT: &str = "type:symbol with select:symbol and no pattern \
+returns nothing; /./ matches every symbol";
+fn symbol_select_as_text(mode: &str) -> String {
+    format!(
+        "type:symbol with select:symbol and no pattern returns nothing; with \
+         patterntype:regexp in place of patterntype:{mode}, /./ matches every \
+         symbol"
+    )
+}
+
+#[test]
+fn checks_symbol_select_without_pattern() {
+    run(vec![
+        // fire
+        (
+            "repo:^github\\.com/gorilla/mux$ type:symbol file:README\\.md$ select:symbol.class",
+            vec![SYMBOL_SELECT.to_owned()],
+        ),
+        (
+            "repo:^github\\.com/gorilla/mux$@v1.8.0 type:symbol file:^mux\\.go$ select:symbol.method",
+            vec![SYMBOL_SELECT.to_owned()],
+        ),
+        (
+            "repo:^github\\.com/gorilla/mux$ type:symbol file:^mux\\.go$ select:symbol.method",
+            vec![SYMBOL_SELECT.to_owned()],
+        ),
+        ("repo:x type:symbol select:symbol", vec![SYMBOL_SELECT.to_owned()]),
+        (
+            "repo:x TYPE:symbol Select:symbol.class",
+            vec![SYMBOL_SELECT.to_owned()],
+        ),
+        (
+            "repo:x type:\"symbol\" select:'symbol.class'",
+            vec![SYMBOL_SELECT.to_owned()],
+        ),
+        (
+            "repo:x (type:symbol select:symbol.class)",
+            vec![SYMBOL_SELECT.to_owned()],
+        ),
+        // don't fire
+        (
+            "repo:^github\\.com/gorilla/mux$ type:symbol /./ file:README\\.md$ select:symbol.class",
+            vec![],
+        ),
+        (
+            "repo:^github\\.com/gorilla/mux$ type:symbol NewRouter select:symbol.class",
+            vec![],
+        ),
+        (
+            "repo:^github\\.com/gorilla/mux$ type:symbol \"New\" select:symbol.class",
+            vec![],
+        ),
+        (
+            "repo:^github\\.com/gorilla/mux$ type:symbol file:README\\.md$ -select:symbol.class",
+            vec![],
+        ),
+        (
+            "repo:^github\\.com/gorilla/mux$ -type:symbol file:README\\.md$ select:symbol.class",
+            vec![],
+        ),
+        ("repo:x type:symbol file:x", vec![]),
+        ("repo:x type:symbol (file:x or NewRouter) select:symbol", vec![]),
+        ("repo:x type:file select:symbol.class", vec![]),
+        ("repo:x type:symbol select:file", vec![]),
+        // content: is the pattern
+        (
+            "repo:^github\\.com/gorilla/mux$ type:symbol content:Router select:symbol.struct",
+            vec![],
+        ),
+        ("repo:x type:symbol content:foo select:symbol", vec![]),
+        ("repo:x type:symbol CONTENT:foo select:symbol", vec![]),
+        // the server rejects a negated content: (live: the search fails)
+        ("repo:x type:symbol -content:foo select:symbol", vec![]),
+        // a content predicate on the path is the pattern
+        (
+            "repo:^github\\.com/gorilla/mux$ type:symbol file:has.content(Router) select:symbol.struct",
+            vec![],
+        ),
+        ("repo:x type:symbol f:contains.content(x) select:symbol", vec![]),
+        // the server rejects a negated predicate
+        ("repo:x type:symbol -file:has.content(x) select:symbol", vec![]),
+        // other path predicates, and names that aren't predicates, aren't
+        (
+            "repo:x type:symbol file:has.owner(alice) select:symbol",
+            vec![SYMBOL_SELECT.to_owned()],
+        ),
+        (
+            "repo:x type:symbol path:has.contributor(bob) select:symbol",
+            vec![SYMBOL_SELECT.to_owned()],
+        ),
+        (
+            "repo:x type:symbol file:HAS.CONTENT(x) select:symbol",
+            vec![SYMBOL_SELECT.to_owned()],
+        ),
+        (
+            "repo:x type:symbol file:has.content select:symbol",
+            vec![SYMBOL_SELECT.to_owned()],
+        ),
+        // an unknown field is searched as text, negated or not
+        ("repo:x type:symbol setObject:forKey select:symbol.method", vec![]),
+        ("repo:x type:symbol -setObject:forKey select:symbol.method", vec![]),
+        // the server errors rather than answering zero
+        ("repo:x type:symbol file:x not zzqq select:symbol.method", vec![]),
+    ]);
+}
+
+#[test]
+fn checks_symbol_select_remedy_by_mode() {
+    run(vec![
+        // /./ is a regex in keyword, standard and regexp mode, and text in
+        // literal and structural mode
+        (
+            "repo:x type:symbol select:symbol patterntype:regexp",
+            vec![SYMBOL_SELECT.to_owned()],
+        ),
+        (
+            "repo:x type:symbol select:symbol patterntype:standard",
+            vec![SYMBOL_SELECT.to_owned()],
+        ),
+        (
+            "repo:x type:symbol select:symbol patterntype:literal",
+            vec![symbol_select_as_text("literal")],
+        ),
+        (
+            "repo:x type:symbol select:symbol patterntype:structural",
+            vec![symbol_select_as_text("structural")],
+        ),
+        (
+            "repo:x type:symbol select:symbol PatternType:literal",
+            vec![symbol_select_as_text("literal")],
+        ),
+    ]);
+}
+
+const CASE: &str = "it ignores case by default";
+
+fn flag(term: &str, rest: &str) -> String {
+    format!("the server searches `{term}` as text; {rest}")
+}
+
+/// The trailing-flag note waits for the answer, so no query check prints it.
+fn flags(found: Vec<(&str, String)>, silent: Vec<&str>) {
+    let rows = found
+        .into_iter()
+        .map(|(query, note)| (query, Some(note)))
+        .chain(silent.into_iter().map(|query| (query, None)));
+    for (query, expected) in rows {
+        let prepared = prepare(query);
+        assert_eq!(prepared.flag_note, expected, "{query:?}");
+        assert_eq!(prepared.notes, Vec::<String>::new(), "{query:?}");
+    }
+}
+
+#[test]
+fn finds_a_flag_after_the_closing_slash() {
+    let s = "flags go inside: /(?s).../";
+    flags(
+        vec![
+            // found
+            (
+                r"repo:^github\.com/publicsuffix/list$ file:^public_suffix_list\.dat$ /cloudflare/i index:no count:all timeout:60s",
+                flag("/cloudflare/i", CASE),
+            ),
+            (
+                "repo:^github\\.com/rails/rails$@7-0-stable file:^activerecord/ /trilogy/i count:all",
+                flag("/trilogy/i", CASE),
+            ),
+            ("lang:javascript /msie/i", flag("/msie/i", CASE)),
+            ("/RE/i", flag("/RE/i", CASE)),
+            ("/RE/s", flag("/RE/s", s)),
+            ("/RE/m", flag("/RE/m", "flags go inside: /(?m).../")),
+            ("/RE/g", flag("/RE/g", CASE)),
+            ("/RE/gi", flag("/RE/gi", CASE)),
+            ("/RE/ig", flag("/RE/ig", CASE)),
+            ("/RE/gm", flag("/RE/gm", "flags go inside: /(?m).../")),
+            (
+                "/RE/gim",
+                flag(
+                    "/RE/gim",
+                    &format!("{CASE}, and flags go inside: /(?m).../"),
+                ),
+            ),
+            (r"/a\/b/i", flag(r"/a\/b/i", CASE)),
+            ("/foo(bar)/i", flag("/foo(bar)/i", CASE)),
+            (r"/foo\.bar/i", flag(r"/foo\.bar/i", CASE)),
+            ("patterntype:standard /foo/i", flag("/foo/i", CASE)),
+            ("repo:x (/foo/i or bar)", flag("/foo/i", CASE)),
+            ("repo:x not /foo/i", flag("/foo/i", CASE)),
+            ("/foo/i /bar/s", flag("/foo/i", CASE)),
+            // case:yes
+            (
+                "case:yes /foo/i",
+                flag("/foo/i", "case:yes matches case even with (?i)"),
+            ),
+            (
+                "CASE:yes /foo/gim",
+                flag(
+                    "/foo/gim",
+                    "case:yes matches case even with (?i), and flags go inside: /(?m).../",
+                ),
+            ),
+            ("case:yes /foo/s", flag("/foo/s", s)),
+            ("-case:yes /foo/i", flag("/foo/i", CASE)),
+            ("case:no /foo/i", flag("/foo/i", CASE)),
+        ],
+        vec![
+            // paths, URLs and other text
+            "/usr/lib/i",
+            "/usr/i",
+            "/proc/s",
+            "/dev/sg",
+            "/etc/m",
+            "/tmp/x",
+            "https://example.com/i",
+            "//cdn.example.com/i",
+            "a/b/c",
+            "a/b/i",
+            "//i",
+            "/foo/bar",
+            // a pattern, or a pattern then a term
+            "/foo/",
+            "/a/b/",
+            "/foo/ i",
+            // quoted text and filter values
+            "\"/foo/i\"",
+            "file:/foo/i",
+            "content:\"/foo/i\"",
+            // tails that aren't a flag set the check takes
+            "/foo/x",
+            "/foo/u",
+            "/foo/I",
+            "/foo/ii",
+            "/foo/gg",
+            // modes where /.../ is not a regex
+            "patterntype:regexp /foo/i",
+            "patterntype:literal /foo/i",
+            "patterntype:structural file:^a\\.go$ lang:go /foo/i",
+        ],
+    );
+}
+
+#[test]
+fn finds_any_set_of_flags() {
+    let s = "flags go inside: /(?s).../";
+    flags(
+        vec![
+            ("/RE/is", flag("/RE/is", &format!("{CASE}, and {s}"))),
+            ("/RE/si", flag("/RE/si", &format!("{CASE}, and {s}"))),
+            (
+                "/RE/im",
+                flag(
+                    "/RE/im",
+                    &format!("{CASE}, and flags go inside: /(?m).../"),
+                ),
+            ),
+            ("/RE/sm", flag("/RE/sm", "flags go inside: /(?sm).../")),
+            ("/RE/ms", flag("/RE/ms", "flags go inside: /(?sm).../")),
+            ("/RE/gs", flag("/RE/gs", s)),
+            (
+                "/RE/gims",
+                flag(
+                    "/RE/gims",
+                    &format!("{CASE}, and flags go inside: /(?sm).../"),
+                ),
+            ),
+            (
+                "/RE/smig",
+                flag(
+                    "/RE/smig",
+                    &format!("{CASE}, and flags go inside: /(?sm).../"),
+                ),
+            ),
+        ],
+        vec!["/foo/isx", "/foo/ii", "/foo/gimss", "/foo/sms"],
+    );
+}
+
+fn nested(depth: usize, inner: &str) -> String {
+    format!("{}{inner}{}", "(".repeat(depth), ")".repeat(depth))
+}
+
+#[test]
+fn groups_are_read_at_any_depth() {
+    let exact = r"repo:^github\.com/gorilla/mux$ foo";
+    let query = |depth| format!("{} select:repo", nested(depth, exact));
+    assert!(!prepare(&query(64)).lower_bound);
+    assert!(!prepare(&query(65)).lower_bound);
+    assert!(!prepare(&query(100_000)).lower_bound);
+
+    let structural = |depth| {
+        format!("patterntype:structural {}", nested(depth, "file:y foo"))
+    };
+    assert_eq!(
+        prepare(&structural(64)).notes,
+        [STRUCTURAL_SCOPE, STRUCTURAL_LANGUAGE]
+    );
+    for depth in [65, 100_000] {
+        assert_eq!(
+            prepare(&structural(depth)).notes,
+            [STRUCTURAL_SCOPE, STRUCTURAL_LANGUAGE]
+        );
+    }
+}
+
+#[test]
+fn unbalanced_parentheses_tokenize_in_linear_time() {
+    let query = format!("{}foo", "(".repeat(120_000));
+    let started = std::time::Instant::now();
+    let tokens = tokenize(&query);
+    assert_eq!(tokens, vec![term(&query)]);
+    let escaped = format!("{}foo", "\\(".repeat(60_000));
+    assert_eq!(tokenize(&escaped), vec![term(&escaped)]);
+    assert_eq!(prepare(&query).notes, Vec::<String>::new());
+    let elapsed = started.elapsed();
+    assert!(elapsed < std::time::Duration::from_secs(5), "{elapsed:?}");
 }

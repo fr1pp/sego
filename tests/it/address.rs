@@ -186,7 +186,7 @@ fn lines() {
         assert_eq!(lines, expected, "{s}");
         assert_eq!(lines.display(), shown, "{s}");
     }
-    let form = "lines are N, N-M, N,M or N-";
+    let form = "lines are N, N-M, N,M, or N-";
     let errors = [
         ("3:4", "N:M reads as line and column, a range is N-M"),
         ("0", "lines are numbered from 1"),

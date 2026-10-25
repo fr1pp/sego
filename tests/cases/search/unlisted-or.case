@@ -1,0 +1,12 @@
+# An or query sends no side query, so the search can't name the files it
+# skipped.
+args: search 'repo:sego-fake/unlisted-or (foo or zzqqxx)'
+exit: 0
+--- stdout
+1 match  1 repo  0.1 s
+query  repo:sego-fake/unlisted-or (foo or zzqqxx)
+
+github.com/sego-fake/unlisted-or@0123456789ab:main.go
+1:foo
+--- stderr
+sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched

@@ -2,7 +2,7 @@
 args: diff github.com/gorilla/mux@v1.7.0...v1.7.1 mux.go
 exit: 0
 --- stdout
-github.com/gorilla/mux@a7962380ca08...c5c6c98bc253  1 file  +6 -0  base a7962380ca08  rev v1.7.0...v1.7.1
+github.com/gorilla/mux@a7962380ca08...c5c6c98bc253:mux.go  1 file  +6 -0  base a7962380ca08  rev v1.7.0...v1.7.1
 M  +6 -0  mux.go
 
     diff --git mux.go mux.go

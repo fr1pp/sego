@@ -20,6 +20,13 @@ fn base(query: &str) -> Searched {
         repos: 1,
         widen: Vec::new(),
         unindexed: None,
+        pinned: false,
+        select_cut: None,
+        content_search: false,
+        index_no: false,
+        repo_scoped: false,
+        repo_names: None,
+        flag_note: None,
         alert: None,
         unshown: Vec::new(),
         groups: Vec::new(),
@@ -219,6 +226,15 @@ fn count_forms() {
     assert_eq!(first_line(&s), "1 symbol  1 repo  0.7 s");
     s.unit = Unit::Files;
     assert_eq!(first_line(&s), "1 file  1 repo  0.7 s");
+    s.unit = Unit::Directories;
+    assert_eq!(first_line(&s), "1 directory  1 repo  0.7 s");
+    s.count = 4;
+    assert_eq!(first_line(&s), "4 directories  1 repo  0.7 s");
+    s.count = 836;
+    s.groups = (0..101).map(path_group).collect();
+    assert_eq!(first_line(&s), "100 of 836 directories  1 repo  0.7 s");
+    s.groups = vec![path_group(0)];
+    s.count = 1;
     s.unit = Unit::Repos;
     assert_eq!(first_line(&s), "1 repo  0.7 s");
     s.count = 3;
@@ -315,10 +331,67 @@ fn widen_waits_for_an_answer_that_is_not_at_least() {
 }
 
 #[test]
-fn widen_is_for_a_zero_only() {
+fn widen_on_every_answer_to_a_repo_scoped_search() {
+    let mut s = base("repo:^github\\.com/expressjs/ qs");
+    s.repo_scoped = true;
+    s.count = 2;
+    s.repos = 2;
+    s.groups = vec![path_group(0), path_group(1)];
+    s.widen = vec![widen("archived:yes", 10), widen("fork:yes", 1)];
+    assert_eq!(
+        s.text().lines().take(3).collect::<Vec<_>>(),
+        [
+            "2 matches  2 repos  0.7 s",
+            "query  repo:^github\\.com/expressjs/ qs",
+            "widen  archived:yes (10 repos)  fork:yes (1 repo)",
+        ]
+    );
+}
+
+#[test]
+fn widen_on_a_repo_scoped_answer_that_is_at_least() {
+    let mut s = base("repo:x foo");
+    s.repo_scoped = true;
+    s.at_least = true;
+    s.groups = vec![path_group(0)];
+    s.widen = vec![widen("archived:yes", 3)];
+    assert_eq!(s.text().lines().nth(2), Some("widen  archived:yes (3 repos)"));
+}
+
+#[test]
+fn widen_on_a_stopped_repo_scoped_answer() {
+    let mut s = base("repo:x foo");
+    s.repo_scoped = true;
+    s.stopped = true;
+    s.at_least = true;
+    s.groups = vec![path_group(0)];
+    s.widen = vec![widen("fork:yes", 2)];
+    assert_eq!(s.text().lines().nth(2), Some("widen  fork:yes (2 repos)"));
+}
+
+#[test]
+fn widen_on_an_unscoped_search_is_for_a_zero_only() {
     let mut s = base("lang:go Foo");
     s.groups = vec![path_group(0)];
-    s.widen = vec![widen("fork:yes", 4)];
+    s.widen = vec![widen("archived:yes", 3)];
+    assert!(!s.text().contains("widen"));
+
+    s.count = 0;
+    s.repos = 0;
+    s.groups.clear();
+    assert_eq!(
+        s.text(),
+        "0 matches  0.7 s\n\
+         query  lang:go Foo\n\
+         widen  archived:yes (3 repos)\n"
+    );
+}
+
+#[test]
+fn no_widen_line_without_widen_values() {
+    let mut s = base("repo:x foo");
+    s.repo_scoped = true;
+    s.groups = vec![path_group(0)];
     assert!(!s.text().contains("widen"));
 }
 
@@ -373,6 +446,7 @@ fn commit_group(
         lines,
         highlights,
         diff,
+        limited: false,
     }
 }
 
@@ -404,6 +478,35 @@ r@3fce3b5bb023  2026-07-23  Ann  Fix it
 }
 
 #[test]
+fn a_history_answer_is_counted_and_limited_in_commits() {
+    let mut s = base("type:diff q");
+    s.unit = Unit::Commits;
+    s.count = 1;
+    s.groups = vec![commit_group(numbered(3), vec![[0, 0, 1]], true)];
+    assert_eq!(first_line(&s), "1 commit  1 repo  0.7 s");
+
+    let wide: Vec<[u32; 3]> = (0..40).map(|n| [n, 0, 1]).collect();
+    s.count = 4;
+    s.at_least = true;
+    s.groups = (0..4)
+        .map(|_| commit_group(numbered(40), wide.clone(), true))
+        .collect();
+    assert_eq!(first_line(&s), "3 of 4+ commits  1 repo  0.7 s");
+
+    s.groups.truncate(2);
+    s.count = 2;
+    s.at_least = false;
+    assert_eq!(first_line(&s), "2 commits  1 repo  0.7 s");
+
+    s.count = 4;
+    s.at_least = true;
+    s.groups = std::iter::once(path_group(0))
+        .chain((0..4).map(|_| commit_group(numbered(40), wide.clone(), true)))
+        .collect();
+    assert_eq!(first_line(&s), "3 of 4+ commits  1 repo  0.7 s");
+}
+
+#[test]
 fn a_commit_prints_the_lines_around_its_highlights() {
     let mut s = base("type:commit q");
     s.groups =
@@ -431,6 +534,33 @@ fn a_diff_prints_all_its_lines() {
     let text = s.text();
     let body: Vec<&str> = text.lines().skip(4).map(str::trim_start).collect();
     assert_eq!(body, numbered(12));
+}
+
+#[test]
+fn a_limited_diff_points_to_sego_diff() {
+    let mut s = base("type:diff q");
+    s.unit = Unit::Commits;
+    s.count = 2;
+    let lines = vec!["a.go a.go".to_owned(), "@@ -1,1 +1,1 @@".to_owned()];
+    let mut limited = commit_group(lines.clone(), vec![[1, 0, 1]], true);
+    if let Group::Commit { limited, .. } = &mut limited {
+        *limited = true;
+    }
+    s.groups = vec![limited, commit_group(lines, vec![[1, 0, 1]], true)];
+    let expected = "\
+2 commits  1 repo  0.7 s
+query  type:diff q
+
+r@3fce3b5bb023  2026-07-23  Ann  Fix it
+    a.go a.go
+    @@ -1,1 +1,1 @@
+    preview limited to 5 files and 3 hunks a file; sego diff r@3fce3b5bb023 lists every changed file
+
+r@3fce3b5bb023  2026-07-23  Ann  Fix it
+    a.go a.go
+    @@ -1,1 +1,1 @@
+";
+    assert_eq!(s.text(), expected);
 }
 
 #[test]
@@ -492,6 +622,7 @@ fn hostile_strings_print_escaped() {
             lines: Vec::new(),
             highlights: Vec::new(),
             diff: false,
+            limited: false,
         },
     ];
     let text = s.text();

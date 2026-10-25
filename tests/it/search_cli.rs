@@ -114,16 +114,20 @@ fn non_utf8_after_search_names_the_position() {
     );
 }
 
-const SEARCH_HELP: &str = "\
-usage: sego search [--json] QUERY...
+const SEARCH_HELP: &str = r#"usage: sego search [--json] QUERY...
 
 QUERY... is joined with single spaces and sent as one Sourcegraph query.
 
 query:
   -term          literal text, not an option (-h is still help)
   and, or, not   operators, in any case
-  count:, repo:, lang:, file:
-                 query filters
+  repo:, file:, lang:, type:, count:, timeout:
+                 common filters
+  repo:R@REV     search at a branch, tag or commit; rev:REV is the same
+  rev:at.time(D) search at the last commit before date D; needs repo:
+  repo:has.file(path:RE content:RE)
+                 only repositories with a file that matches each part given
+  select:repo    one result per repository; select:file, one per file
   -- TEXT        text that is one of sego's options, such as --json
 
 options:
@@ -131,9 +135,42 @@ options:
   -h, --help   this help, or a command's help after its name
   --version    sego's version
 
-Search prints one line of context around each match.
-Text prints the first 100 matches; --json carries every result fetched.
-";
+defaults:
+  A search covers each repository's default branch, and stops after 30
+  results or 20 s; count:N and timeout:60s raise those limits. By default,
+  Sourcegraph excludes archived repositories and forks; add archived:yes or
+  fork:yes to include them. Files too large to search are skipped, and
+  sego show reads any file; index:no reads files skipped for too many
+  distinct trigrams.
+
+text:
+  N UNIT  R repos  T s      UNIT is matches, commits, files,
+                            directories, symbols or repos; N+ when
+                            more may exist; "stopped at T s" when the
+                            search ran out of time
+  query  QUERY              the query as sent
+  widen  FILTER (N repos)   repositories in scope left out by default
+  REPO@COMMIT:PATH          a file with results, then "N:text" for a
+                            matching line and "N-text" for context
+  A match is one matched range; a line can hold several.
+  A diff result previews at most 5 files and 3 hunks a file.
+  Text prints the first 100 matches; --json carries every result fetched.
+  Notes on stderr name skipped files; at a pin, a 0 says it can't list them.
+
+json:
+  query pattern_type unit count at_least stopped elapsed_ms limit_ms
+  widen[{filter repos}] unindexed[{repo commit path bytes}] alert
+  results[]: kind (line, path, binary, symbol, commit or repo) and repo;
+    file kinds add commit rev path; line adds line text match ranges
+    chunk, with match false on a context line; symbol adds line name
+    symbol_kind container; commit adds commit date author subject lines
+    highlights preview_limited; date is the UTC day of the author date
+  server
+
+examples:
+  sego search 'repo:^github\.com/gorilla/mux$ "func NewRouter"'
+  sego search --json 'repo:^github\.com/gorilla/mux$ StrictSlash count:100'
+"#;
 
 #[test]
 fn help_texts_are_exact() {

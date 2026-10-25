@@ -316,8 +316,7 @@ fn help_topics_parse() {
     ]);
 }
 
-const LOG_HELP: &str = "\
-usage: sego log [--json] REPO[@REV][:PATH] [PATH]
+const LOG_HELP: &str = r#"usage: sego log [--json] REPO[@REV][:PATH] [PATH]
        sego log [--json] REPO@A..B[:PATH] [PATH]
 
 operands:
@@ -333,12 +332,24 @@ options:
   -h, --help   this help, or a command's help after its name
   --version    sego's version
 
-Text and JSON list the newest 150 commits of a REV; a range lists them all
-in JSON. Tags that point at a listed commit are marked.
-";
+text:
+  REPO@COMMIT[:PATH]  N commits  rev REV, then a row per commit,
+  "COMMIT  DATE  AUTHOR  SUBJECT", with "(tag: NAME)" before the subject
+  of a tagged commit.
+  Text and JSON list the newest 150 commits of a REV; a range lists them
+  all in JSON.
 
-const DIFF_HELP: &str = "\
-usage: sego diff [--json] REPO@A...B[:PATH] [PATH...]
+json:
+  repo rev commit rev_a rev_b commit_a commit_b path total more
+  commits[{commit date author subject parents tags}]; date is the UTC day
+  of the author date
+
+examples:
+  sego log github.com/gorilla/mux:mux.go
+  sego log github.com/gorilla/mux@v1.7.4..v1.8.0 mux.go
+"#;
+
+const DIFF_HELP: &str = r#"usage: sego diff [--json] REPO@A...B[:PATH] [PATH...]
        sego diff [--json] REPO@REV[:PATH] [PATH...]
 
 operands:
@@ -347,19 +358,34 @@ operands:
   REPO@A...B  changes from the merge base of A and B to B, as git
               diff A...B
   REPO@REV    the change REV made, against its first parent
-  PATH...     paths or directory prefixes; the patch comes only for these
+  PATH...     paths or directory prefixes; the file list, counts and patch
+              cover only these
 
 options:
   --json       one JSON document on stdout
   -h, --help   this help, or a command's help after its name
   --version    sego's version
 
-Text prints 200 file rows; --json carries every file.
-With PATH operands, a rename shows as R only when both its paths are named.
-";
+text:
+  REPO@A...B  N files  +A -D  base COMMIT  rev A...B, then a row per
+  file, "STATUS  +A -D  PATH", with STATUS A, D, M or R (OLD -> NEW),
+  then the patch of named paths, indented four spaces. One path joins
+  the header as REPO@A...B:PATH; two or more add "paths P...".
+  Text prints 200 file rows; --json carries every file.
+  With PATH operands, a rename shows as R only when both its paths are
+  named.
 
-const SHOW_HELP: &str = "\
-usage: sego show [--json] REPO[@REV]:PATH [LINES]
+json:
+  repo rev_a rev_b commit_a commit_b base files_total added deleted
+  files[{status old_path new_path added deleted}]
+  patch, unindented, or null without PATH
+
+examples:
+  sego diff github.com/gorilla/mux@v1.7.4...v1.8.0
+  sego diff github.com/gorilla/mux@v1.7.4...v1.8.0 mux.go
+"#;
+
+const SHOW_HELP: &str = r#"usage: sego show [--json] REPO[@REV]:PATH [LINES]
        sego show [--json] REPO@REV
 
 addresses:
@@ -368,16 +394,32 @@ addresses:
   @REV     a branch, tag or commit; the default branch without it
   @REV     with no :PATH, the commit: its message and changed files
   :PATH    a path from the repository root
-  LINES    N, N-M, N,M or N- (lines are numbered from 1)
+  LINES    N, N-M, N,M, or N- through the last line (lines are
+           numbered from 1)
 
 options:
   --json       one JSON document on stdout
   -h, --help   this help, or a command's help after its name
   --version    sego's version
 
-A file over 1.5 MiB is read through Sourcegraph's raw route, a second request.
-Text shows lines 1-500 when LINES is not given; --json carries the same lines.
-";
+text:
+  A file: REPO@COMMIT:PATH  lines A-B of N  rev REV, then a row per line,
+  "N:text". Text shows lines 1-500 when LINES is not given, and 1- shows
+  the whole file; --json carries the same lines.
+  A commit: REPO@COMMIT  DATE  AUTHOR  parents P  N files  +A -D, then
+  the message, indented, and a row per file, "STATUS  +A -D  PATH".
+
+json:
+  A file: repo rev commit path total_lines byte_size binary crlf
+  lfs_size submodule start end lines[{line text}] via_raw
+  A commit: repo rev commit author author_date committer committer_date
+  parents subject message files[{status old_path new_path added deleted}]
+  files_total added deleted
+
+examples:
+  sego show github.com/gorilla/mux@v1.8.0:mux.go 120-180
+  sego show github.com/gorilla/mux@758eb64354aa
+"#;
 
 #[test]
 fn history_help_texts_are_exact() {

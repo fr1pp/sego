@@ -45,12 +45,10 @@ fn alert(title: &str, description: impl Into<Value>) -> Value {
         "kind": null, "proposedQueries": null})
 }
 
-fn run(results: Results, deadline_ms: u64) -> (String, String) {
-    let mut prepared = prepare("x");
-    prepared.deadline_ms = deadline_ms;
-    let searched = Searched::new(results, &prepared);
+/// The notes and the error `judge` writes for the answer.
+fn judged(searched: &Searched) -> (String, String) {
     let mut notes = Notes::new();
-    let outcome = judge(&searched, &mut notes);
+    let outcome = judge(searched, &mut notes);
     let mut printed = Vec::new();
     let mut error = Vec::new();
     assert!(notes.write(&mut printed).is_ok());
@@ -61,6 +59,13 @@ fn run(results: Results, deadline_ms: u64) -> (String, String) {
         String::from_utf8_lossy(&printed).into_owned(),
         String::from_utf8_lossy(&error).into_owned(),
     )
+}
+
+fn run(results: Results, deadline_ms: u64) -> (String, String) {
+    let mut prepared = prepare("x");
+    prepared.deadline_ms = deadline_ms;
+    prepared.content_search = false;
+    judged(&Searched::new(results, &prepared))
 }
 
 fn revisions(count: usize) -> Value {
@@ -191,6 +196,97 @@ fn no_repositories_with_proposals() {
          the server proposes: q1\n  \
          the server proposes: q2\n"
     );
+}
+
+fn failure_of(query: &str, results: Results) -> String {
+    let (_, error) = judged(&Searched::new(results, &prepare(query)));
+    assert!(!error.is_empty(), "{query}: no error");
+    error
+}
+
+#[test]
+fn no_repositories_points_to_the_names() {
+    let r = || {
+        results(&json!({"alert": alert(
+            "No repositories found", json!("Try using a different filter"))}))
+    };
+    assert_eq!(
+        failure_of(
+            r#"repo:^github\.com/jackc/pgx/v5$@v5.5.5 "conn busy""#,
+            r()
+        ),
+        "sego: error: No repositories found\n  \
+         sego search 'repo:pgx type:repo' lists the matching repositories\n"
+    );
+    assert_eq!(
+        failure_of("repo:pgx foo", r()),
+        "sego: error: No repositories found\n"
+    );
+}
+
+#[test]
+fn no_repositories_points_to_the_names_after_proposals() {
+    let with = |proposed: Value| {
+        let mut a = alert("No repositories found", json!("advice"));
+        a["proposedQueries"] = proposed;
+        results(&json!({"alert": a}))
+    };
+    let one = json!([{"description": "d1", "query": "q1"}]);
+    assert_eq!(
+        failure_of("repo:a/b foo", with(one)),
+        "sego: error: No repositories found\n  \
+         the server proposes: q1\n  \
+         sego search 'repo:b type:repo' lists the matching repositories\n"
+    );
+    let two = json!([
+        {"description": "d1", "query": "q1"},
+        {"description": "d2", "query": "q2"},
+    ]);
+    assert_eq!(
+        failure_of("repo:a/b foo", with(two)),
+        "sego: error: No repositories found\n  \
+         the server proposes: q1\n  \
+         the server proposes: q2\n"
+    );
+}
+
+fn answered(
+    query: &str,
+    results: Results,
+    adjust: impl FnOnce(&mut Searched),
+) -> (String, String) {
+    let mut searched = Searched::new(results, &prepare(query));
+    adjust(&mut searched);
+    judged(&searched)
+}
+
+#[test]
+fn a_trailing_flag_is_noted_only_on_a_zero() {
+    let q = "lang:javascript /msie/i";
+    let note = "sego: note: the server searches `/msie/i` as text; it ignores case by default\n\
+                sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched\n";
+    let zero = || results(&json!({}));
+    assert_eq!(answered(q, zero(), |_| {}), (note.to_owned(), String::new()));
+    let hits = results(&json!({"matchCount": 3, "limitHit": true,
+        "results": [repo("a")]}));
+    assert_eq!(answered(q, hits, |_| {}), (String::new(), String::new()));
+    let complete = results(&json!({"matchCount": 3, "limitHit": false,
+        "results": [repo("a")]}));
+    let unlisted = "sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched\n";
+    assert_eq!(
+        answered(q, complete, |_| {}),
+        (unlisted.to_owned(), String::new())
+    );
+    let (notes, _) = answered(q, zero(), |s| s.at_least = true);
+    assert_eq!(notes, "");
+    let stopped = results(&json!({"elapsedMilliseconds": 21_300}));
+    let (notes, error) = answered(q, stopped, |_| {});
+    assert_eq!(notes, "");
+    assert_eq!(
+        error,
+        "sego: error: the search stopped at 21.3 s with no results\n"
+    );
+    assert!(!answered("/msie/", zero(), |_| {}).0.contains("as text"));
 }
 
 #[test]
@@ -564,14 +660,361 @@ fn an_unknown_or_empty_list_has_no_unindexed_note() {
 fn judge_prints_the_unindexed_note_after_the_others() {
     let mut searched = zero(vec![file("r", "p", 2 * MIB)]);
     searched.unshown = vec!["NewKind".into()];
-    let mut notes = Notes::new();
-    assert!(judge(&searched, &mut notes).is_ok());
-    let mut printed = Vec::new();
-    assert!(notes.write(&mut printed).is_ok());
     assert_eq!(
-        String::from_utf8_lossy(&printed),
+        judged(&searched).0,
         "sego: note: 1 result of kind NewKind not shown\n\
          sego: note: the contents of 1 file in scope aren't in the search \
          index (1 over 1 MiB):\n  r@0123456789ab:p  2.0 MiB\n"
     );
+}
+
+const PINNED_NOTE: &str = "sego: note: at a pinned revision the search \
+    can't tell which files it skipped; files over 1 MiB are never searched\n";
+
+fn pinned_notes(overrides: &Value) -> String {
+    notes_for("repo:x@v1 foo", overrides, None)
+}
+
+#[test]
+fn a_pinned_zero_notes_the_skipped_files() {
+    assert_eq!(pinned_notes(&json!({})), PINNED_NOTE);
+}
+
+#[test]
+fn a_pinned_complete_answer_with_hits_has_no_skipped_files_note() {
+    assert_eq!(
+        pinned_notes(&json!({"matchCount": 1, "results": [repo("x")]})),
+        ""
+    );
+}
+
+#[test]
+fn a_pinned_lower_bound_or_stopped_answer_has_no_pinned_note() {
+    assert_eq!(
+        pinned_notes(
+            &json!({"matchCount": 5, "limitHit": true, "results": [repo("x")]})
+        ),
+        ""
+    );
+    assert_eq!(
+        pinned_notes(&json!({
+            "matchCount": 1,
+            "results": [repo("x")],
+            "timedout": [{"name": "x"}],
+        })),
+        ""
+    );
+}
+
+#[test]
+fn an_unpinned_answer_has_the_default_branch_note() {
+    assert_eq!(notes_for("repo:x foo", &json!({}), None), UNLISTED_NOTE);
+}
+
+const UNLISTED_NOTE: &str = "sego: note: the search can't tell which files \
+    it skipped; files over 1 MiB and files with too many distinct trigrams \
+    are never searched\n";
+const UNLISTED_INDEX_NO_NOTE: &str = "sego: note: the search can't tell \
+    which files it skipped; files over 1 MiB are never searched\n";
+
+fn notes_for(
+    query: &str,
+    overrides: &Value,
+    unindexed: Option<Vec<UnindexedFile>>,
+) -> String {
+    let mut searched = Searched::new(results(overrides), &prepare(query));
+    searched.unindexed = unindexed;
+    let (notes, error) = judged(&searched);
+    assert_eq!(error, "", "{query}");
+    notes
+}
+
+fn one_result() -> Value {
+    json!({"matchCount": 1, "results": [repo("x")]})
+}
+
+#[test]
+fn a_content_search_that_cant_list_skipped_files_says_so() {
+    for query in [
+        "repo:x a or b",
+        r"repo:^github\.com/sharkdp/bat$ (syntax_request.md or zzqqxx)",
+        "repo:x foo",
+        "foo",
+        "repo:x type:symbol foo",
+        "type:symbol foo",
+    ] {
+        assert_eq!(
+            notes_for(query, &json!({}), None),
+            UNLISTED_NOTE,
+            "{query}"
+        );
+        assert_eq!(
+            notes_for(query, &one_result(), None),
+            UNLISTED_NOTE,
+            "{query}"
+        );
+    }
+}
+
+#[test]
+fn a_lower_bound_or_stopped_content_search_has_no_unlisted_note() {
+    let bounded =
+        json!({"matchCount": 5, "limitHit": true, "results": [repo("x")]});
+    let stopped = json!({
+        "matchCount": 1,
+        "results": [repo("x")],
+        "timedout": [{"name": "x"}],
+    });
+    for overrides in [bounded, stopped] {
+        assert_eq!(notes_for("repo:x a or b", &overrides, None), "");
+    }
+}
+
+#[test]
+fn a_search_that_reads_no_contents_has_no_unlisted_note() {
+    for query in [
+        "repo:x",
+        r"repo:x file:\.go$",
+        "repo:x type:path foo",
+        "repo:x type:bogus foo",
+        "repo:x@v1 type:bogus foo",
+        "repo:x type:commit foo",
+        "repo:x type:diff foo",
+        "repo:x type:repo foo",
+    ] {
+        assert_eq!(notes_for(query, &json!({}), None), "", "{query}");
+    }
+}
+
+#[test]
+fn index_no_reads_the_trigram_heavy_files() {
+    assert_eq!(
+        notes_for("repo:x INDEX:no a or b", &json!({}), None),
+        UNLISTED_INDEX_NO_NOTE
+    );
+    assert_eq!(
+        notes_for("repo:x index:false a or b", &json!({}), None),
+        UNLISTED_INDEX_NO_NOTE
+    );
+}
+
+#[test]
+fn a_pinned_or_query_has_the_pinned_note() {
+    for query in [
+        "repo:x@v1 a or b",
+        r"repo:^github\.com/gorilla/mux$@v1.8.0 file:^mux\.go$ (StrictSlash or zzqqxx)",
+        "repo:x@v1 index:no a or b",
+        "repo:x@v1 type:symbol foo",
+    ] {
+        assert_eq!(notes_for(query, &json!({}), None), PINNED_NOTE, "{query}");
+    }
+}
+
+#[test]
+fn a_listed_answer_has_no_unlisted_note() {
+    assert_eq!(notes_for("repo:x foo", &json!({}), Some(vec![])), "");
+    assert_eq!(
+        notes_for(
+            "repo:x foo",
+            &json!({}),
+            Some(vec![file("x", "p", 2 * MIB)])
+        ),
+        "sego: note: the contents of 1 file in scope aren't in the search \
+         index (1 over 1 MiB):\n  x@0123456789ab:p  2.0 MiB\n"
+    );
+}
+
+#[test]
+fn index_no_lists_only_the_files_over_1_mib() {
+    let files = vec![
+        file("x", "dense", 5000),
+        file("x", "big", 2 * MIB),
+        file("x", "edge", MIB),
+        file("x", "bigger", 3 * MIB),
+    ];
+    assert_eq!(
+        notes_for("repo:x index:no foo", &one_result(), Some(files)),
+        "sego: note: the contents of 2 files in scope aren't in the search \
+         index (2 over 1 MiB):\n  bigger  3.0 MiB\n  big  2.0 MiB\n"
+    );
+    let dense = || vec![file("x", "dense", 5000), file("x", "edge", MIB)];
+    assert_eq!(
+        notes_for("repo:x index:no foo", &one_result(), Some(dense())),
+        ""
+    );
+    let mut searched =
+        Searched::new(results(&one_result()), &prepare("repo:x index:no foo"));
+    searched.unindexed = Some(dense());
+    assert!(unindexed_note(&searched).is_none());
+}
+
+fn select_note(n: u64) -> String {
+    format!(
+        "sego: note: at a pinned revision, select: keeps only what each \
+         repository's first {n} matches hold; count:all gives every one\n"
+    )
+}
+
+#[test]
+fn a_pinned_select_answer_notes_the_cap_before_the_select() {
+    let query = "repo:x@v1 Router select:file";
+    assert_eq!(notes_for(query, &one_result(), None), select_note(30));
+    assert_eq!(
+        notes_for("repo:x@main Router select:file", &one_result(), None),
+        select_note(30)
+    );
+    assert_eq!(
+        notes_for(
+            "repo:x@v1 type:symbol /./ select:symbol.method count:50",
+            &one_result(),
+            None
+        ),
+        select_note(50)
+    );
+}
+
+#[test]
+fn a_cut_pinned_select_answer_still_notes_the_cap() {
+    let bounded =
+        json!({"matchCount": 30, "limitHit": true, "results": [repo("x")]});
+    let stopped = json!({
+        "matchCount": 1,
+        "results": [repo("x")],
+        "timedout": [{"name": "x"}],
+    });
+    for overrides in [bounded, stopped] {
+        assert_eq!(
+            notes_for("repo:x@v1 Router select:file", &overrides, None),
+            select_note(30)
+        );
+    }
+}
+
+#[test]
+fn a_pinned_select_note_follows_the_alert() {
+    let overrides = json!({
+        "matchCount": 1,
+        "results": [repo("x")],
+        "alert": alert("Heads up", "careful"),
+    });
+    assert_eq!(
+        notes_for("repo:x@v1 Router select:file", &overrides, None),
+        format!("sego: note: Heads up: careful\n{}", select_note(30))
+    );
+}
+
+#[test]
+fn a_select_answer_with_count_all_or_no_pin_has_no_select_note() {
+    let query = "repo:x@v1 Router select:file count:all";
+    assert_eq!(notes_for(query, &json!({}), None), PINNED_NOTE);
+    assert_eq!(notes_for(query, &one_result(), None), "");
+    for query in
+        ["repo:x Router select:file", "repo:x -rev:v1 Router select:file"]
+    {
+        assert_eq!(
+            notes_for(query, &one_result(), None),
+            UNLISTED_NOTE,
+            "{query}"
+        );
+    }
+}
+
+#[test]
+fn a_pinned_owners_answer_has_no_select_note() {
+    let query = "repo:x@v1 NewRouter select:file.owners";
+    assert_eq!(notes_for(query, &json!({}), None), PINNED_NOTE);
+    assert_eq!(notes_for(query, &one_result(), None), "");
+}
+
+#[test]
+fn a_pinned_select_note_follows_the_unshown_kinds() {
+    let overrides = json!({
+        "matchCount": 1,
+        "results": [repo("x"), {"__typename": "NewKind"}],
+        "alert": alert("Heads up", "careful"),
+    });
+    assert_eq!(
+        notes_for("repo:x@v1 Router select:file", &overrides, None),
+        format!(
+            "sego: note: Heads up: careful\n\
+             sego: note: 1 result of kind NewKind not shown\n{}",
+            select_note(30)
+        )
+    );
+}
+
+#[test]
+fn a_pinned_zero_has_the_select_note_only_when_the_select_drops_results() {
+    for query in [
+        "repo:x@v1 Router select:file",
+        "repo:x@v1 Router select:file.directory",
+    ] {
+        assert_eq!(notes_for(query, &json!({}), None), PINNED_NOTE, "{query}");
+    }
+    for query in [
+        "repo:x@v1 type:symbol /./ select:symbol.method",
+        "repo:x@v1 Router select:content",
+    ] {
+        assert_eq!(
+            notes_for(query, &json!({}), None),
+            select_note(30),
+            "{query}"
+        );
+    }
+}
+
+#[test]
+fn a_repo_select_or_a_head_revision_has_no_select_note() {
+    let query = "repo:x@v1 Router select:repo";
+    assert_eq!(notes_for(query, &json!({}), None), PINNED_NOTE);
+    assert_eq!(notes_for(query, &one_result(), None), "");
+    for query in [
+        "repo:x@HEAD Router select:file",
+        "repo:x rev:HEAD Router select:file",
+    ] {
+        assert_eq!(
+            notes_for(query, &one_result(), None),
+            UNLISTED_NOTE,
+            "{query}"
+        );
+    }
+}
+
+#[test]
+fn a_head_or_empty_revision_takes_the_default_branch_notes() {
+    let listed = |path| {
+        format!(
+            "sego: note: the contents of 1 file in scope aren't in the \
+             search index (1 over 1 MiB):\n  {path}  2.0 MiB\n"
+        )
+    };
+    for query in [
+        "repo:x@HEAD foo",
+        "repo:x@ foo",
+        "repo:x rev:HEAD foo",
+        "repo:x revision:HEAD foo",
+        "repo:x@HEAD a or b",
+    ] {
+        for overrides in [json!({}), one_result()] {
+            assert_eq!(
+                notes_for(query, &overrides, None),
+                UNLISTED_NOTE,
+                "{query}"
+            );
+        }
+    }
+    for query in ["repo:x@HEAD foo", "repo:x@ foo", "repo:x rev:HEAD foo"] {
+        for (overrides, path) in
+            [(json!({}), "x@0123456789ab:big"), (one_result(), "big")]
+        {
+            let files = Some(vec![file("x", "big", 2 * MIB)]);
+            assert_eq!(
+                notes_for(query, &overrides, files),
+                listed(path),
+                "{query}"
+            );
+        }
+    }
+    assert_eq!(notes_for("repo:x@HEAD:v1 foo", &json!({}), None), PINNED_NOTE);
+    assert_eq!(notes_for("repo:x@HEAD:v1 foo", &one_result(), None), "");
 }

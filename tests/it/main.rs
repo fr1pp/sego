@@ -1,4 +1,5 @@
 mod address;
+mod cache;
 mod cases;
 mod cli;
 mod commit;
@@ -18,6 +19,7 @@ mod ls_cli;
 mod model;
 mod outcome;
 mod output;
+mod plan;
 mod query;
 mod quote;
 mod raw;

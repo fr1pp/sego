@@ -2,7 +2,7 @@
 args: diff github.com/BurntSushi/blog@497748c2d8fbc612fed474940b034f9369c4fab1 'code/rust-regex-syntax-extensions/ Ahead-of-time compiled regular expressions in Rust'
 exit: 0
 --- stdout
-github.com/BurntSushi/blog@e5554cd572c4...497748c2d8fb  1 file  +2 -0
+'github.com/BurntSushi/blog@e5554cd572c4...497748c2d8fb:code/rust-regex-syntax-extensions/ Ahead-of-time compiled regular expressions in Rust'  1 file  +2 -0
 A  +2 -0  'code/rust-regex-syntax-extensions/ Ahead-of-time compiled regular expressions in Rust'
 
     diff --git code/rust-regex-syntax-extensions/ Ahead-of-time compiled regular expressions in Rust code/rust-regex-syntax-extensions/ Ahead-of-time compiled regular expressions in Rust

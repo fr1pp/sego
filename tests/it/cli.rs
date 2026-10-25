@@ -299,8 +299,7 @@ fn help_and_version_need_a_known_command() {
     }
 }
 
-const HELP: &str = "\
-sego reads public source code at any revision through sourcegraph.com.
+const HELP: &str = r#"sego searches and reads public source code through Sourcegraph code search.
 
 usage: sego COMMAND [--json] ...
 
@@ -310,7 +309,7 @@ commands:
   show REPO@REV                  a commit: its message and changed files
   ls REPO[@REV][:PATH]           entries of a directory
   refs REPO [TEXT]               branches and tags
-  log REPO[@REV][:PATH] [PATH]   commits
+  log REPO[@REV][:PATH] [PATH]   commits, newest first
   log REPO@A..B [PATH]           commits in B and not in A
   diff REPO@A...B [PATH...]      changed files, and the patch of named paths
   diff REPO@REV [PATH...]        the change one commit made
@@ -320,7 +319,23 @@ addresses:
            Sourcegraph URL
   @REV     a branch, tag or commit; the default branch without it
   :PATH    a path from the repository root
-  LINES    N, N-M, N,M or N- (lines are numbered from 1)
+  LINES    N, N-M, N,M, or N- through the last line (lines are
+           numbered from 1)
+
+output:
+  A header line comes first: what was read, such as REPO@COMMIT:PATH,
+  with its counts. Lines of a file are numbered "N:". Notes go to stderr
+  as "sego: note: ...". --json prints one JSON document instead;
+  "sego COMMAND --help" lists its fields.
+
+examples:
+  sego search 'repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter'
+  sego show github.com/gorilla/mux@v1.8.0:mux.go 120-180
+  sego show github.com/gorilla/mux@v1.8.0:mux.go 1-
+  sego ls github.com/gorilla/mux@v1.8.0
+  sego refs --json github.com/gorilla/mux 1.8 | jq -r '.refs[].name'
+  sego log github.com/gorilla/mux:mux.go
+  sego diff github.com/gorilla/mux@v1.7.4...v1.8.0 mux.go
 
 options:
   --json       one JSON document on stdout
@@ -328,11 +343,13 @@ options:
   --version    sego's version
 
 environment:
-  SEGO_ENDPOINT   the Sourcegraph instance (default
-                  https://sourcegraph.com)
+  SEGO_ENDPOINT    the Sourcegraph instance (default
+                   https://sourcegraph.com)
+  SEGO_CACHE_DIR   where sego caches large files, or off (default
+                   $XDG_CACHE_HOME/sego or ~/.cache/sego)
 
 exit codes: 0 answered, 1 not answered, 2 the command line is wrong
-";
+"#;
 
 #[test]
 fn help_is_the_text_in_the_brief() {
@@ -340,19 +357,42 @@ fn help_is_the_text_in_the_brief() {
 }
 
 #[test]
-fn show_help_has_the_synopsis_blocks_and_two_facts() {
+fn show_help_has_the_synopsis_blocks_and_no_raw_route_cost() {
     let text = help(Some("show"));
     assert!(text.starts_with(&format!(
         "{}\n\naddresses:\n",
         usage_block(SHOW_SYNOPSIS)
     )));
     assert!(text.contains("\noptions:\n  --json "));
-    assert!(text.ends_with(
-        "A file over 1.5 MiB is read through Sourcegraph's raw route, a \
-         second request.\nText shows lines 1-500 when LINES is not given; \
-         --json carries the same lines.\n"
-    ));
+    assert!(!text.contains("raw route"));
     assert!(!text.contains("commands:"));
+}
+
+#[test]
+fn every_command_help_has_the_common_sections_in_order() {
+    for entry in TABLE {
+        let text = help(Some(entry.name));
+        let operands = match entry.name {
+            "search" => "\nquery:\n",
+            "show" | "ls" => "\naddresses:\n",
+            _ => "\noperands:\n",
+        };
+        let mut sections = vec!["usage: ", operands, "\noptions:\n"];
+        if entry.name == "search" {
+            sections.push("\ndefaults:\n");
+        }
+        sections.extend(["\ntext:\n", "\njson:\n", "\nexamples:\n"]);
+        let at: Vec<Option<usize>> =
+            sections.iter().map(|section| text.find(section)).collect();
+        assert_eq!(at[0], Some(0), "{}", entry.name);
+        assert!(at.iter().all(Option::is_some), "{}: {at:?}", entry.name);
+        assert!(at.is_sorted(), "{}: {at:?}", entry.name);
+    }
+}
+
+#[test]
+fn general_help_fits_50_lines() {
+    assert!(help(None).lines().count() <= 50);
 }
 
 #[test]
@@ -422,4 +462,58 @@ fn general_help_lists_the_second_form_of_show_log_and_diff() {
             lines[at + 1]
         );
     }
+}
+
+#[test]
+fn search_help_says_how_to_search_at_a_revision() {
+    let text = help(Some("search"));
+    assert!(
+        text.contains(
+            "                 common filters
+  repo:R@REV     search at a branch, tag or commit; rev:REV is the same
+  rev:at.time(D) search at the last commit before date D; needs repo:
+  repo:has.file("
+        ),
+        "{text}"
+    );
+}
+
+#[test]
+fn search_help_names_the_units_and_the_date() {
+    let text = help(Some("search"));
+    assert!(
+        text.contains(
+            r#"text:
+  N UNIT  R repos  T s      UNIT is matches, commits, files,
+                            directories, symbols or repos; N+ when
+                            more may exist; "stopped at T s" when the
+                            search ran out of time
+  query  "#
+        ),
+        "{text}"
+    );
+    assert!(
+        text.contains(
+            "    chunk, with match false on a context line; symbol adds line name
+    symbol_kind container; commit adds commit date author subject lines
+    highlights preview_limited; date is the UTC day of the author date
+  server
+"
+        ),
+        "{text}"
+    );
+}
+
+#[test]
+fn log_help_says_what_the_date_is() {
+    assert!(help(Some("log")).contains(
+        "
+json:
+  repo rev commit rev_a rev_b commit_a commit_b path total more
+  commits[{commit date author subject parents tags}]; date is the UTC day
+  of the author date
+
+examples:
+"
+    ));
 }

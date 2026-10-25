@@ -402,7 +402,7 @@ fn diff_text_has_only_the_layout_lines() {
         format!(
             "{}  1 file  +1 -1  base {PARENT12}  rev patch-text-a...patch-text-b\n\
              M  +1 -1  $'{q}'\n\n{}\n",
-            lead(&format!("{HEAD12}...{NEXT12}")),
+            lead(&format!("{HEAD12}...{NEXT12}:{q}")),
             patch_lines.join("\n")
         )
     );

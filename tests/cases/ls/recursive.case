@@ -1,4 +1,5 @@
-# A recursive listing sorts segment by segment, so a directory's entries follow it.
+# A recursive listing sorts segment by segment, so a directory's entries follow
+# it.
 args: ls --recursive github.com/gorilla/websocket@v1.5.3:examples
 exit: 0
 --- stdout

@@ -151,7 +151,7 @@ impl fmt::Display for AddressError {
             ),
             Self::LineForm(s) => write!(
                 f,
-                "invalid line range {s}; lines are N, N-M, N,M or N-"
+                "invalid line range {s}; lines are N, N-M, N,M, or N-"
             ),
             Self::PullRequestUrl => {
                 write!(f, "pull request URLs name no revision sego can read")

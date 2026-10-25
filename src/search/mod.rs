@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use serde_json::Value;
 
-use crate::error::Error;
+use crate::error::{Error, Kind};
 use crate::output::Notes;
 use crate::upstream::top_level;
 use crate::upstream::{Envelope, Request, Transport, Var, exchange};
@@ -11,6 +11,7 @@ pub mod derive;
 pub mod lint;
 pub mod model;
 pub mod outcome;
+pub mod plan;
 pub mod query;
 pub mod response;
 pub mod text;
@@ -88,14 +89,54 @@ pub fn fetch(
     deadline: Instant,
 ) -> Result<Fetched, Error> {
     let failed = || Error::failed("the search");
-    let envelope = exchange(transport, &request(prepared), deadline)?;
-    if envelope.error_beneath(&["search"]).is_some() {
-        return Err(failed());
+    let envelope =
+        exchange(transport, &request(prepared), deadline).map_err(pointed)?;
+    if let Some(error) = envelope.error_beneath(&["search"]) {
+        return Err(
+            regexp_error(&error.message, prepared).unwrap_or_else(failed)
+        );
     }
     let results =
         envelope.get(&["search", "results"]).ok_or_else(failed)?.clone();
     let results = serde_json::from_value(results).map_err(|_| failed())?;
     Ok(Fetched { results, unindexed: listed(&envelope, prepared) })
+}
+
+fn pointed(error: Error) -> Error {
+    if error.kind() == Kind::Deadline {
+        error.fact("repo:, lang: or file: narrows what the search reads")
+    } else {
+        error
+    }
+}
+
+const REASON_CHARS: usize = 200;
+
+/// The error for a search whose regular expression the server's Go regexp
+/// couldn't compile, as a structural hole the query syntax lets through;
+/// `None` for any other message.
+fn regexp_error(message: &str, prepared: &Prepared) -> Option<Error> {
+    let mut rest = message;
+    while let Some(after) = rest.strip_prefix("rpc error: code = ") {
+        rest = after.split_once(" desc = ")?.1;
+    }
+    let reason =
+        rest.strip_prefix("error parsing regexp: ")?.lines().next()?.trim();
+    let reason = if reason.chars().count() > REASON_CHARS {
+        format!("{}…", reason.chars().take(REASON_CHARS).collect::<String>())
+    } else {
+        reason.to_owned()
+    };
+    let error = Error::upstream(format!(
+        "the search's regular expression doesn't compile: {reason}"
+    ));
+    Some(if prepared.pattern_type == "structural" {
+        error.fact(
+            "structural search compiles each :[name~regex] hole as an RE2 regular expression",
+        )
+    } else {
+        error
+    })
 }
 
 fn listed(

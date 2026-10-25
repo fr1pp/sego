@@ -1,8 +1,9 @@
-# --help prints the command list, the address grammar and the exit codes.
+# --help prints the commands, addresses, output, examples, options and exit
+# codes.
 args: --help
 exit: 0
 --- stdout
-sego reads public source code at any revision through sourcegraph.com.
+sego searches and reads public source code through Sourcegraph code search.
 
 usage: sego COMMAND [--json] ...
 
@@ -12,7 +13,7 @@ commands:
   show REPO@REV                  a commit: its message and changed files
   ls REPO[@REV][:PATH]           entries of a directory
   refs REPO [TEXT]               branches and tags
-  log REPO[@REV][:PATH] [PATH]   commits
+  log REPO[@REV][:PATH] [PATH]   commits, newest first
   log REPO@A..B [PATH]           commits in B and not in A
   diff REPO@A...B [PATH...]      changed files, and the patch of named paths
   diff REPO@REV [PATH...]        the change one commit made
@@ -22,7 +23,23 @@ addresses:
            Sourcegraph URL
   @REV     a branch, tag or commit; the default branch without it
   :PATH    a path from the repository root
-  LINES    N, N-M, N,M or N- (lines are numbered from 1)
+  LINES    N, N-M, N,M, or N- through the last line (lines are
+           numbered from 1)
+
+output:
+  A header line comes first: what was read, such as REPO@COMMIT:PATH,
+  with its counts. Lines of a file are numbered "N:". Notes go to stderr
+  as "sego: note: ...". --json prints one JSON document instead;
+  "sego COMMAND --help" lists its fields.
+
+examples:
+  sego search 'repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter'
+  sego show github.com/gorilla/mux@v1.8.0:mux.go 120-180
+  sego show github.com/gorilla/mux@v1.8.0:mux.go 1-
+  sego ls github.com/gorilla/mux@v1.8.0
+  sego refs --json github.com/gorilla/mux 1.8 | jq -r '.refs[].name'
+  sego log github.com/gorilla/mux:mux.go
+  sego diff github.com/gorilla/mux@v1.7.4...v1.8.0 mux.go
 
 options:
   --json       one JSON document on stdout
@@ -30,7 +47,9 @@ options:
   --version    sego's version
 
 environment:
-  SEGO_ENDPOINT   the Sourcegraph instance (default
-                  https://sourcegraph.com)
+  SEGO_ENDPOINT    the Sourcegraph instance (default
+                   https://sourcegraph.com)
+  SEGO_CACHE_DIR   where sego caches large files, or off (default
+                   $XDG_CACHE_HOME/sego or ~/.cache/sego)
 
 exit codes: 0 answered, 1 not answered, 2 the command line is wrong

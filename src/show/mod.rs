@@ -1,10 +1,11 @@
 use std::io;
-use std::time::Instant;
+use std::time::{Instant, SystemTime};
 
 use serde::Serialize;
 use serde_json::{Value, json};
 
 use crate::address::{Address, End, LineRange, pinned, rev_field};
+use crate::cache::{Cache, Key};
 use crate::error::Error;
 use crate::escape::strip_cr;
 use crate::output::text::{code_line, header};
@@ -17,7 +18,6 @@ use crate::upstream::{
 
 const DEFAULT_WINDOW: u32 = 500;
 const OPEN_END_SPAN: i64 = 500_000;
-const CONTENT_LIMIT: u64 = 1_572_864;
 const LIMIT_MESSAGE: &str = "file exceeded size limit";
 
 const COMMIT_TEMPLATE: &str = "\
@@ -131,6 +131,7 @@ pub fn run(
     lines: Option<&LineRange>,
     transport: &dyn Transport,
     deadline: Instant,
+    cache: &Cache,
     notes: &mut Notes,
 ) -> Result<Shown, Error> {
     let window = Window::new(lines);
@@ -138,7 +139,65 @@ pub fn run(
     let envelope = exchange(transport, &request, deadline)?;
     let located = locate(address, &envelope)?;
     let view = View::new(&envelope, &located.at);
-    interpret(&view, &located, &window, transport, deadline, notes)
+    let fetch = Fetch { transport, deadline, cache };
+    interpret(&view, &located, &window, &fetch, notes)
+}
+
+/// What a read through the raw route needs besides the response.
+struct Fetch<'a> {
+    transport: &'a dyn Transport,
+    deadline: Instant,
+    cache: &'a Cache,
+}
+
+impl Fetch<'_> {
+    /// The whole file at `raw`, from the cache when it holds exactly
+    /// `size` bytes for it.
+    fn whole(
+        &self,
+        located: &Located,
+        path: &str,
+        raw: &str,
+        size: u64,
+        notes: &mut Notes,
+    ) -> Result<Vec<u8>, Error> {
+        let key = Key {
+            endpoint: self.cache.endpoint(),
+            repo: &located.repo,
+            commit: &located.commit,
+            path,
+        };
+        let unavailable = |reason| format!("cache unavailable: {reason}");
+        match self.cache.get(&key, size, SystemTime::now()) {
+            Ok(Some(bytes)) => Ok(bytes),
+            Ok(None) => {
+                let bytes = self.download(located, path, raw)?;
+                if bytes.len() as u64 == size
+                    && let Err(reason) = self.cache.put(&key, &bytes)
+                {
+                    notes.push(unavailable(reason));
+                }
+                Ok(bytes)
+            }
+            Err(reason) => {
+                notes.push(unavailable(reason));
+                self.download(located, path, raw)
+            }
+        }
+    }
+
+    fn download(
+        &self,
+        located: &Located,
+        path: &str,
+        raw: &str,
+    ) -> Result<Vec<u8>, Error> {
+        match raw::read(self.transport, raw, self.deadline) {
+            Ok(bytes) => Ok(bytes),
+            Err(RawError::NotFound) => Err(not_found(located, path)),
+            Err(RawError::Failed(error)) => Err(error),
+        }
+    }
 }
 
 fn limit_exceeded(view: &View<'_>, tail: &[&str]) -> bool {
@@ -243,8 +302,7 @@ fn interpret(
     view: &View<'_>,
     located: &Located,
     window: &Window,
-    transport: &dyn Transport,
-    deadline: Instant,
+    fetch: &Fetch<'_>,
     notes: &mut Notes,
 ) -> Result<Shown, Error> {
     let path = located.path.clone().unwrap_or_default();
@@ -299,21 +357,10 @@ fn interpret(
                 .and_then(Value::as_str)
                 .filter(|raw| raw.starts_with('/') && !raw.starts_with("//"))
                 .ok_or_else(|| Error::failed("the file's details"))?;
-            notes.push(format!(
-                "{path} is {} bytes, over GraphQL's {CONTENT_LIMIT}-byte \
-                 content limit; read through the raw route (a second \
-                 request)",
-                shown.byte_size
-            ));
             shown.via_raw = true;
-            let whole = match raw::read(transport, raw, deadline) {
-                Ok(bytes) => String::from_utf8_lossy(&bytes).into_owned(),
-                Err(RawError::NotFound) => {
-                    return Err(not_found(located, &path));
-                }
-                Err(RawError::Failed(error)) => return Err(error),
-            };
-            lines_from(&whole, first)
+            let bytes =
+                fetch.whole(located, &path, raw, shown.byte_size, notes)?;
+            lines_from(&String::from_utf8_lossy(&bytes), first)
         } else {
             view.get(&["body", "content"])
                 .and_then(Value::as_str)
@@ -350,7 +397,12 @@ fn describe(shown: &mut Shown, window: &Window, notes: &mut Notes) {
         } else {
             format!("{start}-{end}")
         };
-        shown.fields.push(format!("lines {range} of {total}"));
+        let rest = if window.shown.is_none() && end < total {
+            " (1- for all)"
+        } else {
+            ""
+        };
+        shown.fields.push(format!("lines {range} of {total}{rest}"));
         if let Some(asked) = &window.shown
             && let End::Line(asked_end) = asked.end
             && asked_end > end

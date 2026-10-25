@@ -2,7 +2,8 @@ use std::fmt::Write as _;
 use std::io;
 
 use super::model::{
-    Chunk, FileItem, Group, Row, Searched, SymbolRow, file_items, rows,
+    Chunk, FileItem, Group, PREVIEW_FILES, PREVIEW_HUNKS, Row, Searched,
+    SymbolRow, file_items, rows,
 };
 use super::query::{Unit, tenths};
 use crate::address::pinned;
@@ -18,8 +19,19 @@ impl Answer for Searched {
     }
 
     fn text(&self) -> String {
-        let (results, printed) = self.results();
-        let mut out = self.summary(printed);
+        let (results, printed, groups) = self.results();
+        let shown = if self.unit == Unit::Commits {
+            let commits = |groups: &[Group]| {
+                groups
+                    .iter()
+                    .filter(|g| matches!(g, Group::Commit { .. }))
+                    .count()
+            };
+            (commits(&self.groups[..groups]), commits(&self.groups))
+        } else {
+            (printed as usize, self.units() as usize)
+        };
+        let mut out = self.summary(shown);
         if let Some(line) = self.widen_line() {
             out.push_str(&line);
         }
@@ -32,9 +44,11 @@ impl Answer for Searched {
 }
 
 impl Searched {
-    fn summary(&self, printed: u32) -> String {
+    /// `shown` is what text printed and what it holds, in the unit.
+    fn summary(&self, shown: (usize, usize)) -> String {
+        let (printed, held) = shown;
         let plus = if self.at_least { "+" } else { "" };
-        let counted = if printed < self.units() {
+        let counted = if printed < held {
             format!("{printed} of {}{plus} {}", self.count, self.unit.plural())
         } else if self.count == 1 && !self.at_least {
             format!("1 {}", self.unit.singular())
@@ -58,7 +72,8 @@ impl Searched {
     }
 
     fn widen_line(&self) -> Option<String> {
-        if !self.is_zero() || self.at_least || self.widen.is_empty() {
+        let zero = self.is_zero() && !self.at_least;
+        if self.widen.is_empty() || !(zero || self.repo_scoped) {
             return None;
         }
         let values: Vec<String> = self
@@ -72,9 +87,11 @@ impl Searched {
         Some(format!("widen  {}\n", values.join("  ")))
     }
 
-    fn results(&self) -> (String, u32) {
+    /// The results text limits, the units printed and the groups printed.
+    fn results(&self) -> (String, u32, usize) {
         let mut out = String::new();
         let mut printed = 0;
+        let mut groups = 0;
         let mut after_lines = false;
         for group in &self.groups {
             if printed >= TEXT_UNITS {
@@ -83,6 +100,7 @@ impl Searched {
             if after_lines {
                 out.push('\n');
             }
+            groups += 1;
             let header_end;
             match group {
                 Group::File {
@@ -115,13 +133,23 @@ impl Searched {
                     lines,
                     highlights,
                     diff,
+                    limited,
                 } => {
+                    let address = pinned(repo, commit, None);
                     out.push_str(&header(
-                        &pinned(repo, commit, None),
+                        &address,
                         &[date.clone(), author.clone(), subject.clone()],
                     ));
                     header_end = out.len();
                     commit_body(&mut out, lines, highlights, *diff);
+                    if *limited {
+                        let _ = writeln!(
+                            out,
+                            "    preview limited to {PREVIEW_FILES} files and \
+                             {PREVIEW_HUNKS} hunks a file; sego diff \
+                             {address} lists every changed file"
+                        );
+                    }
                     printed += group.units();
                 }
                 Group::Repo { repo } => {
@@ -133,7 +161,7 @@ impl Searched {
             }
             after_lines = out.len() > header_end;
         }
-        (out, printed)
+        (out, printed, groups)
     }
 }
 

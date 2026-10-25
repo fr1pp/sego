@@ -2,7 +2,7 @@
 args: diff github.com/gorilla/mux@v1.6.2...v1.7.0 .github
 exit: 0
 --- stdout
-github.com/gorilla/mux@e3702bed27f0...a7962380ca08  2 files  +20 -0  rev v1.6.2...v1.7.0
+github.com/gorilla/mux@e3702bed27f0...a7962380ca08:.github  2 files  +20 -0  rev v1.6.2...v1.7.0
 A  +8 -0  .github/release-drafter.yml
 A  +12 -0  .github/stale.yml
 

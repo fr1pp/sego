@@ -1,0 +1,5 @@
+# A reason of exactly 200 characters inside whitespace: trimmed, and not cut.
+args: search 'repo:sego-fake/rx4@v1 /d/'
+exit: 1
+--- stderr
+sego: error: the search's regular expression doesn't compile: yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy

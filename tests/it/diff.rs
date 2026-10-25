@@ -207,7 +207,7 @@ fn patch_text_and_json() {
     assert_eq!(
         head,
         format!(
-            "{REPO}@{A12}...{B12}  1 file  +6 -0  base {A12}  \
+            "{REPO}@{A12}...{B12}:mux.go  1 file  +6 -0  base {A12}  \
              rev v1.7.0...v1.7.1\n\
              M  +6 -0  mux.go"
         )
@@ -236,6 +236,53 @@ fn a_path_in_the_address_is_an_operand() {
     let (ran, fake) = diff(&[&format!("{REPO}@v1.7.0...v1.7.1:mux.go")]);
     assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
     assert_eq!(variables(&fake)["paths"], json!(["mux.go"]));
+    assert!(
+        out(&ran).starts_with(&format!("{REPO}@{A12}...{B12}:mux.go  1 file")),
+        "{}",
+        out(&ran)
+    );
+}
+
+#[test]
+fn the_header_names_the_paths() {
+    let mut body = answer(&[modified("x.go", (1, 1))], (1, 1));
+    body["data"]["a0"]["commit"] =
+        with_paths(commit(OID_A, None), &[true, true]);
+    body["data"]["b0"]["commit"] =
+        with_paths(commit(OID_B, Some(&[OID_A])), &[true, true]);
+    body["data"]["c0"]["comparison"]["patch"] = json!({"rawDiff": ""});
+    let header = |words: &[&str]| {
+        let ran = run_on(&scripted(&body), words);
+        assert_eq!(ran.code, ExitCode::SUCCESS, "{}", err(&ran));
+        out(&ran).lines().next().unwrap_or_default().to_owned()
+    };
+    let counts = "1 file  +1 -1";
+    let tail = format!("base {A12}  rev v1");
+    assert_eq!(
+        header(&[&format!("{REPO}@v1"), "x.go"]),
+        format!("{REPO}@{A12}...{B12}:x.go  {counts}  {tail}")
+    );
+    assert_eq!(
+        header(&[&format!("{REPO}@v1:x.go"), "x.go", "x.go"]),
+        format!("{REPO}@{A12}...{B12}:x.go  {counts}  {tail}")
+    );
+    assert_eq!(
+        header(&[&format!("{REPO}@v1"), "*.md"]),
+        format!("'{REPO}@{A12}...{B12}:*.md'  {counts}  {tail}")
+    );
+    assert_eq!(
+        header(&[&format!("{REPO}@v1:x.go"), "dir/a b.go"]),
+        format!(
+            "{REPO}@{A12}...{B12}  {counts}  paths x.go 'dir/a b.go'  {tail}"
+        )
+    );
+    assert_eq!(
+        header(&[&format!("{REPO}@v1...v2"), "x.go", "*.md", "y/z.go"]),
+        format!(
+            "{REPO}@{A12}...{B12}  {counts}  paths x.go '*.md' y/z.go  \
+             {tail}...v2"
+        )
+    );
 }
 
 #[test]
@@ -328,7 +375,8 @@ fn a_rename() {
         text.lines().take(2).collect::<Vec<_>>(),
         [
             format!(
-                "{REPO}@{A12}...{B12}  1 file  +1 -1  base {A12}  rev v1...v2"
+                "{REPO}@{A12}...{B12}  1 file  +1 -1  paths old.go new.go  \
+                 base {A12}  rev v1...v2"
             ),
             "R  +1 -1  old.go -> new.go".to_owned(),
         ]
@@ -355,7 +403,8 @@ fn quoted_paths_and_the_patch_as_served() {
     assert_eq!(
         out(&ran),
         format!(
-            "{REPO}@{A12}...{B12}  1 file  +2 -1  base {A12}  rev v1...v2\n\
+            "'{REPO}@{A12}...{B12}:dir/a b.go'  1 file  +2 -1  base {A12}  \
+             rev v1...v2\n\
              M  +2 -1  'dir/a b.go'\n\
              \n\
              \x20   diff --git dir/a b.go dir/a b.go\n\
@@ -627,7 +676,7 @@ fn unchanged_path() {
     assert_eq!(ran.err, b"");
     assert_eq!(
         out(&ran),
-        format!("{REPO}@{A12}...{B12}  0 files  +0 -0  rev v1...v2\n")
+        format!("{REPO}@{A12}...{B12}:same.go  0 files  +0 -0  rev v1...v2\n")
     );
     let ran = run_on(
         &scripted(&body),

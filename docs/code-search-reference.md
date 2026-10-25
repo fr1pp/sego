@@ -165,7 +165,7 @@ Singleton filters may appear only once per `or` branch: `rev:`, `count:`, `case:
 | `archived:` | | `yes`, `only`, `no` | The same, for archived repos. sourcegraph.com holds tens of thousands of archived repos, all excluded unless `archived:yes`, `archived:only` or the exact-repository exemption applies. |
 | `visibility:` | | `any`, `public`, `private` | Filter by repo visibility. `visibility:private` returns nothing on sourcegraph.com. Unknown values are ignored. |
 | `context:` | | context name | Search a named set of repos (see below). |
-| `index:` | | `yes`, `only`, `no` | `yes` (default) uses the index where it exists and unindexed search elsewhere. `only` searches only indexed revisions, so a tag usually returns nothing. `no` searches files directly, which also reads files the index skipped for too many trigrams. Other values return an alert. |
+| `index:` | | `yes`, `only`, `no` | `yes` (default) uses the index where it exists and unindexed search elsewhere. `only` searches only indexed revisions, so a tag usually returns nothing. `no` searches files directly, which also reads files the index skipped for too many trigrams. The values are case-sensitive, and the server's yes/no/only reading also takes its boolean spellings: `y`, `Y`, `yes`, `YES`, `Yes` and the true ones (`1`, `t`, `true`, …) are yes; `n`, `N`, `no`, `NO`, `No` and `0`, `f`, `F`, `false`, `FALSE`, `False` are no; `o`, `only`, `ONLY`, `Only` are only. Other values return an alert. |
 
 **`context:`.** A search context is a named set of repositories, possibly at specific revisions, or a saved query such as `repo:^github\.com/celo-org/`.
 

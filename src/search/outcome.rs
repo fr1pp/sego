@@ -16,6 +16,9 @@ const LISTED: usize = 3;
 const PROCESS_FAILURE: &str = "Unable To Process Query";
 const REVISIONS: &str = "Some revisions could not be searched";
 const NO_REPOSITORIES: &str = "No repositories found";
+const PINNED: &str = "at a pinned revision the search can't tell which files it skipped; files over 1 MiB are never searched";
+const UNLISTED: &str = "the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched";
+const UNLISTED_INDEX_NO: &str = "the search can't tell which files it skipped; files over 1 MiB are never searched";
 
 pub fn judge(searched: &Searched, notes: &mut Notes) -> Result<(), Error> {
     if let Some(alert) = &searched.alert {
@@ -29,7 +32,14 @@ pub fn judge(searched: &Searched, notes: &mut Notes) -> Result<(), Error> {
                 return Err(revisions(alert));
             }
             if alert.title == NO_REPOSITORIES {
-                return Err(proposals(alert, Error::missing(&alert.title)));
+                let error = proposals(alert, Error::missing(&alert.title));
+                return Err(match &searched.repo_names {
+                    Some(names) => error.fact(format!(
+                        "sego search {} lists the matching repositories",
+                        shell_word(names)
+                    )),
+                    None => error,
+                });
             }
         }
     }
@@ -80,6 +90,12 @@ fn proposals(alert: &AlertOut, mut error: Error) -> Error {
 }
 
 fn push_notes(searched: &Searched, notes: &mut Notes) {
+    if let Some(note) = &searched.flag_note
+        && searched.is_zero()
+        && !searched.at_least
+    {
+        notes.push(note);
+    }
     if let Some(alert) = &searched.alert {
         match description(alert) {
             Some(text) => notes.push(format!("{}: {text}", alert.title)),
@@ -104,22 +120,62 @@ fn push_notes(searched: &Searched, notes: &mut Notes) {
             n => notes.push(format!("{n} results of kind {kind} not shown")),
         }
     }
+    if let Some(cap) = searched.select_cut {
+        notes.push(format!(
+            "at a pinned revision, select: keeps only what each repository's first {cap} matches hold; count:all gives every one"
+        ));
+    }
     if let Some((first, rest)) = unindexed_note(searched) {
         notes.push_lines(first, rest);
     }
+    if let Some(note) = unlisted_note(searched) {
+        notes.push(note);
+    }
+}
+
+/// The note on a content search that can't list the files it skipped, for
+/// a zero or a complete answer. At a pin it is only for a zero: hits show
+/// the files were searched, and a file over 1 MiB they miss goes unsaid.
+fn unlisted_note(searched: &Searched) -> Option<&'static str> {
+    if searched.unindexed.is_some()
+        || !searched.content_search
+        || searched.stopped
+        || searched.at_least
+    {
+        return None;
+    }
+    Some(if searched.pinned {
+        if searched.count > 0 {
+            return None;
+        }
+        PINNED
+    } else if searched.index_no {
+        UNLISTED_INDEX_NO
+    } else {
+        UNLISTED
+    })
 }
 
 /// The note on the text files in scope that the search index doesn't hold,
-/// for a zero or a complete answer; a lower bound or a stopped answer says
-/// nothing about them. A path is relative only when the results and the
-/// files are all in one repository, which the results already name.
+/// and the search didn't read, for a zero or a complete answer; a lower
+/// bound or a stopped answer says nothing about them. A path is relative
+/// only when the results and the files are all in one repository, which
+/// the results already name.
 pub fn unindexed_note(searched: &Searched) -> Option<(String, Vec<String>)> {
-    let files = searched.unindexed.as_deref().filter(|f| !f.is_empty())?;
     if searched.stopped || searched.at_least {
         return None;
     }
+    let files: Vec<&UnindexedFile> = searched
+        .unindexed
+        .iter()
+        .flatten()
+        .filter(|file| !searched.index_no || file.bytes > MIB)
+        .collect();
+    if files.is_empty() {
+        return None;
+    }
     let (mut over, mut dense): (Vec<&UnindexedFile>, Vec<&UnindexedFile>) =
-        files.iter().partition(|file| file.bytes > MIB);
+        files.iter().copied().partition(|file| file.bytes > MIB);
     over.sort_by_key(|file| std::cmp::Reverse(file.bytes));
     dense.sort_by_key(|file| std::cmp::Reverse(file.bytes));
     let reasons: Vec<String> = [

@@ -8,7 +8,8 @@ use sego::internal::search::query::prepare;
 use sego::internal::search::response::{Item, UnindexedFile};
 use sego::internal::search::{Fetched, OPERATION, fetch, request};
 use sego::internal::upstream::{
-    Endpoint, GRAPHQL_PATH, Reply, Request, Transport, Var, top_level,
+    Endpoint, GRAPHQL_PATH, Reply, Request, Transport, TransportError, Var,
+    top_level,
 };
 
 use crate::support::exec::{Ran, exec};
@@ -302,7 +303,12 @@ fn run_order() {
     assert_eq!(ran.code, ExitCode::SUCCESS);
     assert_eq!(
         String::from_utf8_lossy(&ran.err),
-        format!("{LINT}sego: note: Heads up: be careful\n")
+        format!(
+            "{LINT}sego: note: Heads up: be careful\n\
+             sego: note: the search can't tell which files it skipped; \
+             files over 1 MiB and files with too many distinct trigrams are \
+             never searched\n"
+        )
     );
     assert!(String::from_utf8_lossy(&ran.out).contains("github.com/a/b"));
     assert_eq!(fake.calls().len(), 1);
@@ -405,6 +411,34 @@ fn fetch_errors() {
         );
         assert!(!text.contains("boom"), "{name}");
         assert!(!text.contains("search failed"), "{name}");
+    }
+}
+
+#[test]
+fn a_search_past_the_deadline_points_to_a_narrower_scope() {
+    const REFUSED: &str =
+        "sego: error: could not reach sourcegraph.com: connection refused\n";
+    const POINTED: &str = "sego: error: no answer from sourcegraph.com \
+                           within 90 s\n  repo:, lang: or file: narrows \
+                           what the search reads\n";
+    let late = || Err(TransportError::Deadline);
+    let table = [
+        ("lang:python foo count:all timeout:60s", late(), POINTED),
+        ("foo count:100", late(), POINTED),
+        ("foo timeout:30s", late(), POINTED),
+        ("foo", late(), POINTED),
+        (
+            "foo count:100",
+            Err(TransportError::Network("connection refused")),
+            REFUSED,
+        ),
+    ];
+    for (query, reply, expected) in table {
+        let fake = Fake::scripted(vec![reply]);
+        let error = fetch(&prepare(query), &fake, deadline())
+            .err()
+            .unwrap_or_else(|| panic!("{query}: answered"));
+        assert_eq!(rendered(&error), expected, "{query}");
     }
 }
 

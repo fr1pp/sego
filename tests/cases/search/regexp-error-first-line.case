@@ -1,0 +1,5 @@
+# A regexp error over two lines: the first line only.
+args: search 'repo:sego-fake/rx3@v1 /c/'
+exit: 1
+--- stderr
+sego: error: the search's regular expression doesn't compile: missing closing ): `(a`

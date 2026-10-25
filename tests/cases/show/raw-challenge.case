@@ -1,6 +1,5 @@
-# A Cloudflare challenge on the raw read is reported as the edge's refusal, below the raw-route note.
+# A Cloudflare challenge on the raw read is reported as the edge's refusal.
 args: show github.com/azadkuh/sqlite-amalgamation@15d0ff10ebc7e7225eced1de84bb52137000899b:sqlite3.c 1-4
 exit: 1
 --- stderr
-sego: note: sqlite3.c is 8462111 bytes, over GraphQL's 1572864-byte content limit; read through the raw route (a second request)
 sego: error: sourcegraph.com's edge refused the request (HTTP 429, Cloudflare challenge)

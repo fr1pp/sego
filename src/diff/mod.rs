@@ -43,6 +43,8 @@ pub struct Diffed {
     deleted: u64,
     files: Vec<FileRow>,
     patch: Option<String>,
+    #[serde(skip)]
+    paths: Vec<String>,
 }
 
 impl Diffed {
@@ -60,18 +62,27 @@ impl Answer for Diffed {
     }
 
     fn text(&self) -> String {
-        let lead = shell_word(&format!(
+        let mut address = format!(
             "{}@{}...{}",
             self.repo,
             short(&self.commit_a),
             short(&self.commit_b)
-        ))
-        .into_owned();
+        );
+        if let [path] = self.paths.as_slice() {
+            address.push(':');
+            address.push_str(path);
+        }
+        let lead = shell_word(&address).into_owned();
         let printed = self.files.len().min(TEXT_ROWS);
         let mut fields = vec![
             files_field(printed, self.files_total),
             format!("+{} -{}", self.added, self.deleted),
         ];
+        if self.paths.len() > 1 {
+            let words: Vec<_> =
+                self.paths.iter().map(|path| shell_word(path)).collect();
+            fields.push(format!("paths {}", words.join(" ")));
+        }
         fields.extend(
             self.base.as_deref().map(|b| format!("base {}", short(b))),
         );
@@ -298,5 +309,6 @@ pub fn run(
         deleted,
         files: rows(nodes),
         patch,
+        paths: paths.to_vec(),
     })
 }

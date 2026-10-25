@@ -1,9 +1,11 @@
 use std::time::Duration;
 
 use sego::internal::search::lint::{Token, tokenize};
+use sego::internal::search::plan::plan;
 use sego::internal::search::query::{
-    Unit, cap, deadline_ms, duration_text, go_duration, lower_bound,
-    pattern_type, prepare, tenths, unindexed_query, unit,
+    Unit, cap, content_search, deadline_ms, duration_text, go_duration,
+    index_no, lower_bound, prepare, select_cut, select_drops, tenths,
+    unindexed_query, unit,
 };
 
 const OVERFLOW: &str = "340282366920938463463374607431.9s";
@@ -35,10 +37,14 @@ fn pattern_types() {
         ("patterntype:literal patterntype:structural", "structural"),
         ("patterntype:structural patterntype:bogus", "structural"),
         ("PatternType:lucky", "lucky"),
+        ("patterntype:\"regexp\"", "regexp"),
+        ("patterntype:'literal'", "literal"),
+        ("PATTERNTYPE:'structural' foo(...)", "structural"),
+        ("PaTtErNtYpE:regexp", "regexp"),
+        ("patterntype:literal foo (bar or baz)", "keyword"),
     ];
     for (query, expected) in rows {
         assert_eq!(prepare(query).pattern_type, expected, "{query}");
-        assert_eq!(pattern_type(&tokenize(query)), expected, "{query}");
     }
 }
 
@@ -125,14 +131,28 @@ fn unit_from_the_query() {
     let rows = [
         ("repo:x foo select:repo", Unit::Repos),
         ("foo type:repo", Unit::Repos),
-        ("foo SELECT:file.directory", Unit::Files),
+        ("foo SELECT:file.directory", Unit::Directories),
+        ("foo select:file.directory", Unit::Directories),
+        ("foo select:file", Unit::Files),
+        ("foo select:file.path", Unit::Files),
+        ("foo select:file.owners", Unit::Files),
+        ("foo -select:file.directory", Unit::Matches),
+        ("repo:x select:file.directory select:repo", Unit::Repos),
+        ("type:path foo select:file.directory", Unit::Directories),
+        ("foo select:file select:file.directory", Unit::Directories),
         ("type:path foo", Unit::Files),
         (r"repo:x file:\.go$", Unit::Files),
         ("type:symbol Route", Unit::Symbols),
         ("type:symbol type:file Route", Unit::Matches),
         ("(type:symbol X) or (Y type:symbol X)", Unit::Matches),
-        ("repo:x type:commit author:a", Unit::Matches),
-        ("repo:x type:diff", Unit::Matches),
+        ("repo:x type:commit author:a", Unit::Commits),
+        ("repo:x type:diff", Unit::Commits),
+        ("repo:x type:diff type:commit foo", Unit::Commits),
+        ("repo:x type:diff select:repo", Unit::Repos),
+        ("(type:diff foo) or bar", Unit::Matches),
+        ("type:diff type:file foo", Unit::Matches),
+        ("-type:diff foo", Unit::Matches),
+        ("repo:x select:commit foo", Unit::Matches),
         ("type:Symbol foo", Unit::Matches),
         ("-type:symbol foo", Unit::Matches),
         ("-type:path foo", Unit::Matches),
@@ -145,12 +165,21 @@ fn unit_from_the_query() {
         assert_eq!(unit(&t(query)), expected, "{query}");
     }
     assert_eq!(
-        [Unit::Matches, Unit::Symbols, Unit::Files, Unit::Repos]
-            .map(|u| (u.plural(), u.singular())),
+        [
+            Unit::Matches,
+            Unit::Commits,
+            Unit::Symbols,
+            Unit::Files,
+            Unit::Directories,
+            Unit::Repos
+        ]
+        .map(|u| (u.plural(), u.singular())),
         [
             ("matches", "match"),
+            ("commits", "commit"),
             ("symbols", "symbol"),
             ("files", "file"),
+            ("directories", "directory"),
             ("repos", "repo"),
         ],
     );
@@ -181,6 +210,12 @@ fn unindexed_query_for_an_eligible_query() {
             r"repo:x g:team type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\ (exceeds\ the\ maximum\ size\ limit|contains\ too\ many\ trigrams)$ count:all timeout:20s"
         ),
     );
+    assert_eq!(
+        unindexed_query(&t("repo:x@HEAD rev:HEAD foo"), 20_000).as_deref(),
+        Some(
+            r"repo:x@HEAD type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\ (exceeds\ the\ maximum\ size\ limit|contains\ too\ many\ trigrams)$ count:all timeout:20s"
+        ),
+    );
     assert_eq!(duration_text(500), "500ms");
     assert_eq!(duration_text(20_000), "20s");
 }
@@ -194,7 +229,9 @@ fn unindexed_query_absent_when_not_eligible() {
         "repo:x NOT file:test foo",
         "NOT repo:x repo:y foo",
         "repo:x@v1 foo",
+        "repo:x@HEAD:v1 foo",
         "repo:x -r:y@v1 foo",
+        "repo:x -r:y@HEAD foo",
         "repo:x rev:v1 foo",
         "repo:x revision:v1 foo",
         "repo:x type:diff foo",
@@ -224,19 +261,97 @@ fn tenths_rounds_to_one_decimal() {
 #[test]
 fn lower_bound_queries() {
     let rows = [
-        ("repo:x type:diff foo", true),
+        ("repo:x type:diff foo", false),
         ("repo:x SELECT:file.directory foo", true),
         ("repo:x select:file.directory", true),
+        ("repo:x select:file.directory foo count:30", true),
+        ("repo:x select:file.directory foo count:100", true),
+        ("repo:x select:file.directory foo count:5", true),
+        ("repo:x select:file.directory foo count:all", false),
+        ("repo:x select:file.directory foo COUNT:ALL", false),
+        ("repo:x select:file.directory foo count:all count:30", true),
         ("repo:x select:file foo", false),
         ("repo:x select:file.owners foo", false),
         ("repo:x type:commit foo", false),
         ("repo:x -type:diff foo", false),
         ("repo:x -select:file.directory foo", false),
         ("repo:x foo", false),
+        ("foo select:repo", true),
+        ("repo:x foo select:repo", true),
+        (r"repo:^github\.com/gorilla/ foo select:repo", true),
+        (r"repo:^github\.com/gorilla/mux$ foo select:repo", false),
+        (r"repo:^github\.com/gorilla/mux$ foo -select:repo", false),
+        (r"repo:has.file(path:go\.mod) foo select:repo", true),
+        ("type:repo foo", false),
+        // the server reports a cut history search
+        (r"repo:^github\.com/gorilla/ type:commit select:repo", false),
+        ("repo:x type:diff foo select:repo", false),
+        ("repo:x type:commit type:diff foo select:repo", false),
+        ("repo:x type:commit type:file foo select:repo", true),
+        ("repo:x -type:commit foo select:repo", true),
+        ("repo:x type:commit foo or bar select:repo", true),
     ];
     for (query, expected) in rows {
         assert_eq!(prepare(query).lower_bound, expected, "{query}");
-        assert_eq!(lower_bound(&tokenize(query)), expected, "{query}");
+        assert_eq!(
+            lower_bound(&tokenize(query), &plan(query)),
+            expected,
+            "{query}"
+        );
+    }
+}
+
+#[test]
+fn select_cut_queries() {
+    let rows = [
+        ("repo:x@v1 Router select:file", Some(30)),
+        ("repo:x@v1 type:symbol /./ select:symbol.method count:50", Some(50)),
+        ("repo:x rev:v1 foo select:repo", None),
+        ("repo:x@v1 foo select:repo.something", None),
+        ("repo:x@v1 foo select:repo select:file", Some(30)),
+        ("repo:x@HEAD foo select:file", None),
+        ("repo:x rev:HEAD foo select:file", None),
+        ("repo:x revision:HEAD foo select:file", None),
+        ("repo:x@HEAD:v1 foo select:file", Some(30)),
+        ("repo:x@main foo select:file", Some(30)),
+        ("repo:x@head foo select:file", Some(30)),
+        ("repo:x@v1 foo select:file.directory count:5", Some(5)),
+        ("repo:x@v1 foo SELECT:file", Some(30)),
+        ("repo:x@v1 foo select:file count:all", None),
+        ("repo:x foo select:file", None),
+        ("repo:x -rev:v1 foo select:file", None),
+        ("repo:x -r:y@v1 foo select:file", None),
+        ("repo:x@v1 foo -select:file", None),
+        ("repo:x@v1 foo select:file.owners", None),
+        ("repo:x@v1 foo select:file.owners count:50", None),
+        ("repo:x@v1 foo", None),
+        ("repo:x@v1 select:file", None),
+        ("repo:x@v1 type:commit foo select:file", None),
+    ];
+    for (query, expected) in rows {
+        assert_eq!(prepare(query).select_cut, expected, "{query}");
+        assert_eq!(select_cut(&tokenize(query)), expected, "{query}");
+    }
+}
+
+#[test]
+fn select_drops_queries() {
+    let rows = [
+        ("repo:x@v1 type:symbol foo select:symbol", true),
+        ("repo:x@v1 type:symbol foo select:symbol.method", true),
+        ("repo:x@v1 foo select:content", true),
+        ("repo:x@v1 foo select:file", false),
+        ("repo:x@v1 foo select:file.directory", false),
+        ("repo:x@v1 foo select:file.owners", false),
+        ("repo:x@v1 foo select:repo", false),
+        ("repo:x@v1 foo select:content count:all", false),
+        ("repo:x@HEAD foo select:content", false),
+        ("repo:x foo select:content", false),
+        ("repo:x@v1 foo -select:content", false),
+    ];
+    for (query, expected) in rows {
+        assert_eq!(prepare(query).select_drops, expected, "{query}");
+        assert_eq!(select_drops(&tokenize(query)), expected, "{query}");
     }
 }
 
@@ -245,8 +360,9 @@ fn prepared_carries_the_facts() {
     let prepared = prepare("repo:x type:diff foo");
     assert_eq!(prepared.query, "repo:x type:diff foo");
     assert_eq!(prepared.cap, Some(30));
-    assert_eq!(prepared.unit, Unit::Matches);
-    assert!(prepared.lower_bound);
+    assert_eq!(prepared.unit, Unit::Commits);
+    assert!(!prepared.lower_bound);
+    assert!(prepared.diff);
     assert_eq!(prepared.deadline_ms, 20_000);
     assert_eq!(prepared.unindexed, None);
 
@@ -254,5 +370,201 @@ fn prepared_carries_the_facts() {
     assert_eq!(prepared.cap, None);
     assert_eq!(prepared.unit, Unit::Files);
     assert!(!prepared.lower_bound);
+    assert!(!prepared.diff);
     assert!(prepared.unindexed.is_some());
+}
+
+#[test]
+fn pinned_queries() {
+    for q in ["repo:x@v1 foo", "repo:x rev:v1 foo", "repo:x revision:v1 foo"] {
+        let prepared = prepare(q);
+        assert!(prepared.pinned, "{q}");
+        assert_eq!(prepared.unindexed, None, "{q}");
+    }
+    for q in [
+        "repo:x foo",
+        "repo:x@HEAD foo",
+        "repo:x@ foo",
+        "repo:x rev:HEAD foo",
+        "repo:x revision:HEAD foo",
+    ] {
+        let prepared = prepare(q);
+        assert!(!prepared.pinned, "{q}");
+        assert!(prepared.unindexed.is_some(), "{q}");
+    }
+    for q in [
+        "repo:x@HEAD:v1 foo",
+        "repo:x@HEAD rev:v1 foo",
+        "repo:x@head foo",
+        "repo:x@main foo",
+    ] {
+        let prepared = prepare(q);
+        assert!(prepared.pinned, "{q}");
+        assert_eq!(prepared.unindexed, None, "{q}");
+    }
+    for q in [
+        "repo:x@v1 a or b",
+        r"repo:^github\.com/gorilla/mux$@v1.8.0 file:^mux\.go$ (StrictSlash or zzqqxx)",
+        "repo:x rev:v1 NOT foo",
+        "repo:x@v1 repohasfile:y foo",
+        "repo:x@v1 type:file foo",
+        "repo:x@v1 type:symbol foo",
+        "repo:x rev:v1 type:symbol type:file foo",
+    ] {
+        let prepared = prepare(q);
+        assert!(prepared.pinned, "{q}");
+        assert_eq!(prepared.unindexed, None, "{q}");
+    }
+    for q in [
+        "repo:x@v1",
+        "repo:x@v1 type:path foo",
+        "repo:x@v1 type:bogus foo",
+        "repo:x@v1 type:commit foo",
+        "repo:x@v1 type:diff foo",
+        "repo:x@v1 type:repo foo",
+    ] {
+        assert!(!prepare(q).pinned, "{q}");
+    }
+    for q in
+        ["repo:x -r:y@v1 foo", "repo:x -rev:v1 foo", "repo:x -rev:v1 a or b"]
+    {
+        let prepared = prepare(q);
+        assert!(!prepared.pinned, "{q}");
+        assert_eq!(prepared.unindexed, None, "{q}");
+    }
+}
+
+#[test]
+fn repo_scoped_queries() {
+    for q in ["repo:x foo", "r:x foo", r"repo:^github\.com/org/ file:a foo"] {
+        assert!(prepare(q).repo_scoped, "{q}");
+    }
+    for q in ["foo", "-repo:x foo", "file:x foo", "lang:go foo"] {
+        assert!(!prepare(q).repo_scoped, "{q}");
+    }
+}
+
+#[test]
+fn repo_names_queries() {
+    let rows = [
+        (
+            r#"repo:^github\.com/jackc/pgx/v5$@v5.5.5 -file:_test\.go$ "conn busy" timeout:60s"#,
+            Some("repo:pgx type:repo"),
+        ),
+        (r"repo:^github.com/jackc/pgconn$ foo", Some("repo:pgconn type:repo")),
+        (
+            r"repo:^github\.com/expressjs/security-wg$ foo",
+            Some("repo:security-wg type:repo"),
+        ),
+        ("repo:github.com/jackc/pgx/v5 foo", Some("repo:pgx type:repo")),
+        ("repo:jackc/pgx/v5 foo", Some("repo:pgx type:repo")),
+        ("r:jackc/pgx foo", Some("repo:pgx type:repo")),
+        ("REPO:jackc/pgx foo", Some("repo:pgx type:repo")),
+        (r#"repo:"^github\.com/jackc/pgx$" foo"#, Some("repo:pgx type:repo")),
+        (r"repo:^github\.com/jackc/ foo", Some("repo:jackc type:repo")),
+        ("repo:^pgx$ foo", Some("repo:pgx type:repo")),
+        (r"repo:^github\.com/a/b\.js$ foo", Some(r"repo:b\.js type:repo")),
+        ("repo:a/b -repo:c/d foo", Some("repo:b type:repo")),
+        ("repo:jackc/pgx@v5.5.5 foo", Some("repo:pgx type:repo")),
+        (r"repo:^github\.com/a/b\-c$ foo", Some(r"repo:b\-c type:repo")),
+        (
+            r"repo:^github\.com/jackc/pgx$ type:repo",
+            Some("repo:pgx type:repo"),
+        ),
+        // the search would be the value itself
+        ("repo:pgx foo", None),
+        ("repo:pgx@v1 foo", None),
+        ("repo:pgx type:repo", None),
+        // no one positive repo: value
+        ("foo", None),
+        ("-repo:a/b foo", None),
+        ("repo:a/b repo:c/d foo", None),
+        ("repo:a/b foo or repo:c/d bar", None),
+        // the name isn't literal
+        (r"repo:^github\.com/gorilla/(mux|handlers)$ foo", None),
+        (r"repo:^github\.com/ foo", None),
+        ("repo:has.file(path:go.mod) foo", None),
+        ("repo:contains.file(path:a/b) foo", None),
+        ("repo:has.file(path:src/a/b/c.go) foo", None),
+    ];
+    for (q, expected) in rows {
+        assert_eq!(prepare(q).repo_names.as_deref(), expected, "{q}");
+    }
+}
+
+#[test]
+fn content_searches() {
+    for q in [
+        "foo",
+        "repo:x foo",
+        "repo:x a or b",
+        "repo:x NOT foo",
+        "\"foo bar\"",
+        "/foo/",
+        "repo:x type:file foo",
+        "repo:x -type:symbol foo",
+        "repo:x foo select:repo",
+        "repo:x@v1 (a or b)",
+        "type:symbol foo",
+        "repo:x type:symbol foo",
+        "type:symbol type:file foo",
+        "(type:symbol X) or (Y type:symbol X)",
+    ] {
+        assert!(content_search(&t(q)), "{q}");
+        assert!(prepare(q).content_search, "{q}");
+    }
+    for q in [
+        "repo:x",
+        r"repo:x file:\.go$",
+        "repo:x type:path foo",
+        "repo:x type:symbol type:path foo",
+        "repo:x type:bogus foo",
+        "repo:x type:Symbol foo",
+        "repo:x type:repo foo",
+        "repo:x type:commit foo",
+        "repo:x type:diff foo",
+    ] {
+        assert!(!content_search(&t(q)), "{q}");
+        assert!(!prepare(q).content_search, "{q}");
+    }
+}
+
+#[test]
+fn index_no_queries() {
+    for value in
+        ["n", "N", "no", "NO", "No", "0", "f", "F", "false", "FALSE", "False"]
+    {
+        let q = format!("repo:x index:{value} foo");
+        assert!(index_no(&t(&q), &plan(&q)), "{q}");
+        assert!(prepare(&q).index_no, "{q}");
+    }
+    let deep =
+        format!("{}repo:x foo{} index:no", "(".repeat(65), ")".repeat(65));
+    let wide = format!("{} index:no", vec!["(repo:x foo)"; 64].join(" or "));
+    for q in [deep.as_str(), wide.as_str()] {
+        assert!(index_no(&t(q), &plan(q)), "{q}");
+    }
+    for q in [
+        "repo:x INDEX:no foo",
+        "(repo:x index:no foo) or (repo:y index:no bar)",
+        "repo:x index:no foo or bar",
+    ] {
+        assert!(index_no(&t(q), &plan(q)), "{q}");
+    }
+    for q in [
+        "(repo:x index:no foo) or (repo:y bar)",
+        "(repo:x foo) or (repo:y index:no bar)",
+        "repo:x foo",
+        "repo:x index:yes foo",
+        "repo:x index:only foo",
+        "repo:x index:true foo",
+        "repo:x index:1 foo",
+        "repo:x index:nO foo",
+        "repo:x index:fALSE foo",
+        "repo:x index:off foo",
+        "repo:x -index:no foo",
+    ] {
+        assert!(!index_no(&t(q), &plan(q)), "{q}");
+        assert!(!prepare(q).index_no, "{q}");
+    }
 }

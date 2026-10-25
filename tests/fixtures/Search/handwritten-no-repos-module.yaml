@@ -1,0 +1,23 @@
+operation: Search
+variables:
+  query: repo:^github\.com/sego-fake/pgx/v5$@v5.5.5 "conn busy"
+status: 200
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    search:
+      results:
+        matchCount: 0
+        approximateResultCount: "0"
+        limitHit: false
+        timedout: []
+        alert:
+          title: No repositories found
+          description: Try using a different `repo:<regexp>` filter to see results
+          kind: null
+          proposedQueries: null
+        elapsedMilliseconds: 36
+        dynamicFilters: []
+        results: []

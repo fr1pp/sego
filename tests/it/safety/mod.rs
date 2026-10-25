@@ -1,4 +1,4 @@
-use std::ffi::OsString;
+use std::ffi::{OsStr, OsString};
 use std::path::Path;
 use std::process::ExitCode;
 use std::sync::OnceLock;
@@ -67,7 +67,7 @@ fn sego(args: Vec<OsString>) -> Ran {
     let fake = Fake::fixtures(fixtures());
     let connect =
         move |_: Endpoint| -> Box<dyn Transport> { Box::new(fake.clone()) };
-    let ran = exec_os(args, None, &connect);
+    let ran = exec_os(args, None, OsStr::new("off"), &connect);
     Ran {
         code: ran.code,
         out: String::from_utf8(ran.out).unwrap_or_else(|e| panic!("{e}")),

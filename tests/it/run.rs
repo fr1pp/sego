@@ -1,5 +1,6 @@
 use std::cell::Cell;
-use std::ffi::OsString;
+use std::ffi::{OsStr, OsString};
+use std::fs;
 use std::io::{self, Write};
 use std::process::ExitCode;
 use std::time::{Duration, Instant};
@@ -11,12 +12,16 @@ use sego::internal::upstream::{
 };
 use sego::{Env, run};
 
-use crate::support::exec::{Ran, args, exec};
+use crate::support::exec::{Ran, args, exec, exec_os};
 use crate::support::fake::Fake;
 use crate::support::fixture::load_all;
+use tempfile::TempDir;
 
 fn env(endpoint: Option<&str>) -> Env {
-    Env { endpoint: endpoint.map(OsString::from) }
+    Env {
+        endpoint: endpoint.map(OsString::from),
+        cache_dir: Some(OsString::from("off")),
+    }
 }
 
 fn never(_: Endpoint) -> Box<dyn Transport> {
@@ -55,7 +60,9 @@ fn the_endpoint_error_names_the_variable() {
 fn help_and_version_never_connect() {
     let ran = exec(&["--help"], Some("ftp://x"), &never);
     assert_eq!(ran.code, ExitCode::SUCCESS);
-    assert!(ran.out.starts_with(b"sego reads public source code"));
+    assert!(
+        ran.out.starts_with(b"sego searches and reads public source code")
+    );
     assert_eq!(ran.err, b"");
     let ran = exec(&["--version"], None, &never);
     assert_eq!(ran.code, ExitCode::SUCCESS);
@@ -242,11 +249,19 @@ fn show_via(
     words: &[&str],
     script: Vec<Result<Reply, TransportError>>,
 ) -> (Ran, Vec<crate::support::fake::Call>) {
+    show_cached(words, OsStr::new("off"), script)
+}
+
+fn show_cached(
+    words: &[&str],
+    cache_dir: &OsStr,
+    script: Vec<Result<Reply, TransportError>>,
+) -> (Ran, Vec<crate::support::fake::Call>) {
     let fake = Fake::scripted(script);
     let handle = fake.clone();
     let connect =
         move |_: Endpoint| -> Box<dyn Transport> { Box::new(handle.clone()) };
-    let ran = exec(words, None, &connect);
+    let ran = exec_os(args(words), None, cache_dir, &connect);
     (ran, fake.calls())
 }
 
@@ -273,7 +288,7 @@ fn deadline_starts_once() {
             Ok(raw_reply(200, "text/plain", b"1\n2\n3\n4\n5\n")),
         ],
     );
-    assert_eq!(text(&ran.err).lines().count(), 1, "{}", text(&ran.err));
+    assert_eq!(text(&ran.err), "", "{}", text(&ran.err));
     assert_eq!(calls.len(), 2);
     for call in &calls {
         assert!(call.deadline >= before + DEADLINE);
@@ -360,6 +375,31 @@ fn a_file_prints_its_header_and_lines() {
 }
 
 #[test]
+fn the_default_window_says_how_to_read_a_longer_file_whole() {
+    let header = |total: u32| {
+        let mut envelope = file_envelope();
+        let content = "x\n".repeat(total.min(500) as usize);
+        envelope["data"]["r0"]["c0"]["meta"]["totalLines"] = json!(total);
+        envelope["data"]["r0"]["c0"]["body"]["content"] = json!(content);
+        let (ran, _) = show_via(
+            &["show", "github.com/x/y@main:a.go"],
+            vec![Ok(json_reply(&envelope))],
+        );
+        assert_eq!(ran.code, ExitCode::SUCCESS, "{}", text(&ran.err));
+        text(&ran.out).lines().next().unwrap_or_default().to_owned()
+    };
+    assert_eq!(
+        header(500),
+        "github.com/x/y@d81fd54f1a2b:a.go  lines 1-500 of 500  rev main"
+    );
+    assert_eq!(
+        header(501),
+        "github.com/x/y@d81fd54f1a2b:a.go  lines 1-500 of 501 (1- for all)  \
+         rev main"
+    );
+}
+
+#[test]
 fn a_submodule_prints_its_target() {
     let cases = [
         (
@@ -415,6 +455,28 @@ fn a_submodule_in_json() {
 }
 
 #[test]
+fn a_raw_read_says_how_to_read_a_longer_file_whole() {
+    let mut envelope = over_cap_envelope();
+    envelope["data"]["r0"]["c0"]["meta"]["totalLines"] = json!(501);
+    let (ran, calls) = show_via(
+        &["show", "github.com/x/y@main:big.c"],
+        vec![
+            Ok(json_reply(&envelope)),
+            Ok(raw_reply(200, "text/plain", "x\n".repeat(501).as_bytes())),
+        ],
+    );
+    assert_eq!(ran.code, ExitCode::SUCCESS, "{}", text(&ran.err));
+    assert_eq!(calls.len(), 2);
+    assert_eq!(
+        text(&ran.out).lines().next(),
+        Some(
+            "github.com/x/y@d81fd54f1a2b:big.c  lines 1-500 of 501 \
+             (1- for all)  rev main"
+        )
+    );
+}
+
+#[test]
 fn over_the_limit_reads_the_raw_route() {
     let (ran, calls) = show_via(
         &["show", "github.com/x/y@main:big.c", "2-3"],
@@ -424,11 +486,7 @@ fn over_the_limit_reads_the_raw_route() {
         ],
     );
     assert_eq!(ran.code, ExitCode::SUCCESS);
-    assert_eq!(
-        text(&ran.err),
-        "sego: note: big.c is 2000000 bytes, over GraphQL's 1572864-byte \
-         content limit; read through the raw route (a second request)\n"
-    );
+    assert_eq!(text(&ran.err), "");
     assert_eq!(
         text(&ran.out),
         "github.com/x/y@d81fd54f1a2b:big.c  lines 2-3 of 5  CRLF  rev main\n\
@@ -771,10 +829,7 @@ fn the_raw_route_shares_the_refusal_rules() {
 }
 
 #[test]
-fn a_failed_raw_read_still_writes_the_raw_route_note() {
-    let note = "sego: note: big.c is 2000000 bytes, over GraphQL's \
-1572864-byte content limit; read through the raw route (a \
-                second request)\n";
+fn a_failed_raw_read_writes_only_its_error() {
     let cases: Vec<(Result<Reply, TransportError>, &str)> = vec![
         (
             Ok(raw_reply(404, "text/html", b"<html>nope</html>")),
@@ -791,6 +846,199 @@ fn a_failed_raw_read_still_writes_the_raw_route_note() {
             vec![Ok(json_reply(&over_cap_envelope())), raw],
         );
         assert_eq!(ran.code, ExitCode::from(1), "{error}");
-        assert_eq!(text(&ran.err), format!("{note}{error}"));
+        assert_eq!(text(&ran.err), error);
     }
+}
+
+const BODY: &[u8] = b"1\n2\n3\n4\n5\n";
+
+/// An over-cap envelope whose `byteSize` is `BODY`'s length, so the raw
+/// read is cacheable.
+fn fitting_envelope() -> serde_json::Value {
+    let mut envelope = over_cap_envelope();
+    envelope["data"]["r0"]["c0"]["meta"]["byteSize"] = json!(BODY.len());
+    envelope
+}
+
+fn fitting_script() -> Vec<Result<Reply, TransportError>> {
+    vec![
+        Ok(json_reply(&fitting_envelope())),
+        Ok(raw_reply(200, "text/plain", BODY)),
+    ]
+}
+
+const BIG: [&str; 3] = ["show", "github.com/x/y@main:big.c", "1-5"];
+
+fn methods(calls: &[crate::support::fake::Call]) -> Vec<&'static str> {
+    calls.iter().map(|call| call.method).collect()
+}
+
+fn files_under(dir: &std::path::Path) -> Vec<std::path::PathBuf> {
+    let mut files = Vec::new();
+    let Ok(entries) = fs::read_dir(dir) else {
+        return files;
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            files.extend(files_under(&path));
+        } else {
+            files.push(path);
+        }
+    }
+    files
+}
+
+#[test]
+fn a_second_read_uses_the_cache() {
+    let dir = TempDir::new().unwrap();
+    let (first, calls) =
+        show_cached(&BIG, dir.path().as_os_str(), fitting_script());
+    assert_eq!(text(&first.err), "");
+    assert_eq!(first.code, ExitCode::SUCCESS);
+    assert_eq!(methods(&calls), ["POST", "GET"]);
+    assert!(dir.path().join("trim.txt").exists());
+
+    let (second, calls) = show_cached(
+        &BIG,
+        dir.path().as_os_str(),
+        vec![Ok(json_reply(&fitting_envelope()))],
+    );
+    assert_eq!(text(&second.err), "");
+    assert_eq!(second.code, ExitCode::SUCCESS);
+    assert_eq!(methods(&calls), ["POST"]);
+    assert_eq!(text(&second.out), text(&first.out));
+    assert!(text(&second.out).ends_with("5:5\n"), "{}", text(&second.out));
+}
+
+#[test]
+fn a_body_of_the_wrong_length_answers_and_is_not_cached() {
+    let dir = TempDir::new().unwrap();
+    let root = dir.path().join("c");
+    let (ran, calls) = show_cached(
+        &BIG,
+        root.as_os_str(),
+        vec![
+            Ok(json_reply(&over_cap_envelope())),
+            Ok(raw_reply(200, "text/plain", BODY)),
+        ],
+    );
+    assert_eq!(ran.code, ExitCode::SUCCESS);
+    assert_eq!(text(&ran.err), "");
+    assert_eq!(methods(&calls), ["POST", "GET"]);
+    assert!(root.join("CACHEDIR.TAG").exists());
+    assert_eq!(
+        files_under(&root.join("raw")),
+        Vec::<std::path::PathBuf>::new()
+    );
+}
+
+#[test]
+fn an_existing_cache_dir_is_used_untagged() {
+    let dir = TempDir::new().unwrap();
+    let (first, calls) =
+        show_cached(&BIG, dir.path().as_os_str(), fitting_script());
+    assert_eq!(text(&first.err), "");
+    assert_eq!(methods(&calls), ["POST", "GET"]);
+
+    let (second, calls) = show_cached(
+        &BIG,
+        dir.path().as_os_str(),
+        vec![Ok(json_reply(&fitting_envelope()))],
+    );
+    assert_eq!(text(&second.err), "");
+    assert_eq!(methods(&calls), ["POST"]);
+    assert!(!dir.path().join("CACHEDIR.TAG").exists());
+}
+
+#[test]
+fn an_entry_of_the_wrong_length_is_replaced() {
+    let dir = TempDir::new().unwrap();
+    let (_, calls) =
+        show_cached(&BIG, dir.path().as_os_str(), fitting_script());
+    assert_eq!(methods(&calls), ["POST", "GET"]);
+    let entries = files_under(&dir.path().join("raw"));
+    assert_eq!(entries.len(), 1);
+    fs::write(&entries[0], b"short").unwrap();
+
+    let (ran, calls) =
+        show_cached(&BIG, dir.path().as_os_str(), fitting_script());
+    assert_eq!(ran.code, ExitCode::SUCCESS);
+    assert_eq!(text(&ran.err), "");
+    assert_eq!(methods(&calls), ["POST", "GET"]);
+    assert_eq!(files_under(&dir.path().join("raw")), entries);
+    assert_eq!(fs::read(&entries[0]).unwrap(), BODY);
+}
+
+#[test]
+fn a_cache_dir_that_is_a_file_is_noted() {
+    let dir = TempDir::new().unwrap();
+    let file = dir.path().join("file");
+    fs::write(&file, b"").unwrap();
+    let (ran, calls) = show_cached(&BIG, file.as_os_str(), fitting_script());
+    assert_eq!(ran.code, ExitCode::SUCCESS);
+    assert_eq!(
+        text(&ran.err),
+        "sego: note: cache unavailable: not a directory\n"
+    );
+    assert_eq!(methods(&calls), ["POST", "GET"]);
+}
+
+#[test]
+fn a_show_under_the_limit_leaves_the_cache_untouched() {
+    let dir = TempDir::new().unwrap();
+    let (ran, calls) = show_cached(
+        &["show", "github.com/x/y@main:a.go"],
+        dir.path().as_os_str(),
+        vec![Ok(json_reply(&file_envelope()))],
+    );
+    assert_eq!(ran.code, ExitCode::SUCCESS);
+    assert_eq!(text(&ran.err), "");
+    assert_eq!(methods(&calls), ["POST"]);
+    assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 0);
+}
+
+#[cfg(unix)]
+#[test]
+fn an_unwritable_root_notes_once_and_answers() {
+    use std::os::unix::fs::{MetadataExt, PermissionsExt};
+    let dir = TempDir::new().unwrap();
+    if fs::metadata(dir.path()).unwrap().uid() == 0 {
+        return;
+    }
+    let root = dir.path().join("root");
+    fs::create_dir(&root).unwrap();
+    fs::set_permissions(&root, fs::Permissions::from_mode(0o500)).unwrap();
+    let (ran, calls) = show_cached(&BIG, root.as_os_str(), fitting_script());
+    fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).unwrap();
+    assert_eq!(ran.code, ExitCode::SUCCESS);
+    assert_eq!(
+        text(&ran.err),
+        "sego: note: cache unavailable: permission denied\n"
+    );
+    assert!(text(&ran.out).ends_with("5:5\n"), "{}", text(&ran.out));
+    assert_eq!(methods(&calls), ["POST", "GET"]);
+}
+
+#[test]
+fn off_reads_through_every_time() {
+    for _ in 0..2 {
+        let (ran, calls) =
+            show_cached(&BIG, OsStr::new("off"), fitting_script());
+        assert_eq!(ran.code, ExitCode::SUCCESS);
+        assert_eq!(text(&ran.err), "");
+        assert_eq!(methods(&calls), ["POST", "GET"]);
+    }
+}
+
+#[test]
+fn a_relative_cache_dir_is_noted() {
+    let (ran, calls) = show_cached(&BIG, OsStr::new("rel"), fitting_script());
+    assert_eq!(ran.code, ExitCode::SUCCESS);
+    assert_eq!(
+        text(&ran.err),
+        "sego: note: cache unavailable: SEGO_CACHE_DIR is not an absolute \
+         path\n"
+    );
+    assert_eq!(methods(&calls), ["POST", "GET"]);
 }

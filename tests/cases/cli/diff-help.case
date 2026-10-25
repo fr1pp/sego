@@ -1,4 +1,4 @@
-# diff --help prints diff's synopses, operands, options and facts.
+# diff --help prints diff's synopses, operands, options, text and JSON fields.
 args: diff --help
 exit: 0
 --- stdout
@@ -11,12 +11,28 @@ operands:
   REPO@A...B  changes from the merge base of A and B to B, as git
               diff A...B
   REPO@REV    the change REV made, against its first parent
-  PATH...     paths or directory prefixes; the patch comes only for these
+  PATH...     paths or directory prefixes; the file list, counts and patch
+              cover only these
 
 options:
   --json       one JSON document on stdout
   -h, --help   this help, or a command's help after its name
   --version    sego's version
 
-Text prints 200 file rows; --json carries every file.
-With PATH operands, a rename shows as R only when both its paths are named.
+text:
+  REPO@A...B  N files  +A -D  base COMMIT  rev A...B, then a row per
+  file, "STATUS  +A -D  PATH", with STATUS A, D, M or R (OLD -> NEW),
+  then the patch of named paths, indented four spaces. One path joins
+  the header as REPO@A...B:PATH; two or more add "paths P...".
+  Text prints 200 file rows; --json carries every file.
+  With PATH operands, a rename shows as R only when both its paths are
+  named.
+
+json:
+  repo rev_a rev_b commit_a commit_b base files_total added deleted
+  files[{status old_path new_path added deleted}]
+  patch, unindented, or null without PATH
+
+examples:
+  sego diff github.com/gorilla/mux@v1.7.4...v1.8.0
+  sego diff github.com/gorilla/mux@v1.7.4...v1.8.0 mux.go

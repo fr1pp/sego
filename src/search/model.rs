@@ -12,10 +12,16 @@ use crate::escape::strip_cr;
 use crate::output::vocab::symbol_kind;
 
 /// An answer: the facts sego derives, then the results it holds.
+#[expect(
+    clippy::struct_excessive_bools,
+    reason = "independent facts about one answer, not a state machine"
+)]
 pub struct Searched {
     /// The query as written.
     pub query: String,
     pub pattern_type: String,
+    /// `Commits` when the query states it, or when every result is a commit
+    /// and the query states no unit other than `Matches`.
     pub unit: Unit,
     pub count: u64,
     pub at_least: bool,
@@ -27,6 +33,16 @@ pub struct Searched {
     pub widen: Vec<Widen>,
     /// `None` when it isn't known which files the index skipped.
     pub unindexed: Option<Vec<UnindexedFile>>,
+    pub pinned: bool,
+    pub select_cut: Option<u64>,
+    pub content_search: bool,
+    pub index_no: bool,
+    pub repo_scoped: bool,
+    /// The `type:repo` query that lists the repositories named like the
+    /// query's `repo:` value (`query::repo_names`).
+    pub repo_names: Option<String>,
+    /// The note on a `/RE/FLAGS` term, for a zero (`lint::flag_note`).
+    pub flag_note: Option<String>,
     pub alert: Option<AlertOut>,
     /// The `__typename` of each result of a kind sego doesn't read; they
     /// are not in the JSON.
@@ -85,6 +101,9 @@ pub enum Group {
         highlights: Vec<[u32; 3]>,
         /// The match body is a diff, not a commit message.
         diff: bool,
+        /// The diff preview reaches a server limit, so it may be cut: it
+        /// shows 5 files, or 3 hunks of one file.
+        limited: bool,
     },
     Repo {
         repo: String,
@@ -296,19 +315,73 @@ fn build_chunk(raw: RawChunk) -> Chunk {
     Chunk { lines, units }
 }
 
+/// Sourcegraph's gitserver previews at most this many files of a diff, and
+/// this many hunks of each file. The response doesn't say when it cut a
+/// preview.
+pub(crate) const PREVIEW_FILES: u32 = 5;
+pub(crate) const PREVIEW_HUNKS: u32 = 3;
+
+/// The preview reaches a server limit. A hunk's body is the lines after its
+/// header that start with `+`, `-` or a space, until its old and new line
+/// counts are spent; any other line that isn't a hunk header names a file.
+/// A body can hold fewer lines than its counts, so a header ends it early.
+fn preview_limited(body: &[&str]) -> bool {
+    let (mut files, mut hunks) = (0, 0);
+    let (mut old, mut new) = (0_u32, 0_u32);
+    for line in body {
+        if let Some(counts) = hunk_counts(line) {
+            (old, new) = counts;
+            hunks += 1;
+            if hunks >= PREVIEW_HUNKS {
+                return true;
+            }
+            continue;
+        }
+        let in_body = old > 0 || new > 0;
+        match line.as_bytes().first() {
+            Some(b'+') if in_body => new = new.saturating_sub(1),
+            Some(b'-') if in_body => old = old.saturating_sub(1),
+            Some(b' ') if in_body => {
+                old = old.saturating_sub(1);
+                new = new.saturating_sub(1);
+            }
+            _ => {
+                (old, new) = (0, 0);
+                hunks = 0;
+                files += 1;
+                if files >= PREVIEW_FILES {
+                    return true;
+                }
+            }
+        }
+    }
+    false
+}
+
+/// The old and new line counts of a hunk header, `@@ -A,B +C,D @@ ...`,
+/// the form the server always writes.
+fn hunk_counts(line: &str) -> Option<(u32, u32)> {
+    let (ranges, _) = line.strip_prefix("@@ -")?.split_once(" @@")?;
+    let (old, new) = ranges.split_once(" +")?;
+    let lines = |range: &str| range.split_once(',')?.1.parse().ok();
+    Some((lines(old)?, lines(new)?))
+}
+
 /// The body of each match without its fence lines, and the highlights that
 /// land in it, indexed into the pooled `lines`.
 fn commit_group(result: CommitResult) -> Group {
     let mut lines: Vec<String> = Vec::new();
     let mut highlights: Vec<[u32; 3]> = Vec::new();
     let mut diff = false;
+    let mut limited = false;
     for found in &result.matches {
-        diff |= found
+        let is_diff = found
             .body
             .text
             .split('\n')
             .next()
             .is_some_and(|fence| strip_cr(fence).0 == "```diff");
+        diff |= is_diff;
         let mut body: Vec<&str> = found
             .body
             .text
@@ -322,6 +395,7 @@ fn commit_group(result: CommitResult) -> Group {
         if body.last() == Some(&"") {
             body.pop();
         }
+        limited |= is_diff && preview_limited(&body);
         let offset = lines.len();
         for h in &found.highlights {
             let Some(index) = (h.line as usize).checked_sub(1) else {
@@ -352,6 +426,7 @@ fn commit_group(result: CommitResult) -> Group {
         lines,
         highlights,
         diff,
+        limited,
     }
 }
 
@@ -463,6 +538,23 @@ impl Group {
     }
 }
 
+/// The query's unit, or the one its results decide.
+fn unit_of(prepared: &Prepared, groups: &[Group]) -> Unit {
+    let all = |kind: fn(&Group) -> bool| {
+        !groups.is_empty() && groups.iter().all(kind)
+    };
+    if prepared.by_results && all(|group| matches!(group, Group::Repo { .. }))
+    {
+        Unit::Repos
+    } else if (prepared.by_results || prepared.unit == Unit::Matches)
+        && all(|group| matches!(group, Group::Commit { .. }))
+    {
+        Unit::Commits
+    } else {
+        prepared.unit
+    }
+}
+
 impl Searched {
     pub fn new(mut results: Results, prepared: &Prepared) -> Searched {
         let mut slots: Vec<Slot> = Vec::new();
@@ -509,15 +601,14 @@ impl Searched {
                 Slot::Done(group) => group,
             })
             .collect();
-        let unit = if prepared.by_results
-            && !groups.is_empty()
-            && groups.iter().all(|group| matches!(group, Group::Repo { .. }))
-        {
-            Unit::Repos
-        } else {
-            prepared.unit
-        };
-        let answer = counted(&results, prepared, placeholder_ranges);
+        let unit = unit_of(prepared, &groups);
+        let commits = (unit == Unit::Commits).then(|| {
+            groups
+                .iter()
+                .filter(|group| matches!(group, Group::Commit { .. }))
+                .count() as u64
+        });
+        let answer = counted(&results, prepared, placeholder_ranges, commits);
         let repos = groups.iter().map(Group::repo).collect::<HashSet<_>>();
         Searched {
             query: prepared.query.clone(),
@@ -536,6 +627,13 @@ impl Searched {
                 .map(|f| Widen { filter: f.value, repos: f.count })
                 .collect(),
             unindexed: None,
+            pinned: prepared.pinned,
+            select_cut: answer.select_cut,
+            content_search: prepared.content_search,
+            index_no: prepared.index_no,
+            repo_scoped: prepared.repo_scoped,
+            repo_names: prepared.repo_names.clone(),
+            flag_note: prepared.flag_note.clone(),
             alert: results.alert.map(alert_out),
             unshown,
             groups,
@@ -653,6 +751,7 @@ struct CommitRecord<'a> {
     subject: &'a str,
     lines: &'a [String],
     highlights: &'a [[u32; 3]],
+    preview_limited: bool,
 }
 
 fn records<'a>(group: &'a Group) -> Vec<Record<'a>> {
@@ -707,6 +806,7 @@ fn records<'a>(group: &'a Group) -> Vec<Record<'a>> {
             subject,
             lines,
             highlights,
+            limited,
             ..
         } => vec![Record::Commit(CommitRecord {
             repo,
@@ -716,6 +816,7 @@ fn records<'a>(group: &'a Group) -> Vec<Record<'a>> {
             subject,
             lines,
             highlights,
+            preview_limited: *limited,
         })],
         Group::Repo { repo } => vec![Record::Repo { repo }],
     }

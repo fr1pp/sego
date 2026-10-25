@@ -2,4 +2,4 @@
 args: diff github.com/gorilla/mux@v1.7.0...v1.7.1 README.md
 exit: 0
 --- stdout
-github.com/gorilla/mux@a7962380ca08...c5c6c98bc253  0 files  +0 -0  rev v1.7.0...v1.7.1
+github.com/gorilla/mux@a7962380ca08...c5c6c98bc253:README.md  0 files  +0 -0  rev v1.7.0...v1.7.1

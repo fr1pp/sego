@@ -1,0 +1,14 @@
+operation: Search
+variables:
+  query: repo:sego-fake/rx@v1 /(a/
+status: 200
+headers:
+  content-type: application/json
+handwritten: true
+response:
+  data:
+    search: null
+  errors:
+  - message: "error parsing regexp: missing closing ): `(a`"
+    path:
+    - search

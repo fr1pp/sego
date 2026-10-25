@@ -81,6 +81,21 @@ impl Endpoint {
         format!("{}{path}", self.base)
     }
 
+    /// The base URL with a lowercase scheme and host and no `user[:pw]@`,
+    /// so that spellings of one endpoint share a cache.
+    pub fn cache_key(&self) -> String {
+        let (scheme, rest) =
+            self.base.split_once("://").unwrap_or(("", &self.base));
+        let (authority, path) =
+            rest.find('/').map_or((rest, ""), |at| rest.split_at(at));
+        let host_port = authority.rsplit('@').next().unwrap_or_default();
+        format!(
+            "{}://{}{path}",
+            scheme.to_ascii_lowercase(),
+            host_port.to_ascii_lowercase(),
+        )
+    }
+
     /// The base URL's `host[:port]`, without any `user[:pw]@`.
     pub fn host(&self) -> String {
         let (_, rest) =
@@ -91,11 +106,14 @@ impl Endpoint {
 }
 
 fn is_endpoint(text: &str) -> bool {
-    let Some(rest) =
-        text.strip_prefix("http://").or_else(|| text.strip_prefix("https://"))
-    else {
+    let Some((scheme, rest)) = text.split_once("://") else {
         return false;
     };
+    if !scheme.eq_ignore_ascii_case("http")
+        && !scheme.eq_ignore_ascii_case("https")
+    {
+        return false;
+    }
     if text.contains(['?', '#']) || text.chars().any(char::is_whitespace) {
         return false;
     }

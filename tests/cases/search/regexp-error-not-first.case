@@ -1,0 +1,5 @@
+# A regexp error that isn't the message's own start stays generic.
+args: search 'repo:sego-fake/rx6@v1 /f/'
+exit: 1
+--- stderr
+sego: error: Sourcegraph failed to answer the search

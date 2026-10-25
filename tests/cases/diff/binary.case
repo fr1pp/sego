@@ -2,7 +2,7 @@
 args: diff github.com/BurntSushi/cargo-benchcmp@cf84e27337f5c671f622330ed2ee1e36584d5c2e coloured_output_example.png
 exit: 0
 --- stdout
-github.com/BurntSushi/cargo-benchcmp@23d04701228d...cf84e27337f5  1 file  +0 -0  base 23d04701228d
+github.com/BurntSushi/cargo-benchcmp@23d04701228d...cf84e27337f5:coloured_output_example.png  1 file  +0 -0  base 23d04701228d
 M  +0 -0  coloured_output_example.png
 
     diff --git coloured_output_example.png coloured_output_example.png

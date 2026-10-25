@@ -8,5 +8,3 @@ github.com/azadkuh/sqlite-amalgamation@15d0ff10ebc7:sqlite3.c  lines 1-5 of 2393
 3:** version 3.38.2.  By combining all the individual C code files into this
 4:** single large file, the entire code can be compiled as a single translation
 5:** unit.  This allows many compilers to do optimizations that would not be
---- stderr
-sego: note: sqlite3.c is 8462111 bytes, over GraphQL's 1572864-byte content limit; read through the raw route (a second request)

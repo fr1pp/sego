@@ -1,4 +1,5 @@
-# A query with no pattern, only a repo: filter, counts repositories when the server answers with repository results.
+# A query with no pattern, only a repo: filter, counts repositories when the
+# server answers with repository results.
 args: search 'repo:^github\.com/gorilla/mux$'
 exit: 0
 --- stdout
