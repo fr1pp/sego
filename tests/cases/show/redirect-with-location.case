@@ -1,9 +1,9 @@
 # A redirect is reported with its Location.
-args: show example.com/handwritten/mux@v1.8.0:mux.go 21-22
+args: show example.com/acme/router@v1.8.0:mux.go 21-22
 exit: 1
 --- stderr
 sego: error: sourcegraph.com answered HTTP 302 with Location https://sourcegraph.com/sign-in
---- request ShowFile {"end_0":22,"parent_0":"","path_0":"mux.go","repo0":"example.com/handwritten/mux","rev0":"v1.8.0","start_0":21}
+--- request ShowFile {"end_0":22,"parent_0":"","path_0":"mux.go","repo0":"example.com/acme/router","rev0":"v1.8.0","start_0":21}
 --- query
 query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
   r0: repository(name: $repo0) {

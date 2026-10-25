@@ -1,8 +1,8 @@
 # A file of exactly 500 lines needs no pointer to read the rest.
-args: show example.com/handwritten/exact@main:a.go
+args: show example.com/acme/ledger@main:a.go
 exit: 0
 --- stdout
-example.com/handwritten/exact@d81fd54f1a2b:a.go  lines 1-500 of 500  rev main
+example.com/acme/ledger@d81fd54f1a2b:a.go  lines 1-500 of 500  rev main
 1:line 1
 2:line 2
 3:line 3
@@ -503,7 +503,7 @@ example.com/handwritten/exact@d81fd54f1a2b:a.go  lines 1-500 of 500  rev main
 498:line 498
 499:line 499
 500:line 500
---- request ShowFile {"end_0":500,"parent_0":"","path_0":"a.go","repo0":"example.com/handwritten/exact","rev0":"main","start_0":1}
+--- request ShowFile {"end_0":500,"parent_0":"","path_0":"a.go","repo0":"example.com/acme/ledger","rev0":"main","start_0":1}
 --- query
 query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
   r0: repository(name: $repo0) {
@@ -531,7 +531,7 @@ query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: Str
           "binary": false,
           "byteSize": 4392,
           "lfs": null,
-          "rawURL": "/r/example.com/handwritten/exact@d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809/-/raw/a.go",
+          "rawURL": "/r/example.com/acme/ledger@d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809/-/raw/a.go",
           "totalLines": 500
         },
         "oid": "d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809",
@@ -547,7 +547,7 @@ query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: Str
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/exact"
+      "name": "example.com/acme/ledger"
     }
   },
   "errors": [

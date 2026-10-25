@@ -1,9 +1,9 @@
 # A submodule with no URL prints a question mark for its target.
-args: show example.com/handwritten/shell@main:contrib
+args: show example.com/acme/shell@main:contrib
 exit: 0
 --- stdout
-example.com/handwritten/shell@d81fd54f1a2b:contrib  submodule  ?  rev main
---- request ShowFile {"end_0":500,"parent_0":"","path_0":"contrib","repo0":"example.com/handwritten/shell","rev0":"main","start_0":1}
+example.com/acme/shell@d81fd54f1a2b:contrib  submodule  ?  rev main
+--- request ShowFile {"end_0":500,"parent_0":"","path_0":"contrib","repo0":"example.com/acme/shell","rev0":"main","start_0":1}
 --- query
 query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
   r0: repository(name: $repo0) {
@@ -46,7 +46,7 @@ query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: Str
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/shell"
+      "name": "example.com/acme/shell"
     }
   },
   "errors": [

@@ -1,9 +1,9 @@
 # A tree URL of the repository root names the root as a directory.
-args: show https://github.com/example/handwritten/tree/main
+args: show https://github.com/acme/widget/tree/main
 exit: 1
 --- stderr
-sego: error: ./ is a directory at github.com/example/handwritten@d81fd54f1a2b (2 entries)
---- request ShowFile {"end_0":500,"parent_0":"","path_0":"","repo0":"github.com/example/handwritten","rev0":"main","start_0":1}
+sego: error: ./ is a directory at github.com/acme/widget@d81fd54f1a2b (2 entries)
+--- request ShowFile {"end_0":500,"parent_0":"","path_0":"","repo0":"github.com/acme/widget","rev0":"main","start_0":1}
 --- query
 query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
   r0: repository(name: $repo0) {
@@ -52,7 +52,7 @@ query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: Str
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "github.com/example/handwritten"
+      "name": "github.com/acme/widget"
     }
   },
   "errors": [

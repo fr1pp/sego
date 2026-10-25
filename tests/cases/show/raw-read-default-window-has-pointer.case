@@ -1,8 +1,8 @@
 # A raw read of more than 500 lines says how to read the file whole.
-args: show example.com/handwritten/big@main:big.c
+args: show example.com/acme/widget@main:big.c
 exit: 0
 --- stdout
-example.com/handwritten/big@d81fd54f1a2b:big.c  lines 1-500 of 501 (1- for all)  rev main
+example.com/acme/widget@d81fd54f1a2b:big.c  lines 1-500 of 501 (1- for all)  rev main
 1:line 1
 2:line 2
 3:line 3
@@ -503,7 +503,7 @@ example.com/handwritten/big@d81fd54f1a2b:big.c  lines 1-500 of 501 (1- for all) 
 498:line 498
 499:line 499
 500:line 500
---- request ShowFile {"end_0":500,"parent_0":"","path_0":"big.c","repo0":"example.com/handwritten/big","rev0":"main","start_0":1}
+--- request ShowFile {"end_0":500,"parent_0":"","path_0":"big.c","repo0":"example.com/acme/widget","rev0":"main","start_0":1}
 --- query
 query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
   r0: repository(name: $repo0) {
@@ -529,7 +529,7 @@ query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: Str
           "binary": false,
           "byteSize": 2000000,
           "lfs": null,
-          "rawURL": "/r/example.com/handwritten/big@d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809/-/raw/big.c",
+          "rawURL": "/r/example.com/acme/widget@d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809/-/raw/big.c",
           "totalLines": 501
         },
         "oid": "d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809",
@@ -545,7 +545,7 @@ query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: Str
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/big"
+      "name": "example.com/acme/widget"
     }
   },
   "errors": [
@@ -577,5 +577,5 @@ query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: Str
     }
   ]
 }
---- request GET /r/example.com/handwritten/big@d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809/-/raw/big.c
+--- request GET /r/example.com/acme/widget@d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809/-/raw/big.c
 --- response 200 text/plain; charset=utf-8

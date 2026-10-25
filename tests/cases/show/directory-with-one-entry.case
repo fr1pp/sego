@@ -1,9 +1,9 @@
 # A directory with one entry says entry in the singular.
-args: show example.com/handwritten/dir@main:docs
+args: show example.com/acme/docs@main:docs
 exit: 1
 --- stderr
-sego: error: docs is a directory at example.com/handwritten/dir@d81fd54f1a2b (1 entry)
---- request ShowFile {"end_0":500,"parent_0":"","path_0":"docs","repo0":"example.com/handwritten/dir","rev0":"main","start_0":1}
+sego: error: docs is a directory at example.com/acme/docs@d81fd54f1a2b (1 entry)
+--- request ShowFile {"end_0":500,"parent_0":"","path_0":"docs","repo0":"example.com/acme/docs","rev0":"main","start_0":1}
 --- query
 query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
   r0: repository(name: $repo0) {
@@ -45,7 +45,7 @@ query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: Str
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/dir"
+      "name": "example.com/acme/docs"
     }
   },
   "errors": [
