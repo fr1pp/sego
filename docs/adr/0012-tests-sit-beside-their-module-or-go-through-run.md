@@ -13,5 +13,6 @@ The library exports `run` and what it takes (`Env`, `Endpoint`, `Transport`, `Re
 modules for tests put two thirds of the suite past the interface, in one flat file per module,
 where a refactor broke tests far from the code it changed.
 
-A test that checks only the request a command sends is needed only where no case's exchange
-pins it.
+A case's exchanges pin the shape of each request: the runner fails a request whose operation,
+variables or query differ from the next exchange. A test that checks only the request a command
+sends is needed only where no case pins it.
