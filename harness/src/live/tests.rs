@@ -141,6 +141,36 @@ fn a_changed_shape_fails_naming_the_exchange() {
 }
 
 #[test]
+fn a_difference_the_second_answer_does_not_repeat_is_not_drift() {
+    let case = parse(&[graphql(
+        &format!("200 {STAMP}"),
+        r#"{"data":{"r0":{"name":"a"}}}"#,
+    )]);
+    let server = Server::answering(vec![
+        reply(200, None, br#"{"data":{"r0":null}}"#),
+        reply(200, None, br#"{"data":{"r0":{"name":"a"}}}"#),
+    ]);
+    assert_eq!(server.check(&case), Vec::<String>::new());
+    assert_eq!(server.asked().len(), 2);
+}
+
+#[test]
+fn a_difference_the_second_answer_repeats_fails_once() {
+    let case = parse(&[graphql(
+        &format!("200 {STAMP}"),
+        r#"{"data":{"r0":{"name":"a"}}}"#,
+    )]);
+    let server = Server::answering(vec![
+        reply(200, None, br#"{"data":{"r0":null}}"#),
+        reply(200, None, br#"{"data":{"r0":null}}"#),
+    ]);
+    let failures = server.check(&case);
+    assert_eq!(failures.len(), 1);
+    assert!(failures[0].starts_with("x.case: exchange 1 Refs: shape:"));
+    assert_eq!(server.asked().len(), 2);
+}
+
+#[test]
 fn values_are_compared_only_when_the_response_is_marked() {
     let recorded = r#"{"data":{"r0":{"name":"a"}}}"#;
     let case = parse(&[graphql(&format!("200 {STAMP}"), recorded)]);

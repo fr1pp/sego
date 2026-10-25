@@ -17,6 +17,7 @@ case's expectations, and the request of any exchange that isn't recorded; a reco
 request changed must be recorded again.
 
 `just live` re-sends every recorded request to sourcegraph.com and fails when the response's shape
-changes or new errors appear, or, for a response marked `live: values`, when its values change.
-Because those requests are the operations sego sends, this is also the schema check, and sego needs
-no GraphQL validator.
+changes or new errors appear, or, for a response marked `live: values`, when its values change. A
+difference counts only if a second answer shows it too, since sourcegraph.com now and then leaves
+out part of a search's answer. Because those requests are the operations sego sends, this is also
+the schema check, and sego needs no GraphQL validator.

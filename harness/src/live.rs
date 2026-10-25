@@ -22,7 +22,9 @@ pub(crate) type Connect<'a> =
 
 /// What differs between the case's recorded responses and what the server
 /// answers to the same requests now. A response without a stamp is not sent
-/// for.
+/// for. A difference counts only if a second answer shows one too:
+/// sourcegraph.com now and then answers a search without parts it usually
+/// sends, such as its filters.
 pub(crate) fn check(case: &Case, connect: Connect) -> Vec<String> {
     let mut failures = Vec::new();
     for (i, exchange) in case.exchanges.iter().enumerate() {
@@ -35,8 +37,11 @@ pub(crate) fn check(case: &Case, connect: Connect) -> Vec<String> {
             continue;
         };
         let result = connect(&stamp.endpoint).and_then(|transport| {
-            let reply = send(transport.as_ref(), request)?;
-            compare(case, exchange, stamp.live_values, &reply)
+            let answer = || {
+                let reply = send(transport.as_ref(), request)?;
+                compare(case, exchange, stamp.live_values, &reply)
+            };
+            answer().or_else(|first| answer().map_err(|_| first))
         });
         if let Err(found) = result {
             failures.push(format!("{name} {}: {found}", describe(request)));
