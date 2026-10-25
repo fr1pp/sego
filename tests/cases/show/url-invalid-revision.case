@@ -1,0 +1,24 @@
+# A URL whose only revision reading is not a valid revision resolves nothing.
+args: show github.com/o/r/blob/-x/f
+exit: 1
+--- stderr
+sego: error: no revision and path in -x/f resolve in github.com/o/r
+--- request ShowFile {"repo0":"github.com/o/r"}
+--- query
+query ShowFile($repo0: String!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/o/r"
+    }
+  }
+}

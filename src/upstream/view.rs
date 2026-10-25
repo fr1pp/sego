@@ -49,3 +49,6 @@ impl<'a> View<'a> {
         self.envelope.error_beneath(&self.path(tail)).is_some()
     }
 }
+
+#[cfg(test)]
+mod tests;

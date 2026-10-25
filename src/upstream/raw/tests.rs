@@ -1,76 +1,81 @@
-use std::cell::Cell;
-use std::time::Instant;
-
-use crate::error::report;
-use crate::upstream::{Reply, Transport, TransportError};
+use std::time::{Duration, Instant};
 
 use super::{RawError, read};
+use crate::error::Kind;
+use crate::upstream::script::{Script, reply};
+use crate::upstream::{Reply, TransportError};
 
-struct Answers(Cell<Option<Reply>>);
-
-impl Transport for Answers {
-    fn post(
-        &self,
-        _: &str,
-        _: &[u8],
-        _: Instant,
-    ) -> Result<Reply, TransportError> {
-        unreachable!("a raw read does not post")
-    }
-
-    fn get(&self, _: &str, _: Instant) -> Result<Reply, TransportError> {
-        Ok(self.0.take().expect("one raw read per transport"))
-    }
-}
-
-fn reply(status: u16, content_type: Option<&str>) -> Reply {
-    Reply {
-        status,
-        content_type: content_type.map(str::to_owned),
-        location: None,
-        retry_after: None,
-        cf_mitigated: None,
-        body: b"x".to_vec(),
+fn failure(answer: Result<Reply, TransportError>) -> (Kind, String) {
+    let script = Script::new(vec![answer]);
+    let deadline = Instant::now() + Duration::from_secs(90);
+    match read(&script, "/r/x/-/raw/a", deadline) {
+        Err(RawError::Failed(error)) => (error.kind(), error.to_string()),
+        other => panic!("{other:?}"),
     }
 }
 
 #[test]
+fn a_200_answer_is_the_body() {
+    let script =
+        Script::new(vec![Ok(reply(200, Some("text/plain"), "a\nb\n"))]);
+    let deadline = Instant::now() + Duration::from_secs(90);
+    let body = read(&script, "/r/x/-/raw/a", deadline);
+    assert_eq!(body.unwrap_or_default(), b"a\nb\n");
+    let calls = script.calls();
+    assert_eq!(calls.len(), 1);
+    assert_eq!(
+        (calls[0].method, calls[0].path.as_str()),
+        ("GET", "/r/x/-/raw/a")
+    );
+    assert_eq!(calls[0].deadline, deadline);
+}
+
+#[test]
+fn a_404_is_not_found() {
+    let script =
+        Script::new(vec![Ok(reply(404, Some("text/html"), "<html>"))]);
+    let deadline = Instant::now() + Duration::from_secs(90);
+    let result = read(&script, "/r/x/-/raw/a", deadline);
+    assert!(matches!(result, Err(RawError::NotFound)), "{result:?}");
+}
+
+#[test]
+fn everything_else_is_a_failure() {
+    assert_eq!(
+        failure(Ok(reply(200, Some("text/html; charset=utf-8"), "<html>"))),
+        (
+            Kind::Upstream,
+            "sourcegraph.com answered HTTP 200 text/html".to_owned()
+        )
+    );
+    assert_eq!(
+        failure(Ok(reply(502, Some("text/plain"), "bad"))),
+        (Kind::Upstream, "sourcegraph.com answered HTTP 502".to_owned())
+    );
+    assert_eq!(failure(Err(TransportError::Deadline)).0, Kind::Deadline);
+}
+
+#[test]
 fn a_raw_read_refuses_what_every_reply_refuses() {
-    let located =
-        Reply { location: Some("/login".to_owned()), ..reply(302, None) };
-    let throttled = Reply {
-        retry_after: Some("30".to_owned()),
-        ..reply(503, Some("text/plain"))
-    };
-    let table = [
-        (located, "sourcegraph.com answered HTTP 302 with Location /login"),
+    let mut challenge = reply(429, Some("text/html"), "<html>");
+    challenge.cf_mitigated = Some("challenge".to_owned());
+    assert_eq!(
+        failure(Ok(challenge)),
         (
-            reply(302, None),
-            "sourcegraph.com answered HTTP 302 with no Location",
-        ),
-        (throttled, "sourcegraph.com answered HTTP 503\n  Retry-After: 30"),
+            Kind::Edge,
+            "sourcegraph.com's edge refused the request (HTTP 429, \
+             Cloudflare challenge)"
+                .to_owned()
+        )
+    );
+    let mut moved = reply(302, None, "");
+    moved.location = Some("/login".to_owned());
+    assert_eq!(
+        failure(Ok(moved)),
         (
-            reply(200, Some("text/html; charset=utf-8")),
-            "sourcegraph.com answered HTTP 200 text/html",
-        ),
-        (
-            reply(403, Some("text/html")),
-            "sourcegraph.com's edge refused the request (HTTP 403, \
-             Cloudflare challenge)",
-        ),
-    ];
-    for (given, expected) in table {
-        let transport = Answers(Cell::new(Some(given)));
-        let Err(RawError::Failed(error)) =
-            read(&transport, "/raw", Instant::now())
-        else {
-            panic!("{expected}: the raw read did not fail");
-        };
-        let mut written = Vec::new();
-        report(&error, &mut written).expect("a vector takes a write");
-        assert_eq!(
-            String::from_utf8_lossy(&written),
-            format!("sego: error: {expected}\n")
-        );
-    }
+            Kind::Upstream,
+            "sourcegraph.com answered HTTP 302 with Location /login"
+                .to_owned()
+        )
+    );
 }

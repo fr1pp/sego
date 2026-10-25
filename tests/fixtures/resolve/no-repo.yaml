@@ -1,7 +1,0 @@
-operation: ResolveNoRepo
-headers:
-  content-type: application/json
-handwritten: true
-response:
-  data:
-    r0: null

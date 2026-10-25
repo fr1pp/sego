@@ -11,7 +11,6 @@ use super::replay;
 pub struct Call {
     pub method: &'static str,
     pub path: String,
-    pub deadline: Instant,
     pub body: Vec<u8>,
 }
 
@@ -30,21 +29,13 @@ struct Inner {
 #[derive(Clone)]
 pub struct Fake {
     inner: Arc<Mutex<Inner>>,
-    host: Option<String>,
 }
 
 impl Fake {
     fn with(source: Source) -> Fake {
         Fake {
             inner: Arc::new(Mutex::new(Inner { source, calls: Vec::new() })),
-            host: None,
         }
-    }
-
-    /// Reports `host` from `Transport::host` instead of the default.
-    pub fn named(mut self, host: &str) -> Fake {
-        self.host = Some(host.to_owned());
-        self
     }
 
     /// Answers each request with the next queued result; an empty queue is a
@@ -67,14 +58,12 @@ impl Fake {
         method: &'static str,
         path: &str,
         body: &[u8],
-        deadline: Instant,
     ) -> Result<Reply, TransportError> {
         let mut inner =
             self.inner.lock().unwrap_or_else(PoisonError::into_inner);
         inner.calls.push(Call {
             method,
             path: path.to_owned(),
-            deadline,
             body: body.to_vec(),
         });
         match &mut inner.source {
@@ -89,24 +78,16 @@ impl Fake {
 }
 
 impl Transport for Fake {
-    fn host(&self) -> String {
-        self.host.clone().unwrap_or_else(|| "sourcegraph.com".to_owned())
-    }
-
     fn post(
         &self,
         path: &str,
         body: &[u8],
-        deadline: Instant,
+        _: Instant,
     ) -> Result<Reply, TransportError> {
-        self.request("POST", path, body, deadline)
+        self.request("POST", path, body)
     }
 
-    fn get(
-        &self,
-        path: &str,
-        deadline: Instant,
-    ) -> Result<Reply, TransportError> {
-        self.request("GET", path, &[], deadline)
+    fn get(&self, path: &str, _: Instant) -> Result<Reply, TransportError> {
+        self.request("GET", path, &[])
     }
 }
