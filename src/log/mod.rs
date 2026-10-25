@@ -455,3 +455,6 @@ fn range(
         commits,
     })
 }
+
+#[cfg(test)]
+mod tests;
