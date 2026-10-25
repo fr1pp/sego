@@ -1,4 +1,3 @@
-mod commit;
 mod diff;
 mod drift;
 mod error;
