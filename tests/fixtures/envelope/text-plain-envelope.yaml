@@ -1,9 +1,0 @@
-operation: EnvelopeTextPlainEnvelope
-status: 200
-headers:
-  content-type: text/plain
-handwritten: true
-response:
-  data:
-    r0:
-      name: x

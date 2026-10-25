@@ -1,7 +1,0 @@
-operation: EnvelopeChallengeText
-status: 403
-headers:
-  content-type: text/plain
-  cf-mitigated: challenge
-handwritten: true
-response: Forbidden

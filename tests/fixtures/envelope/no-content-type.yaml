@@ -1,7 +1,0 @@
-operation: EnvelopeNoContentType
-status: 200
-handwritten: true
-response:
-  data:
-    r0:
-      name: x

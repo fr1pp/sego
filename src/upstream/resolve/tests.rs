@@ -1,14 +1,13 @@
-use serde_json::json;
+use serde_json::{Value, json};
 
-use sego::internal::address::{Address, Dots, Repo, Rev, UrlKind, parse};
-use sego::internal::error::{Error, report};
-use sego::internal::upstream::{
-    Candidate, Envelope, Located, Plan, RepoAt, RepoPlan, Root, Var, build,
-    build_repository, candidates, classify, locate, locate_repository,
-    missing_revisions,
+use super::{
+    Candidate, Located, Plan, RepoAt, RepoPlan, Root, Var, build,
+    build_repository, candidates, locate, locate_repository,
 };
-
-use crate::support::fixture::reply;
+use crate::address::{Address, Dots, Repo, Rev, UrlKind, parse};
+use crate::error::{Error, report};
+use crate::upstream::envelope::{Envelope, classify};
+use crate::upstream::script::reply;
 
 const SHA: &str = "98cb6bf42e086f6af920b965c38cacc07402d51b";
 
@@ -156,26 +155,6 @@ query Toy($repo0: String!, $rev0: String!, $rev1: String!, $rev2: String!, $rev3
 }
 
 #[test]
-fn body_is_the_graphql_envelope() {
-    let request =
-        build(&toy(), &address("github.com/gorilla/mux@v1.8.0:mux.go"));
-    let body: serde_json::Value = serde_json::from_slice(&request.body())
-        .unwrap_or_else(|e| panic!("{e}"));
-    assert_eq!(
-        body,
-        json!({
-            "query": request.document,
-            "variables": {
-                "repo0": "github.com/gorilla/mux",
-                "rev0": "v1.8.0",
-                "path_0": "mux.go",
-            },
-            "operationName": "Toy",
-        })
-    );
-}
-
-#[test]
 fn placeholders_are_renamed_whole_word() {
     fn vars(_: &Candidate) -> Vec<Var> {
         vec![
@@ -305,18 +284,64 @@ fn hex_and_tilde_prefixes_get_ref_lookups() {
     assert!(!request.document.contains("g0:"), "{}", request.document);
 }
 
-fn envelope(name: &str) -> Envelope {
-    classify(reply(&format!("resolve/{name}")), "sourcegraph.com")
-        .unwrap_or_else(|e| panic!("{name}: {e}"))
+const GLIBC: &str =
+    "https://github.com/bminor/glibc/blob/release/2.34/master/NEWS";
+
+const LOOKUP: &str = "Sourcegraph failed to answer the repository lookup";
+
+const REVISION_LOOKUP: &str =
+    "Sourcegraph failed to answer the revision lookup";
+
+fn envelope_on(host: &str, data: &Value, errors: &[Value]) -> Envelope {
+    let body = json!({"data": data, "errors": errors});
+    classify(reply(200, Some("application/json"), &body.to_string()), host)
+        .unwrap_or_else(|e| panic!("{e}"))
 }
 
-fn on_host(fixture: &str, token: &str, host: &str) -> String {
-    let envelope = classify(reply(&format!("resolve/{fixture}")), host)
-        .unwrap_or_else(|e| panic!("{fixture}: {e}"));
-    match locate(&address(token), &envelope) {
-        Ok(found) => panic!("{fixture}: located {found:?}"),
-        Err(error) => rendered(&error),
+fn envelope(data: &Value, errors: &[Value]) -> Envelope {
+    envelope_on("sourcegraph.com", data, errors)
+}
+
+fn failing(path: &Value) -> Value {
+    json!({"message": "internal git failure", "path": path})
+}
+
+/// A repository root with its name and default branch, plus the fields of
+/// `rest`.
+fn repository(name: &str, branch: Option<&str>, rest: &Value) -> Value {
+    let mut root = json!({
+        "name": name,
+        "defaultBranch": branch.map(|b| json!({"displayName": b})),
+    });
+    if let (Some(root), Some(rest)) = (root.as_object_mut(), rest.as_object())
+    {
+        root.extend(rest.clone());
     }
+    root
+}
+
+fn mux(rest: &Value) -> Value {
+    repository("github.com/gorilla/mux", Some("main"), rest)
+}
+
+fn glibc(rest: &Value) -> Value {
+    repository("github.com/bminor/glibc", Some("master"), rest)
+}
+
+/// A split candidate that resolves, with the kind of path at `x`.
+fn resolved(x: &str, kind: Option<&str>) -> Value {
+    json!({"oid": SHA, x: kind.map(|k| json!({"__typename": k}))})
+}
+
+fn found() -> Envelope {
+    envelope(
+        &json!({"r0": mux(&json!({"c0": {"oid": SHA}})), "r1": null}),
+        &[],
+    )
+}
+
+fn root_error() -> Envelope {
+    envelope(&json!({"r0": null}), &[failing(&json!(["r0"]))])
 }
 
 fn rendered(error: &Error) -> String {
@@ -325,14 +350,14 @@ fn rendered(error: &Error) -> String {
     String::from_utf8(out).unwrap_or_else(|e| panic!("{e}"))
 }
 
-fn located(fixture: &str, token: &str) -> Located {
-    locate(&address(token), &envelope(fixture))
-        .unwrap_or_else(|e| panic!("{fixture}: {}", rendered(&e)))
+fn located(envelope: &Envelope, token: &str) -> Located {
+    locate(&address(token), envelope)
+        .unwrap_or_else(|e| panic!("{}", rendered(&e)))
 }
 
-fn refused(fixture: &str, token: &str) -> String {
-    match locate(&address(token), &envelope(fixture)) {
-        Ok(found) => panic!("{fixture}: located {found:?}"),
+fn refused(envelope: &Envelope, token: &str) -> String {
+    match locate(&address(token), envelope) {
+        Ok(found) => panic!("located {found:?}"),
         Err(error) => rendered(&error),
     }
 }
@@ -344,7 +369,7 @@ fn at(parts: &[&str]) -> Vec<String> {
 #[test]
 fn locate_cases() {
     assert_eq!(
-        located("found", "gorilla/mux@v1.8.0:mux.go"),
+        located(&found(), "gorilla/mux@v1.8.0:mux.go"),
         Located {
             repo: "github.com/gorilla/mux".to_owned(),
             commit: SHA.to_owned(),
@@ -354,12 +379,13 @@ fn locate_cases() {
         }
     );
     assert_eq!(
-        located("found", "gorilla/mux:mux.go").rev,
+        located(&found(), "gorilla/mux:mux.go").rev,
         None,
         "the default branch carries no rev"
     );
 
-    let blocked = refused("no-repo", "github.com/facebook/react");
+    let no_repo = envelope(&json!({"r0": null}), &[]);
+    let blocked = refused(&no_repo, "github.com/facebook/react");
     assert!(
         blocked
             .contains("github.com/facebook/react is not on sourcegraph.com"),
@@ -374,37 +400,67 @@ fn locate_cases() {
         "{blocked}"
     );
     assert!(
-        refused("no-repo", "gorilla/mux")
+        refused(&no_repo, "gorilla/mux")
             .contains("gorilla/mux is not on sourcegraph.com")
     );
 
-    let elsewhere = on_host("no-repo", "github.com/x/y", "h:1");
+    let elsewhere = envelope_on("h:1", &json!({"r0": null}), &[]);
+    let elsewhere = refused(&elsewhere, "github.com/x/y");
     assert!(elsewhere.contains("github.com/x/y is not on h:1"), "{elsewhere}");
     assert!(
         elsewhere.contains("sourcegraph.com serves indexed repositories from"),
         "{elsewhere}"
     );
 
-    assert!(refused("both-hosts", "gorilla/mux").contains(
+    let both_hosts = envelope(
+        &json!({
+            "r0": mux(&json!({"c0": {"oid": SHA}})),
+            "r1": repository(
+                "gitlab.com/gorilla/mux",
+                Some("master"),
+                &json!({"c0": {"oid": SHA}}),
+            ),
+        }),
+        &[],
+    );
+    assert!(refused(&both_hosts, "gorilla/mux").contains(
         "gorilla/mux exists as github.com/gorilla/mux and \
          gitlab.com/gorilla/mux"
     ));
+    let no_rev =
+        envelope(&json!({"r0": mux(&json!({"c0": null})), "r1": null}), &[]);
     assert!(
-        refused("no-rev", "gorilla/mux@v9.9")
+        refused(&no_rev, "gorilla/mux@v9.9")
             .contains("revision v9.9 not found in github.com/gorilla/mux")
     );
+    let empty_repo = envelope(
+        &json!({"r0": repository(
+            "github.com/ascoders/blog",
+            None,
+            &json!({"c0": null}),
+        )}),
+        &[],
+    );
     assert!(
-        refused("empty-repo", "github.com/ascoders/blog")
+        refused(&empty_repo, "github.com/ascoders/blog")
             .contains("github.com/ascoders/blog has no commits")
     );
 }
 
 #[test]
 fn locate_splits() {
-    let glibc =
-        "https://github.com/bminor/glibc/blob/release/2.34/master/NEWS";
+    let split = envelope(
+        &json!({"r0": glibc(&json!({
+            "c0": resolved("x0", None),
+            "g0": null,
+            "c1": resolved("x1", None),
+            "c2": resolved("x2", Some("GitBlob")),
+            "c3": null,
+        }))}),
+        &[],
+    );
     assert_eq!(
-        located("split", glibc),
+        located(&split, GLIBC),
         Located {
             repo: "github.com/bminor/glibc".to_owned(),
             commit: SHA.to_owned(),
@@ -413,11 +469,30 @@ fn locate_splits() {
             at: at(&["r0", "c2"]),
         }
     );
-    let found = located("split-error", glibc);
+
+    let errored = envelope(
+        &json!({"r0": glibc(&json!({
+            "c0": resolved("x0", None),
+            "c1": null,
+            "c2": resolved("x2", None),
+            "c3": null,
+        }))}),
+        &[json!({"message": "internal", "path": ["r0", "c2", "x2"]})],
+    );
+    let found = located(&errored, GLIBC);
     assert_eq!(found.rev.as_deref(), Some("release/2.34/master"));
     assert_eq!(found.path.as_deref(), Some("NEWS"));
 
-    let none = refused("split-none", glibc);
+    let none = envelope(
+        &json!({"r0": glibc(&json!({
+            "c0": resolved("x0", None),
+            "c1": null,
+            "c2": null,
+            "c3": null,
+        }))}),
+        &[],
+    );
+    let none = refused(&none, GLIBC);
     assert!(
         none.contains(
             "no revision and path in release/2.34/master/NEWS resolve in \
@@ -429,73 +504,96 @@ fn locate_splits() {
 
 #[test]
 fn locate_split_hex() {
-    let found = located("split-hex", "github.com/o/r/blob/main/v~1");
+    let prefix = envelope(
+        &json!({"r0": repository("github.com/o/r", Some("main"), &json!({
+            "c0": resolved("x0", Some("GitBlob")),
+            "c1": resolved("x1", Some("GitTree")),
+            "g1": {"nodes": []},
+        }))}),
+        &[],
+    );
+    let found = located(&prefix, "github.com/o/r/blob/main/v~1");
     assert_eq!(found.rev.as_deref(), Some("main"));
     assert_eq!(found.path.as_deref(), Some("v~1"));
     assert_eq!(found.at, at(&["r0", "c0"]));
 
-    let found =
-        located("split-hex-alone", "github.com/o/r/blob/abcd1234/f.go");
+    let alone = envelope(
+        &json!({"r0": repository("github.com/o/r", Some("main"), &json!({
+            "c0": resolved("x0", Some("GitBlob")),
+            "g0": {"nodes": []},
+            "c1": null,
+        }))}),
+        &[],
+    );
+    let found = located(&alone, "github.com/o/r/blob/abcd1234/f.go");
     assert_eq!(found.rev.as_deref(), Some("abcd1234"));
     assert_eq!(found.path.as_deref(), Some("f.go"));
 }
 
 #[test]
-fn locate_with_no_valid_candidates() {
-    let a = split_address(&["-x"]);
-    let e = locate(&a, &envelope("found"));
-    match e {
-        Ok(found) => panic!("{found:?}"),
-        Err(error) => assert!(
-            rendered(&error).contains("no revision and path in -x resolve in"),
-            "{}",
-            rendered(&error)
-        ),
-    }
-}
-
-#[test]
 fn errors_are_not_missing_things() {
-    let root = refused("root-error", "github.com/gorilla/mux");
-    assert!(
-        root.contains("Sourcegraph failed to answer the repository lookup"),
-        "{root}"
-    );
+    let root = refused(&root_error(), "github.com/gorilla/mux");
+    assert!(root.contains(LOOKUP), "{root}");
     assert!(!root.contains("internal git failure"), "{root}");
-    let commit = refused("commit-error", "github.com/gorilla/mux@v1");
-    assert!(
-        commit.contains("Sourcegraph failed to answer the revision lookup"),
-        "{commit}"
+
+    let commit_error = envelope(
+        &json!({"r0": mux(&json!({"c0": null}))}),
+        &[failing(&json!(["r0", "c0"]))],
     );
+    let commit = refused(&commit_error, "github.com/gorilla/mux@v1");
+    assert!(commit.contains(REVISION_LOOKUP), "{commit}");
     assert!(!commit.contains("internal git failure"), "{commit}");
 
-    let glibc =
-        "https://github.com/bminor/glibc/blob/release/2.34/master/NEWS";
-    let split = refused("split-commit-error", glibc);
-    assert!(
-        split.contains("Sourcegraph failed to answer the revision lookup"),
-        "{split}"
+    let split_error = envelope(
+        &json!({"r0": glibc(&json!({
+            "c0": null, "c1": null, "c2": null, "c3": null,
+        }))}),
+        &[failing(&json!(["r0", "c1"]))],
     );
-    let found = located("split-commit-error-wins", glibc);
+    let split = refused(&split_error, GLIBC);
+    assert!(split.contains(REVISION_LOOKUP), "{split}");
+
+    let resolved_beside_error = envelope(
+        &json!({"r0": glibc(&json!({
+            "c0": resolved("x0", None),
+            "c1": null,
+            "c2": resolved("x2", Some("GitBlob")),
+            "c3": null,
+        }))}),
+        &[failing(&json!(["r0", "c1"]))],
+    );
+    let found = located(&resolved_beside_error, GLIBC);
     assert_eq!(found.rev.as_deref(), Some("release/2.34/master"));
 }
 
 #[test]
 fn empty_repository_through_a_split() {
-    let blocked = refused(
-        "split-empty",
-        "https://github.com/bminor/glibc/blob/release/2.34/master/NEWS",
+    let empty = envelope(
+        &json!({"r0": repository(
+            "github.com/bminor/glibc",
+            None,
+            &json!({"c0": null, "c1": null, "c2": null, "c3": null}),
+        )}),
+        &[],
     );
+    let blocked = refused(&empty, GLIBC);
     assert!(blocked.contains("github.com/bminor/glibc has no commits"));
 }
 
 #[test]
 fn canonical_name_falls_back_to_the_candidate() {
+    let unnamed = || {
+        json!({
+            "defaultBranch": {"displayName": "main"},
+            "c0": {"oid": SHA},
+        })
+    };
+    let no_name = envelope(&json!({"r0": unnamed(), "r1": unnamed()}), &[]);
     assert_eq!(
-        located("no-name", "github.com/gorilla/mux@v1").repo,
+        located(&no_name, "github.com/gorilla/mux@v1").repo,
         "github.com/gorilla/mux"
     );
-    assert!(refused("no-name", "gorilla/mux").contains(
+    assert!(refused(&no_name, "gorilla/mux").contains(
         "gorilla/mux exists as github.com/gorilla/mux and \
          gitlab.com/gorilla/mux"
     ));
@@ -503,35 +601,51 @@ fn canonical_name_falls_back_to_the_candidate() {
 
 #[test]
 fn an_errored_name_falls_back() {
-    assert_eq!(
-        located("errored-name", "github.com/x/y@v1").repo,
-        "github.com/x/y"
+    let errored = envelope(
+        &json!({"r0": repository(
+            "github.com/X/Y",
+            Some("main"),
+            &json!({"c0": {"oid": SHA}}),
+        )}),
+        &[failing(&json!(["r0", "name"]))],
     );
+    assert_eq!(located(&errored, "github.com/x/y@v1").repo, "github.com/x/y");
 }
 
 #[test]
 fn an_errored_oid_is_unresolved() {
-    let lookup = "Sourcegraph failed to answer the revision lookup";
-    let blocked = refused("errored-oid", "github.com/gorilla/mux@v1");
-    assert!(blocked.contains(lookup), "{blocked}");
+    let errored = envelope(
+        &json!({"r0": mux(&json!({"c0": {"oid": SHA}}))}),
+        &[failing(&json!(["r0", "c0", "oid"]))],
+    );
+    let blocked = refused(&errored, "github.com/gorilla/mux@v1");
+    assert!(blocked.contains(REVISION_LOOKUP), "{blocked}");
     assert!(!blocked.contains("not found"), "{blocked}");
 }
 
 #[test]
 fn an_error_inside_a_null_commit_failed() {
-    let lookup = "Sourcegraph failed to answer the revision lookup";
-    let blocked =
-        refused("null-commit-oid-error", "github.com/gorilla/mux@v1");
-    assert!(blocked.contains(lookup), "{blocked}");
+    let errored = envelope(
+        &json!({"r0": mux(&json!({"c0": null}))}),
+        &[failing(&json!(["r0", "c0", "oid"]))],
+    );
+    let blocked = refused(&errored, "github.com/gorilla/mux@v1");
+    assert!(blocked.contains(REVISION_LOOKUP), "{blocked}");
     assert!(!blocked.contains("not found"), "{blocked}");
 }
 
 #[test]
 fn a_resolved_candidate_keeps_its_expected_errors() {
-    let none = refused(
-        "split-resolved-expected-errors",
-        "https://github.com/bminor/glibc/blob/release/2.34/master/NEWS",
+    let expected = envelope(
+        &json!({"r0": glibc(&json!({
+            "c0": {"oid": SHA, "meta": null, "x0": null},
+            "c1": null,
+            "c2": null,
+            "c3": null,
+        }))}),
+        &[failing(&json!(["r0", "c0", "meta"]))],
     );
+    let none = refused(&expected, GLIBC);
     assert!(
         none.contains(
             "no revision and path in release/2.34/master/NEWS resolve in \
@@ -542,31 +656,142 @@ fn a_resolved_candidate_keeps_its_expected_errors() {
 }
 
 #[test]
-fn only_splits_look_up_refs() {
-    for token in ["github.com/a/b@abcd1234:f", "github.com/a/b@main~1:f"] {
-        let request = build(&toy(), &address(token));
-        assert!(!request.document.contains("g0:"), "{}", request.document);
-    }
-}
-
-#[test]
 fn one_host_failing_is_not_one_host_existing() {
-    let lookup = "Sourcegraph failed to answer the repository lookup";
-    let blocked = refused("one-host-error", "gorilla/mux");
-    assert!(blocked.contains(lookup), "{blocked}");
+    let one_host = envelope(
+        &json!({"r0": mux(&json!({"c0": {"oid": SHA}})), "r1": null}),
+        &[failing(&json!(["r1"]))],
+    );
+    let blocked = refused(&one_host, "gorilla/mux");
+    assert!(blocked.contains(LOOKUP), "{blocked}");
     assert!(!blocked.contains("internal git failure"), "{blocked}");
 }
 
 #[test]
 fn failed_default_branch_is_not_an_empty_repository() {
-    let lookup = "Sourcegraph failed to answer the repository lookup";
-    let single = refused("branch-error", "github.com/ascoders/blog");
-    assert!(single.contains(lookup), "{single}");
-    let split = refused(
-        "split-branch-error",
-        "https://github.com/bminor/glibc/blob/release/2.34/master/NEWS",
+    let single = envelope(
+        &json!({"r0": repository(
+            "github.com/ascoders/blog",
+            None,
+            &json!({"c0": null}),
+        )}),
+        &[failing(&json!(["r0", "defaultBranch"]))],
     );
-    assert!(split.contains(lookup), "{split}");
+    let single = refused(&single, "github.com/ascoders/blog");
+    assert!(single.contains(LOOKUP), "{single}");
+
+    let split = envelope(
+        &json!({"r0": repository(
+            "github.com/bminor/glibc",
+            None,
+            &json!({"c0": null, "c1": null, "c2": null, "c3": null}),
+        )}),
+        &[failing(&json!(["r0", "defaultBranch"]))],
+    );
+    let split = refused(&split, GLIBC);
+    assert!(split.contains(LOOKUP), "{split}");
+}
+
+fn repo_refused(envelope: &Envelope, token: &str) -> String {
+    match locate_repository(&repo_of(token), envelope, &repo_plan()) {
+        Ok(found) => panic!("located {}", found.repo),
+        Err(error) => rendered(&error),
+    }
+}
+
+#[test]
+fn repository_lookup_errors() {
+    let none = envelope(&json!({"r0": null, "r1": null}), &[]);
+    let blocked = repo_refused(&none, "gorilla/mux");
+    assert!(
+        blocked.contains("gorilla/mux is not on sourcegraph.com"),
+        "{blocked}"
+    );
+    assert!(
+        blocked.contains(
+            "sourcegraph.com serves indexed repositories from github.com, \
+             gitlab.com and a few other hosts; a renamed repository appears \
+             only under its new name"
+        ),
+        "{blocked}"
+    );
+
+    let both_hosts = envelope(
+        &json!({
+            "r0": mux(&json!({})),
+            "r1": repository("gitlab.com/gorilla/mux", Some("master"), &json!({})),
+        }),
+        &[],
+    );
+    let both = repo_refused(&both_hosts, "gorilla/mux");
+    assert!(
+        both.contains(
+            "gorilla/mux exists as github.com/gorilla/mux and \
+             gitlab.com/gorilla/mux"
+        ),
+        "{both}"
+    );
+
+    let one_host = envelope(
+        &json!({"r0": mux(&json!({})), "r1": null}),
+        &[failing(&json!(["r1"]))],
+    );
+    let one = repo_refused(&one_host, "gorilla/mux");
+    assert!(one.contains(LOOKUP), "{one}");
+}
+
+#[test]
+fn a_null_root_with_errors_beneath_failed() {
+    let null_root =
+        |path: &Value| envelope(&json!({"r0": null}), &[failing(path)]);
+
+    let tags = repo_refused(
+        &null_root(&json!(["r0", "tags", "nodes"])),
+        "github.com/gorilla/mux",
+    );
+    assert!(
+        tags.contains("Sourcegraph failed to answer the tag list"),
+        "{tags}"
+    );
+    assert!(!tags.contains("not on sourcegraph.com"), "{tags}");
+
+    let branches = repo_refused(
+        &null_root(&json!(["r0", "all_branches", "nodes", 3, "target"])),
+        "github.com/gorilla/mux",
+    );
+    assert!(
+        branches.contains("Sourcegraph failed to answer the branch list"),
+        "{branches}"
+    );
+
+    for path in [json!(["r0"]), json!(["r0", "contributors"])] {
+        let lookup = repo_refused(&null_root(&path), "github.com/gorilla/mux");
+        assert!(lookup.contains(LOOKUP), "{path}: {lookup}");
+    }
+
+    let one_host_tags = envelope(
+        &json!({"r0": mux(&json!({})), "r1": null}),
+        &[failing(&json!(["r1", "tags", "nodes"]))],
+    );
+    let one = repo_refused(&one_host_tags, "gorilla/mux");
+    assert!(
+        one.contains("Sourcegraph failed to answer the tag list"),
+        "{one}"
+    );
+
+    let both_null = envelope(
+        &json!({"r0": null, "r1": null}),
+        &[failing(&json!(["r1", "all_tags", "nodes"]))],
+    );
+    let both = repo_refused(&both_null, "gorilla/mux");
+    assert!(both.contains(LOOKUP), "all_tags is not in this table: {both}");
+}
+
+#[test]
+fn only_splits_look_up_refs() {
+    for token in ["github.com/a/b@abcd1234:f", "github.com/a/b@main~1:f"] {
+        let request = build(&toy(), &address(token));
+        assert!(!request.document.contains("g0:"), "{}", request.document);
+    }
 }
 
 const REPO_PARTS: &[(&str, &str)] =
@@ -604,14 +829,6 @@ fn named_plan() -> RepoPlan {
 
 fn repo_of(token: &str) -> Repo {
     address(token).repo
-}
-
-fn repo_refused(fixture: &str, token: &str) -> String {
-    match locate_repository(&repo_of(token), &envelope(fixture), &repo_plan())
-    {
-        Ok(found) => panic!("{fixture}: located {}", found.repo),
-        Err(error) => rendered(&error),
-    }
 }
 
 #[test]
@@ -672,105 +889,37 @@ query Toy($repo0: String!, $repo1: String!, $first: Int!) {
 }"#
     );
 
-    let found = locate_repository(
-        &repo_of("gorilla/mux"),
-        &envelope("repo-found"),
-        &repo_plan(),
-    )
-    .unwrap_or_else(|e| panic!("{}", rendered(&e)));
+    let with_tags = envelope(
+        &json!({
+            "r0": mux(&json!({"tags": {"totalCount": 3}})),
+            "r1": null,
+        }),
+        &[],
+    );
+    let found =
+        locate_repository(&repo_of("gorilla/mux"), &with_tags, &repo_plan())
+            .unwrap_or_else(|e| panic!("{}", rendered(&e)));
     assert_eq!(found.repo, "github.com/gorilla/mux");
     assert_eq!(found.index, 0);
     assert_eq!(found.at("r"), "r0");
 
+    let no_commits = envelope(
+        &json!({"r0": repository(
+            "github.com/ascoders/blog",
+            None,
+            &json!({"tags": {"totalCount": 0}}),
+        )}),
+        &[],
+    );
     let empty = locate_repository(
         &repo_of("github.com/ascoders/blog"),
-        &envelope("repo-empty"),
+        &no_commits,
         &repo_plan(),
     )
     .unwrap_or_else(|e| panic!("{}", rendered(&e)));
     assert_eq!(empty.repo, "github.com/ascoders/blog");
     assert_eq!(empty.index, 0);
     assert_eq!(empty.at("r"), "r0");
-}
-
-#[test]
-fn repository_lookup_errors() {
-    let blocked = repo_refused("repo-none", "gorilla/mux");
-    assert!(
-        blocked.contains("gorilla/mux is not on sourcegraph.com"),
-        "{blocked}"
-    );
-    assert!(
-        blocked.contains(
-            "sourcegraph.com serves indexed repositories from github.com, \
-             gitlab.com and a few other hosts; a renamed repository appears \
-             only under its new name"
-        ),
-        "{blocked}"
-    );
-
-    let both = repo_refused("repo-both-hosts", "gorilla/mux");
-    assert!(
-        both.contains(
-            "gorilla/mux exists as github.com/gorilla/mux and \
-             gitlab.com/gorilla/mux"
-        ),
-        "{both}"
-    );
-
-    let one = repo_refused("repo-one-host-error", "gorilla/mux");
-    assert!(
-        one.contains("Sourcegraph failed to answer the repository lookup"),
-        "{one}"
-    );
-}
-
-#[test]
-fn a_null_root_with_errors_beneath_failed() {
-    let tags = repo_refused("repo-tags-error", "github.com/gorilla/mux");
-    assert!(
-        tags.contains("Sourcegraph failed to answer the tag list"),
-        "{tags}"
-    );
-    assert!(!tags.contains("not on sourcegraph.com"), "{tags}");
-
-    let branches =
-        repo_refused("repo-branches-error", "github.com/gorilla/mux");
-    assert!(
-        branches.contains("Sourcegraph failed to answer the branch list"),
-        "{branches}"
-    );
-
-    for fixture in ["repo-root-error", "repo-unknown-part-error"] {
-        let lookup = repo_refused(fixture, "github.com/gorilla/mux");
-        assert!(
-            lookup.contains(
-                "Sourcegraph failed to answer the repository lookup"
-            ),
-            "{fixture}: {lookup}"
-        );
-    }
-
-    let one = repo_refused("repo-one-host-tags-error", "gorilla/mux");
-    assert!(
-        one.contains("Sourcegraph failed to answer the tag list"),
-        "{one}"
-    );
-
-    let both = repo_refused("repo-both-null-errors", "gorilla/mux");
-    assert!(
-        both.contains("Sourcegraph failed to answer the repository lookup"),
-        "all_tags is not in this table: {both}"
-    );
-}
-
-#[test]
-fn show_names_no_parts_under_a_failed_root() {
-    let lookup = refused("root-error", "github.com/gorilla/mux");
-    assert!(
-        lookup.contains("Sourcegraph failed to answer the repository lookup"),
-        "{lookup}"
-    );
 }
 
 #[test]
@@ -834,9 +983,16 @@ query Named($repo0: String!, $rev: String!) {
 
 #[test]
 fn only_the_establishing_root_decides() {
+    let second_root_error = envelope(
+        &json!({
+            "m0": mux(&json!({"commit": {"oid": SHA}})),
+            "d0": null,
+        }),
+        &[failing(&json!(["d0", "comparison"]))],
+    );
     let found = locate_repository(
         &repo_of("github.com/gorilla/mux"),
-        &envelope("repo-second-root-error"),
+        &second_root_error,
         &named_plan(),
     )
     .unwrap_or_else(|e| panic!("{}", rendered(&e)));
@@ -847,39 +1003,20 @@ fn only_the_establishing_root_decides() {
     assert_eq!(found.at("m"), "m0");
     assert_eq!(found.at("d"), "d0");
 
+    let first_root_error = envelope(
+        &json!({
+            "m0": null,
+            "d0": mux(&json!({"commit": {"oid": SHA}})),
+        }),
+        &[failing(&json!(["m0", "commit"]))],
+    );
     let blocked = match locate_repository(
         &repo_of("github.com/gorilla/mux"),
-        &envelope("repo-first-root-error"),
+        &first_root_error,
         &named_plan(),
     ) {
         Ok(found) => panic!("located {}", found.repo),
         Err(error) => rendered(&error),
     };
-    assert!(
-        blocked.contains("Sourcegraph failed to answer the repository lookup"),
-        "{blocked}"
-    );
-}
-
-#[test]
-fn missing_revision_messages() {
-    let message = |missing: &[(&str, &str)]| {
-        rendered(&missing_revisions("github.com/a/b", missing))
-    };
-    assert!(
-        message(&[("", "v9")])
-            .contains("revision v9 not found in github.com/a/b")
-    );
-    assert!(
-        message(&[("base", "v1")])
-            .contains("base revision v1 not found in github.com/a/b")
-    );
-    assert!(
-        message(&[("head", "v2")])
-            .contains("head revision v2 not found in github.com/a/b")
-    );
-    assert!(
-        message(&[("base", "v1"), ("head", "v2")])
-            .contains("revisions v1 and v2 not found in github.com/a/b")
-    );
+    assert!(blocked.contains(LOOKUP), "{blocked}");
 }
