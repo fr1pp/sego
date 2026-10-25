@@ -9,7 +9,6 @@ mod history_cli;
 mod log;
 mod ls;
 mod ls_cli;
-mod outcome;
 mod output;
 mod quote;
 mod refs;

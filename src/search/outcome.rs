@@ -240,3 +240,6 @@ fn tenths_of(bytes: u64, unit: u64) -> String {
         (u128::from(bytes) * 10 + u128::from(unit) / 2) / u128::from(unit);
     format!("{}.{}", tenths / 10, tenths % 10)
 }
+
+#[cfg(test)]
+mod tests;
