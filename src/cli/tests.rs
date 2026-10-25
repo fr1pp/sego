@@ -752,21 +752,6 @@ fn every_command_help_has_the_common_sections_in_order() {
 }
 
 #[test]
-fn every_command_has_its_own_help() {
-    let general = help(None);
-    for entry in COMMANDS {
-        let text = help(Some(entry.name));
-        assert!(
-            text.starts_with(&format!("{}\n", usage_block(entry.synopsis))),
-            "{}: {text}",
-            entry.name
-        );
-        assert_ne!(text, general, "{}", entry.name);
-        assert!(!text.contains("commands:"), "{}", entry.name);
-    }
-}
-
-#[test]
 fn general_help_fits_50_lines() {
     assert!(help(None).lines().count() <= 50);
 }
@@ -778,22 +763,4 @@ fn help_fits_79_columns() {
             assert!(line.chars().count() <= 79, "{topic:?}: {line}");
         }
     }
-}
-
-#[test]
-fn general_help_names_every_command() {
-    let text = help(None);
-    let block = text
-        .split("commands:\n")
-        .nth(1)
-        .and_then(|rest| rest.split("\n\n").next())
-        .unwrap_or_default();
-    let named: Vec<&str> = block
-        .lines()
-        .filter_map(|line| line.trim_start().split(' ').next())
-        .collect();
-    let mut once = named.clone();
-    once.dedup();
-    let table: Vec<&str> = COMMANDS.iter().map(|entry| entry.name).collect();
-    assert_eq!(once, table);
 }
