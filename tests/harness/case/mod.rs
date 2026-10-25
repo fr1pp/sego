@@ -50,10 +50,19 @@ pub struct Response {
 impl Response {
     fn marker(&self) -> String {
         let mut line = match &self.served {
-            Served::Reply { status, content_type } => {
+            Served::Reply { status, content_type, headers } => {
                 let mut line = format!("--- response {status}");
                 if let Some(content_type) = content_type {
                     let _ = write!(line, " {content_type}");
+                }
+                for (name, value) in [
+                    ("location", &headers.location),
+                    ("retry-after", &headers.retry_after),
+                    ("cf-mitigated", &headers.cf_mitigated),
+                ] {
+                    if let Some(value) = value {
+                        let _ = write!(line, " {name}: {value}");
+                    }
                 }
                 line
             }
@@ -80,8 +89,16 @@ impl Response {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Served {
-    Reply { status: u16, content_type: Option<String> },
+    Reply { status: u16, content_type: Option<String>, headers: Headers },
     Fault(Fault),
+}
+
+/// The response headers besides the content type that sego reads.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Headers {
+    pub location: Option<String>,
+    pub retry_after: Option<String>,
+    pub cf_mitigated: Option<String>,
 }
 
 /// A way the transport fails, written as the response line.
@@ -591,7 +608,7 @@ fn response(rest: &str, body: &str) -> Result<Response, String> {
     if stamp.is_none() && line.split_whitespace().any(|word| word == "live:") {
         return Err(format!("live: needs a recorded response: {line}"));
     }
-    let line = line.trim();
+    let (line, headers) = split_headers(line)?;
     let fault = match line {
         "network error" => Some(Fault::Network),
         "redirect" => Some(Fault::Redirect),
@@ -602,6 +619,9 @@ fn response(rest: &str, body: &str) -> Result<Response, String> {
         if stamp.is_some() {
             return Err(format!("a fault is not recorded: {line}"));
         }
+        if headers != Headers::default() {
+            return Err(format!("a fault has no headers: {rest}"));
+        }
         Served::Fault(fault)
     } else {
         let (status, content_type) =
@@ -610,11 +630,53 @@ fn response(rest: &str, body: &str) -> Result<Response, String> {
             .parse::<u16>()
             .map_err(|_| format!("bad response line: {rest}"))?;
         let content_type = content_type.trim();
+        if stamp.is_some() && headers != Headers::default() {
+            return Err(format!("headers are not recorded: {rest}"));
+        }
         Served::Reply {
             status,
             content_type: (!content_type.is_empty())
                 .then(|| content_type.to_owned()),
+            headers,
         }
     };
     Ok(Response { served, stamp, body: body.to_owned() })
+}
+
+/// The status and content type at the start of a response line, and the
+/// `name: value` headers after them.
+fn split_headers(line: &str) -> Result<(&str, Headers), String> {
+    let is_header = |word: &str| {
+        matches!(word, "location:" | "retry-after:" | "cf-mitigated:")
+    };
+    let mut offset = 0;
+    let mut start = None;
+    for word in line.split(' ') {
+        if is_header(word) {
+            start = Some(offset);
+            break;
+        }
+        offset += word.len() + 1;
+    }
+    let Some(start) = start else {
+        return Ok((line.trim(), Headers::default()));
+    };
+    let mut headers = Headers::default();
+    let mut words = line[start..].split_whitespace();
+    while let Some(name) = words.next() {
+        let slot = match name {
+            "location:" => &mut headers.location,
+            "retry-after:" => &mut headers.retry_after,
+            "cf-mitigated:" => &mut headers.cf_mitigated,
+            _ => return Err(format!("unexpected after the headers: {name}")),
+        };
+        let value = words
+            .next()
+            .filter(|value| !is_header(value))
+            .ok_or_else(|| format!("{name} needs a value: {line}"))?;
+        if slot.replace(value.to_owned()).is_some() {
+            return Err(format!("two {name} headers: {line}"));
+        }
+    }
+    Ok((line[..start].trim(), headers))
 }

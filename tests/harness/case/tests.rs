@@ -2,7 +2,9 @@ use std::path::Path;
 
 use serde_json::json;
 
-use super::{Case, Exchange, Fault, Request, Response, Served, Stamp};
+use super::{
+    Case, Exchange, Fault, Headers, Request, Response, Served, Stamp,
+};
 
 fn parse(text: &str) -> Case {
     Case::parse(text, Path::new("x.case")).unwrap_or_else(|e| panic!("{e}"))
@@ -125,7 +127,8 @@ fn an_exchange_holds_the_request_the_query_and_the_response() {
         exchange.response.served,
         Served::Reply {
             status: 200,
-            content_type: Some("application/json".to_owned())
+            content_type: Some("application/json".to_owned()),
+            headers: Headers::default(),
         }
     );
     assert_eq!(exchange.response.stamp, None);
@@ -149,7 +152,8 @@ fn a_recorded_response_carries_its_stamp() {
         response.served,
         Served::Reply {
             status: 200,
-            content_type: Some("application/json; charset=utf-8".to_owned())
+            content_type: Some("application/json; charset=utf-8".to_owned()),
+            headers: Headers::default(),
         }
     );
     assert_eq!(
@@ -205,9 +209,17 @@ fn the_response_line_takes_a_bare_status_and_the_transport_faults() {
             Served::Reply {
                 status: 200,
                 content_type: Some("text/plain".to_owned()),
+                headers: Headers::default(),
             },
         ),
-        ("502", Served::Reply { status: 502, content_type: None }),
+        (
+            "502",
+            Served::Reply {
+                status: 502,
+                content_type: None,
+                headers: Headers::default(),
+            },
+        ),
         ("network error", Served::Fault(Fault::Network)),
         ("redirect", Served::Fault(Fault::Redirect)),
         ("html challenge", Served::Fault(Fault::HtmlChallenge)),
@@ -217,6 +229,110 @@ fn the_response_line_takes_a_bare_status_and_the_transport_faults() {
         ));
         assert_eq!(case.exchanges[0].response.served, served, "{line}");
     }
+}
+
+#[test]
+fn the_response_line_takes_the_headers_sego_reads() {
+    for (line, status, content_type, headers) in [
+        (
+            "502 retry-after: 30",
+            502,
+            None,
+            Headers {
+                retry_after: Some("30".to_owned()),
+                ..Headers::default()
+            },
+        ),
+        (
+            "302 location: https://sourcegraph.com/sign-in",
+            302,
+            None,
+            Headers {
+                location: Some("https://sourcegraph.com/sign-in".to_owned()),
+                ..Headers::default()
+            },
+        ),
+        (
+            "403 text/html; charset=UTF-8 cf-mitigated: challenge",
+            403,
+            Some("text/html; charset=UTF-8"),
+            Headers {
+                cf_mitigated: Some("challenge".to_owned()),
+                ..Headers::default()
+            },
+        ),
+        (
+            "429 application/json retry-after: 30 location: /x",
+            429,
+            Some("application/json"),
+            Headers {
+                location: Some("/x".to_owned()),
+                retry_after: Some("30".to_owned()),
+                cf_mitigated: None,
+            },
+        ),
+    ] {
+        let text = format!(
+            "args: x\nexit: 0\n--- request GET /r\n--- response {line}\n"
+        );
+        let case = parse(&text);
+        assert_eq!(
+            case.exchanges[0].response.served,
+            Served::Reply {
+                status,
+                content_type: content_type.map(str::to_owned),
+                headers
+            },
+            "{line}"
+        );
+        assert_eq!(case.to_text(), text);
+    }
+}
+
+#[test]
+fn a_header_needs_a_value_and_cannot_repeat_or_follow_a_fault() {
+    for line in [
+        "502 retry-after:",
+        "502 retry-after: 30 retry-after: 60",
+        "502 retry-after: 30 extra",
+        "502 retry-after: 30 text/plain",
+        "network error retry-after: 30",
+        "redirect location: /x",
+        "502 retry-after: 30 recorded 2026-10-07 https://sourcegraph.com",
+    ] {
+        let text = format!(
+            "args: x\nexit: 0\n--- request GET /r\n--- response {line}\n"
+        );
+        assert!(Case::parse(&text, Path::new("x")).is_err(), "{line}");
+    }
+}
+
+#[test]
+fn a_response_is_written_with_its_headers_after_its_content_type() {
+    let mut case = parse("args: x\nexit: 0\n");
+    let exchange = Exchange {
+        request: None,
+        response: Response {
+            served: Served::Reply {
+                status: 429,
+                content_type: Some("text/html".to_owned()),
+                headers: Headers {
+                    location: Some("/x".to_owned()),
+                    retry_after: Some("30".to_owned()),
+                    cf_mitigated: Some("challenge".to_owned()),
+                },
+            },
+            stamp: None,
+            body: String::new(),
+        },
+    };
+    case.set_exchange(0, &exchange).unwrap_or_else(|e| panic!("{e}"));
+    assert_eq!(
+        case.to_text(),
+        "args: x\nexit: 0\n--- response 429 text/html location: /x \
+         retry-after: 30 cf-mitigated: challenge\n"
+    );
+    assert_eq!(case.exchanges, [exchange]);
 }
 
 #[test]
@@ -439,6 +555,7 @@ fn recorded(body: &str) -> Exchange {
             served: Served::Reply {
                 status: 200,
                 content_type: Some("application/json".to_owned()),
+                headers: Headers::default(),
             },
             stamp: Some(Stamp {
                 date: "2026-10-07".to_owned(),
@@ -498,7 +615,11 @@ fn a_raw_read_is_written_with_its_stamp_and_an_empty_body() {
             path: "/r/x".to_owned(),
         }),
         response: Response {
-            served: Served::Reply { status: 404, content_type: None },
+            served: Served::Reply {
+                status: 404,
+                content_type: None,
+                headers: Headers::default(),
+            },
             stamp: Some(Stamp {
                 date: "2026-10-07".to_owned(),
                 endpoint: "https://sourcegraph.com".to_owned(),

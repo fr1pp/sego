@@ -8,7 +8,9 @@ use serde_json::Value;
 use sego::internal::upstream::Ureq;
 use sego::{Endpoint, Reply, Transport, TransportError};
 
-use crate::case::{self, Case, Exchange, Request, Response, Served, Stamp};
+use crate::case::{
+    self, Case, Exchange, Headers, Request, Response, Served, Stamp,
+};
 use crate::replay::Replay;
 use crate::run;
 
@@ -78,6 +80,7 @@ impl Recorder {
                     served: Served::Reply {
                         status: reply.status,
                         content_type: reply.content_type,
+                        headers: Headers::default(),
                     },
                     stamp: Some(self.stamp.clone()),
                     body,
