@@ -1,4 +1,4 @@
-# A permalink URL pins a commit.
+# A blob URL naming a commit is a pinned address.
 args: show https://github.com/gorilla/mux/blob/98cb6bf42e086f6af920b965c38cacc07402d51b/mux.go 1-3
 exit: 0
 --- stdout
