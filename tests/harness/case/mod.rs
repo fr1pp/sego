@@ -67,8 +67,11 @@ impl Response {
                 "--- response html challenge".to_owned()
             }
         };
-        if let Some(Stamp { date, endpoint }) = &self.stamp {
+        if let Some(Stamp { date, endpoint, live_values }) = &self.stamp {
             let _ = write!(line, " recorded {date} {endpoint}");
+            if *live_values {
+                line.push_str(" live: values");
+            }
         }
         line.push('\n');
         line
@@ -89,11 +92,13 @@ pub enum Fault {
     HtmlChallenge,
 }
 
-/// When and where a response was recorded.
+/// When and where a response was recorded, and whether `just live` compares
+/// its values and not only its shape.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Stamp {
     pub date: String,
     pub endpoint: String,
+    pub live_values: bool,
 }
 
 pub fn normalise(query: &str) -> String {
@@ -564,17 +569,28 @@ fn response(rest: &str, body: &str) -> Result<Response, String> {
     let (line, stamp) = match rest.split_once(" recorded ") {
         Some((line, stamp)) => {
             let fields: Vec<&str> = stamp.split_whitespace().collect();
-            let [date, endpoint] = fields[..] else {
-                return Err(format!(
-                    "recorded needs a date and an endpoint: {stamp}"
-                ));
+            let (date, endpoint, live_values) = match fields[..] {
+                [date, endpoint] => (date, endpoint, false),
+                [date, endpoint, "live:", "values"] => (date, endpoint, true),
+                _ => {
+                    return Err(format!(
+                        "recorded needs a date and an endpoint, then \
+                         optionally `live: values`: {stamp}"
+                    ));
+                }
             };
-            let stamp =
-                Stamp { date: date.to_owned(), endpoint: endpoint.to_owned() };
+            let stamp = Stamp {
+                date: date.to_owned(),
+                endpoint: endpoint.to_owned(),
+                live_values,
+            };
             (line, Some(stamp))
         }
         None => (rest, None),
     };
+    if stamp.is_none() && line.split_whitespace().any(|word| word == "live:") {
+        return Err(format!("live: needs a recorded response: {line}"));
+    }
     let line = line.trim();
     let fault = match line {
         "network error" => Some(Fault::Network),

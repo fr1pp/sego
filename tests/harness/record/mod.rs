@@ -40,7 +40,11 @@ impl Recorder {
     pub fn sourcegraph(now: SystemTime) -> Result<Recorder, String> {
         let endpoint =
             Endpoint::from_env(None::<&OsStr>).map_err(|e| e.to_string())?;
-        let stamp = Stamp { date: date(now), endpoint: endpoint.url("") };
+        let stamp = Stamp {
+            date: date(now),
+            endpoint: endpoint.url(""),
+            live_values: false,
+        };
         Ok(Recorder::new(Box::new(Ureq::new(endpoint)), stamp))
     }
 

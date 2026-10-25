@@ -139,8 +139,14 @@ impl State {
         {
             return Ok((written.clone(), None));
         }
+        let live_values = written
+            .and_then(|written| written.response.stamp.as_ref())
+            .is_some_and(|stamp| stamp.live_values);
         match recorder.record(request, forward) {
-            Ok(found) => {
+            Ok(mut found) => {
+                if let Some(stamp) = &mut found.exchange.response.stamp {
+                    stamp.live_values = live_values;
+                }
                 let served = (found.exchange.clone(), found.raw_body.clone());
                 self.recorded.push((at, found));
                 Ok(served)

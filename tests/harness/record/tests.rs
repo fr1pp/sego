@@ -73,6 +73,7 @@ fn recorder(replies: Vec<Reply>) -> (Recorder, Calls) {
     let stamp = Stamp {
         date: "2026-10-07".to_owned(),
         endpoint: "https://sourcegraph.com".to_owned(),
+        live_values: false,
     };
     (Recorder::new(Box::new(upstream), stamp), calls)
 }
@@ -200,6 +201,25 @@ fn a_recorded_exchange_whose_request_changed_is_recorded_again() {
     let text = written.text();
     assert!(text.contains("\"repo0\":\"example.com/a/b\""), "{text}");
     assert!(!text.contains("example.com/c/d"), "{text}");
+}
+
+#[test]
+fn recording_again_keeps_the_live_values_mark() {
+    let written = Written::new(NEW_CASE);
+    let (result, _) = record(&written, vec![reply(200, SERVER_JSON)]);
+    result.unwrap_or_else(|e| panic!("{e}"));
+    let marked = written
+        .text()
+        .replace(&format!("{STAMP}\n"), &format!("{STAMP} live: values\n"))
+        .replace("example.com/a/b\"}", "example.com/c/d\"}");
+    fs::write(&written.path, marked).unwrap_or_else(|e| panic!("{e}"));
+    let (result, _) = record(&written, vec![reply(200, SERVER_JSON)]);
+    result.unwrap_or_else(|e| panic!("{e}"));
+    let text = written.text();
+    assert!(
+        text.contains(&format!("{STAMP} live: values\n{RECORDED_JSON}")),
+        "{text}"
+    );
 }
 
 #[test]

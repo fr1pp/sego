@@ -156,9 +156,45 @@ fn a_recorded_response_carries_its_stamp() {
         response.stamp,
         Some(Stamp {
             date: "2026-10-07".to_owned(),
-            endpoint: "https://sourcegraph.com".to_owned()
+            endpoint: "https://sourcegraph.com".to_owned(),
+            live_values: false,
         })
     );
+}
+
+#[test]
+fn a_recorded_response_can_be_marked_to_compare_values_live() {
+    let line = "200 application/json recorded 2026-10-07 \
+                https://sourcegraph.com live: values";
+    let text = with_exchange("").replace("200 application/json", line);
+    let case = parse(&text);
+    assert_eq!(
+        case.exchanges[0].response.stamp,
+        Some(Stamp {
+            date: "2026-10-07".to_owned(),
+            endpoint: "https://sourcegraph.com".to_owned(),
+            live_values: true,
+        })
+    );
+    assert_eq!(case.to_text(), text);
+}
+
+#[test]
+fn live_values_needs_a_recording_and_nothing_else_follows_the_stamp() {
+    for line in [
+        "200 application/json live: values",
+        "network error live: values",
+        "200 recorded 2026-10-07 https://sourcegraph.com live: shape",
+        "200 recorded 2026-10-07 https://sourcegraph.com live:values",
+        "200 recorded 2026-10-07 https://sourcegraph.com live: values extra",
+        "200 recorded 2026-10-07 https://sourcegraph.com extra",
+        "200 recorded 2026-10-07 live: values",
+    ] {
+        let text = format!(
+            "args: x\nexit: 0\n--- request GET /r\n--- response {line}\n"
+        );
+        assert!(Case::parse(&text, Path::new("x")).is_err(), "{line}");
+    }
 }
 
 #[test]
@@ -407,6 +443,7 @@ fn recorded(body: &str) -> Exchange {
             stamp: Some(Stamp {
                 date: "2026-10-07".to_owned(),
                 endpoint: "https://sourcegraph.com".to_owned(),
+                live_values: false,
             }),
             body: body.to_owned(),
         },
@@ -465,6 +502,7 @@ fn a_raw_read_is_written_with_its_stamp_and_an_empty_body() {
             stamp: Some(Stamp {
                 date: "2026-10-07".to_owned(),
                 endpoint: "https://sourcegraph.com".to_owned(),
+                live_values: false,
             }),
             body: String::new(),
         },
