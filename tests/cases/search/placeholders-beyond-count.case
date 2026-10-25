@@ -1,0 +1,374 @@
+# Placeholders can't take the count below zero.
+args: search 'repo:example.com/app foo count:30'
+exit: 0
+--- stdout
+0 matches  0.1 s
+query  repo:example.com/app foo count:30
+--- request Search {"query":"repo:example.com/app foo count:30","unindexed":"repo:example.com/app type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:60s"}
+--- query
+query Search($query: String!, $unindexed: String!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+  unindexed: search(query: $unindexed, version: V3, patternType: keyword) {
+    results {
+      limitHit elapsedMilliseconds timedout { name } alert { title }
+      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "2",
+        "dynamicFilters": [],
+        "elapsedMilliseconds": 100,
+        "limitHit": false,
+        "matchCount": 2,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: exceeds the maximum size limit",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 43,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "big0.bin"
+            },
+            "repository": {
+              "name": "example.com/app"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: exceeds the maximum size limit",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 43,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "big1.bin"
+            },
+            "repository": {
+              "name": "example.com/app"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: exceeds the maximum size limit",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 43,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "big2.bin"
+            },
+            "repository": {
+              "name": "example.com/app"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: exceeds the maximum size limit",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 43,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "big3.bin"
+            },
+            "repository": {
+              "name": "example.com/app"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: exceeds the maximum size limit",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 43,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "big4.bin"
+            },
+            "repository": {
+              "name": "example.com/app"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: exceeds the maximum size limit",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 43,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "big5.bin"
+            },
+            "repository": {
+              "name": "example.com/app"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: exceeds the maximum size limit",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 43,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "big6.bin"
+            },
+            "repository": {
+              "name": "example.com/app"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: exceeds the maximum size limit",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 43,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "big7.bin"
+            },
+            "repository": {
+              "name": "example.com/app"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: exceeds the maximum size limit",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 43,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "big8.bin"
+            },
+            "repository": {
+              "name": "example.com/app"
+            },
+            "revSpec": null,
+            "symbols": []
+          }
+        ],
+        "timedout": []
+      }
+    },
+    "unindexed": {
+      "results": {
+        "alert": null,
+        "elapsedMilliseconds": 10,
+        "limitHit": false,
+        "results": [],
+        "timedout": []
+      }
+    }
+  }
+}

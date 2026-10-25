@@ -1,7 +1,6 @@
 mod address;
 mod cli;
 mod commit;
-mod derive;
 mod diff;
 mod drift;
 mod envelope;
@@ -12,7 +11,6 @@ mod history_cli;
 mod log;
 mod ls;
 mod ls_cli;
-mod model;
 mod outcome;
 mod output;
 mod quote;

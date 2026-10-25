@@ -821,3 +821,6 @@ fn records<'a>(group: &'a Group) -> Vec<Record<'a>> {
         Group::Repo { repo } => vec![Record::Repo { repo }],
     }
 }
+
+#[cfg(test)]
+mod tests;
