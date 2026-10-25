@@ -11,7 +11,7 @@ use tempfile::TempDir;
 use sego::{Reply, Transport, TransportError};
 
 use super::{Recorder, date, record_case, write_recorded};
-use crate::case::{Case, Request, Served, Stamp};
+use crate::case::{Case, Headers, Request, Served, Stamp};
 use crate::replay::Replay;
 use crate::run::run_case;
 
@@ -270,7 +270,8 @@ fn a_bad_request_reply_is_kept() {
         case.exchanges[0].response.served,
         Served::Reply {
             status: 400,
-            content_type: Some("application/json".to_owned())
+            content_type: Some("application/json".to_owned()),
+            headers: Headers::default(),
         }
     );
 }

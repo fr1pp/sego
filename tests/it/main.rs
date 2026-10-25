@@ -1,5 +1,4 @@
 mod address;
-mod cases;
 mod cli;
 mod commit;
 mod derive;
@@ -8,7 +7,6 @@ mod drift;
 mod envelope;
 mod error;
 mod escape;
-mod fixtures;
 mod guard;
 mod history_cli;
 mod log;

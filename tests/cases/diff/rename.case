@@ -18,3 +18,97 @@ R  +1 -1  internal/run/controller/filters/detect_text.go -> internal/run/control
      
      import (
      	"bytes"
+--- request Diff {"a":"v2.0.0","b":"v2.1.0","path0":"internal/run/controller/filters/detect_text.go","path1":"internal/run/controller/filter/detect_text.go","paths":["internal/run/controller/filters/detect_text.go","internal/run/controller/filter/detect_text.go"],"repo0":"github.com/evilmartians/lefthook"}
+--- query
+query Diff($repo0: String!, $a: String!, $b: String!, $paths: [String!], $path0: String!, $path1: String!) {
+  a0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $a) { oid p0: path(path: $path0) { __typename } p1: path(path: $path1) { __typename } }
+  }
+  b0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $b) { oid parents { oid } p0: path(path: $path0) { __typename } p1: path(path: $path1) { __typename } }
+  }
+  c0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    comparison(base: $a, head: $b) {
+    all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 201, paths: $paths) { nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } } }
+    patch: fileDiffs(paths: $paths) { rawDiff }
+    }
+  }
+}
+--- response 200 application/json recorded 2026-10-07 https://sourcegraph.com live: values
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "509b737647ad4f404aee6f0bb49e940530eaaf9c",
+        "p0": {
+          "__typename": "GitBlob"
+        },
+        "p1": null
+      },
+      "defaultBranch": {
+        "displayName": "master"
+      },
+      "name": "github.com/evilmartians/lefthook"
+    },
+    "b0": {
+      "commit": {
+        "oid": "c43361a52db7af1d75f5e877cb0e4bd803d28e77",
+        "p0": null,
+        "p1": {
+          "__typename": "GitBlob"
+        },
+        "parents": [
+          {
+            "oid": "9ace994a09c6a642a1be7df8fe11586f72827bfe"
+          }
+        ]
+      },
+      "defaultBranch": {
+        "displayName": "master"
+      },
+      "name": "github.com/evilmartians/lefthook"
+    },
+    "c0": {
+      "comparison": {
+        "all": {
+          "diffStat": {
+            "added": 1,
+            "deleted": 1
+          },
+          "totalCount": 1
+        },
+        "page": {
+          "nodes": [
+            {
+              "newPath": "internal/run/controller/filter/detect_text.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "509b737647ad4f404aee6f0bb49e940530eaaf9c"
+                }
+              },
+              "oldPath": "internal/run/controller/filters/detect_text.go",
+              "stat": {
+                "added": 1,
+                "deleted": 1
+              }
+            }
+          ]
+        },
+        "patch": {
+          "rawDiff": "diff --git internal/run/controller/filters/detect_text.go internal/run/controller/filter/detect_text.go\nsimilarity index 98%\nrename from internal/run/controller/filters/detect_text.go\nrename to internal/run/controller/filter/detect_text.go\nindex 193c5cea6154cf7419273e17c25f4a3a6655b79a..2875a0ff7e579acaefa1a108138e854582e34062 100644\n--- internal/run/controller/filters/detect_text.go\n+++ internal/run/controller/filter/detect_text.go\n@@ -1,4 +1,4 @@\n-package filters\n+package filter\n \n import (\n \t\"bytes\"\n"
+        }
+      },
+      "defaultBranch": {
+        "displayName": "master"
+      },
+      "name": "github.com/evilmartians/lefthook"
+    }
+  }
+}

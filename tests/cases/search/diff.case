@@ -20,3 +20,111 @@ github.com/gorilla/mux@98cb6bf42e08  2020-07-11  Harshavardhana  fix: regression
     +		route: new(Route).Host("{subdomain}.domain.com:{port:.*}"),
     +		vars:  []string{"subdomain", "bar", "port", "65535"},
     preview limited to 5 files and 3 hunks a file; sego diff github.com/gorilla/mux@98cb6bf42e08 lists every changed file
+--- request Search {"query":"repo:^github\\.com/gorilla/mux$@v1.8.0:^v1.7.4 type:diff count:3 route"}
+--- query
+query Search($query: String!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+}
+--- response 200 application/json recorded 2026-10-12 https://sourcegraph.com
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "3+",
+        "dynamicFilters": [
+          {
+            "count": 3,
+            "kind": "type",
+            "value": "type:diff"
+          },
+          {
+            "count": 3,
+            "kind": "repo",
+            "value": "repo:^github\\.com/gorilla/mux$"
+          },
+          {
+            "count": 1,
+            "kind": "author",
+            "value": "author:harsha@minio\\.io"
+          },
+          {
+            "count": 1,
+            "kind": "commit date",
+            "value": "before:\"2 months ago\""
+          }
+        ],
+        "elapsedMilliseconds": 149,
+        "limitHit": true,
+        "matchCount": 3,
+        "results": [
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2020-07-11T20:05:21Z",
+                "person": {
+                  "displayName": "Harshavardhana"
+                }
+              },
+              "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+              "repository": {
+                "name": "github.com/gorilla/mux"
+              },
+              "subject": "fix: regression in vars extract for wildcard host (#579)"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```diff\nold_test.go old_test.go\n@@ -263,0 +263,3 @@ var hostMatcherTests = []hostMatcherTest{\n+\t{\n+\t\tmatcher: NewRouter().NewRoute().Host(\"{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}:{port:.*}\"),\n+\t\turl:     \"http://abc.def.ghi:65535/\",\n@@ -263,0 +269,3 @@ var hostMatcherTests = []hostMatcherTest{\n+\t{\n+\t\tmatcher: NewRouter().NewRoute().Host(\"{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}\"),\n+\t\turl:     \"http://abc.def.ghi:65535/\",\n@@ -368,0 +380,3 @@ var urlBuildingTests = []urlBuildingTest{\n+\t{\n+\t\troute: new(Route).Host(\"{subdomain}.domain.com:{port:.*}\"),\n+\t\tvars:  []string{\"subdomain\", \"bar\", \"port\", \"65535\"},\n\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 15,
+                    "length": 5,
+                    "line": 4
+                  },
+                  {
+                    "character": 27,
+                    "length": 5,
+                    "line": 4
+                  },
+                  {
+                    "character": 15,
+                    "length": 5,
+                    "line": 8
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}

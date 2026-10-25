@@ -3,3 +3,114 @@ args: log example.com/handwritten/count-error@v1..v2
 exit: 1
 --- stderr
 sego: error: Sourcegraph failed to answer the commit count
+--- request Log {"a":"v1","b":"v2","path":null,"repo0":"example.com/handwritten/count-error"}
+--- query
+query Log($repo0: String!, $a: String!, $b: String!, $path: String) {
+  a0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $a) { oid }
+  }
+  b0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $b) { oid }
+  }
+  n0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $b) { behindAhead(revspec: $a) { ahead } }
+  }
+  c0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    comparison(base: $a, head: $b) { commits(first: 151, path: $path) { nodes { oid subject author { date person { displayName } } parents { oid } } pageInfo { hasNextPage } } }
+  }
+  t0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "aaaa111111111111111111111111111111111111"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/handwritten/count-error"
+    },
+    "b0": {
+      "commit": {
+        "oid": "bbbb222222222222222222222222222222222222"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/handwritten/count-error"
+    },
+    "c0": {
+      "comparison": {
+        "commits": {
+          "nodes": [
+            {
+              "author": {
+                "date": "2026-07-30T17:30:00Z",
+                "person": {
+                  "displayName": "Grace Hopper"
+                }
+              },
+              "oid": "bbbb222222222222222222222222222222222222",
+              "parents": [
+                {
+                  "oid": "aaaa111111111111111111111111111111111111"
+                }
+              ],
+              "subject": "Fix the parser"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/handwritten/count-error"
+    },
+    "n0": {
+      "commit": {
+        "behindAhead": null
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/handwritten/count-error"
+    },
+    "t0": {
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "gitRefs": {
+        "nodes": [],
+        "totalCount": 0
+      },
+      "name": "example.com/handwritten/count-error"
+    }
+  },
+  "errors": [
+    {
+      "message": "git command [git rev-list --count --secret] failed",
+      "path": [
+        "n0",
+        "commit",
+        "behindAhead"
+      ]
+    }
+  ]
+}

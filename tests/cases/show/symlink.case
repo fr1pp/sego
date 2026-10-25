@@ -4,3 +4,153 @@ exit: 0
 --- stdout
 github.com/BurntSushi/ripgrep@e50df40a1967:HomebrewFormula  lines 1 of 1  rev 14.1.0
 1:pkg/brew
+--- request ShowFile {"end_0":500,"parent_0":"","path_0":"HomebrewFormula","repo0":"github.com/BurntSushi/ripgrep","rev0":"14.1.0","start_0":1}
+--- query
+query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    c0: commit(rev: $rev0) {
+      oid
+      meta: blob(path: $path_0) { byteSize totalLines binary rawURL lfs { byteSize } }
+      body: blob(path: $path_0) { content(startLine: $start_0, endLine: $end_0, textOnly: true) }
+      dir: tree(path: $path_0) { entries { path } }
+      parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+    }
+  }
+}
+--- response 200 application/json recorded 2026-10-07 https://sourcegraph.com live: values
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "body": {
+          "content": "pkg/brew"
+        },
+        "dir": null,
+        "meta": {
+          "binary": false,
+          "byteSize": 8,
+          "lfs": null,
+          "rawURL": "/r/github.com/BurntSushi/ripgrep@e50df40a1967708b9781486b1c017e48040bceb0/-/raw/HomebrewFormula",
+          "totalLines": 1
+        },
+        "oid": "e50df40a1967708b9781486b1c017e48040bceb0",
+        "parent": {
+          "entries": [
+            {
+              "path": ".cargo",
+              "submodule": null
+            },
+            {
+              "path": ".github",
+              "submodule": null
+            },
+            {
+              "path": "benchsuite",
+              "submodule": null
+            },
+            {
+              "path": "ci",
+              "submodule": null
+            },
+            {
+              "path": "crates",
+              "submodule": null
+            },
+            {
+              "path": "doc",
+              "submodule": null
+            },
+            {
+              "path": "pkg",
+              "submodule": null
+            },
+            {
+              "path": "scripts",
+              "submodule": null
+            },
+            {
+              "path": "tests",
+              "submodule": null
+            },
+            {
+              "path": ".gitignore",
+              "submodule": null
+            },
+            {
+              "path": ".ignore",
+              "submodule": null
+            },
+            {
+              "path": "CHANGELOG.md",
+              "submodule": null
+            },
+            {
+              "path": "COPYING",
+              "submodule": null
+            },
+            {
+              "path": "Cargo.lock",
+              "submodule": null
+            },
+            {
+              "path": "Cargo.toml",
+              "submodule": null
+            },
+            {
+              "path": "FAQ.md",
+              "submodule": null
+            },
+            {
+              "path": "GUIDE.md",
+              "submodule": null
+            },
+            {
+              "path": "HomebrewFormula",
+              "submodule": null
+            },
+            {
+              "path": "LICENSE-MIT",
+              "submodule": null
+            },
+            {
+              "path": "README.md",
+              "submodule": null
+            },
+            {
+              "path": "RELEASE-CHECKLIST.md",
+              "submodule": null
+            },
+            {
+              "path": "UNLICENSE",
+              "submodule": null
+            },
+            {
+              "path": "build.rs",
+              "submodule": null
+            },
+            {
+              "path": "rustfmt.toml",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "master"
+      },
+      "name": "github.com/BurntSushi/ripgrep"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a directory: \"HomebrewFormula\"",
+      "path": [
+        "r0",
+        "c0",
+        "dir"
+      ]
+    }
+  ]
+}

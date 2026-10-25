@@ -7,10 +7,10 @@ use sego::internal::address::{self, Repo, Rev, pinned};
 use sego::internal::upstream::GRAPHQL_PATH;
 use sego::{Endpoint, Reply, Transport};
 
-use crate::support::case::shell_words;
 use crate::support::exec::{Ran, exec};
 use crate::support::fake::Fake;
 use crate::support::fixture::load_all;
+use crate::support::shell::shell_words;
 
 const MUX: &str = "example.com/selftest/mux";
 const MUX_OID: &str = "98cb6bf42e086f6af920b965c38cacc07402d51b";

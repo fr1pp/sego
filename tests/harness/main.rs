@@ -12,6 +12,12 @@
               harness target"
 )]
 mod case;
+#[allow(
+    dead_code,
+    unused_imports,
+    reason = "cargo compiles the module's tests here but runs them in the \
+              harness target"
+)]
 mod check;
 mod compare;
 #[allow(
@@ -130,5 +136,5 @@ fn run_case(path: &Path) -> datatest_stable::Result<()> {
 }
 
 datatest_stable::harness! {
-    { test = run_case, root = "tests/cases", pattern = r"^refs/.*\.case$" },
+    { test = run_case, root = "tests/cases", pattern = r"\.case$" },
 }

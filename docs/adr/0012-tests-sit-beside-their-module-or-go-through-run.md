@@ -13,6 +13,5 @@ The library exports `run` and what it takes (`Env`, `Endpoint`, `Transport`, `Re
 modules for tests put two thirds of the suite past the interface, in one flat file per module,
 where a refactor broke tests far from the code it changed.
 
-The replay pins the shape of a request: it serves a recorded response only for the same operation
-and variables, and fails a request whose query text differs as stale. A test that checks only the
-request a command sends is needed only where no case's recorded response pins it.
+A test that checks only the request a command sends is needed only where no case's exchange
+pins it.

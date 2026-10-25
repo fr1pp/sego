@@ -98,7 +98,7 @@ impl Replay {
                 cf_mitigated: None,
                 body: Vec::new(),
             }),
-            Served::Reply { status, ref content_type } => {
+            Served::Reply { status, ref content_type, ref headers } => {
                 let body = if let Some(body) = recorded_body {
                     body
                 } else if raw {
@@ -109,9 +109,9 @@ impl Replay {
                 Ok(Reply {
                     status,
                     content_type: content_type.clone(),
-                    location: None,
-                    retry_after: None,
-                    cf_mitigated: None,
+                    location: headers.location.clone(),
+                    retry_after: headers.retry_after.clone(),
+                    cf_mitigated: headers.cf_mitigated.clone(),
                     body,
                 })
             }

@@ -1,5 +1,0 @@
-request:
-  method: GET
-  path: /r/github.com/azadkuh/sqlite-amalgamation@15d0ff10ebc7e7225eced1de84bb52137000899b/-/raw/sqlite3.c?refused
-fault: html_challenge
-handwritten: true

@@ -101,3 +101,6 @@ pub fn requests_match(case: &Case, outcome: &Outcome) -> Vec<String> {
     }
     failures
 }
+
+#[cfg(test)]
+mod tests;
