@@ -187,3 +187,6 @@ fn persist(mut temp: NamedTempFile, path: &Path) -> io::Result<()> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests;

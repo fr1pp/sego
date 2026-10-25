@@ -110,3 +110,6 @@ fn is_hex(name: &OsStr, len: usize) -> bool {
             .iter()
             .all(|byte| matches!(byte, b'0'..=b'9' | b'a'..=b'f'))
 }
+
+#[cfg(test)]
+mod tests;
