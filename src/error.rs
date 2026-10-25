@@ -110,5 +110,13 @@ pub fn report(error: &Error, out: &mut dyn Write) -> io::Result<()> {
     Ok(())
 }
 
+/// What `report` writes for `error`.
+#[cfg(test)]
+pub fn reported(error: &Error) -> String {
+    let mut written = Vec::new();
+    report(error, &mut written).expect("a vector takes a write");
+    String::from_utf8_lossy(&written).into_owned()
+}
+
 #[cfg(test)]
 mod tests;

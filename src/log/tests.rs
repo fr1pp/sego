@@ -1,12 +1,12 @@
-use std::cell::Cell;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use serde_json::{Value, json};
 
 use crate::address;
-use crate::error::report;
+use crate::error::reported;
 use crate::output::{Answer, Notes};
-use crate::upstream::{Reply, Transport, TransportError};
+use crate::upstream::DEADLINE;
+use crate::upstream::script::Script;
 
 use super::run;
 
@@ -16,26 +16,6 @@ const OID_B: &str = "1e23553eec2392753c5420d348e63a63f517cd45";
 const A12: &str = "4ad40c3a28bd";
 const B12: &str = "1e23553eec23";
 
-/// Answers the one GraphQL request with `reply`.
-struct Server {
-    reply: Cell<Option<Reply>>,
-}
-
-impl Transport for Server {
-    fn post(
-        &self,
-        _: &str,
-        _: &[u8],
-        _: Instant,
-    ) -> Result<Reply, TransportError> {
-        Ok(self.reply.take().expect("one GraphQL request"))
-    }
-
-    fn get(&self, _: &str, _: Instant) -> Result<Reply, TransportError> {
-        Err(TransportError::Network("no raw route"))
-    }
-}
-
 /// What `sego log ADDRESS [PATH]` makes of `envelope`: its text, or the error
 /// as written to stderr.
 fn log(
@@ -43,26 +23,12 @@ fn log(
     path: Option<&str>,
     envelope: &Value,
 ) -> Result<String, String> {
-    let server = Server {
-        reply: Cell::new(Some(Reply {
-            status: 200,
-            content_type: Some("application/json".to_owned()),
-            location: None,
-            retry_after: None,
-            cf_mitigated: None,
-            body: envelope.to_string().into_bytes(),
-        })),
-    };
+    let server = Script::graphql(envelope);
     let address = address::parse(address).expect("a well-formed address");
-    let deadline = Instant::now() + Duration::from_secs(90);
-    match run(&address, path, false, &server, deadline, &mut Notes::new()) {
-        Ok(logged) => Ok(logged.text()),
-        Err(error) => {
-            let mut written = Vec::new();
-            report(&error, &mut written).expect("a vector takes a write");
-            Err(String::from_utf8_lossy(&written).into_owned())
-        }
-    }
+    let deadline = Instant::now() + DEADLINE;
+    run(&address, path, false, &server, deadline, &mut Notes::new())
+        .map(|logged| logged.text())
+        .map_err(|error| reported(&error))
 }
 
 fn failure(address: &str, path: Option<&str>, envelope: &Value) -> String {

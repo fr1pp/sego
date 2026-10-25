@@ -1,12 +1,12 @@
-use std::cell::Cell;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use serde_json::{Value, json};
 
 use crate::address;
-use crate::error::report;
+use crate::error::reported;
 use crate::output::Notes;
-use crate::upstream::{Reply, Transport, TransportError};
+use crate::upstream::DEADLINE;
+use crate::upstream::script::Script;
 
 use super::run;
 
@@ -14,26 +14,6 @@ const REPO: &str = "example.com/acme/widget";
 const OID_A: &str = "0123456789abcdef0123456789abcdef01234567";
 const OID_B: &str = "89abcdef0123456789abcdef0123456789abcdef";
 const SECRET: &str = "internal failure in /srv/secret-host";
-
-/// Answers the one GraphQL request with `reply`.
-struct Server {
-    reply: Cell<Option<Reply>>,
-}
-
-impl Transport for Server {
-    fn post(
-        &self,
-        _: &str,
-        _: &[u8],
-        _: Instant,
-    ) -> Result<Reply, TransportError> {
-        Ok(self.reply.take().expect("one GraphQL request"))
-    }
-
-    fn get(&self, _: &str, _: Instant) -> Result<Reply, TransportError> {
-        Err(TransportError::Network("no raw route"))
-    }
-}
 
 fn root(key: &str, value: Value) -> Value {
     let mut root = json!({
@@ -66,27 +46,16 @@ fn answer() -> Value {
 /// What `sego diff example.com/acme/widget@v1...v2 PATHS` writes to stderr as
 /// an error on `envelope`.
 fn failure(envelope: &Value, paths: &[&str]) -> String {
-    let server = Server {
-        reply: Cell::new(Some(Reply {
-            status: 200,
-            content_type: Some("application/json".to_owned()),
-            location: None,
-            retry_after: None,
-            cf_mitigated: None,
-            body: envelope.to_string().into_bytes(),
-        })),
-    };
+    let server = Script::graphql(envelope);
     let address = address::parse(&format!("{REPO}@v1...v2"))
         .expect("a well-formed address");
     let paths: Vec<String> = paths.iter().map(|p| (*p).to_owned()).collect();
-    let deadline = Instant::now() + Duration::from_secs(90);
+    let deadline = Instant::now() + DEADLINE;
     let error =
         run(&address, &paths, false, &server, deadline, &mut Notes::new())
             .err()
             .expect("the diff fails");
-    let mut written = Vec::new();
-    report(&error, &mut written).expect("a vector takes a write");
-    String::from_utf8_lossy(&written).into_owned()
+    reported(&error)
 }
 
 #[test]
