@@ -1,6 +1,5 @@
 mod cli;
 mod commit;
-mod derive;
 mod diff;
 mod drift;
 mod error;
@@ -10,7 +9,6 @@ mod history_cli;
 mod log;
 mod ls;
 mod ls_cli;
-mod model;
 mod outcome;
 mod output;
 mod quote;
