@@ -1,0 +1,66 @@
+# A comparison without totals fails the commit.
+args: show example.com/acme/widget@v1
+exit: 1
+--- stderr
+sego: error: Sourcegraph failed to answer the file list
+--- request ShowCommit {"base":"v1^1","repo0":"example.com/acme/widget","rev":"v1"}
+--- query
+query ShowCommit($repo0: String!, $rev: String!, $base: String!) {
+  m0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $rev) { oid subject message author { date person { displayName } } committer { date person { displayName } } parents { oid } }
+  }
+  d0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    comparison(base: $base, head: $rev) {
+    all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "d0": {
+      "comparison": {
+        "page": {
+          "nodes": []
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "m0": {
+      "commit": {
+        "author": {
+          "date": "2026-09-09T20:14:26Z",
+          "person": {
+            "displayName": "Jonathan Davies"
+          }
+        },
+        "committer": {
+          "date": "2026-09-10T01:02:03Z",
+          "person": {
+            "displayName": "GitHub"
+          }
+        },
+        "message": "m",
+        "oid": "affe2b9b7c608f4e354d7e83d0583ed35e845650",
+        "parents": [
+          {
+            "oid": "6b668aa526afdc623c1a9ed1d6ae920e04a717ad"
+          }
+        ],
+        "subject": "m"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}

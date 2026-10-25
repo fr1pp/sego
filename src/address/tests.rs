@@ -1,6 +1,6 @@
 use crate::address::{
     Address, AddressError, Dots, End, LineRange, Repo, Rev, UrlKind,
-    is_oid_like, parse, parse_lines, submodule_target,
+    is_oid_like, parse, parse_lines, pinned, submodule_target,
 };
 
 const SHA: &str = "98cb6bf42e086f6af920b965c38cacc07402d51b";
@@ -93,6 +93,27 @@ fn revisions_and_paths() {
         assert_eq!(address.rev, rev, "{token}");
         assert_eq!(address.path.as_deref(), path, "{token}");
     }
+}
+
+#[test]
+fn the_root_is_written_three_ways() {
+    for token in
+        ["github.com/x/y@v1", "github.com/x/y@v1:", "github.com/x/y@v1:."]
+    {
+        let address = ok(token);
+        assert_eq!(address.rev, one("v1"), "{token}");
+        assert_eq!(address.path.unwrap_or_default(), "", "{token}");
+    }
+}
+
+#[test]
+fn a_pinned_address_with_a_spaced_path_parses_back() {
+    let printed = pinned("github.com/x/y", SHA, Some("a b/c.go")).to_string();
+    assert_eq!(printed, "'github.com/x/y@98cb6bf42e08:a b/c.go'");
+    let address = ok(printed.trim_matches('\''));
+    assert_eq!(address.repo, exact("github.com/x/y"));
+    assert_eq!(address.rev, one("98cb6bf42e08"));
+    assert_eq!(address.path.as_deref(), Some("a b/c.go"));
 }
 
 #[test]

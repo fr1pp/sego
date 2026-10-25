@@ -1,0 +1,37 @@
+# A repository with no commits is an error.
+args: log github.com/ascoders/blog
+exit: 1
+--- stderr
+sego: error: github.com/ascoders/blog has no commits
+--- request Log {"path":null,"repo0":"github.com/ascoders/blog","rev":"HEAD"}
+--- query
+query Log($repo0: String!, $rev: String!, $path: String) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $rev) { oid ancestors(first: 151, path: $path) { nodes { oid subject author { date person { displayName } } parents { oid } } pageInfo { hasNextPage } } }
+  }
+  t0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
+  }
+}
+--- response 200 application/json recorded 2026-10-25 https://sourcegraph.com
+{
+  "data": {
+    "r0": {
+      "commit": null,
+      "defaultBranch": null,
+      "name": "github.com/ascoders/blog"
+    },
+    "t0": {
+      "defaultBranch": null,
+      "gitRefs": {
+        "nodes": [],
+        "totalCount": 0
+      },
+      "name": "github.com/ascoders/blog"
+    }
+  }
+}

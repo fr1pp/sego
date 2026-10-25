@@ -230,3 +230,6 @@ pub fn run(
     committed.files = rows(page);
     Ok(committed)
 }
+
+#[cfg(test)]
+mod tests;

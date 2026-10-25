@@ -1,0 +1,58 @@
+# A file of one line is named with the singular.
+args: ls example.com/acme/widget@v1.0.0:one.txt
+exit: 1
+--- stderr
+sego: error: one.txt is a file at example.com/acme/widget@98cb6bf42e08 (1 line)
+--- request ListTree {"parent_0":"","path_0":"one.txt","recursive_0":false,"repo0":"example.com/acme/widget","rev0":"v1.0.0"}
+--- query
+query ListTree($repo0: String!, $rev0: String!, $path_0: String!, $recursive_0: Boolean!, $parent_0: String!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    c0: commit(rev: $rev0) {
+      oid
+      tree: tree(path: $path_0) { entries(recursive: $recursive_0) { path isDirectory submodule { url commit } } }
+      file: blob(path: $path_0) { totalLines byteSize binary }
+      parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "file": {
+          "binary": false,
+          "byteSize": 12,
+          "totalLines": 1
+        },
+        "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+        "parent": {
+          "entries": [
+            {
+              "isDirectory": false,
+              "path": "one.txt",
+              "submodule": null
+            }
+          ]
+        },
+        "tree": null
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a directory: \"one.txt\"",
+      "path": [
+        "r0",
+        "c0",
+        "tree"
+      ]
+    }
+  ]
+}
