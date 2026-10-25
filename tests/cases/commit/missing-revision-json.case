@@ -1,0 +1,44 @@
+# A missing revision is an error in JSON too.
+args: show --json github.com/gorilla/mux@deadbeefdeadbeef
+exit: 1
+--- stderr
+sego: error: revision deadbeefdeadbeef not found in github.com/gorilla/mux
+--- request ShowCommit {"base":"deadbeefdeadbeef^1","repo0":"github.com/gorilla/mux","rev":"deadbeefdeadbeef"}
+--- query
+query ShowCommit($repo0: String!, $rev: String!, $base: String!) {
+  m0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $rev) { oid subject message author { date person { displayName } } committer { date person { displayName } } parents { oid } }
+  }
+  d0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    comparison(base: $base, head: $rev) {
+    all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
+    }
+  }
+}
+--- response 200 application/json recorded 2026-10-25 https://sourcegraph.com live: values
+{
+  "data": {
+    "d0": null,
+    "m0": {
+      "commit": null,
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  },
+  "errors": [
+    {
+      "message": "revision not found: repo 1700 @deadbeefdeadbeef^0",
+      "path": [
+        "d0",
+        "comparison"
+      ]
+    }
+  ]
+}

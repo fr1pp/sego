@@ -1,0 +1,91 @@
+# A message line is cut at 500 columns; CRLF ends and whitespace-only lines print as blank lines.
+args: show example.com/acme/widget@v1
+exit: 0
+--- stdout
+example.com/acme/widget@affe2b9b7c60  2026-09-09  Jonathan Davies  parents 6b668aa526af  1 file  +1 -0  rev v1
+    Subject
+
+    first body line
+
+
+    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx… (+100 more columns; --json has the full line)
+    last
+
+M  +1 -0  a.go
+--- request ShowCommit {"base":"v1^1","repo0":"example.com/acme/widget","rev":"v1"}
+--- query
+query ShowCommit($repo0: String!, $rev: String!, $base: String!) {
+  m0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $rev) { oid subject message author { date person { displayName } } committer { date person { displayName } } parents { oid } }
+  }
+  d0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    comparison(base: $base, head: $rev) {
+    all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "d0": {
+      "comparison": {
+        "all": {
+          "diffStat": {
+            "added": 1,
+            "deleted": 0
+          },
+          "totalCount": 1
+        },
+        "page": {
+          "nodes": [
+            {
+              "newPath": "a.go",
+              "oldPath": "a.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "m0": {
+      "commit": {
+        "author": {
+          "date": "2026-09-09T20:14:26Z",
+          "person": {
+            "displayName": "Jonathan Davies"
+          }
+        },
+        "committer": {
+          "date": "2026-09-10T01:02:03Z",
+          "person": {
+            "displayName": "GitHub"
+          }
+        },
+        "message": "Subject\r\n\r\nfirst body line\r\n  \t\r\n\r\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\nlast\n",
+        "oid": "affe2b9b7c608f4e354d7e83d0583ed35e845650",
+        "parents": [
+          {
+            "oid": "6b668aa526afdc623c1a9ed1d6ae920e04a717ad"
+          }
+        ],
+        "subject": "Subject"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}

@@ -40,3 +40,6 @@ pub fn write<T: Serialize>(value: &T, out: &mut dyn Write) -> io::Result<()> {
     value.serialize(&mut serializer).map_err(io::Error::from)?;
     out.write_all(b"\n")
 }
+
+#[cfg(test)]
+mod tests;

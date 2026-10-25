@@ -1,0 +1,42 @@
+# A repository with no commits is an error.
+args: show github.com/ascoders/blog@main
+exit: 1
+--- stderr
+sego: error: github.com/ascoders/blog has no commits
+--- request ShowCommit {"base":"main^1","repo0":"github.com/ascoders/blog","rev":"main"}
+--- query
+query ShowCommit($repo0: String!, $rev: String!, $base: String!) {
+  m0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $rev) { oid subject message author { date person { displayName } } committer { date person { displayName } } parents { oid } }
+  }
+  d0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    comparison(base: $base, head: $rev) {
+    all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
+    }
+  }
+}
+--- response 200 application/json recorded 2026-10-25 https://sourcegraph.com
+{
+  "data": {
+    "d0": null,
+    "m0": {
+      "commit": null,
+      "defaultBranch": null,
+      "name": "github.com/ascoders/blog"
+    }
+  },
+  "errors": [
+    {
+      "message": "revision not found: repo 714773 @main^0",
+      "path": [
+        "d0",
+        "comparison"
+      ]
+    }
+  ]
+}
