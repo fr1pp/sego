@@ -163,7 +163,7 @@ fn missing(fixtures: &[Fixture], query: &Query) -> Reply {
     plain(500, message)
 }
 
-/// The matching core: the HTTP server and in-process fakes both call it.
+/// The matching core: the in-process fake calls it.
 pub fn answer(
     fixtures: &[Fixture],
     method: &str,

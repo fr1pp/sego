@@ -1,6 +1,6 @@
-/// Splits like a POSIX shell for the cases a `.case` file needs: single
-/// quotes are literal, double quotes honour backslash escapes, and a
-/// backslash outside quotes escapes the next character.
+/// Splits like a POSIX shell: single quotes are literal, double quotes honour
+/// backslash escapes, and a backslash outside quotes escapes the next
+/// character.
 pub fn shell_words(line: &str) -> Result<Vec<String>, String> {
     let mut words = Vec::new();
     let mut word = String::new();
