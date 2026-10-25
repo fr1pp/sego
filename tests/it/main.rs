@@ -1,14 +1,9 @@
 mod diff;
 mod drift;
-mod error;
-mod escape;
 mod guard;
 mod log;
 mod ls;
-mod output;
-mod quote;
 mod refs;
 mod search_request;
 mod search_text;
-mod submodule;
 mod support;
