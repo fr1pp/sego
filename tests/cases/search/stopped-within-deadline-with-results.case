@@ -1,9 +1,9 @@
-# A repository that timed out makes the search stopped, and the count a lower
-# bound, even with results.
+# A repository the server stopped searching makes the search stopped, even when
+# it answered in time, and the count a lower bound.
 args: search 'repo:example.com/app foo count:30'
 exit: 0
 --- stdout
-5+ matches  1 repo  stopped at 20.0 s
+5+ matches  1 repo  stopped at 1.2 s
 query  repo:example.com/app foo count:30
 
 example.com/app@0123456789ab:main.go
@@ -55,7 +55,7 @@ query Search($query: String!, $unindexed: String!) {
         "alert": null,
         "approximateResultCount": "5",
         "dynamicFilters": [],
-        "elapsedMilliseconds": 20004,
+        "elapsedMilliseconds": 1200,
         "limitHit": false,
         "matchCount": 5,
         "results": [
