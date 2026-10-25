@@ -9,7 +9,6 @@ use super::replay;
 
 #[derive(Clone)]
 pub struct Call {
-    pub method: &'static str,
     pub path: String,
     pub body: Vec<u8>,
 }
@@ -61,11 +60,7 @@ impl Fake {
     ) -> Result<Reply, TransportError> {
         let mut inner =
             self.inner.lock().unwrap_or_else(PoisonError::into_inner);
-        inner.calls.push(Call {
-            method,
-            path: path.to_owned(),
-            body: body.to_vec(),
-        });
+        inner.calls.push(Call { path: path.to_owned(), body: body.to_vec() });
         match &mut inner.source {
             Source::Script(queue) => queue
                 .pop_front()

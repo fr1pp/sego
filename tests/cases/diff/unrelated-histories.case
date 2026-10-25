@@ -1,13 +1,13 @@
 # With no shared history the base is A itself.
-args: diff example.com/handwritten/unrelated-histories@gh-pages...main
+args: diff example.com/acme/widget@gh-pages...main
 exit: 0
 --- stdout
-example.com/handwritten/unrelated-histories@e7df16ff0ce8...cc9969c2e219  4 files  +65 -0  base e7df16ff0ce8  rev gh-pages...main
+example.com/acme/widget@e7df16ff0ce8...cc9969c2e219  4 files  +65 -0  base e7df16ff0ce8  rev gh-pages...main
 R  +0 -0  .nojekyll -> .agents/rules/.gitkeep
 A  +64 -0  .agents/rules/unit_tests.md
 A  +0 -0  .agents/skills/.gitkeep
 A  +1 -0  .claude/rules
---- request Diff {"a":"gh-pages","b":"main","paths":null,"repo0":"example.com/handwritten/unrelated-histories"}
+--- request Diff {"a":"gh-pages","b":"main","paths":null,"repo0":"example.com/acme/widget"}
 --- query
 query Diff($repo0: String!, $a: String!, $b: String!, $paths: [String!]) {
   a0: repository(name: $repo0) {
@@ -39,7 +39,7 @@ query Diff($repo0: String!, $a: String!, $b: String!, $paths: [String!]) {
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/unrelated-histories"
+      "name": "example.com/acme/widget"
     },
     "b0": {
       "commit": {
@@ -53,7 +53,7 @@ query Diff($repo0: String!, $a: String!, $b: String!, $paths: [String!]) {
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/unrelated-histories"
+      "name": "example.com/acme/widget"
     },
     "c0": {
       "comparison": {
@@ -112,7 +112,7 @@ query Diff($repo0: String!, $a: String!, $b: String!, $paths: [String!]) {
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/unrelated-histories"
+      "name": "example.com/acme/widget"
     }
   }
 }
