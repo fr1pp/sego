@@ -316,3 +316,6 @@ impl TransportError {
         }
     }
 }
+
+#[cfg(test)]
+mod tests;
