@@ -62,7 +62,7 @@ fn paths(token: &str, entries: &[Value]) -> Vec<String> {
 }
 
 #[test]
-fn entries_sort_by_path_segment() {
+fn entries_are_sorted_by_path_segment() {
     let entries = [
         entry("pkg/foo.go", false),
         entry("pkg/foo/sub/x.go", false),

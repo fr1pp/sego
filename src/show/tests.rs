@@ -104,7 +104,7 @@ fn upstream_errors_name_the_part_and_hide_the_server_text() {
 }
 
 #[test]
-fn only_the_limit_error_at_meta_lfs_means_not_lfs() {
+fn only_the_content_limit_error_at_meta_lfs_means_not_lfs() {
     let secret = "lfs backend exploded";
     let mut envelope = file();
     envelope["data"]["r0"]["c0"]["meta"]["lfs"] = json!(null);

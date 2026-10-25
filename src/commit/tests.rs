@@ -130,7 +130,7 @@ fn an_error_in_the_file_list_hides_the_server_text() {
 }
 
 #[test]
-fn the_author_is_required() {
+fn a_missing_author_fails_the_revision_lookup() {
     for path in [
         &["author"][..],
         &["author", "date"],
@@ -148,7 +148,7 @@ fn the_author_is_required() {
 }
 
 #[test]
-fn the_committer_is_optional() {
+fn a_missing_committer_is_read_as_none() {
     let mut body = envelope();
     commit_mut(&mut body)["committer"] = Value::Null;
     let committed = committed(&body).expect("the commit reads");
