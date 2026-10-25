@@ -19,6 +19,7 @@ record:
 # Re-send every recorded request to sourcegraph.com and compare the responses, then run the other live drift tests.
 live:
     SEGO_LIVE=1 cargo test --test cases -- --test-threads=1
+    cargo test --lib -- --ignored --test-threads=1
     cargo test --test it drift -- --ignored --test-threads=1
 
 # Regenerate src/escape/table.rs from the pinned Unicode data.

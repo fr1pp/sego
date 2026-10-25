@@ -1,7 +1,6 @@
 //! The searches Sourcegraph plans for a query sent with `patternType:
-//! keyword`, each with its filters. `tests/fixtures/plan/examples.jsonl`
-//! holds the plans a Sourcegraph server gives a corpus of queries, and this
-//! must match each.
+//! keyword`, each with its filters. `plan/examples.jsonl` holds the plans a
+//! Sourcegraph server gives a corpus of queries, and this must match each.
 
 use std::collections::{VecDeque, vec_deque};
 use std::mem::take;
@@ -1217,3 +1216,6 @@ impl<'t> Reader<'t> {
         pattern(at, negated, self.pos == s, false)
     }
 }
+
+#[cfg(test)]
+mod tests;
