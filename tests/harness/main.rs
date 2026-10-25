@@ -1,6 +1,7 @@
 //! Runs every case file in `tests/cases` as its own test: the command line
 //! in-process against a replay of the case's own exchanges. `SEGO_BLESS=1`
-//! rewrites what a case expects.
+//! rewrites what a case expects. `SEGO_LIVE=1` instead sends each recorded
+//! request to sourcegraph.com and compares the response with the recorded one.
 
 #[allow(
     dead_code,
@@ -11,6 +12,20 @@
 mod case;
 mod check;
 mod compare;
+#[allow(
+    dead_code,
+    unused_imports,
+    reason = "cargo compiles the module's tests here but runs them in the \
+              harness target"
+)]
+mod drift;
+#[allow(
+    dead_code,
+    unused_imports,
+    reason = "cargo compiles the module's tests here but runs them in the \
+              harness target"
+)]
+mod live;
 mod replay;
 mod run;
 #[allow(
@@ -28,6 +43,10 @@ use case::Case;
 
 fn blessing() -> bool {
     std::env::var("SEGO_BLESS").is_ok_and(|v| !v.is_empty() && v != "0")
+}
+
+fn living() -> bool {
+    std::env::var("SEGO_LIVE").is_ok_and(|v| !v.is_empty() && v != "0")
 }
 
 /// A failure whose `Debug` is its text, so the test runner prints it as
@@ -50,6 +69,14 @@ impl std::error::Error for Failure {}
 
 fn run_case(path: &Path) -> datatest_stable::Result<()> {
     let mut case = Case::load(path)?;
+    if living() {
+        let failures = live::check(&case, &live::connect);
+        return if failures.is_empty() {
+            Ok(())
+        } else {
+            Err(Box::new(Failure(failures.join("\n"))))
+        };
+    }
     let outcome = run::run_case(&case)?;
     let mut failures = check::every_case(&outcome);
     failures.extend(check::exchanges_used(&case, &outcome));
