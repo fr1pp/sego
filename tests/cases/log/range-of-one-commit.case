@@ -1,0 +1,134 @@
+# A range of one commit says commit in the singular.
+args: log github.com/gorilla/context@a45ea70b19f4..6a490e2f9d52
+exit: 0
+--- stdout
+github.com/gorilla/context@a45ea70b19f4..6a490e2f9d52  1 commit
+6a490e2f9d52  2023-10-18  Corey Daley  (tag: v2.0.0, tag: v1.1.2) Updating github actions workflows to test 1.20 and 1.21 (#45)
+--- request Log {"a":"a45ea70b19f4","b":"6a490e2f9d52","path":null,"repo0":"github.com/gorilla/context"}
+--- query
+query Log($repo0: String!, $a: String!, $b: String!, $path: String) {
+  a0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $a) { oid }
+  }
+  b0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $b) { oid }
+  }
+  n0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $b) { behindAhead(revspec: $a) { ahead } }
+  }
+  c0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    comparison(base: $a, head: $b) { commits(first: 151, path: $path) { nodes { oid subject author { date person { displayName } } parents { oid } } pageInfo { hasNextPage } } }
+  }
+  t0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
+  }
+}
+--- response 200 application/json recorded 2026-10-25 https://sourcegraph.com live: values
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "a45ea70b19f4801253061c655e1adf2b9f921118"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/context"
+    },
+    "b0": {
+      "commit": {
+        "oid": "6a490e2f9d5230449188a699ba53618c3364b26d"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/context"
+    },
+    "c0": {
+      "comparison": {
+        "commits": {
+          "nodes": [
+            {
+              "author": {
+                "date": "2023-10-18T00:46:33Z",
+                "person": {
+                  "displayName": "Corey Daley"
+                }
+              },
+              "oid": "6a490e2f9d5230449188a699ba53618c3364b26d",
+              "parents": [
+                {
+                  "oid": "a45ea70b19f4801253061c655e1adf2b9f921118"
+                }
+              ],
+              "subject": "Updating github actions workflows to test 1.20 and 1.21 (#45)"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/context"
+    },
+    "n0": {
+      "commit": {
+        "behindAhead": {
+          "ahead": 1
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/context"
+    },
+    "t0": {
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "gitRefs": {
+        "nodes": [
+          {
+            "displayName": "v2.0.0",
+            "target": {
+              "oid": "6a490e2f9d5230449188a699ba53618c3364b26d"
+            }
+          },
+          {
+            "displayName": "v1.1.2",
+            "target": {
+              "oid": "6a490e2f9d5230449188a699ba53618c3364b26d"
+            }
+          },
+          {
+            "displayName": "v1.1.1",
+            "target": {
+              "oid": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
+            }
+          },
+          {
+            "displayName": "v1.1",
+            "target": {
+              "oid": "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
+            }
+          }
+        ],
+        "totalCount": 4
+      },
+      "name": "github.com/gorilla/context"
+    }
+  }
+}
