@@ -276,3 +276,6 @@ fn file_path(file: &Value, located: &Located, path: &str) -> Error {
     };
     Error::missing(format!("{path} is a file at {address} ({what})"))
 }
+
+#[cfg(test)]
+mod tests;
