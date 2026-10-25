@@ -1,0 +1,119 @@
+# A commit's author, message and file paths with control characters are escaped.
+args: show example.com/acme/widget@v2.0.0
+exit: 0
+--- stdout
+example.com/acme/widget@89abcdef0123  a\u{1b}b\u{202e}c\u{200b}d e\u{d}  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i  parents fedcba987654  4 files  +7 -7  rev v2.0.0
+    a\u{1b}b
+    c\u{202e}d
+    e\u{200b}f
+    g\u{0}h
+    i\u{2028}j
+    k\u{7f}l
+    mid\u{d}cr
+    tab	ok
+
+M  +1 -1  $'a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i'
+R  +2 -2  $'o-a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i' -> $'n-a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i'
+A  +4 -0  $'a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i-added'
+D  +0 -4  $'a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i-deleted'
+--- request ShowCommit {"base":"v2.0.0^1","repo0":"example.com/acme/widget","rev":"v2.0.0"}
+--- query
+query ShowCommit($repo0: String!, $rev: String!, $base: String!) {
+  m0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $rev) { oid subject message author { date person { displayName } } committer { date person { displayName } } parents { oid } }
+  }
+  d0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    comparison(base: $base, head: $rev) {
+    all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "d0": {
+      "comparison": {
+        "all": {
+          "diffStat": {
+            "added": 7,
+            "deleted": 7
+          },
+          "totalCount": 4
+        },
+        "page": {
+          "nodes": [
+            {
+              "newPath": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+              "oldPath": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+              "stat": {
+                "added": 1,
+                "deleted": 1
+              }
+            },
+            {
+              "newPath": "n-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+              "oldPath": "o-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+              "stat": {
+                "added": 2,
+                "deleted": 2
+              }
+            },
+            {
+              "newPath": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi-added",
+              "oldPath": null,
+              "stat": {
+                "added": 4,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": null,
+              "oldPath": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi-deleted",
+              "stat": {
+                "added": 0,
+                "deleted": 4
+              }
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "m0": {
+      "commit": {
+        "author": {
+          "date": "a\u001bb\u202ec\u200bd\ne\rT00:00:00Z",
+          "person": {
+            "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+          }
+        },
+        "committer": {
+          "date": "2026-03-01T12:00:00Z",
+          "person": {
+            "displayName": "c-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+          }
+        },
+        "message": "a\u001bb\nc\u202ed\ne\u200bf\ng\u0000h\ni\u2028j\nk\u007fl\nmid\rcr\ntab\tok\n",
+        "oid": "89abcdef0123456789abcdef0123456789abcdef",
+        "parents": [
+          {
+            "oid": "fedcba9876543210fedcba9876543210fedcba98"
+          }
+        ],
+        "subject": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}

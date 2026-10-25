@@ -1,0 +1,111 @@
+# A path with control characters, given as the argument, is escaped in the header, the row and the patch.
+args: diff example.com/acme/widget@v1.0.0...v2.0.0 $'a\eb\u{202e}c\u{200b}d\ne\rf\0g\u{2028}h\x7fi'
+exit: 0
+--- stdout
+$'example.com/acme/widget@0123456789ab...89abcdef0123:a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i'  1 file  +1 -1  base fedcba987654  rev v1.0.0...v2.0.0
+M  +1 -1  $'a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i'
+
+    diff --git a\u{1b}b\u{202e}c\u{200b}d
+    e\u{d}f\u{0}g\u{2028}h\u{7f}i a\u{1b}b\u{202e}c\u{200b}d
+    e\u{d}f\u{0}g\u{2028}h\u{7f}i
+    --- a\u{1b}b\u{202e}c\u{200b}d
+    e\u{d}f\u{0}g\u{2028}h\u{7f}i
+    +++ a\u{1b}b\u{202e}c\u{200b}d
+    e\u{d}f\u{0}g\u{2028}h\u{7f}i
+    @@ -1 +1 @@
+    -a\u{1b}b\u{202e}c\u{200b}d
+    e\u{d}f\u{0}g\u{2028}h\u{7f}i
+    +a\u{1b}b\u{202e}c\u{200b}d
+    e\u{d}f\u{0}g\u{2028}h\u{7f}i
+--- request Diff {"a":"v1.0.0","b":"v2.0.0","path0":"a\u001bb‮c​d\ne\rf\u0000g hi","paths":["a\u001bb‮c​d\ne\rf\u0000g hi"],"repo0":"example.com/acme/widget"}
+--- query
+query Diff($repo0: String!, $a: String!, $b: String!, $paths: [String!], $path0: String!) {
+  a0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $a) { oid p0: path(path: $path0) { __typename } }
+  }
+  b0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $b) { oid parents { oid } p0: path(path: $path0) { __typename } }
+  }
+  c0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    comparison(base: $a, head: $b) {
+    all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 201, paths: $paths) { nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } } }
+    patch: fileDiffs(paths: $paths) { rawDiff }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "0123456789abcdef0123456789abcdef01234567",
+        "p0": {
+          "__typename": "GitBlob"
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "b0": {
+      "commit": {
+        "oid": "89abcdef0123456789abcdef0123456789abcdef",
+        "p0": {
+          "__typename": "GitBlob"
+        },
+        "parents": [
+          {
+            "oid": "fedcba9876543210fedcba9876543210fedcba98"
+          }
+        ]
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "c0": {
+      "comparison": {
+        "all": {
+          "diffStat": {
+            "added": 1,
+            "deleted": 1
+          },
+          "totalCount": 1
+        },
+        "page": {
+          "nodes": [
+            {
+              "newPath": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+              "oldFile": {
+                "commit": {
+                  "oid": "fedcba9876543210fedcba9876543210fedcba98"
+                }
+              },
+              "oldPath": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+              "stat": {
+                "added": 1,
+                "deleted": 1
+              }
+            }
+          ]
+        },
+        "patch": {
+          "rawDiff": "diff --git a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi\n--- a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi\n+++ a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi\n@@ -1 +1 @@\n-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi\n+a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi\n"
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}

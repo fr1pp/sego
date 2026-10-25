@@ -9,7 +9,6 @@ mod ls;
 mod output;
 mod quote;
 mod refs;
-mod safety;
 mod search_request;
 mod search_text;
 mod submodule;

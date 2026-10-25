@@ -1,0 +1,207 @@
+# An alert's title, a timed-out repository, filters and results with control characters are escaped, and so is the query, given as the argument.
+args: search $'a\eb\u{202e}c\u{200b}d\ne\rf\0g\u{2028}h\x7fi ok'
+exit: 0
+--- stdout
+10+ matches  1 repo  stopped at 0.1 s
+query  a\u{1b}b\u{202e}c\u{200b}d\u{a}e\u{d}f\u{0}g\u{2028}h\u{7f}i ok
+
+$'example.com/acme/widget@0123456789ab:a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i'
+3:a\u{1b}b
+3:function  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+4-c\u{202e}d
+5-e\u{200b}f
+6-i\u{2028}j
+7-k\u{7f}l
+8-mid\u{d}cr
+9-tab	ok
+
+$'example.com/acme/widget@0123456789ab:a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i.bin'
+binary file; lines not shown
+
+example.com/acme/widget@fedcba987654  2024-01-02  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+    a\u{1b}b
+    c\u{202e}d
+    e\u{200b}f
+
+example.com/acme/widget
+--- stderr
+sego: note: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+sego: note: the server proposes: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+--- request Search {"query":"a\u001bb‮c​d\ne\rf\u0000g hi ok"}
+--- query
+query Search($query: String!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": {
+          "description": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+          "kind": null,
+          "proposedQueries": [
+            {
+              "description": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+              "query": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+            }
+          ],
+          "title": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+        },
+        "approximateResultCount": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+        "dynamicFilters": [
+          {
+            "count": 1,
+            "kind": "lang",
+            "value": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+          },
+          {
+            "count": 2,
+            "kind": "utility",
+            "value": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+          }
+        ],
+        "elapsedMilliseconds": 100,
+        "limitHit": false,
+        "matchCount": 10,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "a\u001bb\nc\u202ed\ne\u200bf\ni\u2028j\nk\u007fl\nmid\rcr\ntab\tok\n",
+                "contentStart": {
+                  "line": 2
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 2,
+                      "line": 2
+                    },
+                    "start": {
+                      "character": 1,
+                      "line": 2
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": {
+              "expr": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+            },
+            "symbols": [
+              {
+                "containerName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+                "kind": "FUNCTION",
+                "location": {
+                  "range": {
+                    "start": {
+                      "line": 2
+                    }
+                  }
+                },
+                "name": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+              }
+            ]
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "a\u0000b\n",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": []
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi.bin"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2024-01-02T03:04:05Z",
+                "person": {
+                  "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                }
+              },
+              "oid": "fedcba9876543210fedcba9876543210fedcba98",
+              "repository": {
+                "name": "example.com/acme/widget"
+              },
+              "subject": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```\na\u001bb\nc\u202ed\ne\u200bf\ni\u2028j\nk\u007fl\nmid\rcr\ntab\tok\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 1,
+                    "length": 2,
+                    "line": 2
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "__typename": "Repository",
+            "name": "example.com/acme/widget"
+          }
+        ],
+        "timedout": [
+          {
+            "name": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+          }
+        ]
+      }
+    }
+  }
+}
