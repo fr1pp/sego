@@ -8,10 +8,11 @@ reach (cache trimming, the transport, combinations of error classification). Any
 see on the command line is pinned by a case (ADR 0011). A help text is pinned only by its case;
 only the help's layout rules are module tests. A module test that repeats a case is deleted.
 
-The library exports `run` and what it takes (`Env`, `Endpoint`, `Transport`, `Reply`,
-`TransportError`), and nothing else. Tests under `tests/` go through `run`. Re-exporting private
-modules for tests put two thirds of the suite past the interface, in one flat file per module,
-where a refactor broke tests far from the code it changed.
+The library exports `run`, what it takes (`Env`, `Endpoint`, `Transport`, `Reply`,
+`TransportError`) and `connect`, the transport `main` hands it, and nothing else. Tests under
+`tests/` go through `run`. Re-exporting private modules for tests put two thirds of the suite past
+the interface, in one flat file per module, where a refactor broke tests far from the code it
+changed.
 
 A case's exchanges pin the shape of each request: the runner fails a request whose operation,
 variables or query differ from the next exchange. A test that checks only the request a command

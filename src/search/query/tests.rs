@@ -3,8 +3,8 @@ use std::time::{Duration, Instant};
 use crate::search::lint::{Token, tokenize};
 use crate::search::plan::plan;
 use crate::search::query::{
-    Unit, cap, content_search, deadline_ms, duration_text, go_duration,
-    index_no, lower_bound, prepare, select_cut, select_drops, tenths,
+    Unit, cap, content_search, deadline_ms, duration_text, index_no,
+    lower_bound, parse, prepare, select_cut, select_drops, tenths,
     unindexed_query, unit,
 };
 
@@ -77,6 +77,10 @@ fn deadlines() {
 
 #[test]
 fn go_durations() {
+    let go_duration = |text: &str| match parse(text)? {
+        (true, d) if !d.is_zero() => None,
+        (_, d) => Some(d),
+    };
     let rows = [
         ("1h2m3.5s", Some(Duration::from_millis(3_723_500))),
         ("300ms", Some(Duration::from_millis(300))),

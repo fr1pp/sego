@@ -562,7 +562,7 @@ impl Searched {
         let mut placeholder_ranges = 0;
         let mut index: HashMap<(String, String, String), usize> =
             HashMap::new();
-        for item in std::mem::take(&mut results.results) {
+        for item in std::mem::take(&mut results.items) {
             match item {
                 Item::FileMatch(file) if is_placeholder(&file) => {
                     placeholder_ranges += file

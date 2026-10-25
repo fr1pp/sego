@@ -5,7 +5,6 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde_json::Value;
 
-use sego::internal::upstream::Ureq;
 use sego::{Endpoint, Reply, Transport, TransportError};
 
 use crate::case::{
@@ -47,7 +46,7 @@ impl Recorder {
             endpoint: endpoint.url(""),
             live_values: false,
         };
-        Ok(Recorder::new(Box::new(Ureq::new(endpoint)), stamp))
+        Ok(Recorder::new(sego::connect(endpoint), stamp))
     }
 
     /// Sends `request` upstream with `forward` and records the reply. The

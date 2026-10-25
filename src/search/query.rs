@@ -526,15 +526,6 @@ pub fn deadline_ms(tokens: &[Token]) -> u64 {
     }
 }
 
-/// Go's `time.ParseDuration`, for a duration that isn't negative. A
-/// negative one, or text Go rejects, is `None`. `-0` is zero.
-pub fn go_duration(text: &str) -> Option<Duration> {
-    match parse(text)? {
-        (true, d) if !d.is_zero() => None,
-        (_, d) => Some(d),
-    }
-}
-
 /// The sign (true for negative) and magnitude. Go keeps durations in an
 /// `i64` of nanoseconds, so a magnitude past that range is rejected.
 fn parse(text: &str) -> Option<(bool, Duration)> {

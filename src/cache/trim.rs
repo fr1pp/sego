@@ -14,7 +14,7 @@ const STAMP_TEMP_PREFIX: &str = "~tmp-trim-";
 
 /// `stamp` is the contents of `trim.txt`: decimal Unix seconds. A stamp
 /// slightly in the future is tolerated as clock skew.
-pub fn due(stamp: Option<&str>, now: SystemTime) -> bool {
+fn due(stamp: Option<&str>, now: SystemTime) -> bool {
     let Some(secs) = stamp.and_then(|text| text.trim().parse::<u64>().ok())
     else {
         return true;
