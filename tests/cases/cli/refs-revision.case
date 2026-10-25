@@ -1,6 +1,6 @@
 # refs names a repository; a revision is refused and no request is made.
-args: refs github.com/x/y@v1
+args: refs example.com/acme/widget@v1
 exit: 2
 --- stderr
-sego: error: refs names a repository, not a revision or path: github.com/x/y@v1
+sego: error: refs names a repository, not a revision or path: example.com/acme/widget@v1
 usage: sego refs [--json] REPO [TEXT]

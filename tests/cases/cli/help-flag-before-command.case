@@ -1,4 +1,4 @@
-# show --help adds the commit synopsis and the REPO@REV line.
+# -h before a command name prints that command's help.
 args: -h show
 exit: 0
 --- stdout

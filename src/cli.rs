@@ -754,3 +754,6 @@ exit codes: 0 answered, 1 not answered, 2 the command line is wrong
 "
     )
 }
+
+#[cfg(test)]
+mod tests;
