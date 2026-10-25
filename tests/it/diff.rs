@@ -3,7 +3,7 @@ use std::process::ExitCode;
 
 use serde_json::{Value, json};
 
-use sego::internal::upstream::{Endpoint, Reply, Transport};
+use sego::{Endpoint, Reply, Transport};
 
 use crate::support::exec::{Ran, exec};
 use crate::support::fake::Fake;

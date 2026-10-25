@@ -6,7 +6,7 @@ use std::sync::OnceLock;
 use serde_json::Value;
 
 use sego::internal::escape::is_unsafe;
-use sego::internal::upstream::{Endpoint, Transport};
+use sego::{Endpoint, Transport};
 
 use crate::support::exec::exec_os;
 use crate::support::fake::Fake;

@@ -7,9 +7,8 @@ use std::time::{Duration, Instant};
 
 use serde_json::json;
 
-use sego::internal::upstream::{
-    DEADLINE, Endpoint, Reply, Transport, TransportError,
-};
+use sego::internal::upstream::DEADLINE;
+use sego::{Endpoint, Reply, Transport, TransportError};
 use sego::{Env, run};
 
 use crate::support::exec::{Ran, args, exec, exec_os};

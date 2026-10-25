@@ -8,9 +8,8 @@ use std::time::Instant;
 
 use serde_json::Value;
 
-use sego::internal::upstream::{
-    DEADLINE, Endpoint, GRAPHQL_PATH, Reply, Transport, TransportError, Ureq,
-};
+use sego::internal::upstream::{DEADLINE, GRAPHQL_PATH, Ureq};
+use sego::{Endpoint, Reply, Transport, TransportError};
 
 use super::fixture::{Fault, Fixture};
 use super::http::{Request, Response, Server};

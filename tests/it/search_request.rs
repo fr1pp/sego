@@ -7,10 +7,8 @@ use sego::internal::error::{Error, report};
 use sego::internal::search::query::prepare;
 use sego::internal::search::response::{Item, UnindexedFile};
 use sego::internal::search::{Fetched, OPERATION, fetch, request};
-use sego::internal::upstream::{
-    Endpoint, GRAPHQL_PATH, Reply, Request, Transport, TransportError, Var,
-    top_level,
-};
+use sego::internal::upstream::{GRAPHQL_PATH, Request, Var, top_level};
+use sego::{Endpoint, Reply, Transport, TransportError};
 
 use crate::support::exec::{Ran, exec};
 use crate::support::fake::Fake;

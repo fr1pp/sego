@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Instant;
 
-use sego::internal::upstream::{Reply, Transport, TransportError};
+use sego::{Reply, Transport, TransportError};
 
 use super::fixture::Fixture;
 use super::replay;

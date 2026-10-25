@@ -1,7 +1,7 @@
 use std::ffi::{OsStr, OsString};
 use std::process::ExitCode;
 
-use sego::internal::upstream::{Endpoint, Transport};
+use sego::{Endpoint, Transport};
 use sego::{Env, run};
 
 pub struct Ran {
