@@ -29,7 +29,17 @@ ureq = "3.4.2"
 rustix = { version = "1", default-features = false, features = ["fs", "std"] }
 
 [dev-dependencies]
+datatest-stable = "0.3.3"
 serde-saphyr = "1.3.0"
+
+[[test]]
+name = "cases"
+path = "tests/harness/main.rs"
+harness = false
+
+[[test]]
+name = "harness"
+path = "tests/harness/unit.rs"
 
 [lints.rust]
 unsafe_code = "forbid"
