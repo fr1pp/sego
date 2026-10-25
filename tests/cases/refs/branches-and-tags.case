@@ -1,5 +1,5 @@
-# owner/name resolves to the one host that has it.
-args: refs gorilla/mux
+# Branches and tags of a repository, newest first.
+args: refs github.com/gorilla/mux
 exit: 0
 --- stdout
 github.com/gorilla/mux  4 branches  15 tags
@@ -22,23 +22,17 @@ tag     bcd8bc72b08d  2017-05-21  v1.4.0
 tag     392c28fe23e1  2017-01-18  v1.3.0
 tag     b12896167c61  2017-01-17  v1.2.0
 tag     0eeaf8392f5b  2016-03-17  v1.1
---- request Refs {"first":101,"query":null,"repo0":"github.com/gorilla/mux","repo1":"gitlab.com/gorilla/mux"}
+--- request Refs {"first":101,"query":null,"repo0":"github.com/gorilla/mux"}
 --- query
-query Refs($repo0: String!, $repo1: String!, $first: Int!, $query: String) {
+query Refs($repo0: String!, $first: Int!, $query: String) {
   r0: repository(name: $repo0) {
     name
     defaultBranch { displayName }
     branches(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
     tags(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
   }
-  r1: repository(name: $repo1) {
-    name
-    defaultBranch { displayName }
-    branches(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
-    tags(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
-  }
 }
---- response 200 application/json recorded 2026-10-07 https://sourcegraph.com
+--- response 200 application/json recorded 2026-10-07 https://sourcegraph.com live: values
 {
   "data": {
     "r0": {
@@ -265,7 +259,6 @@ query Refs($repo0: String!, $repo1: String!, $first: Int!, $query: String) {
         ],
         "totalCount": 15
       }
-    },
-    "r1": null
+    }
   }
 }

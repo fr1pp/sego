@@ -14,7 +14,7 @@ query Refs($repo0: String!, $first: Int!, $query: String) {
     tags(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
   }
 }
---- response 200 application/json recorded 2026-10-07 https://sourcegraph.com
+--- response 200 application/json recorded 2026-10-07 https://sourcegraph.com live: values
 {
   "data": {
     "r0": null

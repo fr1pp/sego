@@ -1,19 +1,44 @@
-# JSON carries every ref.
-args: refs --json github.com/gorilla/mux
+# owner/name resolves to the one host that has it.
+args: refs gorilla/mux
 exit: 0
 --- stdout
-{"repo":"github.com/gorilla/mux","query":null,"default_branch":"main","branches_total":4,"tags_total":15,"branches_all":null,"tags_all":null,"branches_more":false,"tags_more":false,"refs":[{"kind":"branch","name":"main","commit":"db9d1d0073d27a0a2d9a8c1bc52aa0af4374d265","date":"2024-06-19"},{"kind":"branch","name":"coreydaley-patch-2","commit":"ac856fa44dac3d5bdac2160d53f6bbec042fa3a3","date":"2023-11-05"},{"kind":"branch","name":"release-1.8","commit":"b4617d0b9670ad14039b2739167fd35a60f557c5","date":"2023-10-18"},{"kind":"branch","name":"coreydaley-patch-1","commit":"d033abe4a66f2728c35886278148b0e38e7dbe4f","date":"2023-08-23"},{"kind":"tag","name":"v1.8.1","commit":"b4617d0b9670ad14039b2739167fd35a60f557c5","date":"2023-10-18"},{"kind":"tag","name":"v1.8.0","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","date":"2020-07-11"},{"kind":"tag","name":"v1.7.4","commit":"75dcda0896e109a2a22c9315bca3bb21b87b2ba5","date":"2020-01-12"},{"kind":"tag","name":"v1.7.3","commit":"00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15","date":"2019-06-30"},{"kind":"tag","name":"v1.7.2","commit":"ed099d42384823742bba0bf9a72b53b55c9e2e38","date":"2019-05-17"},{"kind":"tag","name":"v1.7.1","commit":"c5c6c98bc25355028a63748a498942a6398ccd22","date":"2019-03-16"},{"kind":"tag","name":"v1.7.0","commit":"a7962380ca08b5a188038c69871b8d3fbdf31e89","date":"2019-01-25"},{"kind":"tag","name":"v1.6.2","commit":"e3702bed27f0d39777b0b37b664b6280e8ef8fbf","date":"2018-05-13"},{"kind":"tag","name":"v1.6.1","commit":"53c1911da2b537f792e7cafcb446b05ffe33b996","date":"2018-01-16"},{"kind":"tag","name":"v1.6.0","commit":"7f08801859139f86dfafd1c296e2cba9a80d292e","date":"2017-11-05"},{"kind":"tag","name":"v1.5.0","commit":"24fca303ac6da784b9e8269f724ddeb0b2eea5e7","date":"2017-09-05"},{"kind":"tag","name":"v1.4.0","commit":"bcd8bc72b08df0f70df986b97f95590779502d31","date":"2017-05-21"},{"kind":"tag","name":"v1.3.0","commit":"392c28fe23e1c45ddba891b0320b3b5df220beea","date":"2017-01-18"},{"kind":"tag","name":"v1.2.0","commit":"b12896167c61cb7a17ee5f15c2ba0729d78793db","date":"2017-01-17"},{"kind":"tag","name":"v1.1","commit":"0eeaf8392f5b04950925b8a69fe70f110fa7cbfc","date":"2016-03-17"}]}
---- request Refs {"first":17000,"query":null,"repo0":"github.com/gorilla/mux"}
+github.com/gorilla/mux  4 branches  15 tags
+branch  db9d1d0073d2  2024-06-19  main  (default)
+branch  ac856fa44dac  2023-11-05  coreydaley-patch-2
+branch  b4617d0b9670  2023-10-18  release-1.8
+branch  d033abe4a66f  2023-08-23  coreydaley-patch-1
+tag     b4617d0b9670  2023-10-18  v1.8.1
+tag     98cb6bf42e08  2020-07-11  v1.8.0
+tag     75dcda0896e1  2020-01-12  v1.7.4
+tag     00bdffe0f3c7  2019-06-30  v1.7.3
+tag     ed099d423848  2019-05-17  v1.7.2
+tag     c5c6c98bc253  2019-03-16  v1.7.1
+tag     a7962380ca08  2019-01-25  v1.7.0
+tag     e3702bed27f0  2018-05-13  v1.6.2
+tag     53c1911da2b5  2018-01-16  v1.6.1
+tag     7f0880185913  2017-11-05  v1.6.0
+tag     24fca303ac6d  2017-09-05  v1.5.0
+tag     bcd8bc72b08d  2017-05-21  v1.4.0
+tag     392c28fe23e1  2017-01-18  v1.3.0
+tag     b12896167c61  2017-01-17  v1.2.0
+tag     0eeaf8392f5b  2016-03-17  v1.1
+--- request Refs {"first":101,"query":null,"repo0":"github.com/gorilla/mux","repo1":"gitlab.com/gorilla/mux"}
 --- query
-query Refs($repo0: String!, $first: Int!, $query: String) {
+query Refs($repo0: String!, $repo1: String!, $first: Int!, $query: String) {
   r0: repository(name: $repo0) {
     name
     defaultBranch { displayName }
     branches(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
     tags(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
   }
+  r1: repository(name: $repo1) {
+    name
+    defaultBranch { displayName }
+    branches(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+    tags(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+  }
 }
---- response 200 application/json recorded 2026-10-07 https://sourcegraph.com
+--- response 200 application/json recorded 2026-10-07 https://sourcegraph.com live: values
 {
   "data": {
     "r0": {
@@ -240,6 +265,7 @@ query Refs($repo0: String!, $first: Int!, $query: String) {
         ],
         "totalCount": 15
       }
-    }
+    },
+    "r1": null
   }
 }

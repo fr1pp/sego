@@ -1,9 +1,9 @@
-# A repository without refs prints zero of each.
-args: refs github.com/ascoders/blog
+# JSON of a repository without refs has no default branch and no refs.
+args: refs --json github.com/ascoders/blog
 exit: 0
 --- stdout
-github.com/ascoders/blog  0 branches  0 tags
---- request Refs {"first":101,"query":null,"repo0":"github.com/ascoders/blog"}
+{"repo":"github.com/ascoders/blog","query":null,"default_branch":null,"branches_total":0,"tags_total":0,"branches_all":null,"tags_all":null,"branches_more":false,"tags_more":false,"refs":[]}
+--- request Refs {"first":17000,"query":null,"repo0":"github.com/ascoders/blog"}
 --- query
 query Refs($repo0: String!, $first: Int!, $query: String) {
   r0: repository(name: $repo0) {
@@ -13,7 +13,7 @@ query Refs($repo0: String!, $first: Int!, $query: String) {
     tags(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
   }
 }
---- response 200 application/json recorded 2026-10-07 https://sourcegraph.com
+--- response 200 application/json recorded 2026-10-25 https://sourcegraph.com live: values
 {
   "data": {
     "r0": {

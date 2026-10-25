@@ -1,0 +1,71 @@
+# The default branch is marked by name, wherever it is listed.
+args: refs example.com/acme/widget
+exit: 0
+--- stdout
+example.com/acme/widget  3 branches  0 tags
+branch  000000000000  2026-01-02  b1
+branch  000000000000  2026-01-02  b0  (default)
+branch  000000000000  2026-01-02  b2
+--- request Refs {"first":101,"query":null,"repo0":"example.com/acme/widget"}
+--- query
+query Refs($repo0: String!, $first: Int!, $query: String) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    branches(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+    tags(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "branches": {
+        "nodes": [
+          {
+            "displayName": "b1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-01-02T03:04:05Z"
+                }
+              },
+              "oid": "0000000000000000000000000000000000000001"
+            }
+          },
+          {
+            "displayName": "b0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-01-02T03:04:05Z"
+                }
+              },
+              "oid": "0000000000000000000000000000000000000002"
+            }
+          },
+          {
+            "displayName": "b2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-01-02T03:04:05Z"
+                }
+              },
+              "oid": "0000000000000000000000000000000000000003"
+            }
+          }
+        ],
+        "totalCount": 3
+      },
+      "defaultBranch": {
+        "displayName": "b0"
+      },
+      "name": "example.com/acme/widget",
+      "tags": {
+        "nodes": [],
+        "totalCount": 0
+      }
+    }
+  }
+}
