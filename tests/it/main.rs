@@ -1,4 +1,3 @@
-mod diff;
 mod drift;
 mod guard;
 mod refs;

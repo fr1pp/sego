@@ -1,9 +1,9 @@
 # A failed comparison is named, and the server's text is not printed.
-args: diff example.com/handwritten/comparison-error@v1...v2
+args: diff example.com/acme/widget@v1...v2
 exit: 1
 --- stderr
 sego: error: Sourcegraph failed to answer the comparison
---- request Diff {"a":"v1","b":"v2","paths":null,"repo0":"example.com/handwritten/comparison-error"}
+--- request Diff {"a":"v1","b":"v2","paths":null,"repo0":"example.com/acme/widget"}
 --- query
 query Diff($repo0: String!, $a: String!, $b: String!, $paths: [String!]) {
   a0: repository(name: $repo0) {
@@ -35,7 +35,7 @@ query Diff($repo0: String!, $a: String!, $b: String!, $paths: [String!]) {
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/comparison-error"
+      "name": "example.com/acme/widget"
     },
     "b0": {
       "commit": {
@@ -49,7 +49,7 @@ query Diff($repo0: String!, $a: String!, $b: String!, $paths: [String!]) {
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/comparison-error"
+      "name": "example.com/acme/widget"
     },
     "c0": null
   },

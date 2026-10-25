@@ -312,3 +312,6 @@ pub fn run(
         paths: paths.to_vec(),
     })
 }
+
+#[cfg(test)]
+mod tests;

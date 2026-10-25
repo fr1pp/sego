@@ -1,9 +1,9 @@
-# A root commit has no parent to diff against.
-args: diff example.com/handwritten/root-commit@v0.1.0
+# A comparison the server leaves null, without an error, is a failure.
+args: diff example.com/acme/widget@v1...v2
 exit: 1
 --- stderr
-sego: error: v0.1.0 is a root commit: Sourcegraph has no diff for it
---- request Diff {"a":"v0.1.0^1","b":"v0.1.0","paths":null,"repo0":"example.com/handwritten/root-commit"}
+sego: error: Sourcegraph failed to answer the comparison
+--- request Diff {"a":"v1","b":"v2","paths":null,"repo0":"example.com/acme/widget"}
 --- query
 query Diff($repo0: String!, $a: String!, $b: String!, $paths: [String!]) {
   a0: repository(name: $repo0) {
@@ -29,31 +29,28 @@ query Diff($repo0: String!, $a: String!, $b: String!, $paths: [String!]) {
 {
   "data": {
     "a0": {
-      "commit": null,
+      "commit": {
+        "oid": "0123456789abcdef0123456789abcdef01234567"
+      },
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/root-commit"
+      "name": "example.com/acme/widget"
     },
     "b0": {
       "commit": {
-        "oid": "4e8d10dc715feb79b43f1d607b45148537546a0a",
-        "parents": []
+        "oid": "89abcdef0123456789abcdef0123456789abcdef",
+        "parents": [
+          {
+            "oid": "0123456789abcdef0123456789abcdef01234567"
+          }
+        ]
       },
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/root-commit"
+      "name": "example.com/acme/widget"
     },
     "c0": null
-  },
-  "errors": [
-    {
-      "message": "revision not found: repo 1700 @v0.1.0^1^0",
-      "path": [
-        "c0",
-        "comparison"
-      ]
-    }
-  ]
+  }
 }
