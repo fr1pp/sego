@@ -38,7 +38,7 @@ query Search($query: String!) {
     }
   }
 }
---- response 200 application/json recorded 2026-10-12 https://sourcegraph.com
+--- response 200 application/json recorded 2026-10-12 https://sourcegraph.com live: values
 {
   "data": {
     "search": {

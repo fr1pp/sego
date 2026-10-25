@@ -1,0 +1,241 @@
+# A blank line follows each result that prints lines, and none follows a path or
+# a repository.
+args: search '(repo:example.com/acme/widget foo) or (repo:example.com/acme/widget type:path foo) or (repo:example.com/acme/widget type:commit foo)'
+exit: 0
+--- stdout
+6 files  3 repos  0.7 s
+query  (repo:example.com/acme/widget foo) or (repo:example.com/acme/widget type:path foo) or (repo:example.com/acme/widget type:commit foo)
+
+example.com/acme/widget@0123456789ab:a.go
+10:x
+
+example.com/acme/widget@0123456789ab:b.go
+20:x
+
+example.com/acme/widget@0123456789ab:p1
+example.com/acme/widget@0123456789ab:p2
+example.com/acme/widget@0123456789ab:c.go
+30:x
+
+example.com/acme/widget@aaaaaaaaaaaa  2024-05-06  Ann  Fix it
+    Fix it
+
+example.com/acme/gadget
+example.com/acme/lib
+--- request Search {"query":"(repo:example.com/acme/widget foo) or (repo:example.com/acme/widget type:path foo) or (repo:example.com/acme/widget type:commit foo)"}
+--- query
+query Search($query: String!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "6",
+        "dynamicFilters": [],
+        "elapsedMilliseconds": 700,
+        "limitHit": false,
+        "matchCount": 6,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "x",
+                "contentStart": {
+                  "line": 9
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 1,
+                      "line": 9
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 9
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "a.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "x",
+                "contentStart": {
+                  "line": 19
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 1,
+                      "line": 19
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 19
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "b.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "p1"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "p2"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "x",
+                "contentStart": {
+                  "line": 29
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 1,
+                      "line": 29
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 29
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "c.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2024-05-06T07:08:09Z",
+                "person": {
+                  "displayName": "Ann"
+                }
+              },
+              "oid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "repository": {
+                "name": "example.com/acme/widget"
+              },
+              "subject": "Fix it"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```\nFix it\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 0,
+                    "length": 3,
+                    "line": 1
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "__typename": "Repository",
+            "name": "example.com/acme/gadget"
+          },
+          {
+            "__typename": "Repository",
+            "name": "example.com/acme/lib"
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}
