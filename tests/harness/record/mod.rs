@@ -38,8 +38,7 @@ impl Recorder {
     /// A recorder that reads from sourcegraph.com, stamped with the date of
     /// `now`.
     pub fn sourcegraph(now: SystemTime) -> Result<Recorder, String> {
-        let endpoint =
-            Endpoint::from_env(None::<&OsStr>).map_err(|e| e.to_string())?;
+        let endpoint = Endpoint::from_env(None::<&OsStr>)?;
         let stamp = Stamp {
             date: date(now),
             endpoint: endpoint.url(""),

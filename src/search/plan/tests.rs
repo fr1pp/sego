@@ -523,7 +523,7 @@ fn tree_searches(node: &Value) -> Vec<Vec<String>> {
 #[ignore = "sends requests to sourcegraph.com"]
 fn plans_match_the_live_server() {
     let endpoint =
-        Endpoint::from_env(None::<&OsStr>).unwrap_or_else(|e| panic!("{e}"));
+        Endpoint::parse(None::<&OsStr>).unwrap_or_else(|e| panic!("{e}"));
     let upstream = Ureq::new(endpoint);
     let mut failures = Vec::new();
     for query in PLANNED {

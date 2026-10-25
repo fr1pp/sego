@@ -154,7 +154,7 @@ fn the_rules_sego_relies_on_for_counts_and_unindexed_files_still_hold_on_the_liv
         .join("\n");
     let request = top_level("DriftRules", vars, &selection);
     let endpoint =
-        Endpoint::from_env(None::<&OsStr>).unwrap_or_else(|e| panic!("{e}"));
+        Endpoint::parse(None::<&OsStr>).unwrap_or_else(|e| panic!("{e}"));
     let upstream = Ureq::new(endpoint);
     let envelope = exchange(&upstream, &request, Instant::now() + DEADLINE)
         .unwrap_or_else(|e| panic!("{e}"));

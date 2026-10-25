@@ -17,7 +17,7 @@ use server::{Response, Server};
 #[test]
 fn endpoint_cache_keys_are_normalised() {
     let key =
-        |s: &str| Endpoint::from_env(Some(OsStr::new(s))).unwrap().cache_key();
+        |s: &str| Endpoint::parse(Some(OsStr::new(s))).unwrap().cache_key();
     assert_eq!(key("HTTPS://Sourcegraph.COM/"), "https://sourcegraph.com");
     assert_eq!(key("https://user:pw@host:3080/sg/"), "https://host:3080/sg");
     assert_ne!(key("http://x"), key("https://x"));
@@ -26,7 +26,7 @@ fn endpoint_cache_keys_are_normalised() {
 
 fn client(server: &Server) -> Ureq {
     let value = server.url();
-    let endpoint = Endpoint::from_env(Some(OsStr::new(&value)))
+    let endpoint = Endpoint::parse(Some(OsStr::new(&value)))
         .unwrap_or_else(|e| panic!("{e}"));
     Ureq::without_proxy(endpoint)
 }
@@ -36,7 +36,7 @@ fn soon() -> Instant {
 }
 
 fn graphql_url(value: Option<&str>) -> Result<String, Error> {
-    Endpoint::from_env(value.map(OsStr::new)).map(|e| e.url(GRAPHQL_PATH))
+    Endpoint::parse(value.map(OsStr::new)).map(|e| e.url(GRAPHQL_PATH))
 }
 
 fn usage_message(value: &str) -> String {
@@ -92,8 +92,7 @@ fn the_graphql_url_follows_sego_endpoint_and_malformed_values_are_rejected() {
 #[test]
 fn endpoint_must_be_utf8() {
     use std::os::unix::ffi::OsStrExt;
-    let Err(error) =
-        Endpoint::from_env(Some(OsStr::from_bytes(b"http://\xff")))
+    let Err(error) = Endpoint::parse(Some(OsStr::from_bytes(b"http://\xff")))
     else {
         panic!("non-UTF-8 was accepted");
     };
@@ -217,7 +216,7 @@ fn a_refused_or_dropped_connection_is_a_network_error_naming_its_cause() {
     drop(listener);
     let value = format!("http://127.0.0.1:{port}");
     let closed = Ureq::without_proxy(
-        Endpoint::from_env(Some(OsStr::new(&value)))
+        Endpoint::parse(Some(OsStr::new(&value)))
             .unwrap_or_else(|e| panic!("{e}")),
     );
     let refused = closed.get("/", soon());
@@ -242,12 +241,12 @@ fn a_refused_or_dropped_connection_is_a_network_error_naming_its_cause() {
 #[test]
 fn endpoint_host_is_host_and_port_without_credentials() {
     let host = |s: &str| {
-        Endpoint::from_env(Some(OsStr::new(s)))
+        Endpoint::parse(Some(OsStr::new(s)))
             .unwrap_or_else(|e| panic!("{e:?}"))
             .host()
     };
     assert_eq!(
-        Endpoint::from_env(None).unwrap_or_else(|e| panic!("{e:?}")).host(),
+        Endpoint::parse(None).unwrap_or_else(|e| panic!("{e:?}")).host(),
         "sourcegraph.com"
     );
     assert_eq!(host("http://127.0.0.1:1"), "127.0.0.1:1");
@@ -288,7 +287,7 @@ fn a_refused_connection_names_the_endpoint() {
     let address = listener.local_addr().unwrap_or_else(|e| panic!("{e}"));
     drop(listener);
     let url = format!("http://{address}");
-    let endpoint = Endpoint::from_env(Some(OsStr::new(&url)))
+    let endpoint = Endpoint::parse(Some(OsStr::new(&url)))
         .unwrap_or_else(|e| panic!("{e}"));
     let client = Ureq::without_proxy(endpoint);
     let request = Request {

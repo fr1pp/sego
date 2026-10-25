@@ -131,8 +131,7 @@ static BLOCKED: AtomicBool = AtomicBool::new(false);
 /// the last request of any case, and refusing every request once
 /// sourcegraph.com has blocked one.
 pub fn connect(endpoint: &str) -> Result<Box<dyn Transport>, String> {
-    let endpoint = Endpoint::from_env(Some(OsStr::new(endpoint)))
-        .map_err(|e| e.to_string())?;
+    let endpoint = Endpoint::from_env(Some(OsStr::new(endpoint)))?;
     Ok(Box::new(Paced(sego::connect(endpoint))))
 }
 
