@@ -1,5 +1,0 @@
-# A submodule in JSON has the target and the commit.
-args: show --json github.com/akinomyoga/ble.sh@d81fd54feb0d:contrib
-exit: 0
---- stdout
-{"repo":"github.com/akinomyoga/ble.sh","rev":"d81fd54feb0d","commit":"d81fd54feb0d996fdff20dca27eaf0201f7015cc","path":"contrib","total_lines":0,"byte_size":0,"binary":false,"crlf":false,"lfs_size":null,"submodule":{"url":"../blesh-contrib","target":"github.com/akinomyoga/blesh-contrib@d2109203480a","commit":"d2109203480a7dfe1dead5f5f8f9f15a9146c90d"},"start":null,"end":null,"lines":[],"via_raw":false}

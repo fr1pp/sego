@@ -1,6 +1,0 @@
-# A server error is reported with its Retry-After.
-args: show github.com/gorilla/mux@v1.8.0:mux.go 23-24
-exit: 1
---- stderr
-sego: error: sourcegraph.com answered HTTP 502
-  Retry-After: 30

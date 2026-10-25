@@ -1,5 +1,0 @@
-# A dropped connection is a network error.
-args: show github.com/gorilla/mux@v1.8.0:mux.go 25-26
-exit: 1
---- stderr
-sego: error: could not reach sourcegraph.com: connection closed

@@ -1,5 +1,0 @@
-operation: EnvelopeRedirect
-status: 301
-headers:
-  location: https://sourcegraph.com/.api/graphql/
-handwritten: true

@@ -1,5 +1,5 @@
 # --recursive belongs to ls; show names it and prints its own synopsis.
-args: show --recursive github.com/x/y:a.go
+args: show --recursive example.com/acme/widget:a.go
 exit: 2
 --- stderr
 sego: error: show takes no --recursive

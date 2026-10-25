@@ -1,0 +1,146 @@
+# The JSON form drops the placeholder too, and lists no unindexed file: a
+# binary file is not one.
+args: search --json 'repo:example.com/acme/widget binary'
+exit: 0
+--- stdout
+{"query":"repo:example.com/acme/widget binary","pattern_type":"keyword","unit":"matches","count":2,"at_least":false,"stopped":false,"elapsed_ms":300,"limit_ms":20000,"widen":[],"unindexed":[],"alert":null,"results":[{"kind":"line","repo":"example.com/acme/widget","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"src/real.txt","line":10,"text":"a binary value","match":true,"ranges":[[2,8]],"chunk":1},{"kind":"line","repo":"example.com/acme/widget","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"src/real.txt","line":11,"text":"another binary","match":true,"ranges":[[8,14]],"chunk":1}],"server":{"match_count":3,"approximate_count":"3","limit_hit":false,"timedout":[]}}
+--- request Search {"query":"repo:example.com/acme/widget binary","unindexed":"repo:example.com/acme/widget type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
+--- query
+query Search($query: String!, $unindexed: String!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+  unindexed: search(query: $unindexed, version: V3, patternType: keyword) {
+    results {
+      limitHit elapsedMilliseconds timedout { name } alert { title }
+      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "3",
+        "dynamicFilters": [],
+        "elapsedMilliseconds": 300,
+        "limitHit": false,
+        "matchCount": 3,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "a binary value\nanother binary",
+                "contentStart": {
+                  "line": 9
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 8,
+                      "line": 9
+                    },
+                    "start": {
+                      "character": 2,
+                      "line": 9
+                    }
+                  },
+                  {
+                    "end": {
+                      "character": 14,
+                      "line": 10
+                    },
+                    "start": {
+                      "character": 8,
+                      "line": 10
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/real.txt"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: contains binary content",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 36,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "data/blob.dat"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          }
+        ],
+        "timedout": []
+      }
+    },
+    "unindexed": {
+      "results": {
+        "alert": null,
+        "elapsedMilliseconds": 10,
+        "limitHit": false,
+        "results": [],
+        "timedout": []
+      }
+    }
+  }
+}

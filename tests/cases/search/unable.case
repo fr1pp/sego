@@ -1,5 +1,0 @@
-# An Unable To Process Query alert is an error.
-args: search 'lang:nosuchlang foo'
-exit: 1
---- stderr
-sego: error: Unknown language: "nosuchlang"

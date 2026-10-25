@@ -1,5 +1,0 @@
-# A missing base is named.
-args: diff github.com/gorilla/mux@v9.9.9...v1.7.1
-exit: 1
---- stderr
-sego: error: base revision v9.9.9 not found in github.com/gorilla/mux

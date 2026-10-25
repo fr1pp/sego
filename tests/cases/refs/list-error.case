@@ -1,5 +1,0 @@
-# A located list error names the part, not the server's text.
-args: refs example.com/handwritten/broken
-exit: 1
---- stderr
-sego: error: Sourcegraph failed to answer the tag list

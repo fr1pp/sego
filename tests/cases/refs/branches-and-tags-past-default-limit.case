@@ -1,0 +1,2458 @@
+# A repository with many branches prints 100 and says so.
+args: refs github.com/microsoft/vscode
+exit: 0
+--- stdout
+github.com/microsoft/vscode  100 of 5482 branches shown  100 of 395 tags shown
+branch  2e139db911d2  2026-10-07  main  (default)
+branch  cde8b0c12b8f  2026-10-07  benibenj/agents/remove-workspace-restriction-pr-issues
+branch  7c4625729c35  2026-10-07  sandy081/agenthost-workspace-conversion-client
+branch  600312294049  2026-10-07  agents/canvas-support-agents-editor
+branch  967297d52c74  2026-10-07  automation/bump-copilot-sdk-1.0.17-preview.10
+branch  51920cc0df3f  2026-10-07  anthonykim1/inline-chat-terminal-scrollback
+branch  55270d5b6595  2026-10-07  justschen/339845
+branch  e49b36c69011  2026-10-07  roblou/agents/end-to-end-tests-code-coverage
+branch  8631fd303ddd  2026-10-07  copilot/agent-host-first-response-connection-kind
+branch  16e7bf4a3880  2026-10-07  agents/image-carousel-and-artifacts-integration
+branch  627329decfc0  2026-10-07  rzhao271/nasty-mongoose
+branch  4877bf253b8b  2026-10-07  roblou/agents/no-sync-fs-eslint
+branch  de804f6360fa  2026-10-07  bhavyaus/agent-title-review
+branch  fc32a5cbc86e  2026-10-07  bhavyaus/hydrafusion-plan-v2
+branch  2ec0352688bd  2026-10-07  roblou/agents/troubleshoot-flaky-tests-logs-3e979ea2
+branch  a6db5884e50e  2026-10-07  osortega/test-push
+branch  92e98b45b686  2026-10-07  roblou/agents/sdk-sanity-host-architecture
+branch  21668d9b1db8  2026-10-07  ubiquitous-lamp
+branch  78908023aa8c  2026-10-07  roblou/agents/release-1141-copilot-otel-lock-fix
+branch  1d5901668f2f  2026-10-07  roblou/agents/bump-copilot-sdk-latest-version
+branch  6be1b1fade75  2026-10-07  copilot/sdk-owned-customization-installations
+branch  f90188eff50a  2026-10-07  feature/managed-plugin-chat-activity
+branch  4d30b648f822  2026-10-07  anthonykim1/managed-plugin-install-progress
+branch  771de1edf55b  2026-10-07  jruales-canvas-session-scope
+branch  d9d5c65b9caa  2026-10-07  cherry-pick/339954
+branch  2fdc0ce7b9bc  2026-10-07  automation/bump-copilot-sdk-1.0.17-preview.9
+branch  fd8dc83819f5  2026-10-07  cherry-pick/340142
+branch  c28ba4eb731f  2026-10-07  DileepY/cherrypick-339954-main
+branch  c4924d6eb0b5  2026-10-06  automation/bump-copilot-sdk-1.0.17-preview.8-test-37544254617-1
+branch  4931075a8fd1  2026-10-06  agents/fix-local-mcp-json-discovery-defaults
+branch  4b275b1179c1  2026-10-06  agents/customizations-multi-root-workspace
+branch  91b68e844b85  2026-10-06  benibenj/agents/chat-input-picker-visibility
+branch  61b4d41953fd  2026-10-06  karthiknadig/bug-swarm/task-callback-retention
+branch  4878845cece3  2026-10-06  benibenj/agents/chat-input-picker-responsive-fix
+branch  e3b617a9f6cd  2026-10-06  rwoll/limitto-04-sandbox-preferences
+branch  c000527d7c20  2026-10-06  dependabot/npm_and_yarn/katex-0.18.2
+branch  694ce77a047b  2026-10-06  release/1.141
+branch  4c8a824d5211  2026-10-06  armed-tiger
+branch  5c56493de4a9  2026-10-06  bevillal/cloud-automations-routing
+branch  55f4e0e46438  2026-10-06  karthiknadig/bug-swarm/markdown-diff-line-marking
+branch  cf33d5294448  2026-10-06  karthiknadig/bug-swarm/explorer-bulk-move-refresh
+branch  94c796ee3bd7  2026-10-06  automation/bump-copilot-sdk-1.0.17-preview.8-test-37514820529-1
+branch  2e0a7f7c31cc  2026-10-06  cherry-pick/340130
+branch  6cbfa926ebfc  2026-10-06  agents/agents7-fix-copilot-auth-issues
+branch  e4649c05b7ea  2026-10-06  jruales-canvas-portable-storage-9953
+branch  13954ca24841  2026-10-06  roblou/agents/agent-host-session-lockup-fix
+branch  86d938974e68  2026-10-06  cherry-pick/339941
+branch  b029ada78713  2026-10-06  agents/copilot-api-extraction
+branch  1b01d2d757b2  2026-10-06  automation/bump-copilot-sdk-1.0.17-preview.8
+branch  8f8d9387ec71  2026-10-06  lramos15/agents/vscode-issue-340039-analysis
+branch  468dc9e571cb  2026-10-06  automation/bump-copilot-sdk-1.0.17-preview.7-forced-37508466263-1
+branch  1fa81c1b3b3c  2026-10-06  bhavyaus/tool-search-host-fallback
+branch  e07bfc81465a  2026-10-06  anthonykim1/selective-customization-lockdown
+branch  73d9bad2f9e2  2026-10-06  amunger/session-metrics-correlation
+branch  b1f23829b10a  2026-10-06  vritant24/mcp-tools-in-customizations
+branch  2af09325ee66  2026-10-06  anthonykim1/stop-background-shell
+branch  dd46ae037d2c  2026-10-06  agents/github-api-domains-automations-tasks-envs
+branch  a68cf556ab2d  2026-10-06  dependabot/npm_and_yarn/test/scenario/shell-quote-1.12.0
+branch  3c3a9c25f92c  2026-10-06  dependabot/npm_and_yarn/test/mcp/modelcontextprotocol/sdk-1.31.0
+branch  87aab6acc3a8  2026-10-06  agents/archive-nudge-default
+branch  f7543752e3b4  2026-10-06  agents/install-item-and-launch-copilot
+branch  7dd801d29c3c  2026-10-06  connor4312/339893-chat-latency
+branch  70ce2ac736c6  2026-10-06  copilot/fix-sessioncustomizationdiscovery-retries
+branch  ca1a496e291b  2026-10-06  auto-closing-pair-before-text
+branch  3b786eb55594  2026-10-06  benibenj/agents/fix-agents-window-listener-limit-alarms
+branch  ef328a75f5ba  2026-10-06  benibenj/agents/vs-code-session-grid-navigation-updates
+branch  632e89dd8ed5  2026-10-06  alexr00/yummy-pony
+branch  b83bfca9a2a5  2026-10-06  dependabot/npm_and_yarn/extensions/mermaid-markdown-features/source-map-js-1.2.2
+branch  57e27266af08  2026-10-06  copilot/fix-agent-host-subscription-churn
+branch  f9c34b708436  2026-10-06  copilot/automaticinstructionscollector-fix-instructions-mi
+branch  a775a09b6c88  2026-10-06  copilot/high-cpu-feedback-loop-fix
+branch  54b66dd96804  2026-10-06  bhavyau/ahp-claude-chat-parity-prompt
+branch  7b038e3be44e  2026-10-06  automation/bump-copilot-sdk-1.0.17-preview.7-test-37413976202-1
+branch  754bef24d832  2026-10-06  cherry-pick/339977
+branch  cb8d8c84bf38  2026-10-06  automation/bump-copilot-sdk-1.0.17-preview.7
+branch  972e79726d43  2026-10-06  roblou/diagnostics/agenthost-cleanup-release-480875
+branch  2b464b7ae56c  2026-10-06  automation/bump-copilot-sdk-1.0.17-preview.6
+branch  ed7c6559d3ac  2026-10-05  cherry-pick/339903
+branch  522fe0499cec  2026-10-05  cherry-pick/339915
+branch  37f5c6c966af  2026-10-05  cherry-pick/339884
+branch  823e1f445445  2026-10-05  cherry-pick/339862
+branch  0f5fcffe616b  2026-10-05  sandy081/agents/folder-to-isolation-session-feature
+branch  2e944b5d692c  2026-10-05  bhavyaus/fix-empty-toolset-registration
+branch  1a03e4f0debc  2026-10-05  packaging/vscode-with-copilot
+branch  6dc6b97e02f1  2026-10-05  automation/bump-copilot-sdk-1.0.17-preview.5
+branch  49b1e5c99c67  2026-10-05  cherry-pick/339704
+branch  2820092a7456  2026-10-05  automation/bump-codex-sdk-0.158.0
+branch  dbb05d20e3f3  2026-10-05  agents/issue-reporter-shared-anonymous
+branch  158157da674d  2026-10-05  jruales-patch-4
+branch  0153da09542a  2026-10-05  cherry-pick/338463
+branch  c0da89dad64e  2026-10-05  roblou/agents/private-copilot-sdk-runtime-build
+branch  53955c9c0a1d  2026-10-05  anthonykim1/keep-background-shell-output-visible
+branch  78d639389135  2026-10-05  automation/bump-copilot-sdk-1.0.17-preview.4
+branch  1adccdc7797e  2026-10-04  DileepY/sandboxing_filesystem
+branch  358999be8075  2026-10-04  automation/bump-copilot-sdk-1.0.17-preview.3
+branch  14411dffc6df  2026-10-04  chrmarti/dev-container-samples-tryout
+branch  34776a54a78e  2026-10-04  agents/fix-agent-auth-recovery-401-issue
+branch  1712572f0087  2026-10-04  karthiknadig/bug-swarm/problems-retention
+branch  eafb8fabb901  2026-10-03  agents/message-reordering-issue-logs-analysis
+branch  762f52633b6c  2026-10-03  copilot/test-readme-edit
+tag     2a59476c9bfc  2026-10-06  1.141.0
+tag     07f806f99922  2026-09-30  1.140.0
+tag     04c0d99f4fb0  2026-09-25  1.139.1
+tag     2242ebbb54ef  2026-09-22  1.139.0
+tag     7debcd0e2acd  2026-09-15  1.138.0
+tag     645f29cc3176  2026-09-08  1.137.0
+tag     88e44fa0e00b  2026-09-04  1.136.2
+tag     a44adf7f53e0  2026-09-03  1.136.1
+tag     520fb30b2d3d  2026-09-02  1.136.0
+tag     08d4889f9ec4  2026-08-25  1.135.0
+tag     474a349ad5b7  2026-08-19  1.134.0
+tag     a5b500951314  2026-08-11  1.133.0
+tag     c2d1b13fdc4a  2026-08-07  1.132.1
+tag     df53daabb18c  2026-08-04  1.132.0
+tag     3a03d6f72d62  2026-07-28  1.131.0
+tag     1b6a188127ee  2026-07-22  1.130.0
+tag     8a7abeba6e03  2026-07-17  1.129.1
+tag     125df4672b8a  2026-07-15  1.129.0
+tag     5264f2156cbc  2026-07-14  1.128.1
+tag     fc3def6774c7  2026-07-07  1.128.0
+tag     a22d00300655  2026-06-30  1.127.0
+tag     7e7950df89d0  2026-06-23  1.126.0
+tag     93cfdd489c3b  2026-06-15  1.125.0
+tag     6928394f91b6  2026-06-12  1.124.2
+tag     73b30e61dd53  2026-06-10  1.123.2
+tag     1b50d58d7342  2026-06-10  1.124.0
+tag     8b5bd2a8dd19  2026-06-09  1.123.1
+tag     6a44c352bd24  2026-06-03  1.123.0
+tag     8761a5560cfd  2026-05-29  1.122.1
+tag     6a49527b96e3  2026-05-27  1.122.0
+tag     987c95975162  2026-05-19  1.121.0
+tag     0958016b2af9  2026-05-12  1.120.0
+tag     3fe68d450d49  2026-05-12  1.119.1
+tag     8b640eef5a6c  2026-05-05  1.119.0
+tag     034f571df509  2026-04-29  1.118.1
+tag     9b8ae15a8cf9  2026-04-28  1.118.0
+tag     356d9f0a1f27  2026-04-23  v0.45.1
+tag     10c8e557c8b9  2026-04-21  1.117.0
+tag     8ff9a84c4a9c  2026-04-17  v0.44.2
+tag     f89829d8f4bf  2026-04-16  v0.44.1
+tag     560a9dba96f9  2026-04-15  1.116.0
+tag     41dd792b5e65  2026-04-07  1.115.0
+tag     e7fb5e96c073  2026-04-01  1.114.0
+tag     cfbea10c5ffb  2026-03-24  1.113.0
+tag     07ff9d6178ed  2026-03-17  1.112.0
+tag     ce099c1ed25d  2026-03-06  1.111.0
+tag     61b3d0ab13be  2026-03-06  1.110.1
+tag     0870c2a0c7c0  2026-03-04  1.110
+tag     072586267e68  2026-02-19  1.109.5
+tag     c3a26841a84f  2026-02-16  1.109.4
+tag     591199df409f  2026-02-10  1.109.2
+tag     6534f6ba7604  2026-02-09  1.109.1
+tag     bdd88df00363  2026-02-04  1.109.0
+tag     c9d77990917f  2026-01-21  1.108.2
+tag     585eba7c0c34  2026-01-13  1.108.1
+tag     94e8ae2b28cb  2026-01-08  1.108.0
+tag     994fd12f8d3a  2025-12-17  1.107.1
+tag     618725e67565  2025-12-10  1.107.0
+tag     bf9252a2fb45  2025-11-25  1.106.3
+tag     1e3c50d64110  2025-11-19  1.106.2
+tag     cb1933bbc38d  2025-11-16  1.106.1
+tag     ac4cbdf48759  2025-11-11  1.106.0
+tag     7d842fb85a02  2025-10-14  1.105.1
+tag     03c265b1adee  2025-10-08  1.105.0
+tag     385651c938df  2025-10-02  1.104.3
+tag     e3a5acfb517a  2025-09-23  1.104.2
+tag     0f0d87fa9e96  2025-09-17  1.104.1
+tag     f220831ea2d9  2025-09-09  1.104.0
+tag     6f1763612105  2025-08-20  1.103.2
+tag     e3550cfac4b6  2025-08-06  1.103.1
+tag     e3550cfac4b6  2025-08-06  1.103.0
+tag     488a1f239235  2025-07-29  1.102.3
+tag     c306e94f9812  2025-07-21  1.102.2
+tag     7adae6a56e34  2025-07-15  1.102.1
+tag     cb0c47c0cfaa  2025-07-09  1.102.0
+tag     2901c5ac6db8  2025-06-24  1.101.2
+tag     18e3a1ec544e  2025-06-18  1.101.1
+tag     dfaf44141ea9  2025-06-11  1.101.0
+tag     258e40fedc6c  2025-06-02  1.100.3
+tag     848b80aeb520  2025-05-14  1.100.2
+tag     91fa95bccb02  2025-05-09  1.100.1
+tag     19e0f9e681ec  2025-05-07  1.100.0
+tag     17baf841131a  2025-04-15  1.99.3
+tag     4949701c880d  2025-04-09  1.99.2
+tag     7c6fdfb0b8f2  2025-04-04  1.99.1
+tag     4437686ffeba  2025-04-02  1.99.0
+tag     ddc367ed5c89  2025-03-12  1.98.2
+tag     2fc07b811f76  2025-03-10  1.98.1
+tag     6609ac3d66f4  2025-03-04  1.98.0
+tag     e54c774e0add  2025-02-12  1.97.2
+tag     e249dada235c  2025-02-10  1.97.1
+tag     33fc5a94a3f9  2025-02-04  1.97.0
+tag     cd4ee3b1c348  2025-01-16  1.96.4
+tag     91fbdddc47bc  2025-01-09  1.96.3
+tag     fabdb6a30b49  2024-12-19  1.96.2
+tag     42b266171e51  2024-12-17  1.96.1
+tag     138f619c86f1  2024-12-10  1.96.0
+tag     f1a4fb101478  2024-11-13  1.95.3
+tag     e8653663e884  2024-11-07  1.95.2
+tag     65edc4939843  2024-10-31  1.95.1
+--- request Refs {"first":101,"query":null,"repo0":"github.com/microsoft/vscode"}
+--- query
+query Refs($repo0: String!, $first: Int!, $query: String) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    branches(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+    tags(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+  }
+}
+--- response 200 application/json recorded 2026-10-07 https://sourcegraph.com
+{
+  "data": {
+    "r0": {
+      "branches": {
+        "nodes": [
+          {
+            "displayName": "main",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T12:34:41Z"
+                }
+              },
+              "oid": "2e139db911d22f125b15ab97ae58bc230a7de477"
+            }
+          },
+          {
+            "displayName": "benibenj/agents/remove-workspace-restriction-pr-issues",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T12:57:04Z"
+                }
+              },
+              "oid": "cde8b0c12b8fdcba1009df932d1aa16336e6a32a"
+            }
+          },
+          {
+            "displayName": "sandy081/agenthost-workspace-conversion-client",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T12:31:40Z"
+                }
+              },
+              "oid": "7c4625729c35ce9948e2dc41de14bd2ac3a75f2c"
+            }
+          },
+          {
+            "displayName": "agents/canvas-support-agents-editor",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T11:05:18Z"
+                }
+              },
+              "oid": "6003122940490390c6c1c65a794d56c61d685179"
+            }
+          },
+          {
+            "displayName": "automation/bump-copilot-sdk-1.0.17-preview.10",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T09:29:03Z"
+                }
+              },
+              "oid": "967297d52c743512c6f9a162c16540fe6df35e53"
+            }
+          },
+          {
+            "displayName": "anthonykim1/inline-chat-terminal-scrollback",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T07:42:42Z"
+                }
+              },
+              "oid": "51920cc0df3fe4339b8e8bbeadf03ac20689820b"
+            }
+          },
+          {
+            "displayName": "justschen/339845",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T07:30:27Z"
+                }
+              },
+              "oid": "55270d5b6595cb8d5062caf39c325ec7c5e8db28"
+            }
+          },
+          {
+            "displayName": "roblou/agents/end-to-end-tests-code-coverage",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T06:58:36Z"
+                }
+              },
+              "oid": "e49b36c690116fd0022fdf88c2acfb5ae9a061a8"
+            }
+          },
+          {
+            "displayName": "copilot/agent-host-first-response-connection-kind",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T06:15:40Z"
+                }
+              },
+              "oid": "8631fd303ddde0df8ec39fcf341db64a8000a200"
+            }
+          },
+          {
+            "displayName": "agents/image-carousel-and-artifacts-integration",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T05:38:52Z"
+                }
+              },
+              "oid": "16e7bf4a38801b01f89e1674b30ffef829c66e86"
+            }
+          },
+          {
+            "displayName": "rzhao271/nasty-mongoose",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T05:32:48Z"
+                }
+              },
+              "oid": "627329decfc038af4217213c2165d6687471ae4d"
+            }
+          },
+          {
+            "displayName": "roblou/agents/no-sync-fs-eslint",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T05:11:44Z"
+                }
+              },
+              "oid": "4877bf253b8b7c54c8af72e8b2d0906c5dd07404"
+            }
+          },
+          {
+            "displayName": "bhavyaus/agent-title-review",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T04:57:09Z"
+                }
+              },
+              "oid": "de804f6360faafc193e94eeb71edcfd8a22a4b0d"
+            }
+          },
+          {
+            "displayName": "bhavyaus/hydrafusion-plan-v2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T04:52:08Z"
+                }
+              },
+              "oid": "fc32a5cbc86e77d7d6332e49ee8d45946c1dd09a"
+            }
+          },
+          {
+            "displayName": "roblou/agents/troubleshoot-flaky-tests-logs-3e979ea2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T04:30:37Z"
+                }
+              },
+              "oid": "2ec0352688bdced4b8fd2f0b67f6a3f248ed24ce"
+            }
+          },
+          {
+            "displayName": "osortega/test-push",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T04:22:18Z"
+                }
+              },
+              "oid": "a6db5884e50e8dff7086c0f9b2db179c6d2cbac0"
+            }
+          },
+          {
+            "displayName": "roblou/agents/sdk-sanity-host-architecture",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T04:21:35Z"
+                }
+              },
+              "oid": "92e98b45b6868007f1e989ecbf7c646cb646a82c"
+            }
+          },
+          {
+            "displayName": "ubiquitous-lamp",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T04:17:53Z"
+                }
+              },
+              "oid": "21668d9b1db87e6e5798c1406ed4fc8eca4720cd"
+            }
+          },
+          {
+            "displayName": "roblou/agents/release-1141-copilot-otel-lock-fix",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T04:06:34Z"
+                }
+              },
+              "oid": "78908023aa8cb551a0216c749aa789f663dbac8c"
+            }
+          },
+          {
+            "displayName": "roblou/agents/bump-copilot-sdk-latest-version",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T03:51:55Z"
+                }
+              },
+              "oid": "1d5901668f2fc71ef32cfdc2009d2c4db7dba164"
+            }
+          },
+          {
+            "displayName": "copilot/sdk-owned-customization-installations",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T03:14:53Z"
+                }
+              },
+              "oid": "6be1b1fade7520a23d546a06cb1394644f8092cb"
+            }
+          },
+          {
+            "displayName": "feature/managed-plugin-chat-activity",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T01:58:48Z"
+                }
+              },
+              "oid": "f90188eff50af1228dba91122127cd07e5c00531"
+            }
+          },
+          {
+            "displayName": "anthonykim1/managed-plugin-install-progress",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T01:33:19Z"
+                }
+              },
+              "oid": "4d30b648f82279b3833e91d08d0416d2cba60f2b"
+            }
+          },
+          {
+            "displayName": "jruales-canvas-session-scope",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T01:33:02Z"
+                }
+              },
+              "oid": "771de1edf55bf551dec8831d7e021d44e8437187"
+            }
+          },
+          {
+            "displayName": "cherry-pick/339954",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T01:30:13Z"
+                }
+              },
+              "oid": "d9d5c65b9caa68ef5d4ae34eebf3e234c3127ded"
+            }
+          },
+          {
+            "displayName": "automation/bump-copilot-sdk-1.0.17-preview.9",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T01:27:20Z"
+                }
+              },
+              "oid": "2fdc0ce7b9bc1cc267dd747cb3735d366d4a8c83"
+            }
+          },
+          {
+            "displayName": "cherry-pick/340142",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T00:33:34Z"
+                }
+              },
+              "oid": "fd8dc83819f593f4bc12df78d28897bbb0dca9e9"
+            }
+          },
+          {
+            "displayName": "DileepY/cherrypick-339954-main",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-07T00:27:24Z"
+                }
+              },
+              "oid": "c28ba4eb731fa5775c2d0b46d6bb68f9bbe8e266"
+            }
+          },
+          {
+            "displayName": "automation/bump-copilot-sdk-1.0.17-preview.8-test-37544254617-1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T23:42:04Z"
+                }
+              },
+              "oid": "c4924d6eb0b5e0dfac435031bae9c2bcdc3686b1"
+            }
+          },
+          {
+            "displayName": "agents/fix-local-mcp-json-discovery-defaults",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T23:23:32Z"
+                }
+              },
+              "oid": "4931075a8fd1cb4d99e44f5a1217fdf33366c3ca"
+            }
+          },
+          {
+            "displayName": "agents/customizations-multi-root-workspace",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T22:47:20Z"
+                }
+              },
+              "oid": "4b275b1179c1f6e3fb0ce4f6609c94b903d003bf"
+            }
+          },
+          {
+            "displayName": "benibenj/agents/chat-input-picker-visibility",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T22:38:25Z"
+                }
+              },
+              "oid": "91b68e844b85940ed9dd55e84c1f13042f41cd30"
+            }
+          },
+          {
+            "displayName": "karthiknadig/bug-swarm/task-callback-retention",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T22:37:40Z"
+                }
+              },
+              "oid": "61b4d41953fd3703e71d33545daa7267f2a17dbe"
+            }
+          },
+          {
+            "displayName": "benibenj/agents/chat-input-picker-responsive-fix",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T22:33:17Z"
+                }
+              },
+              "oid": "4878845cece3be1d689c4e8ee7085987ac0eaa78"
+            }
+          },
+          {
+            "displayName": "rwoll/limitto-04-sandbox-preferences",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T22:24:44Z"
+                }
+              },
+              "oid": "e3b617a9f6cd01e00805f6b9dc6f0fa3f7dd2847"
+            }
+          },
+          {
+            "displayName": "dependabot/npm_and_yarn/katex-0.18.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T22:06:30Z"
+                }
+              },
+              "oid": "c000527d7c20dafc4eb6ecffdab0da12109b101b"
+            }
+          },
+          {
+            "displayName": "release/1.141",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T22:02:41Z"
+                }
+              },
+              "oid": "694ce77a047b22309b37fff5ce3499fc95cefe56"
+            }
+          },
+          {
+            "displayName": "armed-tiger",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T21:52:14Z"
+                }
+              },
+              "oid": "4c8a824d5211496c86f1ab6f00a943766c5614fd"
+            }
+          },
+          {
+            "displayName": "bevillal/cloud-automations-routing",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T21:35:55Z"
+                }
+              },
+              "oid": "5c56493de4a94fa284291767f05bfe85e0e58ff6"
+            }
+          },
+          {
+            "displayName": "karthiknadig/bug-swarm/markdown-diff-line-marking",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T21:17:52Z"
+                }
+              },
+              "oid": "55f4e0e4643895ca572ca48e81e4a3223d846d5c"
+            }
+          },
+          {
+            "displayName": "karthiknadig/bug-swarm/explorer-bulk-move-refresh",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T20:52:54Z"
+                }
+              },
+              "oid": "cf33d529444822398262b7a5593f9e841b8981eb"
+            }
+          },
+          {
+            "displayName": "automation/bump-copilot-sdk-1.0.17-preview.8-test-37514820529-1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T20:25:10Z"
+                }
+              },
+              "oid": "94c796ee3bd7146407505fc4af6453d0e5bbe810"
+            }
+          },
+          {
+            "displayName": "cherry-pick/340130",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T20:13:43Z"
+                }
+              },
+              "oid": "2e0a7f7c31cca97cf00040540b5bc8b6fad45b95"
+            }
+          },
+          {
+            "displayName": "agents/agents7-fix-copilot-auth-issues",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T19:42:00Z"
+                }
+              },
+              "oid": "6cbfa926ebfc0f720d84f14788c563d2cb45a472"
+            }
+          },
+          {
+            "displayName": "jruales-canvas-portable-storage-9953",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T19:29:37Z"
+                }
+              },
+              "oid": "e4649c05b7ea574f650ddccc30a7f9ddd3b15846"
+            }
+          },
+          {
+            "displayName": "roblou/agents/agent-host-session-lockup-fix",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T18:47:37Z"
+                }
+              },
+              "oid": "13954ca248413471e816ac88cfe74150bf27f1c0"
+            }
+          },
+          {
+            "displayName": "cherry-pick/339941",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T18:36:37Z"
+                }
+              },
+              "oid": "86d938974e68e3df5e9e7626c97a8b2af4478a1d"
+            }
+          },
+          {
+            "displayName": "agents/copilot-api-extraction",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T18:35:30Z"
+                }
+              },
+              "oid": "b029ada78713870dc727c33f6965fcdbfdcc6f27"
+            }
+          },
+          {
+            "displayName": "automation/bump-copilot-sdk-1.0.17-preview.8",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T18:25:34Z"
+                }
+              },
+              "oid": "1b01d2d757b2489c748613216916de538025573b"
+            }
+          },
+          {
+            "displayName": "lramos15/agents/vscode-issue-340039-analysis",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T18:11:59Z"
+                }
+              },
+              "oid": "8f8d9387ec715d4e3a0023233f87185a548564ad"
+            }
+          },
+          {
+            "displayName": "automation/bump-copilot-sdk-1.0.17-preview.7-forced-37508466263-1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T18:05:37Z"
+                }
+              },
+              "oid": "468dc9e571cb8caff403c47ddb80d457248efdea"
+            }
+          },
+          {
+            "displayName": "bhavyaus/tool-search-host-fallback",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T17:46:32Z"
+                }
+              },
+              "oid": "1fa81c1b3b3c5d360de687470ca965e4aa5c68d2"
+            }
+          },
+          {
+            "displayName": "anthonykim1/selective-customization-lockdown",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T17:45:54Z"
+                }
+              },
+              "oid": "e07bfc81465a0b3a0aa2d134bf9ca5145b2558af"
+            }
+          },
+          {
+            "displayName": "amunger/session-metrics-correlation",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T17:39:00Z"
+                }
+              },
+              "oid": "73d9bad2f9e20dca6b39481b404eaf0d87a0115d"
+            }
+          },
+          {
+            "displayName": "vritant24/mcp-tools-in-customizations",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T17:35:42Z"
+                }
+              },
+              "oid": "b1f23829b10a32a2e6e6652830f6e5183d4464a5"
+            }
+          },
+          {
+            "displayName": "anthonykim1/stop-background-shell",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T17:33:51Z"
+                }
+              },
+              "oid": "2af09325ee66c24fc223f595f4dcc1e86353ed44"
+            }
+          },
+          {
+            "displayName": "agents/github-api-domains-automations-tasks-envs",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T17:29:54Z"
+                }
+              },
+              "oid": "dd46ae037d2cd4a91b77c267db6ffa381f24111b"
+            }
+          },
+          {
+            "displayName": "dependabot/npm_and_yarn/test/scenario/shell-quote-1.12.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T17:07:47Z"
+                }
+              },
+              "oid": "a68cf556ab2d401f5e4c19a6bc1880595f22b1dd"
+            }
+          },
+          {
+            "displayName": "dependabot/npm_and_yarn/test/mcp/modelcontextprotocol/sdk-1.31.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T17:07:42Z"
+                }
+              },
+              "oid": "3c3a9c25f92caa4dae77e581c834944fc3144f56"
+            }
+          },
+          {
+            "displayName": "agents/archive-nudge-default",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T16:03:22Z"
+                }
+              },
+              "oid": "87aab6acc3a84514b1ca74fd36cf4775acbda46a"
+            }
+          },
+          {
+            "displayName": "agents/install-item-and-launch-copilot",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T15:50:19Z"
+                }
+              },
+              "oid": "f7543752e3b4bf649e8cc3376625ca7fb31624e4"
+            }
+          },
+          {
+            "displayName": "connor4312/339893-chat-latency",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T15:48:47Z"
+                }
+              },
+              "oid": "7dd801d29c3cc992607e49dea084e779e3a3a1fd"
+            }
+          },
+          {
+            "displayName": "copilot/fix-sessioncustomizationdiscovery-retries",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T14:07:40Z"
+                }
+              },
+              "oid": "70ce2ac736c65db0fa16bbe251a6916df3855c8b"
+            }
+          },
+          {
+            "displayName": "auto-closing-pair-before-text",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T13:16:08Z"
+                }
+              },
+              "oid": "ca1a496e291b09280bdaebefea9d38296fd1119a"
+            }
+          },
+          {
+            "displayName": "benibenj/agents/fix-agents-window-listener-limit-alarms",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T12:43:50Z"
+                }
+              },
+              "oid": "3b786eb555943ce11efe69ce4f45e83c0aa38c83"
+            }
+          },
+          {
+            "displayName": "benibenj/agents/vs-code-session-grid-navigation-updates",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T11:15:32Z"
+                }
+              },
+              "oid": "ef328a75f5bac98479bf50a4f01c1e0b8bf32737"
+            }
+          },
+          {
+            "displayName": "alexr00/yummy-pony",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T10:16:16Z"
+                }
+              },
+              "oid": "632e89dd8ed5e8cd4e023b5afa5f64888093b816"
+            }
+          },
+          {
+            "displayName": "dependabot/npm_and_yarn/extensions/mermaid-markdown-features/source-map-js-1.2.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T09:51:20Z"
+                }
+              },
+              "oid": "b83bfca9a2a516b3cf6c86db7f1589a7964cfeaf"
+            }
+          },
+          {
+            "displayName": "copilot/fix-agent-host-subscription-churn",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T08:06:02Z"
+                }
+              },
+              "oid": "57e27266af0834597a189b8ae78f137ee89be053"
+            }
+          },
+          {
+            "displayName": "copilot/automaticinstructionscollector-fix-instructions-mi",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T05:56:28Z"
+                }
+              },
+              "oid": "f9c34b7084367df8337d19f5467a30e31365d308"
+            }
+          },
+          {
+            "displayName": "copilot/high-cpu-feedback-loop-fix",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T05:51:46Z"
+                }
+              },
+              "oid": "a775a09b6c888a38ef1eaed10a4c76cbe4d01cf0"
+            }
+          },
+          {
+            "displayName": "bhavyau/ahp-claude-chat-parity-prompt",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T05:32:17Z"
+                }
+              },
+              "oid": "54b66dd96804efbdf36f8b936075f6c00cd5008a"
+            }
+          },
+          {
+            "displayName": "automation/bump-copilot-sdk-1.0.17-preview.7-test-37413976202-1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T04:30:46Z"
+                }
+              },
+              "oid": "7b038e3be44ed4108ec4df25ca03b8445bdd9b7d"
+            }
+          },
+          {
+            "displayName": "cherry-pick/339977",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T04:19:08Z"
+                }
+              },
+              "oid": "754bef24d832cadfaecc7f34cd4394c564b8aa66"
+            }
+          },
+          {
+            "displayName": "automation/bump-copilot-sdk-1.0.17-preview.7",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T02:26:19Z"
+                }
+              },
+              "oid": "cb8d8c84bf38980d6927cbeeb8b57344c2e4b475"
+            }
+          },
+          {
+            "displayName": "roblou/diagnostics/agenthost-cleanup-release-480875",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T01:07:39Z"
+                }
+              },
+              "oid": "972e79726d4397a038b90fecb182ccc359daad4f"
+            }
+          },
+          {
+            "displayName": "automation/bump-copilot-sdk-1.0.17-preview.6",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T00:05:02Z"
+                }
+              },
+              "oid": "2b464b7ae56cc1cd22523a101dfb0b22ace9b6c6"
+            }
+          },
+          {
+            "displayName": "cherry-pick/339903",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-05T22:59:25Z"
+                }
+              },
+              "oid": "ed7c6559d3ac805d76450f2b0ac7ac7f1247e5e8"
+            }
+          },
+          {
+            "displayName": "cherry-pick/339915",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-05T22:19:32Z"
+                }
+              },
+              "oid": "522fe0499cec6fa953701a10c46b65867343d9b5"
+            }
+          },
+          {
+            "displayName": "cherry-pick/339884",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-05T22:19:32Z"
+                }
+              },
+              "oid": "37f5c6c966afd3a7119800857dc4104f5a403a0c"
+            }
+          },
+          {
+            "displayName": "cherry-pick/339862",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-05T21:22:04Z"
+                }
+              },
+              "oid": "823e1f4454458b83bee10668a0ec9cdc55d6d977"
+            }
+          },
+          {
+            "displayName": "sandy081/agents/folder-to-isolation-session-feature",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-05T20:54:18Z"
+                }
+              },
+              "oid": "0f5fcffe616bdbeef88b83f4128fcad37ac617ef"
+            }
+          },
+          {
+            "displayName": "bhavyaus/fix-empty-toolset-registration",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-05T18:50:34Z"
+                }
+              },
+              "oid": "2e944b5d692c4ba5384ec7847cf889ddfa507a0b"
+            }
+          },
+          {
+            "displayName": "packaging/vscode-with-copilot",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-05T17:54:48Z"
+                }
+              },
+              "oid": "1a03e4f0debc2c672e441a90501d37ba691acdf2"
+            }
+          },
+          {
+            "displayName": "automation/bump-copilot-sdk-1.0.17-preview.5",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-05T15:13:41Z"
+                }
+              },
+              "oid": "6dc6b97e02f10d74829cbaa1546679d1c3f1ff96"
+            }
+          },
+          {
+            "displayName": "cherry-pick/339704",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-05T13:07:01Z"
+                }
+              },
+              "oid": "49b1e5c99c6790a1b97571441de60adbdd0b3274"
+            }
+          },
+          {
+            "displayName": "automation/bump-codex-sdk-0.158.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-05T13:00:57Z"
+                }
+              },
+              "oid": "2820092a74564c20782e06470aed8c890102c848"
+            }
+          },
+          {
+            "displayName": "agents/issue-reporter-shared-anonymous",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-05T11:10:40Z"
+                }
+              },
+              "oid": "dbb05d20e3f3cf4832f736a4f1abe4ba4ef4a954"
+            }
+          },
+          {
+            "displayName": "jruales-patch-4",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-05T09:17:30Z"
+                }
+              },
+              "oid": "158157da674d08351b1e555095a9879b69eaa4a6"
+            }
+          },
+          {
+            "displayName": "cherry-pick/338463",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-05T05:12:52Z"
+                }
+              },
+              "oid": "0153da09542a82231540634498a364180eee39f5"
+            }
+          },
+          {
+            "displayName": "roblou/agents/private-copilot-sdk-runtime-build",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-05T04:33:51Z"
+                }
+              },
+              "oid": "c0da89dad64e3afdda9c435166bd4c59b4964817"
+            }
+          },
+          {
+            "displayName": "anthonykim1/keep-background-shell-output-visible",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-05T03:12:21Z"
+                }
+              },
+              "oid": "53955c9c0a1d72350a609e78d3c564b1a1e40fa4"
+            }
+          },
+          {
+            "displayName": "automation/bump-copilot-sdk-1.0.17-preview.4",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-05T00:00:40Z"
+                }
+              },
+              "oid": "78d6393891358360116f6f15d114bbf8690c26b4"
+            }
+          },
+          {
+            "displayName": "DileepY/sandboxing_filesystem",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-04T23:54:28Z"
+                }
+              },
+              "oid": "1adccdc7797e24951624680b7af4a38a1911a0dd"
+            }
+          },
+          {
+            "displayName": "automation/bump-copilot-sdk-1.0.17-preview.3",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-04T21:44:13Z"
+                }
+              },
+              "oid": "358999be8075049b502914b3a03123b72c09e4ee"
+            }
+          },
+          {
+            "displayName": "chrmarti/dev-container-samples-tryout",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-04T20:29:12Z"
+                }
+              },
+              "oid": "14411dffc6df938d026f3a971503f70ca211a3b0"
+            }
+          },
+          {
+            "displayName": "agents/fix-agent-auth-recovery-401-issue",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-04T06:03:25Z"
+                }
+              },
+              "oid": "34776a54a78e71e0c3cdce8b8ab1d4c6ac12bcac"
+            }
+          },
+          {
+            "displayName": "karthiknadig/bug-swarm/problems-retention",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-04T04:19:56Z"
+                }
+              },
+              "oid": "1712572f00875335af298c1fd2a7d940ec9d819e"
+            }
+          },
+          {
+            "displayName": "agents/message-reordering-issue-logs-analysis",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-03T23:09:46Z"
+                }
+              },
+              "oid": "eafb8fabb901adef8134fb2f0b9a7c25f39a5d51"
+            }
+          },
+          {
+            "displayName": "copilot/test-readme-edit",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-03T19:08:26Z"
+                }
+              },
+              "oid": "762f52633b6c9f7db379afd1af7fcdb832656104"
+            }
+          },
+          {
+            "displayName": "roblou/agents/deflake-windows-e2e-tests-session",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-03T03:37:40Z"
+                }
+              },
+              "oid": "b7dc7a582058fef78438afe21ab57b88d338d9be"
+            }
+          }
+        ],
+        "totalCount": 5482
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/microsoft/vscode",
+      "tags": {
+        "nodes": [
+          {
+            "displayName": "1.141.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-10-06T08:15:52Z"
+                }
+              },
+              "oid": "2a59476c9bfcb90b3ddc372c36762471b7dfad1c"
+            }
+          },
+          {
+            "displayName": "1.140.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-09-30T08:38:38Z"
+                }
+              },
+              "oid": "07f806f999227108933c2e30515b26eecc1fda74"
+            }
+          },
+          {
+            "displayName": "1.139.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-09-25T03:40:57Z"
+                }
+              },
+              "oid": "04c0d99f4fb0d8afe6ce4f0c58e31e183ac3e4b1"
+            }
+          },
+          {
+            "displayName": "1.139.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-09-22T15:13:34Z"
+                }
+              },
+              "oid": "2242ebbb54efeeb0129e08e919e7e8d43033cd83"
+            }
+          },
+          {
+            "displayName": "1.138.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-09-15T07:24:32Z"
+                }
+              },
+              "oid": "7debcd0e2acdea1c52de81bf9ee1620444407dda"
+            }
+          },
+          {
+            "displayName": "1.137.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-09-08T20:43:59Z"
+                }
+              },
+              "oid": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c"
+            }
+          },
+          {
+            "displayName": "1.136.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-09-04T21:40:42Z"
+                }
+              },
+              "oid": "88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f"
+            }
+          },
+          {
+            "displayName": "1.136.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-09-03T05:06:41Z"
+                }
+              },
+              "oid": "a44adf7f53e00964ab890f9f8758a334f1fc15bc"
+            }
+          },
+          {
+            "displayName": "1.136.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-09-02T09:13:42Z"
+                }
+              },
+              "oid": "520fb30b2d3d324b4cb2342f6e88e2cd93751de1"
+            }
+          },
+          {
+            "displayName": "1.135.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-08-25T14:26:52Z"
+                }
+              },
+              "oid": "08d4889f9ec4a1685d257b9b95de036c8e1ce1e5"
+            }
+          },
+          {
+            "displayName": "1.134.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-08-19T08:33:33Z"
+                }
+              },
+              "oid": "474a349ad5b745e512ef86b864d1c74f7264dd7a"
+            }
+          },
+          {
+            "displayName": "1.133.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-08-11T22:14:08Z"
+                }
+              },
+              "oid": "a5b500951314efd502d07465bd138dfbd714a960"
+            }
+          },
+          {
+            "displayName": "1.132.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-08-07T17:44:35Z"
+                }
+              },
+              "oid": "c2d1b13fdc4a77628e5f3bb70173351c8f2fbad1"
+            }
+          },
+          {
+            "displayName": "1.132.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-08-04T15:30:20Z"
+                }
+              },
+              "oid": "df53daabb18cd157bdb08c7f01c34df936cf12f4"
+            }
+          },
+          {
+            "displayName": "1.131.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-07-28T06:40:51Z"
+                }
+              },
+              "oid": "3a03d6f72d628a7741c29f456b4ddbb5ae68502c"
+            }
+          },
+          {
+            "displayName": "1.130.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-07-22T14:55:04Z"
+                }
+              },
+              "oid": "1b6a188127eeaf9194f945eb6eb89a657e93c54c"
+            }
+          },
+          {
+            "displayName": "1.129.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-07-17T15:35:09Z"
+                }
+              },
+              "oid": "8a7abeba6e03ea3af87bfbce9a1b7e48fed567b8"
+            }
+          },
+          {
+            "displayName": "1.129.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-07-15T00:08:44Z"
+                }
+              },
+              "oid": "125df4672b8a6a34975303c6b0baa124e560a4f7"
+            }
+          },
+          {
+            "displayName": "1.128.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-07-14T14:19:31Z"
+                }
+              },
+              "oid": "5264f2156cbcd7aea5fd004d29eaa10209155d66"
+            }
+          },
+          {
+            "displayName": "1.128.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-07-07T22:14:24Z"
+                }
+              },
+              "oid": "fc3def6774c76082adf699d366f31a557ce5573f"
+            }
+          },
+          {
+            "displayName": "1.127.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-06-30T11:53:00Z"
+                }
+              },
+              "oid": "a22d00300655c17490ce63dffc28bcdcedcd82c4"
+            }
+          },
+          {
+            "displayName": "1.126.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-06-23T01:46:13Z"
+                }
+              },
+              "oid": "7e7950df89d055b5a378379db9ee14290772148a"
+            }
+          },
+          {
+            "displayName": "1.125.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-06-15T22:24:03Z"
+                }
+              },
+              "oid": "93cfdd489c3b228840d0f86ec77c3636277c93ea"
+            }
+          },
+          {
+            "displayName": "1.124.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-06-12T00:12:36Z"
+                }
+              },
+              "oid": "6928394f91b684055b873eecb8bc281365131f1c"
+            }
+          },
+          {
+            "displayName": "1.123.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-06-10T06:06:17Z"
+                }
+              },
+              "oid": "73b30e61dd53c0223a1f112031f2fec0267b4dff"
+            }
+          },
+          {
+            "displayName": "1.124.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-06-10T04:29:32Z"
+                }
+              },
+              "oid": "1b50d58d73426c9171299ec4037d01365d995b78"
+            }
+          },
+          {
+            "displayName": "1.123.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-06-09T18:01:12Z"
+                }
+              },
+              "oid": "8b5bd2a8dd195a2bc76e8848f7ce8a3c323c020a"
+            }
+          },
+          {
+            "displayName": "1.123.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-06-03T09:29:03Z"
+                }
+              },
+              "oid": "6a44c352bd24569c417e530095901b649960f9f8"
+            }
+          },
+          {
+            "displayName": "1.122.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-05-29T07:25:37Z"
+                }
+              },
+              "oid": "8761a5560cfd65fdd19ce7e2bd18dab5c0a4d84e"
+            }
+          },
+          {
+            "displayName": "1.122.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-05-27T21:03:01Z"
+                }
+              },
+              "oid": "6a49527b96e326fe62fbdb56f60e16877c9aa724"
+            }
+          },
+          {
+            "displayName": "1.121.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-05-19T23:32:58Z"
+                }
+              },
+              "oid": "987c9597516278c9fcf10d963a0592ce1384ab93"
+            }
+          },
+          {
+            "displayName": "1.120.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-05-12T20:17:22Z"
+                }
+              },
+              "oid": "0958016b2af9f09bb4257e0df4a95e2f90590f9f"
+            }
+          },
+          {
+            "displayName": "1.119.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-05-12T18:32:22Z"
+                }
+              },
+              "oid": "3fe68d450d4918f375c155b26a3a8e08f25b4e92"
+            }
+          },
+          {
+            "displayName": "1.119.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-05-05T18:23:50Z"
+                }
+              },
+              "oid": "8b640eef5a6c6089c029249d48efa5c99adf7d51"
+            }
+          },
+          {
+            "displayName": "1.118.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-04-29T14:36:44Z"
+                }
+              },
+              "oid": "034f571df509819cc10b0c8129f66ef77a542f0e"
+            }
+          },
+          {
+            "displayName": "1.118.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-04-28T22:54:22Z"
+                }
+              },
+              "oid": "9b8ae15a8cf95b9bce1b590b42954530f440e816"
+            }
+          },
+          {
+            "displayName": "v0.45.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-04-23T02:00:32Z"
+                }
+              },
+              "oid": "356d9f0a1f27b7ee5c2e9e47b23d1f92b6cbeb49"
+            }
+          },
+          {
+            "displayName": "1.117.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-04-21T23:12:14Z"
+                }
+              },
+              "oid": "10c8e557c8b9f9ed0a87f61f1c9a44bde731c409"
+            }
+          },
+          {
+            "displayName": "v0.44.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-04-17T09:25:23Z"
+                }
+              },
+              "oid": "8ff9a84c4a9cd0b694aee8f374aa531f7a9d0d08"
+            }
+          },
+          {
+            "displayName": "v0.44.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-04-16T09:03:19Z"
+                }
+              },
+              "oid": "f89829d8f4bfbd2157a2916d3069f479f6dda69b"
+            }
+          },
+          {
+            "displayName": "1.116.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-04-15T00:28:13Z"
+                }
+              },
+              "oid": "560a9dba96f961efea7b1612916f89e5d5d4d679"
+            }
+          },
+          {
+            "displayName": "1.115.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-04-07T22:04:57Z"
+                }
+              },
+              "oid": "41dd792b5e652393e7787322889ed5fdc58bd75b"
+            }
+          },
+          {
+            "displayName": "1.114.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-04-01T09:27:11Z"
+                }
+              },
+              "oid": "e7fb5e96c0730b9deb70b33781f98e2f35975036"
+            }
+          },
+          {
+            "displayName": "1.113.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-03-24T14:07:18Z"
+                }
+              },
+              "oid": "cfbea10c5ffb233ea9177d34726e6056e89913dc"
+            }
+          },
+          {
+            "displayName": "1.112.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-03-17T18:09:23Z"
+                }
+              },
+              "oid": "07ff9d6178ede9a1bd12ad3399074d726ebe6e43"
+            }
+          },
+          {
+            "displayName": "1.111.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-03-06T23:06:10Z"
+                }
+              },
+              "oid": "ce099c1ed25d9eb3076c11e4a280f3eb52b4fbeb"
+            }
+          },
+          {
+            "displayName": "1.110.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-03-06T22:53:57Z"
+                }
+              },
+              "oid": "61b3d0ab13be7dda2389f1d3e60a119c7f660cc3"
+            }
+          },
+          {
+            "displayName": "1.110",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-03-04T00:50:04Z"
+                }
+              },
+              "oid": "0870c2a0c7c0564e7631bfed2675573a94ba4455"
+            }
+          },
+          {
+            "displayName": "1.109.5",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-02-19T16:51:04Z"
+                }
+              },
+              "oid": "072586267e68ece9a47aa43f8c108e0dcbf44622"
+            }
+          },
+          {
+            "displayName": "1.109.4",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-02-16T15:29:17Z"
+                }
+              },
+              "oid": "c3a26841a84f20dfe0850d0a5a9bd01da4f003ea"
+            }
+          },
+          {
+            "displayName": "1.109.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-02-10T20:08:27Z"
+                }
+              },
+              "oid": "591199df409fbf59b4b52d5ad4ee0470152a9b31"
+            }
+          },
+          {
+            "displayName": "1.109.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-02-09T16:02:15Z"
+                }
+              },
+              "oid": "6534f6ba7604bf324f94cc9a590727f39a4af040"
+            }
+          },
+          {
+            "displayName": "1.109.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-02-04T01:55:52Z"
+                }
+              },
+              "oid": "bdd88df003631aaa0bcbe057cb0a940b80a476fa"
+            }
+          },
+          {
+            "displayName": "1.108.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-01-21T13:41:27Z"
+                }
+              },
+              "oid": "c9d77990917f3102ada88be140d28b038d1dd7c7"
+            }
+          },
+          {
+            "displayName": "1.108.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-01-13T21:16:20Z"
+                }
+              },
+              "oid": "585eba7c0c34fd6b30faac7c62a42050bfbc0086"
+            }
+          },
+          {
+            "displayName": "1.108.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-01-08T12:59:30Z"
+                }
+              },
+              "oid": "94e8ae2b28cb5cc932b86e1070569c4463565c37"
+            }
+          },
+          {
+            "displayName": "1.107.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-12-17T13:53:50Z"
+                }
+              },
+              "oid": "994fd12f8d3a5aa16f17d42c041e5809167e845a"
+            }
+          },
+          {
+            "displayName": "1.107.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-12-10T06:55:14Z"
+                }
+              },
+              "oid": "618725e67565b290ba4da6fe2d29f8fa1d4e3622"
+            }
+          },
+          {
+            "displayName": "1.106.3",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-11-25T22:06:45Z"
+                }
+              },
+              "oid": "bf9252a2fb45be6893dd8870c0bf37e2e1766d61"
+            }
+          },
+          {
+            "displayName": "1.106.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-11-19T16:49:37Z"
+                }
+              },
+              "oid": "1e3c50d64110be466c0b4a45222e81d2c9352888"
+            }
+          },
+          {
+            "displayName": "1.106.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-11-16T10:10:37Z"
+                }
+              },
+              "oid": "cb1933bbc38d329b3595673a600fab5c7368f0a7"
+            }
+          },
+          {
+            "displayName": "1.106.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-11-11T14:25:32Z"
+                }
+              },
+              "oid": "ac4cbdf48759c7d8c3eb91ffe6bb04316e263c57"
+            }
+          },
+          {
+            "displayName": "1.105.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-10-14T22:27:18Z"
+                }
+              },
+              "oid": "7d842fb85a0275a4a8e4d7e040d2625abbf7f084"
+            }
+          },
+          {
+            "displayName": "1.105.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-10-08T13:50:39Z"
+                }
+              },
+              "oid": "03c265b1adee71ac88f833e065f7bb956b60550a"
+            }
+          },
+          {
+            "displayName": "1.104.3",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-10-02T12:17:24Z"
+                }
+              },
+              "oid": "385651c938df8a906869babee516bffd0ddb9829"
+            }
+          },
+          {
+            "displayName": "1.104.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-09-23T22:00:30Z"
+                }
+              },
+              "oid": "e3a5acfb517a443235981655413d566533107e92"
+            }
+          },
+          {
+            "displayName": "1.104.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-09-17T23:30:36Z"
+                }
+              },
+              "oid": "0f0d87fa9e96c856c5212fc86db137ac0d783365"
+            }
+          },
+          {
+            "displayName": "1.104.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-09-09T22:02:15Z"
+                }
+              },
+              "oid": "f220831ea2d946c0dcb0f3eaa480eb435a2c1260"
+            }
+          },
+          {
+            "displayName": "1.103.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-08-20T15:13:53Z"
+                }
+              },
+              "oid": "6f17636121051a53c88d3e605c491d22af2ba755"
+            }
+          },
+          {
+            "displayName": "1.103.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-08-06T20:09:28Z"
+                }
+              },
+              "oid": "e3550cfac4b63ca4eafca7b601f0d2885817fd1f"
+            }
+          },
+          {
+            "displayName": "1.103.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-08-06T20:09:28Z"
+                }
+              },
+              "oid": "e3550cfac4b63ca4eafca7b601f0d2885817fd1f"
+            }
+          },
+          {
+            "displayName": "1.102.3",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-07-29T02:38:03Z"
+                }
+              },
+              "oid": "488a1f239235055e34e673291fb8d8c810886f81"
+            }
+          },
+          {
+            "displayName": "1.102.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-07-21T12:58:15Z"
+                }
+              },
+              "oid": "c306e94f98122556ca081f527b466015e1bc37b0"
+            }
+          },
+          {
+            "displayName": "1.102.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-07-15T14:40:12Z"
+                }
+              },
+              "oid": "7adae6a56e34cb64d08899664b814cf620465925"
+            }
+          },
+          {
+            "displayName": "1.102.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-07-09T22:00:36Z"
+                }
+              },
+              "oid": "cb0c47c0cfaad0757385834bd89d410c78a856c0"
+            }
+          },
+          {
+            "displayName": "1.101.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-06-24T20:22:47Z"
+                }
+              },
+              "oid": "2901c5ac6db8a986a5666c3af51ff804d05af0d4"
+            }
+          },
+          {
+            "displayName": "1.101.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-06-18T13:24:11Z"
+                }
+              },
+              "oid": "18e3a1ec544e6907be1e944a94c496e302073435"
+            }
+          },
+          {
+            "displayName": "1.101.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-06-11T13:47:56Z"
+                }
+              },
+              "oid": "dfaf44141ea9deb3b4096f7cd6d24e00c147a4b1"
+            }
+          },
+          {
+            "displayName": "1.100.3",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-06-02T13:19:26Z"
+                }
+              },
+              "oid": "258e40fedc6cb8edf399a463ce3a9d32e7e1f6f3"
+            }
+          },
+          {
+            "displayName": "1.100.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-05-14T21:40:56Z"
+                }
+              },
+              "oid": "848b80aeb52026648a8ff9f7c45a9b0a80641e2e"
+            }
+          },
+          {
+            "displayName": "1.100.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-05-09T15:33:58Z"
+                }
+              },
+              "oid": "91fa95bccb027ece6a968589bb1d662fa9c8e170"
+            }
+          },
+          {
+            "displayName": "1.100.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-05-07T12:32:30Z"
+                }
+              },
+              "oid": "19e0f9e681ecb8e5c09d8784acaa601316ca4571"
+            }
+          },
+          {
+            "displayName": "1.99.3",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-04-15T23:10:26Z"
+                }
+              },
+              "oid": "17baf841131aa23349f217ca7c570c76ee87b957"
+            }
+          },
+          {
+            "displayName": "1.99.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-04-09T23:39:47Z"
+                }
+              },
+              "oid": "4949701c880d4bdb949e3c0e6b400288da7f474b"
+            }
+          },
+          {
+            "displayName": "1.99.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-04-04T15:54:57Z"
+                }
+              },
+              "oid": "7c6fdfb0b8f2f675eb0b47f3d95eeca78962565b"
+            }
+          },
+          {
+            "displayName": "1.99.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-04-02T21:04:16Z"
+                }
+              },
+              "oid": "4437686ffebaf200fa4a6e6e67f735f3edf24ada"
+            }
+          },
+          {
+            "displayName": "1.98.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-03-12T13:24:52Z"
+                }
+              },
+              "oid": "ddc367ed5c8936efe395cffeec279b04ffd7db78"
+            }
+          },
+          {
+            "displayName": "1.98.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-03-10T15:26:31Z"
+                }
+              },
+              "oid": "2fc07b811f760549dab9be9d2bedd06c51dfcb9a"
+            }
+          },
+          {
+            "displayName": "1.98.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-03-04T18:57:48Z"
+                }
+              },
+              "oid": "6609ac3d66f4eade5cf376d1cb76f13985724bcb"
+            }
+          },
+          {
+            "displayName": "1.97.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-02-12T14:18:30Z"
+                }
+              },
+              "oid": "e54c774e0add60467559eb0d1e229c6452cf8447"
+            }
+          },
+          {
+            "displayName": "1.97.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-02-10T13:07:56Z"
+                }
+              },
+              "oid": "e249dada235c2083c83813bd65b7f4707fb97b76"
+            }
+          },
+          {
+            "displayName": "1.97.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-02-04T18:19:16Z"
+                }
+              },
+              "oid": "33fc5a94a3f99ebe7087e8fe79fbe1d37a251016"
+            }
+          },
+          {
+            "displayName": "1.96.4",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-01-16T00:03:51Z"
+                }
+              },
+              "oid": "cd4ee3b1c348a13bafd8f9ad8060705f6d4b9cba"
+            }
+          },
+          {
+            "displayName": "1.96.3",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2025-01-09T15:35:11Z"
+                }
+              },
+              "oid": "91fbdddc47bc9c09064bf7acf133d22631cbf083"
+            }
+          },
+          {
+            "displayName": "1.96.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2024-12-19T10:13:25Z"
+                }
+              },
+              "oid": "fabdb6a30b49f79a7aba0f2ad9df9b399473380f"
+            }
+          },
+          {
+            "displayName": "1.96.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2024-12-17T17:46:06Z"
+                }
+              },
+              "oid": "42b266171e51a016313f47d0c48aca9295b9cbb2"
+            }
+          },
+          {
+            "displayName": "1.96.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2024-12-10T22:22:47Z"
+                }
+              },
+              "oid": "138f619c86f1199955d53b4166bef66ef252935c"
+            }
+          },
+          {
+            "displayName": "1.95.3",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2024-11-13T14:45:08Z"
+                }
+              },
+              "oid": "f1a4fb101478ce6ec82fe9627c43efbf9e98c813"
+            }
+          },
+          {
+            "displayName": "1.95.2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2024-11-07T11:01:40Z"
+                }
+              },
+              "oid": "e8653663e8840adaf45af01eab5c627a5af81807"
+            }
+          },
+          {
+            "displayName": "1.95.1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2024-10-31T05:10:14Z"
+                }
+              },
+              "oid": "65edc4939843c90c34d61f4ce11704f09d3e5cb6"
+            }
+          },
+          {
+            "displayName": "1.95.0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2024-10-28T16:08:10Z"
+                }
+              },
+              "oid": "912bb683695358a54ae0c670461738984cbb5b95"
+            }
+          }
+        ],
+        "totalCount": 395
+      }
+    }
+  }
+}

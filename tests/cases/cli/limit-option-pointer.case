@@ -1,0 +1,8 @@
+# --limit gets one fact about sego's own interface.
+args: show example.com/acme/widget:a.go --limit 5
+exit: 2
+--- stderr
+sego: error: unknown option --limit
+  sego has no --limit; count: is a query filter
+usage: sego show [--json] REPO[@REV]:PATH [LINES]
+       sego show [--json] REPO@REV

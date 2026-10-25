@@ -1,9 +1,0 @@
-# A merge commit that changed nothing has 0 files.
-args: show github.com/gorilla/mux@306509329bce2152a92040e805ef24fd8e3f877d
-exit: 0
---- stdout
-github.com/gorilla/mux@306509329bce  2015-07-05  Clint Ryan  parents c21431a6cd00 a063f14812c8  0 files  +0 -0  diff against first parent
-    Merge branch 'master' of https://github.com/eastwood/mux
-
-    Conflicts:
-    	mux.go

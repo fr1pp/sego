@@ -16,6 +16,9 @@ pub mod query;
 pub mod response;
 pub mod text;
 
+#[cfg(test)]
+mod tests;
+
 use derive::in_time;
 use model::Searched;
 use query::{Prepared, prepare};

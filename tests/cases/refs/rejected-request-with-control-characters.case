@@ -1,0 +1,24 @@
+# The server's message for a rejected request is escaped in the error.
+args: refs example.com/acme/widget
+exit: 1
+--- stderr
+sego: error: Sourcegraph rejected sego's request: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+--- request Refs {"first":101,"query":null,"repo0":"example.com/acme/widget"}
+--- query
+query Refs($repo0: String!, $first: Int!, $query: String) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    branches(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+    tags(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+  }
+}
+--- response 200 application/json
+{
+  "data": null,
+  "errors": [
+    {
+      "message": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+    }
+  ]
+}

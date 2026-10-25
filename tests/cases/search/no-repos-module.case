@@ -1,7 +1,0 @@
-# A Go module path as the repository: the fact names the repository's name
-# segment.
-args: search 'repo:^github\.com/sego-fake/pgx/v5$@v5.5.5 "conn busy"'
-exit: 1
---- stderr
-sego: error: No repositories found
-  sego search 'repo:pgx type:repo' lists the matching repositories

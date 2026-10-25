@@ -1,5 +1,0 @@
-# A failed directory listing names the part, not the server's text.
-args: ls example.com/handwritten/listing@v2.0.0:docs
-exit: 1
---- stderr
-sego: error: Sourcegraph failed to answer the directory listing

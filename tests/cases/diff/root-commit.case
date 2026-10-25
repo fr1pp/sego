@@ -1,5 +1,0 @@
-# A root commit has no parent to diff against.
-args: diff example.com/handwritten/root-commit@v0.1.0
-exit: 1
---- stderr
-sego: error: v0.1.0 is a root commit: Sourcegraph has no diff for it

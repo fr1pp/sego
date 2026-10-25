@@ -34,3 +34,6 @@ pub fn entry_path(root: &Path, name: &str) -> PathBuf {
     let (fan, rest) = name.split_at(2);
     root.join("raw").join(fan).join(rest)
 }
+
+#[cfg(test)]
+mod tests;

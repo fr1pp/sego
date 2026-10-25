@@ -1,6 +1,0 @@
-# A missing repository is an error.
-args: show github.com/facebook/react:README.md
-exit: 1
---- stderr
-sego: error: github.com/facebook/react is not on sourcegraph.com
-  sourcegraph.com serves indexed repositories from github.com, gitlab.com and a few other hosts; a renamed repository appears only under its new name

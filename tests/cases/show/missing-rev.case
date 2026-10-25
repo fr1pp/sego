@@ -1,5 +1,0 @@
-# A missing revision is an error.
-args: show github.com/gorilla/mux@v9.9:mux.go
-exit: 1
---- stderr
-sego: error: revision v9.9 not found in github.com/gorilla/mux

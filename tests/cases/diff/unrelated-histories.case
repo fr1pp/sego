@@ -1,9 +1,118 @@
 # With no shared history the base is A itself.
-args: diff example.com/handwritten/unrelated-histories@gh-pages...main
+args: diff example.com/acme/widget@gh-pages...main
 exit: 0
 --- stdout
-example.com/handwritten/unrelated-histories@e7df16ff0ce8...cc9969c2e219  4 files  +65 -0  base e7df16ff0ce8  rev gh-pages...main
+example.com/acme/widget@e7df16ff0ce8...cc9969c2e219  4 files  +65 -0  base e7df16ff0ce8  rev gh-pages...main
 R  +0 -0  .nojekyll -> .agents/rules/.gitkeep
 A  +64 -0  .agents/rules/unit_tests.md
 A  +0 -0  .agents/skills/.gitkeep
 A  +1 -0  .claude/rules
+--- request Diff {"a":"gh-pages","b":"main","paths":null,"repo0":"example.com/acme/widget"}
+--- query
+query Diff($repo0: String!, $a: String!, $b: String!, $paths: [String!]) {
+  a0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $a) { oid }
+  }
+  b0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $b) { oid parents { oid } }
+  }
+  c0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    comparison(base: $a, head: $b) {
+    all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 201, paths: $paths) { nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "e7df16ff0ce8bbc7139db0368ac23853be65b1b8"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "b0": {
+      "commit": {
+        "oid": "cc9969c2e2198aafff8accc63ee1aee30e9a2aa4",
+        "parents": [
+          {
+            "oid": "46c65b3871dd96c81624f413b24b3d273b41a4e5"
+          }
+        ]
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "c0": {
+      "comparison": {
+        "all": {
+          "diffStat": {
+            "added": 65,
+            "deleted": 0
+          },
+          "totalCount": 4
+        },
+        "page": {
+          "nodes": [
+            {
+              "newPath": ".agents/rules/.gitkeep",
+              "oldFile": {
+                "commit": {
+                  "oid": "e7df16ff0ce8bbc7139db0368ac23853be65b1b8"
+                }
+              },
+              "oldPath": ".nojekyll",
+              "stat": {
+                "added": 0,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": ".agents/rules/unit_tests.md",
+              "oldFile": null,
+              "oldPath": null,
+              "stat": {
+                "added": 64,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": ".agents/skills/.gitkeep",
+              "oldFile": null,
+              "oldPath": null,
+              "stat": {
+                "added": 0,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": ".claude/rules",
+              "oldFile": null,
+              "oldPath": null,
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}

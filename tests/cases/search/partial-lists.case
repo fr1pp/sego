@@ -1,8 +1,0 @@
-# Cloning and missing repositories get no note; the results still print.
-args: search 'repo:sego-fake/partial foo'
-exit: 0
---- stdout
-1 match  1 repo  0.8 s
-query  repo:sego-fake/partial foo
-
-github.com/sego-fake/found

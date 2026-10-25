@@ -2,23 +2,24 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 
 # Format check, lints with warnings as errors, and the offline tests.
 check:
-    cargo fmt --check
+    cargo fmt --all --check
     cargo clippy --all-targets -- -D warnings
     cargo test
 
-# `check` with snapshot blessing and recording refused, then fail if anything tracked changed.
+# `check` with blessing, recording and live checks refused, then fail if anything tracked changed.
 ci:
-    if [[ -n "${SEGO_BLESS:-}" || -n "${SEGO_RECORD:-}" ]]; then echo "error: unset SEGO_BLESS and SEGO_RECORD for ci" >&2; exit 1; fi
+    if [[ -n "${SEGO_BLESS:-}" || -n "${SEGO_RECORD:-}" || -n "${SEGO_LIVE:-}" ]]; then echo "error: unset SEGO_BLESS, SEGO_RECORD and SEGO_LIVE for ci" >&2; exit 1; fi
     just check
     git diff --exit-code
 
-# Record the fixtures that are missing, one request at a time.
+# Record the responses that cases lack, one request at a time.
 record:
-    SEGO_RECORD=missing cargo test --test it cases -- --test-threads=1
+    SEGO_RECORD=1 cargo test --test cases -- --test-threads=1
 
-# Run the live drift tests against sourcegraph.com.
+# Re-send every recorded request to sourcegraph.com and compare the responses, then run the other live drift tests.
 live:
-    cargo test --test it drift -- --ignored --test-threads=1
+    SEGO_LIVE=1 cargo test --test cases -- --test-threads=1
+    cargo test --lib -- --ignored --test-threads=1
 
 # Regenerate src/escape/table.rs from the pinned Unicode data.
 escape-table:

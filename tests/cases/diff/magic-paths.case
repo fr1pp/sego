@@ -1,0 +1,137 @@
+# Globs and pathspec magic are sent as given, with no check that they exist.
+args: diff github.com/gorilla/mux@v1.7.0...v1.7.1 '*.go' ':!mux_test.go' 'a?.go' 'src/[ab]/x' ':(glob)**/*.go'
+exit: 0
+--- stdout
+github.com/gorilla/mux@a7962380ca08...c5c6c98bc253  2 files  +7 -1  paths '*.go' ':!mux_test.go' 'a?.go' 'src/[ab]/x' ':(glob)**/*.go'  base a7962380ca08  rev v1.7.0...v1.7.1
+M  +6 -0  mux.go
+M  +1 -1  route.go
+
+    diff --git mux.go mux.go
+    index 8aca972d2f6187d95e4726eaee631384ffec240f..a2cd193e4870256ae36709056aeb70aa410b7990 100644
+    --- mux.go
+    +++ mux.go
+    @@ -283,6 +283,12 @@ func (r *Router) NewRoute() *Route {
+     	return route
+     }
+     
+    +// Name registers a new route with a name.
+    +// See Route.Name().
+    +func (r *Router) Name(name string) *Route {
+    +	return r.NewRoute().Name(name)
+    +}
+    +
+     // Handle registers a new route with a matcher for the URL path.
+     // See Route.Path() and Route.Handler().
+     func (r *Router) Handle(path string, handler http.Handler) *Route {
+    diff --git route.go route.go
+    index 16a7cdf4eadc120fcf92a86cb3c623c6785aa516..8479c68c1df7e866c42981389c610b488a179041 100644
+    --- route.go
+    +++ route.go
+    @@ -383,7 +383,7 @@ func (r *Route) PathPrefix(tpl string) *Route {
+     // The above route will only match if the URL contains the defined queries
+     // values, e.g.: ?foo=bar&id=42.
+     //
+    -// It the value is an empty string, it will match any value if the key is set.
+    +// If the value is an empty string, it will match any value if the key is set.
+     //
+     // Variables can define an optional regexp pattern to be matched:
+     //
+--- request Diff {"a":"v1.7.0","b":"v1.7.1","paths":["*.go",":!mux_test.go","a?.go","src/[ab]/x",":(glob)**/*.go"],"repo0":"github.com/gorilla/mux"}
+--- query
+query Diff($repo0: String!, $a: String!, $b: String!, $paths: [String!]) {
+  a0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $a) { oid }
+  }
+  b0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $b) { oid parents { oid } }
+  }
+  c0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    comparison(base: $a, head: $b) {
+    all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 201, paths: $paths) { nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } } }
+    patch: fileDiffs(paths: $paths) { rawDiff }
+    }
+  }
+}
+--- response 200 application/json recorded 2026-10-25 https://sourcegraph.com live: values
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    },
+    "b0": {
+      "commit": {
+        "oid": "c5c6c98bc25355028a63748a498942a6398ccd22",
+        "parents": [
+          {
+            "oid": "15a353a636720571d19e37b34a14499c3afa9991"
+          }
+        ]
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    },
+    "c0": {
+      "comparison": {
+        "all": {
+          "diffStat": {
+            "added": 7,
+            "deleted": 1
+          },
+          "totalCount": 2
+        },
+        "page": {
+          "nodes": [
+            {
+              "newPath": "mux.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+                }
+              },
+              "oldPath": "mux.go",
+              "stat": {
+                "added": 6,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "route.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+                }
+              },
+              "oldPath": "route.go",
+              "stat": {
+                "added": 1,
+                "deleted": 1
+              }
+            }
+          ]
+        },
+        "patch": {
+          "rawDiff": "diff --git mux.go mux.go\nindex 8aca972d2f6187d95e4726eaee631384ffec240f..a2cd193e4870256ae36709056aeb70aa410b7990 100644\n--- mux.go\n+++ mux.go\n@@ -283,6 +283,12 @@ func (r *Router) NewRoute() *Route {\n \treturn route\n }\n \n+// Name registers a new route with a name.\n+// See Route.Name().\n+func (r *Router) Name(name string) *Route {\n+\treturn r.NewRoute().Name(name)\n+}\n+\n // Handle registers a new route with a matcher for the URL path.\n // See Route.Path() and Route.Handler().\n func (r *Router) Handle(path string, handler http.Handler) *Route {\ndiff --git route.go route.go\nindex 16a7cdf4eadc120fcf92a86cb3c623c6785aa516..8479c68c1df7e866c42981389c610b488a179041 100644\n--- route.go\n+++ route.go\n@@ -383,7 +383,7 @@ func (r *Route) PathPrefix(tpl string) *Route {\n // The above route will only match if the URL contains the defined queries\n // values, e.g.: ?foo=bar&id=42.\n //\n-// It the value is an empty string, it will match any value if the key is set.\n+// If the value is an empty string, it will match any value if the key is set.\n //\n // Variables can define an optional regexp pattern to be matched:\n //\n"
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  }
+}

@@ -1,8 +1,0 @@
-# Check 5: an unknown result type.
-args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 type:bogus NewRouter'
-exit: 0
---- stdout
-0 matches  0.0 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0 type:bogus NewRouter
---- stderr
-sego: note: type:bogus is not a result type; the server returns nothing

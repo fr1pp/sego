@@ -1,8 +1,0 @@
-# A capped answer is a lower bound, so it gets no unindexed-files note.
-args: search 'repo:sego-fake/cap zzq'
-exit: 0
---- stdout
-1+ matches  1 repo  0.3 s
-query  repo:sego-fake/cap zzq
-
-github.com/sego-fake/cap

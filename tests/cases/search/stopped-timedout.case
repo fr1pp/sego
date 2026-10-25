@@ -1,5 +1,0 @@
-# Zero results with timed-out repositories: an error that names none of them.
-args: search 'repo:sego-fake/timedout foo'
-exit: 1
---- stderr
-sego: error: the search stopped at 1.2 s with no results

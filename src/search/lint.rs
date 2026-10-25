@@ -37,24 +37,6 @@ impl Filter {
     }
 }
 
-impl Token {
-    /// The token as written. An operator's case is not kept, so it comes
-    /// back lower-case.
-    pub fn raw(&self) -> String {
-        match self {
-            Token::Term(text) | Token::Quoted(text) | Token::Pattern(text) => {
-                text.clone()
-            }
-            Token::Filter(filter) => filter.raw(),
-            Token::Open => "(".to_owned(),
-            Token::Close => ")".to_owned(),
-            Token::Op(Op::And) => "and".to_owned(),
-            Token::Op(Op::Or) => "or".to_owned(),
-            Token::Op(Op::Not) => "not".to_owned(),
-        }
-    }
-}
-
 /// Splits a query the way the server's parser does. A query whose group
 /// parentheses don't balance is read again with every parenthesis as text.
 pub fn tokenize(query: &str) -> Vec<Token> {
@@ -887,3 +869,6 @@ fn ends_in_extension(value: &str) -> bool {
     });
     stem.len() < value.len() && stem.ends_with('.')
 }
+
+#[cfg(test)]
+mod tests;

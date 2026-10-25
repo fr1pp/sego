@@ -1,8 +1,0 @@
-# A root commit has no diff.
-args: show github.com/gorilla/mux@4e8d10dc715feb79b43f1d607b45148537546a0a
-exit: 0
---- stdout
-github.com/gorilla/mux@4e8d10dc715f  2012-10-02  rodrigo moraes  parents none
-    Initial commit
---- stderr
-sego: note: root commit: Sourcegraph has no diff for it

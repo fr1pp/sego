@@ -1,9 +1,0 @@
-# Check 1: a misspelt filter.
-args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 lnag:go NewRouter'
-exit: 0
---- stdout
-0 matches  1.3 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0 lnag:go NewRouter
---- stderr
-sego: note: 'lnag:' is not a filter; the server searches `lnag:go` as text
-sego: note: at a pinned revision the search can't tell which files it skipped; files over 1 MiB are never searched

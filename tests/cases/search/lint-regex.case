@@ -1,9 +1,0 @@
-# Check 3: regex syntax in keyword mode.
-args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter\('
-exit: 0
---- stdout
-0 matches  0.7 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter\(
---- stderr
-sego: note: keyword mode matches `NewRouter\(` literally; a regex goes inside /.../
-sego: note: at a pinned revision the search can't tell which files it skipped; files over 1 MiB are never searched

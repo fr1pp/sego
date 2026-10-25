@@ -72,3 +72,6 @@ pub fn root(var: Option<&OsStr>) -> Result<Root, Unavailable> {
         .ok_or_else(Unavailable::no_home),
     }
 }
+
+#[cfg(test)]
+mod tests;

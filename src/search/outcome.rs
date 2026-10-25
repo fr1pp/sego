@@ -161,7 +161,7 @@ fn unlisted_note(searched: &Searched) -> Option<&'static str> {
 /// bound or a stopped answer says nothing about them. A path is relative
 /// only when the results and the files are all in one repository, which
 /// the results already name.
-pub fn unindexed_note(searched: &Searched) -> Option<(String, Vec<String>)> {
+fn unindexed_note(searched: &Searched) -> Option<(String, Vec<String>)> {
     if searched.stopped || searched.at_least {
         return None;
     }
@@ -224,7 +224,7 @@ fn noun(files: usize) -> &'static str {
     if files == 1 { "file" } else { "files" }
 }
 
-pub fn binary_size(bytes: u64) -> String {
+fn binary_size(bytes: u64) -> String {
     if bytes >= MIB {
         format!("{} MiB", tenths_of(bytes, MIB))
     } else if bytes >= KIB {
@@ -240,3 +240,6 @@ fn tenths_of(bytes: u64, unit: u64) -> String {
         (u128::from(bytes) * 10 + u128::from(unit) / 2) / u128::from(unit);
     format!("{}.{}", tenths / 10, tenths % 10)
 }
+
+#[cfg(test)]
+mod tests;

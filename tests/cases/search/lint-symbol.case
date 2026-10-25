@@ -1,9 +1,0 @@
-# Check 10: a symbol select with no pattern, after check 7's note.
-args: search 'repo:sego-fake/sym@a..b type:symbol select:symbol.method'
-exit: 0
---- stdout
-0 symbols  0.1 s
-query  repo:sego-fake/sym@a..b type:symbol select:symbol.method
---- stderr
-sego: note: repo:sego-fake/sym@a..b searches b only
-sego: note: type:symbol with select:symbol and no pattern returns nothing; /./ matches every symbol

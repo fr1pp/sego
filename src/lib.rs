@@ -1,3 +1,10 @@
+//! sego reads public source code at any revision through Sourcegraph's public
+//! API, for coding agents, and the `sego` binary is this library's [`run`].
+//!
+//! [`run`] takes the arguments, the [`Env`] and a `connect` function that
+//! makes the [`Transport`] for an [`Endpoint`], so a test can answer every
+//! request itself. [`connect`] makes the one that sends them over HTTP.
+
 mod address;
 mod cache;
 mod cli;
@@ -15,55 +22,6 @@ mod show;
 mod submodule;
 mod upstream;
 
-#[doc(hidden)]
-pub mod internal {
-    pub mod address {
-        pub use crate::address::*;
-    }
-    pub mod cache {
-        pub use crate::cache::*;
-    }
-    pub mod cli {
-        pub use crate::cli::*;
-    }
-    pub mod commit {
-        pub use crate::commit::*;
-    }
-    pub mod diff {
-        pub use crate::diff::*;
-    }
-    pub mod error {
-        pub use crate::error::*;
-    }
-    pub mod escape {
-        pub use crate::escape::*;
-    }
-    pub mod log {
-        pub use crate::log::*;
-    }
-    pub mod ls {
-        pub use crate::ls::*;
-    }
-    pub mod output {
-        pub use crate::output::*;
-    }
-    pub mod quote {
-        pub use crate::quote::*;
-    }
-    pub mod refs {
-        pub use crate::refs::*;
-    }
-    pub mod search {
-        pub use crate::search::*;
-    }
-    pub mod submodule {
-        pub use crate::submodule::*;
-    }
-    pub mod upstream {
-        pub use crate::upstream::*;
-    }
-}
-
 use std::ffi::OsString;
 use std::io::{self, Write};
 use std::process::ExitCode;
@@ -73,13 +31,30 @@ use cache::Cache;
 use cli::Command;
 use error::Error;
 use output::{Answer, Notes};
-use upstream::{DEADLINE, Endpoint, Transport};
+use upstream::DEADLINE;
 
+pub use upstream::{Endpoint, Reply, Transport, TransportError};
+
+/// The transport that reads from `endpoint` over HTTP, for `run`'s `connect`.
+#[must_use]
+pub fn connect(endpoint: Endpoint) -> Box<dyn Transport> {
+    Box::new(upstream::Ureq::new(endpoint))
+}
+
+/// The process environment that `run` reads.
 pub struct Env {
+    /// `SEGO_ENDPOINT`, the server to read from; `None` for sourcegraph.com.
     pub endpoint: Option<OsString>,
+    /// `SEGO_CACHE_DIR`, the root of the raw-file cache; `None` for the
+    /// default location.
     pub cache_dir: Option<OsString>,
 }
 
+/// Runs one sego invocation, writes its answer to `out` and its notes and
+/// errors to `err`, and returns the process exit code.
+///
+/// `connect` is handed the endpoint once the command needs the server and
+/// returns the transport that carries every request.
 #[expect(
     clippy::needless_pass_by_value,
     reason = "main hands over the arguments it collected"
@@ -148,7 +123,7 @@ fn dispatch(
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> Result<(), Failure> {
-    let endpoint = || Endpoint::from_env(env.endpoint.as_deref());
+    let endpoint = || Endpoint::parse(env.endpoint.as_deref());
     let open =
         |endpoint: Endpoint| (connect(endpoint), Instant::now() + DEADLINE);
     let mut cache = None;

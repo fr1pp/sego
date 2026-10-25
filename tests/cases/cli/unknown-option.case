@@ -1,5 +1,5 @@
 # An unknown option is named and nothing else is said about it.
-args: show --verbose github.com/x/y:a.go
+args: show --verbose example.com/acme/widget:a.go
 exit: 2
 --- stderr
 sego: error: unknown option --verbose

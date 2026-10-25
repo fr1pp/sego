@@ -12,29 +12,42 @@ pub const DEADLINE: Duration = Duration::from_secs(90);
 pub const BODY_LIMIT: u64 = 64 * 1024 * 1024;
 pub const GRAPHQL_PATH: &str = "/.api/graphql";
 
+/// What the server answered to one request.
 #[derive(Debug)]
 pub struct Reply {
+    /// The HTTP status code.
     pub status: u16,
+    /// The `Content-Type` header.
     pub content_type: Option<String>,
+    /// The `Location` header of a redirect.
     pub location: Option<String>,
+    /// The `Retry-After` header.
     pub retry_after: Option<String>,
+    /// The `CF-Mitigated` header, set on a Cloudflare challenge.
     pub cf_mitigated: Option<String>,
+    /// The response body.
     pub body: Vec<u8>,
 }
 
+/// Why a request got no reply.
 #[derive(Debug, PartialEq, Eq)]
 pub enum TransportError {
+    /// The connection failed; the text says how, without naming the host.
     Network(&'static str),
+    /// The deadline passed before the reply arrived.
     Deadline,
+    /// The body was larger than sego reads.
     TooLarge,
 }
 
+/// How `run` talks to the server.
 pub trait Transport {
     /// The `host[:port]` that error messages name.
     fn host(&self) -> String {
         "sourcegraph.com".to_owned()
     }
 
+    /// Posts `body` as JSON to `path` on the endpoint.
     fn post(
         &self,
         path: &str,
@@ -42,6 +55,7 @@ pub trait Transport {
         deadline: Instant,
     ) -> Result<Reply, TransportError>;
 
+    /// Gets `path` from the endpoint.
     fn get(
         &self,
         path: &str,
@@ -49,13 +63,21 @@ pub trait Transport {
     ) -> Result<Reply, TransportError>;
 }
 
+/// The server `run` reads from, validated from `SEGO_ENDPOINT`.
 #[derive(Clone, Debug)]
 pub struct Endpoint {
     base: String,
 }
 
 impl Endpoint {
-    pub fn from_env(value: Option<&OsStr>) -> Result<Endpoint, Error> {
+    /// The endpoint named by `SEGO_ENDPOINT`, or sourcegraph.com when it is
+    /// unset or empty. An invalid value is an error whose text is what
+    /// `run` reports.
+    pub fn from_env(value: Option<&OsStr>) -> Result<Endpoint, String> {
+        Endpoint::parse(value).map_err(|error| error.to_string())
+    }
+
+    pub(crate) fn parse(value: Option<&OsStr>) -> Result<Endpoint, Error> {
         let Some(value) = value.filter(|value| !value.is_empty()) else {
             return Ok(Endpoint { base: DEFAULT_ENDPOINT.to_owned() });
         };
@@ -77,13 +99,14 @@ impl Endpoint {
         Ok(Endpoint { base: text.trim_end_matches('/').to_owned() })
     }
 
+    /// The URL of `path` on this endpoint.
     pub fn url(&self, path: &str) -> String {
         format!("{}{path}", self.base)
     }
 
     /// The base URL with a lowercase scheme and host and no `user[:pw]@`,
     /// so that spellings of one endpoint share a cache.
-    pub fn cache_key(&self) -> String {
+    pub(crate) fn cache_key(&self) -> String {
         let (scheme, rest) =
             self.base.split_once("://").unwrap_or(("", &self.base));
         let (authority, path) =
@@ -97,7 +120,7 @@ impl Endpoint {
     }
 
     /// The base URL's `host[:port]`, without any `user[:pw]@`.
-    pub fn host(&self) -> String {
+    pub(crate) fn host(&self) -> String {
         let (_, rest) =
             self.base.split_once("://").unwrap_or(("", &self.base));
         let authority = rest.split('/').next().unwrap_or_default();
@@ -148,8 +171,8 @@ impl Ureq {
 
     /// Ignores `HTTP_PROXY` and friends, so tests that talk to 127.0.0.1
     /// don't depend on the environment of the process running them.
-    #[doc(hidden)]
-    pub fn without_proxy(endpoint: Endpoint) -> Ureq {
+    #[cfg(test)]
+    fn without_proxy(endpoint: Endpoint) -> Ureq {
         Ureq::build(endpoint, false)
     }
 
@@ -286,7 +309,7 @@ fn classify_io(error: io::Error) -> TransportError {
 }
 
 impl TransportError {
-    pub fn into_error(self, host: &str) -> Error {
+    pub(crate) fn into_error(self, host: &str) -> Error {
         match self {
             TransportError::Network(cause) => {
                 Error::network(format!("could not reach {host}: {cause}"))
@@ -298,3 +321,6 @@ impl TransportError {
         }
     }
 }
+
+#[cfg(test)]
+mod tests;

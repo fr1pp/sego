@@ -1,5 +1,0 @@
-# A timeout: filter sets the deadline the elapsed time is judged against.
-args: search 'repo:sego-fake/timeout foo timeout:5s'
-exit: 1
---- stderr
-sego: error: the search stopped at 5.0 s with no results

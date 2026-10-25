@@ -1,0 +1,7 @@
+# REPO: names the root, which show cannot print; no request is made.
+args: show example.com/acme/widget:
+exit: 2
+--- stderr
+sego: error: show needs a file's path, like REPO[@REV]:PATH
+usage: sego show [--json] REPO[@REV]:PATH [LINES]
+       sego show [--json] REPO@REV

@@ -1,8 +1,0 @@
-# A clean answer that arrived at its deadline is stopped: line 1 says so.
-args: search 'repo:sego-fake/deadline foo'
-exit: 0
---- stdout
-1+ matches  1 repo  stopped at 60.0 s
-query  repo:sego-fake/deadline foo
-
-github.com/sego-fake/found

@@ -1,0 +1,87 @@
+# In JSON the names, commits and dates hold the characters themselves.
+args: refs --json example.com/acme/widget
+exit: 0
+--- stdout
+{"repo":"example.com/acme/widget","query":null,"default_branch":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","branches_total":2,"tags_total":3,"branches_all":null,"tags_all":null,"branches_more":false,"tags_more":false,"refs":[{"kind":"branch","name":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","commit":"0123456789abcdef0123456789abcdef01234567","date":"2026-03-01"},{"kind":"branch","name":"b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","commit":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","date":"a\u001bb\u202ec\u200bd\ne\r"},{"kind":"tag","name":"t-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","commit":"0123456789abcdef0123456789abcdef01234567","date":"a\u001bb\u202ec\u200bd\ne\r"},{"kind":"tag","name":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","commit":"0123456789abcdef0123456789abcdef01234567","date":"2026-02-01"},{"kind":"tag","name":"u-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","commit":null,"date":null}]}
+--- request Refs {"first":17000,"query":null,"repo0":"example.com/acme/widget"}
+--- query
+query Refs($repo0: String!, $first: Int!, $query: String) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    branches(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+    tags(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "branches": {
+        "nodes": [
+          {
+            "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-03-01T12:00:00Z"
+                }
+              },
+              "oid": "0123456789abcdef0123456789abcdef01234567"
+            }
+          },
+          {
+            "displayName": "b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                }
+              },
+              "oid": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+            }
+          }
+        ],
+        "totalCount": 2
+      },
+      "defaultBranch": {
+        "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+      },
+      "name": "example.com/acme/widget",
+      "tags": {
+        "nodes": [
+          {
+            "displayName": "t-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                }
+              },
+              "oid": "0123456789abcdef0123456789abcdef01234567"
+            }
+          },
+          {
+            "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-02-01T08:30:00Z"
+                }
+              },
+              "oid": "0123456789abcdef0123456789abcdef01234567"
+            }
+          },
+          {
+            "displayName": "u-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+            "target": {
+              "commit": null,
+              "oid": "0123456789abcdef0123456789abcdef01234567"
+            }
+          }
+        ],
+        "totalCount": 3
+      }
+    }
+  }
+}

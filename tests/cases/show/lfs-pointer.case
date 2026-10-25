@@ -1,0 +1,72 @@
+# An LFS pointer prints its text.
+args: show github.com/NVIDIA-Omniverse/kit-usd-agents@8df4ed105e4202dfb6dff836bd1871bf5eccd308:source/modules/agents/usd/src/lc_agent_usd/data/__init__.py
+exit: 0
+--- stdout
+github.com/NVIDIA-Omniverse/kit-usd-agents@8df4ed105e42:source/modules/agents/usd/src/lc_agent_usd/data/__init__.py  LFS pointer  object 437 bytes  lines 1-3 of 3
+1:version https://git-lfs.github.com/spec/v1
+2:oid sha256:f09ac3d33189e29c708246d47f8615a88146f47eb5a32cc05eeb8c1ffec2109d
+3:size 437
+--- request ShowFile {"end_0":500,"parent_0":"source/modules/agents/usd/src/lc_agent_usd/data","path_0":"source/modules/agents/usd/src/lc_agent_usd/data/__init__.py","repo0":"github.com/NVIDIA-Omniverse/kit-usd-agents","rev0":"8df4ed105e4202dfb6dff836bd1871bf5eccd308","start_0":1}
+--- query
+query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    c0: commit(rev: $rev0) {
+      oid
+      meta: blob(path: $path_0) { byteSize totalLines binary rawURL lfs { byteSize } }
+      body: blob(path: $path_0) { content(startLine: $start_0, endLine: $end_0, textOnly: true) }
+      dir: tree(path: $path_0) { entries { path } }
+      parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+    }
+  }
+}
+--- response 200 application/json recorded 2026-10-07 https://sourcegraph.com live: values
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "body": {
+          "content": "version https://git-lfs.github.com/spec/v1\noid sha256:f09ac3d33189e29c708246d47f8615a88146f47eb5a32cc05eeb8c1ffec2109d\nsize 437\n"
+        },
+        "dir": null,
+        "meta": {
+          "binary": false,
+          "byteSize": 128,
+          "lfs": {
+            "byteSize": "437"
+          },
+          "rawURL": "/r/github.com/NVIDIA-Omniverse/kit-usd-agents@8df4ed105e4202dfb6dff836bd1871bf5eccd308/-/raw/source/modules/agents/usd/src/lc_agent_usd/data/__init__.py",
+          "totalLines": 3
+        },
+        "oid": "8df4ed105e4202dfb6dff836bd1871bf5eccd308",
+        "parent": {
+          "entries": [
+            {
+              "path": "source/modules/agents/usd/src/lc_agent_usd/data/__init__.py",
+              "submodule": null
+            },
+            {
+              "path": "source/modules/agents/usd/src/lc_agent_usd/data/lc_agent_usd_example.usda",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/NVIDIA-Omniverse/kit-usd-agents"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a directory: \"source/modules/agents/usd/src/lc_agent_usd/data/__init__.py\"",
+      "path": [
+        "r0",
+        "c0",
+        "dir"
+      ]
+    }
+  ]
+}

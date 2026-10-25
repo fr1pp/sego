@@ -1,6 +1,0 @@
-# A path with a space prints shell-quoted in the header.
-args: show 'github.com/nodejs/node@aa1bf2cc37539bfeeef8faf80c9d31a64cb78026:test/fixtures/print A.js'
-exit: 0
---- stdout
-'github.com/nodejs/node@aa1bf2cc3753:test/fixtures/print A.js'  lines 1 of 1
-1:console.log('A')

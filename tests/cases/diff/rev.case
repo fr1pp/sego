@@ -1,7 +1,0 @@
-# A revision alone is the change that commit made.
-args: diff github.com/gorilla/mux@v1.8.0
-exit: 0
---- stdout
-github.com/gorilla/mux@948bec34b516...98cb6bf42e08  2 files  +28 -1  base 948bec34b516  rev v1.8.0
-M  +22 -1  old_test.go
-M  +6 -0  regexp.go

@@ -1,0 +1,22 @@
+# A repository that is not on sourcegraph.com is an error.
+args: refs github.com/facebook/react
+exit: 1
+--- stderr
+sego: error: github.com/facebook/react is not on sourcegraph.com
+  sourcegraph.com serves indexed repositories from github.com, gitlab.com and a few other hosts; a renamed repository appears only under its new name
+--- request Refs {"first":101,"query":null,"repo0":"github.com/facebook/react"}
+--- query
+query Refs($repo0: String!, $first: Int!, $query: String) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    branches(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+    tags(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+  }
+}
+--- response 200 application/json recorded 2026-10-07 https://sourcegraph.com live: values
+{
+  "data": {
+    "r0": null
+  }
+}

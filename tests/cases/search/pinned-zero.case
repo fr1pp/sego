@@ -1,8 +1,0 @@
-# At a pinned revision nothing lists the files too large to search.
-args: search 'repo:sego-fake/pz@v1 foo'
-exit: 0
---- stdout
-0 matches  0.2 s
-query  repo:sego-fake/pz@v1 foo
---- stderr
-sego: note: at a pinned revision the search can't tell which files it skipped; files over 1 MiB are never searched

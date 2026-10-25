@@ -1,0 +1,49 @@
+# A missing path with control characters is escaped in the error.
+args: show $'example.com/acme/widget@0123456789abcdef0123456789abcdef01234567:a\eb\u{202e}c\u{200b}d\ne\rf\0g\u{2028}h\x7fi-gone'
+exit: 1
+--- stderr
+sego: error: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i-gone not found in example.com/acme/widget@0123456789ab
+--- request ShowFile {"end_0":500,"parent_0":"","path_0":"a\u001bb‮c​d\ne\rf\u0000g hi-gone","repo0":"example.com/acme/widget","rev0":"0123456789abcdef0123456789abcdef01234567","start_0":1}
+--- query
+query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    c0: commit(rev: $rev0) {
+      oid
+      meta: blob(path: $path_0) { byteSize totalLines binary rawURL lfs { byteSize } }
+      body: blob(path: $path_0) { content(startLine: $start_0, endLine: $end_0, textOnly: true) }
+      dir: tree(path: $path_0) { entries { path } }
+      parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "body": null,
+        "dir": null,
+        "meta": null,
+        "oid": "0123456789abcdef0123456789abcdef01234567",
+        "parent": {
+          "entries": [
+            {
+              "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+              "submodule": null
+            },
+            {
+              "path": "other.txt",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}

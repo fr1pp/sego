@@ -824,3 +824,6 @@ pub fn submodule_target(url: &str, parent_repo: &str) -> Option<String> {
         && segments.iter().all(|s| !s.is_empty() && !s.contains(is_bad_char));
     valid.then(|| location.to_owned())
 }
+
+#[cfg(test)]
+mod tests;

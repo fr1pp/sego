@@ -1,4 +1,0 @@
-# A closed stdout is not an error.
-args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 "func NewRouter"'
-stdout: closed
-exit: 0
