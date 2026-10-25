@@ -11,7 +11,6 @@ mod log;
 mod ls;
 mod ls_cli;
 mod model;
-mod outcome;
 mod output;
 mod quote;
 mod refs;

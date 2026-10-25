@@ -1,0 +1,78 @@
+# The note on select: comes after the alert.
+args: search 'repo:example.com/acme/router@v1 Router select:file'
+exit: 0
+--- stdout
+1+ files  1 repo  0.1 s
+query  repo:example.com/acme/router@v1 Router select:file
+
+example.com/acme/router@0123456789ab:main.go
+--- stderr
+sego: note: Heads up: careful
+sego: note: at a pinned revision, select: keeps only what each repository's first 30 matches hold; count:all gives every one
+--- request Search {"query":"repo:example.com/acme/router@v1 Router select:file"}
+--- query
+query Search($query: String!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": {
+          "description": "careful",
+          "kind": null,
+          "proposedQueries": null,
+          "title": "Heads up"
+        },
+        "approximateResultCount": "1",
+        "dynamicFilters": [],
+        "elapsedMilliseconds": 100,
+        "limitHit": false,
+        "matchCount": 1,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "main.go"
+            },
+            "repository": {
+              "name": "example.com/acme/router"
+            },
+            "revSpec": null,
+            "symbols": []
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}
