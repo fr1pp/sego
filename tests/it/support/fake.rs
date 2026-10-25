@@ -11,7 +11,6 @@ use super::replay;
 pub struct Call {
     pub method: &'static str,
     pub path: String,
-    pub deadline: Instant,
     pub body: Vec<u8>,
 }
 
@@ -59,14 +58,12 @@ impl Fake {
         method: &'static str,
         path: &str,
         body: &[u8],
-        deadline: Instant,
     ) -> Result<Reply, TransportError> {
         let mut inner =
             self.inner.lock().unwrap_or_else(PoisonError::into_inner);
         inner.calls.push(Call {
             method,
             path: path.to_owned(),
-            deadline,
             body: body.to_vec(),
         });
         match &mut inner.source {
@@ -85,16 +82,12 @@ impl Transport for Fake {
         &self,
         path: &str,
         body: &[u8],
-        deadline: Instant,
+        _: Instant,
     ) -> Result<Reply, TransportError> {
-        self.request("POST", path, body, deadline)
+        self.request("POST", path, body)
     }
 
-    fn get(
-        &self,
-        path: &str,
-        deadline: Instant,
-    ) -> Result<Reply, TransportError> {
-        self.request("GET", path, &[], deadline)
+    fn get(&self, path: &str, _: Instant) -> Result<Reply, TransportError> {
+        self.request("GET", path, &[])
     }
 }

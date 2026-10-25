@@ -1,0 +1,78 @@
+# A submodule whose URL is not a repository prints the URL as written.
+args: show example.com/acme/shell@main:contrib
+exit: 0
+--- stdout
+example.com/acme/shell@d81fd54f1a2b:contrib  submodule  file:///srv/contrib  rev main
+--- request ShowFile {"end_0":500,"parent_0":"","path_0":"contrib","repo0":"example.com/acme/shell","rev0":"main","start_0":1}
+--- query
+query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    c0: commit(rev: $rev0) {
+      oid
+      meta: blob(path: $path_0) { byteSize totalLines binary rawURL lfs { byteSize } }
+      body: blob(path: $path_0) { content(startLine: $start_0, endLine: $end_0, textOnly: true) }
+      dir: tree(path: $path_0) { entries { path } }
+      parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "body": null,
+        "dir": null,
+        "meta": null,
+        "oid": "d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809",
+        "parent": {
+          "entries": [
+            {
+              "path": "contrib",
+              "submodule": {
+                "commit": "d2109203480a1b2c3d4e5f60718293a4b5c6d7e8",
+                "url": "file:///srv/contrib"
+              }
+            },
+            {
+              "path": "make",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/shell"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a blob",
+      "path": [
+        "r0",
+        "c0",
+        "meta"
+      ]
+    },
+    {
+      "message": "not a blob",
+      "path": [
+        "r0",
+        "c0",
+        "body"
+      ]
+    },
+    {
+      "message": "not a directory",
+      "path": [
+        "r0",
+        "c0",
+        "dir"
+      ]
+    }
+  ]
+}

@@ -54,3 +54,28 @@ fn everything_else_is_a_failure() {
     );
     assert_eq!(failure(Err(TransportError::Deadline)).0, Kind::Deadline);
 }
+
+#[test]
+fn a_raw_read_refuses_what_every_reply_refuses() {
+    let mut challenge = reply(429, Some("text/html"), "<html>");
+    challenge.cf_mitigated = Some("challenge".to_owned());
+    assert_eq!(
+        failure(Ok(challenge)),
+        (
+            Kind::Edge,
+            "sourcegraph.com's edge refused the request (HTTP 429, \
+             Cloudflare challenge)"
+                .to_owned()
+        )
+    );
+    let mut moved = reply(302, None, "");
+    moved.location = Some("/login".to_owned());
+    assert_eq!(
+        failure(Ok(moved)),
+        (
+            Kind::Upstream,
+            "sourcegraph.com answered HTTP 302 with Location /login"
+                .to_owned()
+        )
+    );
+}

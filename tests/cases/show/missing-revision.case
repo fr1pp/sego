@@ -18,7 +18,7 @@ query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: Str
     }
   }
 }
---- response 200 application/json recorded 2026-10-07 https://sourcegraph.com
+--- response 200 application/json recorded 2026-10-07 https://sourcegraph.com live: values
 {
   "data": {
     "r0": {
