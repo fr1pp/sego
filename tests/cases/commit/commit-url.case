@@ -9,3 +9,80 @@ github.com/gorilla/mux@948bec34b516  2020-05-17  Eric Skoglund  parents 75dcda08
     the Route even after the request. The KeepContext option is deprecated and has no effect.
 
 M  +1 -2  mux.go
+--- request ShowCommit {"base":"948bec34b5168796bf3fc4dbb09215baa970351a^1","repo0":"github.com/gorilla/mux","rev":"948bec34b5168796bf3fc4dbb09215baa970351a"}
+--- query
+query ShowCommit($repo0: String!, $rev: String!, $base: String!) {
+  m0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $rev) { oid subject message author { date person { displayName } } committer { date person { displayName } } parents { oid } }
+  }
+  d0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    comparison(base: $base, head: $rev) {
+    all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
+    }
+  }
+}
+--- response 200 application/json recorded 2026-10-07 https://sourcegraph.com live: values
+{
+  "data": {
+    "d0": {
+      "comparison": {
+        "all": {
+          "diffStat": {
+            "added": 1,
+            "deleted": 2
+          },
+          "totalCount": 1
+        },
+        "page": {
+          "nodes": [
+            {
+              "newPath": "mux.go",
+              "oldPath": "mux.go",
+              "stat": {
+                "added": 1,
+                "deleted": 2
+              }
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    },
+    "m0": {
+      "commit": {
+        "author": {
+          "date": "2020-05-17T04:02:54Z",
+          "person": {
+            "displayName": "Eric Skoglund"
+          }
+        },
+        "committer": {
+          "date": "2020-05-17T04:02:54Z",
+          "person": {
+            "displayName": "GitHub"
+          }
+        },
+        "message": "docs: Remove stale text from comment. (#568)\n\nComment for CurrentRoute claimed that setting the KeepContext option would propagate\r\nthe Route even after the request. The KeepContext option is deprecated and has no effect.",
+        "oid": "948bec34b5168796bf3fc4dbb09215baa970351a",
+        "parents": [
+          {
+            "oid": "75dcda0896e109a2a22c9315bca3bb21b87b2ba5"
+          }
+        ],
+        "subject": "docs: Remove stale text from comment. (#568)"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  }
+}

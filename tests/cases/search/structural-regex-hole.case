@@ -6,3 +6,62 @@ exit: 1
 sego: note: a structural search over more than one file can miss matches without a +; file:^PATH$ makes it complete, and a regex search marks a cut with +
 sego: error: the search's regular expression doesn't compile: invalid or unsupported Perl syntax: `(?=`
   structural search compiles each :[name~regex] hole as an RE2 regular expression
+--- request Search {"query":"repo:^github\\.com/gorilla/mux$ lang:go patterntype:structural fmt.:[fn~Err(?=orf)\\w+](...)","unindexed":"repo:^github\\.com/gorilla/mux$ lang:go type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
+--- query
+query Search($query: String!, $unindexed: String!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+  unindexed: search(query: $unindexed, version: V3, patternType: keyword) {
+    results {
+      limitHit elapsedMilliseconds timedout { name } alert { title }
+      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
+    }
+  }
+}
+--- response 200 application/json recorded 2026-10-25 https://sourcegraph.com
+{
+  "data": {
+    "search": null,
+    "unindexed": {
+      "results": {
+        "alert": null,
+        "elapsedMilliseconds": 1374,
+        "limitHit": false,
+        "results": [],
+        "timedout": []
+      }
+    }
+  },
+  "errors": [
+    {
+      "message": "rpc error: code = Unknown desc = error parsing regexp: invalid or unsupported Perl syntax: `(?=`",
+      "path": [
+        "search",
+        "results"
+      ]
+    }
+  ]
+}

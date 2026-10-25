@@ -3,3 +3,46 @@ args: search 'repo:sego-fake/rx6@v1 /f/'
 exit: 1
 --- stderr
 sego: error: Sourcegraph failed to answer the search
+--- request Search {"query":"repo:sego-fake/rx6@v1 /f/"}
+--- query
+query Search($query: String!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "search": null
+  },
+  "errors": [
+    {
+      "message": "rpc error: code = Unknown desc = foo: error parsing regexp: x",
+      "path": [
+        "search"
+      ]
+    }
+  ]
+}

@@ -503,3 +503,141 @@ github.com/gorilla/mux@98cb6bf42e08:mux.go  lines 1-500 of 606 (1- for all)  rev
 498:	}
 499:	return length, nil
 500:}
+--- request ShowFile {"end_0":500,"parent_0":"","path_0":"mux.go","repo0":"github.com/gorilla/mux","rev0":"v1.8.0","start_0":1}
+--- query
+query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    c0: commit(rev: $rev0) {
+      oid
+      meta: blob(path: $path_0) { byteSize totalLines binary rawURL lfs { byteSize } }
+      body: blob(path: $path_0) { content(startLine: $start_0, endLine: $end_0, textOnly: true) }
+      dir: tree(path: $path_0) { entries { path } }
+      parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+    }
+  }
+}
+--- response 200 application/json recorded 2026-10-07 https://sourcegraph.com live: values
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "body": {
+          "content": "// Copyright 2012 The Gorilla Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style\n// license that can be found in the LICENSE file.\n\npackage mux\n\nimport (\n\t\"context\"\n\t\"errors\"\n\t\"fmt\"\n\t\"net/http\"\n\t\"path\"\n\t\"regexp\"\n)\n\nvar (\n\t// ErrMethodMismatch is returned when the method in the request does not match\n\t// the method defined against the route.\n\tErrMethodMismatch = errors.New(\"method is not allowed\")\n\t// ErrNotFound is returned when no route match is found.\n\tErrNotFound = errors.New(\"no matching route was found\")\n)\n\n// NewRouter returns a new router instance.\nfunc NewRouter() *Router {\n\treturn &Router{namedRoutes: make(map[string]*Route)}\n}\n\n// Router registers routes to be matched and dispatches a handler.\n//\n// It implements the http.Handler interface, so it can be registered to serve\n// requests:\n//\n//     var router = mux.NewRouter()\n//\n//     func main() {\n//         http.Handle(\"/\", router)\n//     }\n//\n// Or, for Google App Engine, register it in a init() function:\n//\n//     func init() {\n//         http.Handle(\"/\", router)\n//     }\n//\n// This will send all incoming requests to the router.\ntype Router struct {\n\t// Configurable Handler to be used when no route matches.\n\tNotFoundHandler http.Handler\n\n\t// Configurable Handler to be used when the request method does not match the route.\n\tMethodNotAllowedHandler http.Handler\n\n\t// Routes to be matched, in order.\n\troutes []*Route\n\n\t// Routes by name for URL building.\n\tnamedRoutes map[string]*Route\n\n\t// If true, do not clear the request context after handling the request.\n\t//\n\t// Deprecated: No effect, since the context is stored on the request itself.\n\tKeepContext bool\n\n\t// Slice of middlewares to be called after a match is found\n\tmiddlewares []middleware\n\n\t// configuration shared with `Route`\n\trouteConf\n}\n\n// common route configuration shared between `Router` and `Route`\ntype routeConf struct {\n\t// If true, \"/path/foo%2Fbar/to\" will match the path \"/path/{var}/to\"\n\tuseEncodedPath bool\n\n\t// If true, when the path pattern is \"/path/\", accessing \"/path\" will\n\t// redirect to the former and vice versa.\n\tstrictSlash bool\n\n\t// If true, when the path pattern is \"/path//to\", accessing \"/path//to\"\n\t// will not redirect\n\tskipClean bool\n\n\t// Manager for the variables from host and path.\n\tregexp routeRegexpGroup\n\n\t// List of matchers.\n\tmatchers []matcher\n\n\t// The scheme used when building URLs.\n\tbuildScheme string\n\n\tbuildVarsFunc BuildVarsFunc\n}\n\n// returns an effective deep copy of `routeConf`\nfunc copyRouteConf(r routeConf) routeConf {\n\tc := r\n\n\tif r.regexp.path != nil {\n\t\tc.regexp.path = copyRouteRegexp(r.regexp.path)\n\t}\n\n\tif r.regexp.host != nil {\n\t\tc.regexp.host = copyRouteRegexp(r.regexp.host)\n\t}\n\n\tc.regexp.queries = make([]*routeRegexp, 0, len(r.regexp.queries))\n\tfor _, q := range r.regexp.queries {\n\t\tc.regexp.queries = append(c.regexp.queries, copyRouteRegexp(q))\n\t}\n\n\tc.matchers = make([]matcher, len(r.matchers))\n\tcopy(c.matchers, r.matchers)\n\n\treturn c\n}\n\nfunc copyRouteRegexp(r *routeRegexp) *routeRegexp {\n\tc := *r\n\treturn &c\n}\n\n// Match attempts to match the given request against the router's registered routes.\n//\n// If the request matches a route of this router or one of its subrouters the Route,\n// Handler, and Vars fields of the the match argument are filled and this function\n// returns true.\n//\n// If the request does not match any of this router's or its subrouters' routes\n// then this function returns false. If available, a reason for the match failure\n// will be filled in the match argument's MatchErr field. If the match failure type\n// (eg: not found) has a registered handler, the handler is assigned to the Handler\n// field of the match argument.\nfunc (r *Router) Match(req *http.Request, match *RouteMatch) bool {\n\tfor _, route := range r.routes {\n\t\tif route.Match(req, match) {\n\t\t\t// Build middleware chain if no error was found\n\t\t\tif match.MatchErr == nil {\n\t\t\t\tfor i := len(r.middlewares) - 1; i >= 0; i-- {\n\t\t\t\t\tmatch.Handler = r.middlewares[i].Middleware(match.Handler)\n\t\t\t\t}\n\t\t\t}\n\t\t\treturn true\n\t\t}\n\t}\n\n\tif match.MatchErr == ErrMethodMismatch {\n\t\tif r.MethodNotAllowedHandler != nil {\n\t\t\tmatch.Handler = r.MethodNotAllowedHandler\n\t\t\treturn true\n\t\t}\n\n\t\treturn false\n\t}\n\n\t// Closest match for a router (includes sub-routers)\n\tif r.NotFoundHandler != nil {\n\t\tmatch.Handler = r.NotFoundHandler\n\t\tmatch.MatchErr = ErrNotFound\n\t\treturn true\n\t}\n\n\tmatch.MatchErr = ErrNotFound\n\treturn false\n}\n\n// ServeHTTP dispatches the handler registered in the matched route.\n//\n// When there is a match, the route variables can be retrieved calling\n// mux.Vars(request).\nfunc (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {\n\tif !r.skipClean {\n\t\tpath := req.URL.Path\n\t\tif r.useEncodedPath {\n\t\t\tpath = req.URL.EscapedPath()\n\t\t}\n\t\t// Clean path to canonical form and redirect.\n\t\tif p := cleanPath(path); p != path {\n\n\t\t\t// Added 3 lines (Philip Schlump) - It was dropping the query string and #whatever from query.\n\t\t\t// This matches with fix in go 1.2 r.c. 4 for same problem.  Go Issue:\n\t\t\t// http://code.google.com/p/go/issues/detail?id=5252\n\t\t\turl := *req.URL\n\t\t\turl.Path = p\n\t\t\tp = url.String()\n\n\t\t\tw.Header().Set(\"Location\", p)\n\t\t\tw.WriteHeader(http.StatusMovedPermanently)\n\t\t\treturn\n\t\t}\n\t}\n\tvar match RouteMatch\n\tvar handler http.Handler\n\tif r.Match(req, &match) {\n\t\thandler = match.Handler\n\t\treq = requestWithVars(req, match.Vars)\n\t\treq = requestWithRoute(req, match.Route)\n\t}\n\n\tif handler == nil && match.MatchErr == ErrMethodMismatch {\n\t\thandler = methodNotAllowedHandler()\n\t}\n\n\tif handler == nil {\n\t\thandler = http.NotFoundHandler()\n\t}\n\n\thandler.ServeHTTP(w, req)\n}\n\n// Get returns a route registered with the given name.\nfunc (r *Router) Get(name string) *Route {\n\treturn r.namedRoutes[name]\n}\n\n// GetRoute returns a route registered with the given name. This method\n// was renamed to Get() and remains here for backwards compatibility.\nfunc (r *Router) GetRoute(name string) *Route {\n\treturn r.namedRoutes[name]\n}\n\n// StrictSlash defines the trailing slash behavior for new routes. The initial\n// value is false.\n//\n// When true, if the route path is \"/path/\", accessing \"/path\" will perform a redirect\n// to the former and vice versa. In other words, your application will always\n// see the path as specified in the route.\n//\n// When false, if the route path is \"/path\", accessing \"/path/\" will not match\n// this route and vice versa.\n//\n// The re-direct is a HTTP 301 (Moved Permanently). Note that when this is set for\n// routes with a non-idempotent method (e.g. POST, PUT), the subsequent re-directed\n// request will be made as a GET by most clients. Use middleware or client settings\n// to modify this behaviour as needed.\n//\n// Special case: when a route sets a path prefix using the PathPrefix() method,\n// strict slash is ignored for that route because the redirect behavior can't\n// be determined from a prefix alone. However, any subrouters created from that\n// route inherit the original StrictSlash setting.\nfunc (r *Router) StrictSlash(value bool) *Router {\n\tr.strictSlash = value\n\treturn r\n}\n\n// SkipClean defines the path cleaning behaviour for new routes. The initial\n// value is false. Users should be careful about which routes are not cleaned\n//\n// When true, if the route path is \"/path//to\", it will remain with the double\n// slash. This is helpful if you have a route like: /fetch/http://xkcd.com/534/\n//\n// When false, the path will be cleaned, so /fetch/http://xkcd.com/534/ will\n// become /fetch/http/xkcd.com/534\nfunc (r *Router) SkipClean(value bool) *Router {\n\tr.skipClean = value\n\treturn r\n}\n\n// UseEncodedPath tells the router to match the encoded original path\n// to the routes.\n// For eg. \"/path/foo%2Fbar/to\" will match the path \"/path/{var}/to\".\n//\n// If not called, the router will match the unencoded path to the routes.\n// For eg. \"/path/foo%2Fbar/to\" will match the path \"/path/foo/bar/to\"\nfunc (r *Router) UseEncodedPath() *Router {\n\tr.useEncodedPath = true\n\treturn r\n}\n\n// ----------------------------------------------------------------------------\n// Route factories\n// ----------------------------------------------------------------------------\n\n// NewRoute registers an empty route.\nfunc (r *Router) NewRoute() *Route {\n\t// initialize a route with a copy of the parent router's configuration\n\troute := &Route{routeConf: copyRouteConf(r.routeConf), namedRoutes: r.namedRoutes}\n\tr.routes = append(r.routes, route)\n\treturn route\n}\n\n// Name registers a new route with a name.\n// See Route.Name().\nfunc (r *Router) Name(name string) *Route {\n\treturn r.NewRoute().Name(name)\n}\n\n// Handle registers a new route with a matcher for the URL path.\n// See Route.Path() and Route.Handler().\nfunc (r *Router) Handle(path string, handler http.Handler) *Route {\n\treturn r.NewRoute().Path(path).Handler(handler)\n}\n\n// HandleFunc registers a new route with a matcher for the URL path.\n// See Route.Path() and Route.HandlerFunc().\nfunc (r *Router) HandleFunc(path string, f func(http.ResponseWriter,\n\t*http.Request)) *Route {\n\treturn r.NewRoute().Path(path).HandlerFunc(f)\n}\n\n// Headers registers a new route with a matcher for request header values.\n// See Route.Headers().\nfunc (r *Router) Headers(pairs ...string) *Route {\n\treturn r.NewRoute().Headers(pairs...)\n}\n\n// Host registers a new route with a matcher for the URL host.\n// See Route.Host().\nfunc (r *Router) Host(tpl string) *Route {\n\treturn r.NewRoute().Host(tpl)\n}\n\n// MatcherFunc registers a new route with a custom matcher function.\n// See Route.MatcherFunc().\nfunc (r *Router) MatcherFunc(f MatcherFunc) *Route {\n\treturn r.NewRoute().MatcherFunc(f)\n}\n\n// Methods registers a new route with a matcher for HTTP methods.\n// See Route.Methods().\nfunc (r *Router) Methods(methods ...string) *Route {\n\treturn r.NewRoute().Methods(methods...)\n}\n\n// Path registers a new route with a matcher for the URL path.\n// See Route.Path().\nfunc (r *Router) Path(tpl string) *Route {\n\treturn r.NewRoute().Path(tpl)\n}\n\n// PathPrefix registers a new route with a matcher for the URL path prefix.\n// See Route.PathPrefix().\nfunc (r *Router) PathPrefix(tpl string) *Route {\n\treturn r.NewRoute().PathPrefix(tpl)\n}\n\n// Queries registers a new route with a matcher for URL query values.\n// See Route.Queries().\nfunc (r *Router) Queries(pairs ...string) *Route {\n\treturn r.NewRoute().Queries(pairs...)\n}\n\n// Schemes registers a new route with a matcher for URL schemes.\n// See Route.Schemes().\nfunc (r *Router) Schemes(schemes ...string) *Route {\n\treturn r.NewRoute().Schemes(schemes...)\n}\n\n// BuildVarsFunc registers a new route with a custom function for modifying\n// route variables before building a URL.\nfunc (r *Router) BuildVarsFunc(f BuildVarsFunc) *Route {\n\treturn r.NewRoute().BuildVarsFunc(f)\n}\n\n// Walk walks the router and all its sub-routers, calling walkFn for each route\n// in the tree. The routes are walked in the order they were added. Sub-routers\n// are explored depth-first.\nfunc (r *Router) Walk(walkFn WalkFunc) error {\n\treturn r.walk(walkFn, []*Route{})\n}\n\n// SkipRouter is used as a return value from WalkFuncs to indicate that the\n// router that walk is about to descend down to should be skipped.\nvar SkipRouter = errors.New(\"skip this router\")\n\n// WalkFunc is the type of the function called for each route visited by Walk.\n// At every invocation, it is given the current route, and the current router,\n// and a list of ancestor routes that lead to the current route.\ntype WalkFunc func(route *Route, router *Router, ancestors []*Route) error\n\nfunc (r *Router) walk(walkFn WalkFunc, ancestors []*Route) error {\n\tfor _, t := range r.routes {\n\t\terr := walkFn(t, r, ancestors)\n\t\tif err == SkipRouter {\n\t\t\tcontinue\n\t\t}\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\t\tfor _, sr := range t.matchers {\n\t\t\tif h, ok := sr.(*Router); ok {\n\t\t\t\tancestors = append(ancestors, t)\n\t\t\t\terr := h.walk(walkFn, ancestors)\n\t\t\t\tif err != nil {\n\t\t\t\t\treturn err\n\t\t\t\t}\n\t\t\t\tancestors = ancestors[:len(ancestors)-1]\n\t\t\t}\n\t\t}\n\t\tif h, ok := t.handler.(*Router); ok {\n\t\t\tancestors = append(ancestors, t)\n\t\t\terr := h.walk(walkFn, ancestors)\n\t\t\tif err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\t\t\tancestors = ancestors[:len(ancestors)-1]\n\t\t}\n\t}\n\treturn nil\n}\n\n// ----------------------------------------------------------------------------\n// Context\n// ----------------------------------------------------------------------------\n\n// RouteMatch stores information about a matched route.\ntype RouteMatch struct {\n\tRoute   *Route\n\tHandler http.Handler\n\tVars    map[string]string\n\n\t// MatchErr is set to appropriate matching error\n\t// It is set to ErrMethodMismatch if there is a mismatch in\n\t// the request method and route method\n\tMatchErr error\n}\n\ntype contextKey int\n\nconst (\n\tvarsKey contextKey = iota\n\trouteKey\n)\n\n// Vars returns the route variables for the current request, if any.\nfunc Vars(r *http.Request) map[string]string {\n\tif rv := r.Context().Value(varsKey); rv != nil {\n\t\treturn rv.(map[string]string)\n\t}\n\treturn nil\n}\n\n// CurrentRoute returns the matched route for the current request, if any.\n// This only works when called inside the handler of the matched route\n// because the matched route is stored in the request context which is cleared\n// after the handler returns.\nfunc CurrentRoute(r *http.Request) *Route {\n\tif rv := r.Context().Value(routeKey); rv != nil {\n\t\treturn rv.(*Route)\n\t}\n\treturn nil\n}\n\nfunc requestWithVars(r *http.Request, vars map[string]string) *http.Request {\n\tctx := context.WithValue(r.Context(), varsKey, vars)\n\treturn r.WithContext(ctx)\n}\n\nfunc requestWithRoute(r *http.Request, route *Route) *http.Request {\n\tctx := context.WithValue(r.Context(), routeKey, route)\n\treturn r.WithContext(ctx)\n}\n\n// ----------------------------------------------------------------------------\n// Helpers\n// ----------------------------------------------------------------------------\n\n// cleanPath returns the canonical path for p, eliminating . and .. elements.\n// Borrowed from the net/http package.\nfunc cleanPath(p string) string {\n\tif p == \"\" {\n\t\treturn \"/\"\n\t}\n\tif p[0] != '/' {\n\t\tp = \"/\" + p\n\t}\n\tnp := path.Clean(p)\n\t// path.Clean removes trailing slash except for root;\n\t// put the trailing slash back if necessary.\n\tif p[len(p)-1] == '/' && np != \"/\" {\n\t\tnp += \"/\"\n\t}\n\n\treturn np\n}\n\n// uniqueVars returns an error if two slices contain duplicated strings.\nfunc uniqueVars(s1, s2 []string) error {\n\tfor _, v1 := range s1 {\n\t\tfor _, v2 := range s2 {\n\t\t\tif v1 == v2 {\n\t\t\t\treturn fmt.Errorf(\"mux: duplicated route variable %q\", v2)\n\t\t\t}\n\t\t}\n\t}\n\treturn nil\n}\n\n// checkPairs returns the count of strings passed in, and an error if\n// the count is not an even number.\nfunc checkPairs(pairs ...string) (int, error) {\n\tlength := len(pairs)\n\tif length%2 != 0 {\n\t\treturn length, fmt.Errorf(\n\t\t\t\"mux: number of parameters must be multiple of 2, got %v\", pairs)\n\t}\n\treturn length, nil\n}\n"
+        },
+        "dir": null,
+        "meta": {
+          "binary": false,
+          "byteSize": 17677,
+          "lfs": null,
+          "rawURL": "/r/github.com/gorilla/mux@98cb6bf42e086f6af920b965c38cacc07402d51b/-/raw/mux.go",
+          "totalLines": 606
+        },
+        "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+        "parent": {
+          "entries": [
+            {
+              "path": ".circleci",
+              "submodule": null
+            },
+            {
+              "path": ".github",
+              "submodule": null
+            },
+            {
+              "path": "AUTHORS",
+              "submodule": null
+            },
+            {
+              "path": "LICENSE",
+              "submodule": null
+            },
+            {
+              "path": "README.md",
+              "submodule": null
+            },
+            {
+              "path": "bench_test.go",
+              "submodule": null
+            },
+            {
+              "path": "doc.go",
+              "submodule": null
+            },
+            {
+              "path": "example_authentication_middleware_test.go",
+              "submodule": null
+            },
+            {
+              "path": "example_cors_method_middleware_test.go",
+              "submodule": null
+            },
+            {
+              "path": "example_route_test.go",
+              "submodule": null
+            },
+            {
+              "path": "go.mod",
+              "submodule": null
+            },
+            {
+              "path": "middleware.go",
+              "submodule": null
+            },
+            {
+              "path": "middleware_test.go",
+              "submodule": null
+            },
+            {
+              "path": "mux.go",
+              "submodule": null
+            },
+            {
+              "path": "mux_httpserver_test.go",
+              "submodule": null
+            },
+            {
+              "path": "mux_test.go",
+              "submodule": null
+            },
+            {
+              "path": "old_test.go",
+              "submodule": null
+            },
+            {
+              "path": "regexp.go",
+              "submodule": null
+            },
+            {
+              "path": "regexp_test.go",
+              "submodule": null
+            },
+            {
+              "path": "route.go",
+              "submodule": null
+            },
+            {
+              "path": "test_helpers.go",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a directory: \"mux.go\"",
+      "path": [
+        "r0",
+        "c0",
+        "dir"
+      ]
+    }
+  ]
+}

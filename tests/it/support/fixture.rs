@@ -2,19 +2,19 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::Value;
 
 use sego::Reply;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RawRequest {
     pub method: String,
     pub path: String,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Fault {
     Network,
@@ -23,30 +23,30 @@ pub enum Fault {
     Status,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Fixture {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub operation: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub variables: Option<Value>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub query: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub request: Option<RawRequest>,
     #[serde(default = "ok")]
     pub status: u16,
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(default)]
     pub headers: BTreeMap<String, String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub fault: Option<Fault>,
-    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    #[serde(default)]
     pub pinned: bool,
-    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    #[serde(default)]
     pub handwritten: bool,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub body_file: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub response: Option<Value>,
     #[serde(skip)]
     pub file: PathBuf,
@@ -54,25 +54,6 @@ pub struct Fixture {
 
 fn ok() -> u16 {
     200
-}
-
-impl Default for Fixture {
-    fn default() -> Fixture {
-        Fixture {
-            operation: None,
-            variables: None,
-            query: None,
-            request: None,
-            status: ok(),
-            headers: BTreeMap::new(),
-            fault: None,
-            pinned: false,
-            handwritten: false,
-            body_file: None,
-            response: None,
-            file: PathBuf::new(),
-        }
-    }
 }
 
 const MAX_NODES: usize = 10_000_000;
@@ -99,10 +80,6 @@ impl Fixture {
             return Err("response and body_file are exclusive".into());
         }
         Ok(fixture)
-    }
-
-    pub fn to_yaml(&self) -> String {
-        serde_saphyr::to_string(self).unwrap_or_else(|e| panic!("{e}"))
     }
 
     /// A string response is served as its bytes; any other response as JSON.

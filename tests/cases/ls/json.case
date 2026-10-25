@@ -3,3 +3,258 @@ args: ls --json github.com/gorilla/mux@v1.8.0
 exit: 0
 --- stdout
 {"repo":"github.com/gorilla/mux","rev":"v1.8.0","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","path":null,"recursive":false,"entries":[{"path":".circleci","kind":"dir","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":".github","kind":"dir","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"AUTHORS","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"LICENSE","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"README.md","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"bench_test.go","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"doc.go","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"example_authentication_middleware_test.go","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"example_cors_method_middleware_test.go","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"example_route_test.go","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"go.mod","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"middleware.go","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"middleware_test.go","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"mux.go","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"mux_httpserver_test.go","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"mux_test.go","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"old_test.go","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"regexp.go","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"regexp_test.go","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"route.go","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"test_helpers.go","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null}]}
+--- request ListTree {"parent_0":"","path_0":"","recursive_0":false,"repo0":"github.com/gorilla/mux","rev0":"v1.8.0"}
+--- query
+query ListTree($repo0: String!, $rev0: String!, $path_0: String!, $recursive_0: Boolean!, $parent_0: String!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    c0: commit(rev: $rev0) {
+      oid
+      tree: tree(path: $path_0) { entries(recursive: $recursive_0) { path isDirectory submodule { url commit } } }
+      file: blob(path: $path_0) { totalLines byteSize binary }
+      parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+    }
+  }
+}
+--- response 200 application/json recorded 2026-10-07 https://sourcegraph.com live: values
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "file": null,
+        "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+        "parent": {
+          "entries": [
+            {
+              "path": ".circleci",
+              "submodule": null
+            },
+            {
+              "path": ".github",
+              "submodule": null
+            },
+            {
+              "path": "AUTHORS",
+              "submodule": null
+            },
+            {
+              "path": "LICENSE",
+              "submodule": null
+            },
+            {
+              "path": "README.md",
+              "submodule": null
+            },
+            {
+              "path": "bench_test.go",
+              "submodule": null
+            },
+            {
+              "path": "doc.go",
+              "submodule": null
+            },
+            {
+              "path": "example_authentication_middleware_test.go",
+              "submodule": null
+            },
+            {
+              "path": "example_cors_method_middleware_test.go",
+              "submodule": null
+            },
+            {
+              "path": "example_route_test.go",
+              "submodule": null
+            },
+            {
+              "path": "go.mod",
+              "submodule": null
+            },
+            {
+              "path": "middleware.go",
+              "submodule": null
+            },
+            {
+              "path": "middleware_test.go",
+              "submodule": null
+            },
+            {
+              "path": "mux.go",
+              "submodule": null
+            },
+            {
+              "path": "mux_httpserver_test.go",
+              "submodule": null
+            },
+            {
+              "path": "mux_test.go",
+              "submodule": null
+            },
+            {
+              "path": "old_test.go",
+              "submodule": null
+            },
+            {
+              "path": "regexp.go",
+              "submodule": null
+            },
+            {
+              "path": "regexp_test.go",
+              "submodule": null
+            },
+            {
+              "path": "route.go",
+              "submodule": null
+            },
+            {
+              "path": "test_helpers.go",
+              "submodule": null
+            }
+          ]
+        },
+        "tree": {
+          "entries": [
+            {
+              "isDirectory": true,
+              "path": ".circleci",
+              "submodule": null
+            },
+            {
+              "isDirectory": true,
+              "path": ".github",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "AUTHORS",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "LICENSE",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "README.md",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "bench_test.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "doc.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "example_authentication_middleware_test.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "example_cors_method_middleware_test.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "example_route_test.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "go.mod",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "middleware.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "middleware_test.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "mux.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "mux_httpserver_test.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "mux_test.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "old_test.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "regexp.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "regexp_test.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "route.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "test_helpers.go",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  },
+  "errors": [
+    {
+      "message": "rpc error: code = InvalidArgument desc = path must be specified",
+      "path": [
+        "r0",
+        "c0",
+        "file",
+        "binary"
+      ]
+    },
+    {
+      "message": "rpc error: code = InvalidArgument desc = path must be specified",
+      "path": [
+        "r0",
+        "c0",
+        "file",
+        "totalLines"
+      ]
+    },
+    {
+      "message": "rpc error: code = InvalidArgument desc = path must be specified",
+      "path": [
+        "r0",
+        "c0",
+        "file",
+        "byteSize"
+      ]
+    }
+  ]
+}

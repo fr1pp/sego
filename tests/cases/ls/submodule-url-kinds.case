@@ -8,3 +8,103 @@ submodule  empty  ?
 submodule  rel  example.com/handwritten/shared-lib@222222222222
 dir        src/
 submodule  ssh  example.com/handwritten/ssh-lib@333333333333
+--- request ListTree {"parent_0":"","path_0":"","recursive_0":false,"repo0":"example.com/handwritten/submods","rev0":"abcdef0123456789abcdef0123456789abcdef01"}
+--- query
+query ListTree($repo0: String!, $rev0: String!, $path_0: String!, $recursive_0: Boolean!, $parent_0: String!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    c0: commit(rev: $rev0) {
+      oid
+      tree: tree(path: $path_0) { entries(recursive: $recursive_0) { path isDirectory submodule { url commit } } }
+      file: blob(path: $path_0) { totalLines byteSize binary }
+      parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "file": null,
+        "oid": "abcdef0123456789abcdef0123456789abcdef01",
+        "parent": {
+          "entries": [
+            {
+              "path": "src",
+              "submodule": null
+            },
+            {
+              "path": "ssh",
+              "submodule": {
+                "commit": "3333333333333333333333333333333333333333",
+                "url": "ssh://git@example.com/handwritten/ssh-lib.git"
+              }
+            },
+            {
+              "path": "rel",
+              "submodule": {
+                "commit": "2222222222222222222222222222222222222222",
+                "url": "../shared-lib"
+              }
+            },
+            {
+              "path": "empty",
+              "submodule": {
+                "commit": "1111111111111111111111111111111111111111",
+                "url": ""
+              }
+            },
+            {
+              "path": "README.md",
+              "submodule": null
+            }
+          ]
+        },
+        "tree": {
+          "entries": [
+            {
+              "isDirectory": true,
+              "path": "src",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "ssh",
+              "submodule": {
+                "commit": "3333333333333333333333333333333333333333",
+                "url": "ssh://git@example.com/handwritten/ssh-lib.git"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "rel",
+              "submodule": {
+                "commit": "2222222222222222222222222222222222222222",
+                "url": "../shared-lib"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "empty",
+              "submodule": {
+                "commit": "1111111111111111111111111111111111111111",
+                "url": ""
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "README.md",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/handwritten/submods"
+    }
+  }
+}

@@ -5,3 +5,205 @@ exit: 0
 github.com/evilmartians/lefthook@cc9969c2e219:.typos.toml  no lines 5-6; the file has 4
 --- stderr
 sego: note: no lines 5-6; the file has 4
+--- request ShowFile {"end_0":6,"parent_0":"","path_0":".typos.toml","repo0":"github.com/evilmartians/lefthook","rev0":"cc9969c2e2198aafff8accc63ee1aee30e9a2aa4","start_0":5}
+--- query
+query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    c0: commit(rev: $rev0) {
+      oid
+      meta: blob(path: $path_0) { byteSize totalLines binary rawURL lfs { byteSize } }
+      body: blob(path: $path_0) { content(startLine: $start_0, endLine: $end_0, textOnly: true) }
+      dir: tree(path: $path_0) { entries { path } }
+      parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+    }
+  }
+}
+--- response 200 application/json recorded 2026-10-07 https://sourcegraph.com live: values
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "body": {
+          "content": "[default.extend-identifiers]\n\"PnP\" = \"PnP\"\n[default.extend-words]\nslq = \"slq\""
+        },
+        "dir": null,
+        "meta": {
+          "binary": false,
+          "byteSize": 77,
+          "lfs": null,
+          "rawURL": "/r/github.com/evilmartians/lefthook@cc9969c2e2198aafff8accc63ee1aee30e9a2aa4/-/raw/.typos.toml",
+          "totalLines": 4
+        },
+        "oid": "cc9969c2e2198aafff8accc63ee1aee30e9a2aa4",
+        "parent": {
+          "entries": [
+            {
+              "path": ".agents",
+              "submodule": null
+            },
+            {
+              "path": ".claude",
+              "submodule": null
+            },
+            {
+              "path": ".github",
+              "submodule": null
+            },
+            {
+              "path": "assets",
+              "submodule": null
+            },
+            {
+              "path": "cmd",
+              "submodule": null
+            },
+            {
+              "path": "docs",
+              "submodule": null
+            },
+            {
+              "path": "examples",
+              "submodule": null
+            },
+            {
+              "path": "gen",
+              "submodule": null
+            },
+            {
+              "path": "internal",
+              "submodule": null
+            },
+            {
+              "path": "packaging",
+              "submodule": null
+            },
+            {
+              "path": "tests",
+              "submodule": null
+            },
+            {
+              "path": ".gitignore",
+              "submodule": null
+            },
+            {
+              "path": ".golangci.yml",
+              "submodule": null
+            },
+            {
+              "path": ".goreleaser.yml",
+              "submodule": null
+            },
+            {
+              "path": ".lefthook.yml",
+              "submodule": null
+            },
+            {
+              "path": ".tool-versions",
+              "submodule": null
+            },
+            {
+              "path": ".typos.toml",
+              "submodule": null
+            },
+            {
+              "path": "AGENTS.md",
+              "submodule": null
+            },
+            {
+              "path": "CHANGELOG.md",
+              "submodule": null
+            },
+            {
+              "path": "CLAUDE.md",
+              "submodule": null
+            },
+            {
+              "path": "CONTRIBUTING.md",
+              "submodule": null
+            },
+            {
+              "path": "LICENSE",
+              "submodule": null
+            },
+            {
+              "path": "Makefile",
+              "submodule": null
+            },
+            {
+              "path": "README.md",
+              "submodule": null
+            },
+            {
+              "path": "SECURITY.md",
+              "submodule": null
+            },
+            {
+              "path": "book.toml",
+              "submodule": null
+            },
+            {
+              "path": "cliff.toml",
+              "submodule": null
+            },
+            {
+              "path": "codecov.yml",
+              "submodule": null
+            },
+            {
+              "path": "docmd.config.js",
+              "submodule": null
+            },
+            {
+              "path": "go.mod",
+              "submodule": null
+            },
+            {
+              "path": "go.sum",
+              "submodule": null
+            },
+            {
+              "path": "integration_test.go",
+              "submodule": null
+            },
+            {
+              "path": "logo.svg",
+              "submodule": null
+            },
+            {
+              "path": "logo_sign.svg",
+              "submodule": null
+            },
+            {
+              "path": "main.go",
+              "submodule": null
+            },
+            {
+              "path": "schema.json",
+              "submodule": null
+            },
+            {
+              "path": "tea.yaml",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "master"
+      },
+      "name": "github.com/evilmartians/lefthook"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a directory: \".typos.toml\"",
+      "path": [
+        "r0",
+        "c0",
+        "dir"
+      ]
+    }
+  ]
+}

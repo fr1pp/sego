@@ -11,3 +11,134 @@ github.com/gorilla/websocket@ce903f6d1d96:examples/command/
 github.com/gorilla/websocket@ce903f6d1d96:./
 --- stderr
 sego: note: at a pinned revision, select: keeps only what each repository's first 30 matches hold; count:all gives every one
+--- request Search {"query":"repo:^github\\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade"}
+--- query
+query Search($query: String!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+}
+--- response 200 application/json recorded 2026-10-12 https://sourcegraph.com
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "4",
+        "dynamicFilters": [
+          {
+            "count": 4,
+            "kind": "type",
+            "value": "type:path"
+          },
+          {
+            "count": 4,
+            "kind": "lang",
+            "value": "lang:go"
+          },
+          {
+            "count": 4,
+            "kind": "repo",
+            "value": "repo:^github\\.com/gorilla/websocket$@v1.5.3"
+          }
+        ],
+        "elapsedMilliseconds": 558,
+        "limitHit": false,
+        "matchCount": 4,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "ce903f6d1d961af3a8602f2842c8b1c3fca58c4d"
+              },
+              "path": "examples/chat/"
+            },
+            "repository": {
+              "name": "github.com/gorilla/websocket"
+            },
+            "revSpec": {
+              "expr": "v1.5.3"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "ce903f6d1d961af3a8602f2842c8b1c3fca58c4d"
+              },
+              "path": "examples/echo/"
+            },
+            "repository": {
+              "name": "github.com/gorilla/websocket"
+            },
+            "revSpec": {
+              "expr": "v1.5.3"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "ce903f6d1d961af3a8602f2842c8b1c3fca58c4d"
+              },
+              "path": "examples/command/"
+            },
+            "repository": {
+              "name": "github.com/gorilla/websocket"
+            },
+            "revSpec": {
+              "expr": "v1.5.3"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "ce903f6d1d961af3a8602f2842c8b1c3fca58c4d"
+              },
+              "path": "./"
+            },
+            "repository": {
+              "name": "github.com/gorilla/websocket"
+            },
+            "revSpec": {
+              "expr": "v1.5.3"
+            },
+            "symbols": []
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}

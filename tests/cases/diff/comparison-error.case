@@ -3,3 +3,83 @@ args: diff example.com/handwritten/comparison-error@v1...v2
 exit: 1
 --- stderr
 sego: error: Sourcegraph failed to answer the comparison
+--- request Diff {"a":"v1","b":"v2","paths":null,"repo0":"example.com/handwritten/comparison-error"}
+--- query
+query Diff($repo0: String!, $a: String!, $b: String!, $paths: [String!]) {
+  a0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $a) { oid }
+  }
+  b0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $b) { oid parents { oid } }
+  }
+  c0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    comparison(base: $a, head: $b) {
+    all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 201, paths: $paths) { nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "0a1b2c3d4e5f60718293a4b5c6d7e8f901234567"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/handwritten/comparison-error"
+    },
+    "b0": {
+      "commit": {
+        "oid": "76543210fedcba98765432100123456789abcdef",
+        "parents": [
+          {
+            "oid": "0a1b2c3d4e5f60718293a4b5c6d7e8f901234567"
+          }
+        ]
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/handwritten/comparison-error"
+    },
+    "c0": null
+  },
+  "errors": [
+    {
+      "message": "git command [git diff --raw -z --find-renames --secret] failed",
+      "path": [
+        "c0",
+        "comparison",
+        "page",
+        "nodes"
+      ]
+    },
+    {
+      "message": "git command [git diff --numstat -z --secret] failed",
+      "path": [
+        "c0",
+        "comparison",
+        "all",
+        "diffStat"
+      ]
+    },
+    {
+      "message": "git command [git diff --numstat -z --secret] failed",
+      "path": [
+        "c0",
+        "comparison",
+        "all",
+        "totalCount"
+      ]
+    }
+  ]
+}
