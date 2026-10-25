@@ -1,5 +1,5 @@
 # No option takes a value.
-args: show --json=1 github.com/x/y:a.go
+args: show --json=1 example.com/acme/widget:a.go
 exit: 2
 --- stderr
 sego: error: --json takes no value

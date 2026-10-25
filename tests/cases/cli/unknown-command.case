@@ -1,5 +1,5 @@
 # An unknown command is named and the commands listed, with no suggestion.
-args: shwo github.com/x/y:a.go
+args: shwo example.com/acme/widget:a.go
 exit: 2
 --- stderr
 sego: error: unknown command 'shwo'

@@ -1,5 +1,5 @@
 # A malformed SEGO_ENDPOINT is a usage error and nothing connects.
-args: show github.com/x/y:a.go
+args: show example.com/acme/widget:a.go
 env: SEGO_ENDPOINT=ftp://x
 exit: 2
 --- stderr

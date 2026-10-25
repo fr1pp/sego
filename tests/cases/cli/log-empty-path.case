@@ -1,5 +1,5 @@
 # log refuses an empty PATH operand, as diff does, and makes no request.
-args: log github.com/x/y@v1 ''
+args: log example.com/acme/widget@v1 ''
 exit: 2
 --- stderr
 sego: error: log takes no empty path
