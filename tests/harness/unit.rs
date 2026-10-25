@@ -1,17 +1,25 @@
-#[expect(dead_code, reason = "the cases target uses the rest of the module")]
+#![allow(
+    dead_code,
+    reason = "the modules are shared with the cases target, which uses the rest"
+)]
+
+// Declares a module's `tests` child. The `cases` and `run` targets build some
+// of the same modules and declare nothing, so each module's tests run once,
+// here.
+macro_rules! module_tests {
+    () => {
+        #[cfg(test)]
+        mod tests;
+    };
+}
+
 mod case;
-#[allow(dead_code, reason = "the cases target uses the rest of the module")]
 mod check;
 mod drift;
-#[allow(dead_code, reason = "the cases target uses the rest of the module")]
 mod hostile;
 mod literals;
-#[expect(dead_code, reason = "the cases target uses the rest of the module")]
 mod live;
-#[allow(dead_code, reason = "the cases target uses the rest of the module")]
 mod record;
-#[allow(dead_code, reason = "the cases target uses the rest of the module")]
 mod replay;
-#[allow(dead_code, reason = "the cases target uses the rest of the module")]
 mod run;
 mod shell;

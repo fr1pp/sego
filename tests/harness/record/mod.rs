@@ -13,8 +13,7 @@ use crate::case::{
 use crate::replay::Replay;
 use crate::run;
 
-#[cfg(test)]
-mod tests;
+module_tests!();
 
 /// Forwards the requests a case has no response for to an upstream and turns
 /// the replies into recorded exchanges.

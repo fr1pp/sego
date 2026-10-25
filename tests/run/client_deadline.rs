@@ -5,15 +5,16 @@ use std::time::{Duration, Instant};
 use sego::TransportError;
 
 use crate::envelope::{SHOW_BIG, json_reply, over_the_content_limit};
-use crate::transport::{Server, reply, sego};
+use crate::invocation::sego;
+use crate::replay::{Replay, reply};
 
 const CLIENT_DEADLINE: Duration = Duration::from_secs(90);
 
 #[test]
 fn the_client_deadline_starts_once_for_the_whole_invocation() {
-    let server = Server::new(vec![
+    let server = Replay::answering(vec![
         Ok(json_reply(&over_the_content_limit(2_000_000))),
-        Ok(reply(200, "text/plain", b"1\n2\n3\n4\n5\n")),
+        Ok(reply(200, Some("text/plain"), b"1\n2\n3\n4\n5\n")),
     ]);
     let before = Instant::now();
     let ran = sego(&SHOW_BIG, OsStr::new("off"), &server);
@@ -41,7 +42,7 @@ fn a_search_past_the_client_deadline_points_to_a_narrower_scope() {
         "foo",
     ];
     for query in queries {
-        let server = Server::new(vec![Err(TransportError::Deadline)]);
+        let server = Replay::answering(vec![Err(TransportError::Deadline)]);
         let ran = sego(&["search", query], OsStr::new("off"), &server);
         assert_eq!(ran.code, ExitCode::from(1), "{query}");
         assert_eq!(ran.stdout, "", "{query}");
@@ -51,8 +52,9 @@ fn a_search_past_the_client_deadline_points_to_a_narrower_scope() {
 
 #[test]
 fn a_search_that_fails_to_connect_has_no_pointer_to_a_narrower_scope() {
-    let server =
-        Server::new(vec![Err(TransportError::Network("connection refused"))]);
+    let server = Replay::answering(vec![Err(TransportError::Network(
+        "connection refused",
+    ))]);
     let ran = sego(&["search", "foo count:100"], OsStr::new("off"), &server);
     assert_eq!(ran.code, ExitCode::from(1));
     assert_eq!(

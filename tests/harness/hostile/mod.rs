@@ -6,8 +6,7 @@ use crate::case::{Case, Exchange, Request, Served};
 use crate::replay::Replay;
 use crate::run::{self, Outcome};
 
-#[cfg(test)]
-mod tests;
+module_tests!();
 
 #[path = "../../../src/escape/table.rs"]
 mod table;

@@ -9,7 +9,8 @@ use tempfile::TempDir;
 use crate::envelope::{
     SHOW_BIG, json_reply, over_the_content_limit, under_the_content_limit,
 };
-use crate::transport::{Ran, Server, reply, sego};
+use crate::invocation::{Ran, sego};
+use crate::replay::{Replay, reply};
 
 const FILE: &[u8] = b"1\n2\n3\n4\n5\n";
 
@@ -20,12 +21,12 @@ type Script = Vec<Result<Reply, TransportError>>;
 fn raw_read(byte_size: usize) -> Script {
     vec![
         Ok(json_reply(&over_the_content_limit(byte_size))),
-        Ok(reply(200, "text/plain", FILE)),
+        Ok(reply(200, Some("text/plain"), FILE)),
     ]
 }
 
-fn show_big(cache_dir: &OsStr, script: Script) -> (Ran, Server) {
-    let server = Server::new(script);
+fn show_big(cache_dir: &OsStr, script: Script) -> (Ran, Replay) {
+    let server = Replay::answering(script);
     (sego(&SHOW_BIG, cache_dir, &server), server)
 }
 
@@ -126,7 +127,8 @@ fn a_cache_dir_that_is_a_file_is_noted() {
 #[test]
 fn a_show_under_the_content_limit_leaves_the_raw_file_cache_untouched() {
     let dir = TempDir::new().unwrap();
-    let server = Server::new(vec![Ok(json_reply(&under_the_content_limit()))]);
+    let server =
+        Replay::answering(vec![Ok(json_reply(&under_the_content_limit()))]);
     let ran = sego(
         &["show", "example.com/x/y@main:a.go"],
         dir.path().as_os_str(),

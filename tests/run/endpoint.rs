@@ -4,11 +4,11 @@ use std::process::ExitCode;
 
 use sego::{Endpoint, Env, Transport, run};
 
-use crate::transport::Server;
+use crate::replay::Replay;
 
 #[test]
 fn a_valid_command_connects_once_to_the_environment_endpoint() {
-    let server = Server::new(Vec::new());
+    let server = Replay::answering(Vec::new());
     let connects = Cell::new(0);
     let url = RefCell::new(String::new());
     let connect = |endpoint: Endpoint| -> Box<dyn Transport> {

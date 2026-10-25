@@ -12,8 +12,7 @@ use sego::{Endpoint, Reply, Transport, TransportError};
 use crate::case::{Case, Exchange, Request, Served};
 use crate::drift::{digest, drift};
 
-#[cfg(test)]
-mod tests;
+module_tests!();
 
 const GRAPHQL_PATH: &str = "/.api/graphql";
 const DEADLINE: Duration = Duration::from_secs(90);
