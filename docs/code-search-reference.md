@@ -1,7 +1,5 @@
 # Sourcegraph code-search query language
 
-Source: github.com/sourcegraph/docs `docs/code-search/` at commit 1cab47e5eb01; behaviour checked against sourcegraph.com on 2026-10-13.
-
 ## 1. How a query is read
 
 A query is a search pattern plus filters. Filters are `name:value` tokens such as `repo:`, `file:` and `lang:`; everything else is the pattern. The pattern is optional when filters alone say what to list:
@@ -23,6 +21,7 @@ A query is a search pattern plus filters. Filters are `name:value` tokens such a
   - Spaces inside the slashes are part of the regex.
   - A regex can span lines with `\n` or `\s+`: `/NewRouter\(\)\n\s*r\.Host/`.
   - Anchors and wildcards only work inside slashes. In keyword mode, `^NewRouter$` and `foo.*bar` written bare are literal text.
+  - Flags go inside the slashes, as in `/(?s)func \(r \*Router\) Match\(.*?\n\}/`. Letters after the closing slash, as in `/cloudflare/i`, make the whole term literal text, which usually matches nothing.
 - **`content:"..."` sets the pattern explicitly.** Use it when the text looks like query syntax, for example `content:"repo:foo"`, `content:"SkipClean("` or `content:"a or b"`.
 - **Bare punctuation is literal.** A term with an unbalanced parenthesis, such as `(value` or `SkipClean(`, is searched as literal text.
 - **A leading `-` on a bare term is not negation.** `-race` searches for the text `-race`. Use `not term` to exclude files that contain a term. A `-` prefix negates filters only: `-repo:`, `-file:`, `-lang:`, `-content:`, `-author:` and `-message:`.
@@ -32,7 +31,7 @@ A query is a search pattern plus filters. Filters are `name:value` tokens such a
 
 - **Matching is case-insensitive by default.** This applies to terms, phrases and regexes, and to the regexes in `file:`, `repo:` and the predicates.
 - **`case:yes` makes the pattern case-sensitive.** It also makes `file:` case-sensitive, but `repo:` stays case-insensitive. `case:` accepts boolean-style values such as `yes`, `no` and `YES`; `case:maybe` returns the alert "Invalid boolean".
-- **Inline regex flags have no effect.** `(?i)` and `(?-i)` inside `/.../` are ignored; only `case:` controls case.
+- **Inline case flags have no effect.** `(?i)` and `(?-i)` inside `/.../` are ignored; only `case:` controls case. Other flags work: `(?s)` lets `.` cross lines.
 - **Field names are case-insensitive.** `REPO:`, `File:` and `patternType:` all work.
 
 ### Limits and timeouts
@@ -112,7 +111,12 @@ The whole pattern is RE2.
 
 ### structural
 
-Comby-style matching that respects balanced `()`, `[]`, `{}` and string delimiters. It is available on sourcegraph.com and also works at non-default revisions. The pattern describes code with holes:
+Comby-style matching that respects balanced `()`, `[]`, `{}` and string delimiters. It is available on sourcegraph.com and also works at non-default revisions.
+
+- **One file at a time.** The server runs a structural search only on the candidate files its index offers first, and reports no cut. Over many files it can miss matches without a `+`: in kubernetes `pkg/kubelet/`, `if err != nil { return nil, err }` found 127 of 192 blocks. Its count and its zero hold when `file:^PATH$` names one file; across more files, find and count with a regex.
+- **The language.** The first `lang:` picks the matcher; with no `lang:`, the first `file:` path's extension does. With neither, or with a value the matcher doesn't know (`lang:js`, `file:\.tsx$`), a generic matcher parses the files and can miss matches.
+
+The pattern describes code with holes:
 
 | Syntax | Aliases | Matches |
 |---|---|---|
@@ -263,7 +267,7 @@ An `or` splits the query into branches, and each branch runs as its own search.
 - **A revision shared across filters.** `repo:@rev` with no name applies the rev to the other `repo:` filters: `repo:^github\.com/gorilla/mux$ repo:@v1.6.0`.
 - **A point in time.** `rev:at.time(2019-01-01)` or `rev:at.time(3 years ago, main)` (§3).
 - **Missing revisions.** A rev that does not exist returns an alert naming `repo@rev`.
-- **Non-default revisions skip the index.** A search at a revision other than the indexed default branch uses unindexed search, and `index:only` finds nothing there. It still supports symbol and structural search.
+- **Only the default branch, unnamed, uses the index.** A search with no revision, or with `@HEAD`, reads the index. Any other revision uses unindexed search, and `index:only` finds nothing there: a tag, a commit, and the default branch named as a revision, such as `@main`. Unindexed search still supports symbol and structural search.
 
 ### Time values
 
@@ -309,12 +313,12 @@ The same date parser serves `before:`, `after:`, `rev:at.time()` and `repo:has.c
 ### Symbol search
 
 - **What is indexed.** Symbols come from ctags. Each symbol has a name, a kind (`FUNCTION`, `METHOD`, `STRUCT`, `FIELD`, `VARIABLE`, `CONSTANT`, `INTERFACE`, `PACKAGE`, `CLASS`, `UNKNOWN` and so on) and a container (`mux.Router`, a package name).
-- **Markdown headings.** They are indexed too, as `CLASS` symbols.
+- **Markdown headings.** They are indexed too: `##` headings as `CLASS` symbols, and `#` and `###` headings as `UNKNOWN`.
 - **How terms match.** A term matches symbol names as a case-insensitive substring. `/^NewRouter$/` matches the exact name; bare `^NewRouter$` is literal text and matches nothing.
 - **Several terms.** Every term must match some symbol in the same file; each returned symbol matches at least one term. `SkipClean or newRouteRegexp` returns either.
 - **Restrictions.** `not` is rejected with a GraphQL error. `"phrases"` with spaces match nothing, because symbol names have no spaces. `case:yes` works.
 - **Where it works.** Symbol search works at tags and other revisions as well as the default branch, and across all of sourcegraph.com (`type:symbol /^NewRouter$/ lang:go`).
-- **With no pattern.** `type:symbol` returns nothing; use `/./` to list every symbol.
+- **With no pattern.** `type:symbol` alone lists symbols, but with `select:symbol` or `select:symbol.<kind>` it returns nothing. Add `/./` to list every symbol of a kind.
 
 ### `select:`
 
@@ -322,7 +326,7 @@ The same date parser serves `before:`, `after:`, `rev:at.time()` and `repo:has.c
 
 | `select:` | Returns | Works on |
 |---|---|---|
-| `repo` | Distinct repositories. | file, symbol, commit and diff results |
+| `repo` | Distinct repositories. The server never flags a cut `select:repo` answer, so over more than one repository its count is a lower bound. | file, symbol, commit and diff results |
 | `file`, `file.path` | Distinct files with no line matches. | file and symbol results; nothing for diffs |
 | `file.directory` | Distinct directories that hold matching files, such as `./` and `vendor/x/y/`. | file results |
 | `file.owners` | File owners. | Unavailable on sourcegraph.com; returns an alert. |
@@ -351,7 +355,8 @@ Any other kind returns an alert. `UNKNOWN` symbols cannot be selected.
 - **The limit counts matches, not files.** `limitHit: true` with two files means more matches exist; raise `count:`.
 - **Pattern negation.** `-term` is a literal search for `-term`. Use `not term`.
 - **Anchors and wildcards need a regex.** In keyword mode, `^NewRouter$` and `foo.*bar` are literal text, in symbol search too. Wrap them in `/.../`.
-- **Inline regex flags.** `(?i)` and `(?-i)` are ignored. Use `case:yes`.
+- **Inline case flags.** `(?i)` and `(?-i)` are ignored. Use `case:yes`.
+- **Flags after the slash.** `/foo/i` is literal text, not a regex with a flag, and usually matches nothing. Search ignores case by default; other flags go inside the slashes, as `(?s)`.
 - **`case:yes` and filters.** It makes `file:` case-sensitive (`file:^MUX\.go$` stops matching `mux.go`) but leaves `repo:` case-insensitive.
 - **Phrases stay on one line.** A `"phrase"` never matches across a line break; use `/a\s+b/`.
 - **Filter binding across `or`.** A filter does not automatically cover the whole query. Put shared filters first and parenthesise the `or` (§4). A filter written after the patterns, as in `a or b repo:X`, scopes only the last branch.
@@ -376,6 +381,9 @@ Any other kind returns an alert. `UNKNOWN` symbols cannot be selected.
   - For the too-many-trigrams case, retry with `index:no`. Nothing finds content in files over 1 MiB or with binary content.
 - **Placeholder hits.** Skipped files can appear as line-0 matches for words in `NOT-INDEXED: contains binary content` and similar placeholders.
 - **Glob revisions without a wildcard.** `@*refs/tags/v1.8` matches nothing, because `/*` is appended; write `@*refs/tags/v1.8*`.
+- **Structural search over many files.** It can miss matches without a `+`, because the server matches only the candidate files its index offers first. Name one file with `file:^PATH$`, or find and count with a regex.
+- **Structural search with no language.** With no `lang:` and no `file:` extension the matcher knows, a generic parser can miss matches. Add `lang:`.
+- **`select:repo` counts.** The server never flags a cut `select:repo` answer, so a count over more than one repository can fall short with no sign. Treat it as a lower bound.
 - **Structural delimiters.** A structural pattern with unbalanced delimiters returns nothing, with no alert.
 - **Anonymous whitespace holes.** The anonymous structural hole `:[ ]` fails; name it, as in `:[ h]`.
 - **`file:has.content()` cannot be negated.** Negating it returns an alert. Use `not` on a pattern instead, or `-content:`.
@@ -597,21 +605,21 @@ Files whose path contains `router`, or whose content mentions `newRouter`, exclu
 The same search in two repos, with each branch counted separately.
 
 ```
-repo:^github\.com/gorilla/mux$ patterntype:structural fmt.Errorf("...", ...)
+repo:^github\.com/gorilla/mux$ file:^regexp\.go$ patterntype:structural fmt.Errorf("...", ...)
 ```
-`fmt.Errorf` calls whose first argument is a single string literal.
+`fmt.Errorf` calls in `regexp.go` whose first argument is a single string literal.
 
 ```
-repo:^github\.com/gorilla/websocket$ patterntype:structural return :[v.], :[v.]
+repo:^github\.com/gorilla/websocket$ file:^client_proxy_server_test\.go$ patterntype:structural return :[v.], :[v.]
 ```
-Returns of two identical values, such as `return nil, nil`.
+Returns of two identical values, such as `return nil, nil`, in one file.
 
 ```
-repo:^github\.com/expressjs/express$ file:^package\.json$ patterntype:structural "engines": {...}
+repo:^github\.com/vuejs/core$ file:^package\.json$ patterntype:structural "engines": {...}
 ```
 The `engines` object in `package.json`, across lines.
 
 ```
-repo:^github\.com/gorilla/mux$ patterntype:structural fmt.Errorf(:[a], :[b]) rule:'where :[b] == "v2"'
+repo:^github\.com/gorilla/mux$ file:^regexp\.go$ patterntype:structural fmt.Errorf(:[a], :[b]) rule:'where :[b] == "tag"'
 ```
-Two-argument `fmt.Errorf` calls whose second argument is exactly `v2`.
+Two-argument `fmt.Errorf` calls in `regexp.go` whose second argument is exactly `tag`.
