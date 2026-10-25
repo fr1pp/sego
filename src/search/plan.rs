@@ -1,5 +1,7 @@
 //! The searches Sourcegraph plans for a query sent with `patternType:
-//! keyword`, each with its filters, as rebuild spec §6.1 describes.
+//! keyword`, each with its filters. `tests/fixtures/plan/examples.jsonl`
+//! holds the plans a Sourcegraph server gives a corpus of queries, and this
+//! must match each.
 
 use std::collections::{VecDeque, vec_deque};
 use std::mem::take;
@@ -523,8 +525,7 @@ fn rebuild(
 
 /// The shared-filter rule: an `or` whose first operand starts with filters
 /// and whose last ends with them shares those filters with every operand,
-/// behind any filters that lead the query (rebuild spec §6.1, "Shared
-/// filters").
+/// behind any filters that lead the query.
 fn share_filters(root: Node) -> Node {
     let Node::Op(mut top) = root else { return root };
     let kind = top.kind;
@@ -728,9 +729,8 @@ fn starts(c: &[char], i: usize, word: &str) -> bool {
         .all(|(k, w)| c.get(i + k).is_some_and(|c| c.eq_ignore_ascii_case(&w)))
 }
 
-/// The query's characters, with what a balanced run (rebuild spec §6.1,
-/// "Parentheses") needs worked out once, so that reading takes time linear in the
-/// query's length. A run starts after a character that isn't `\`, so its
+/// The query's characters, with what a balanced run needs worked out once,
+/// so that reading takes time linear in the query's length. A run starts after a character that isn't `\`, so its
 /// escapes pair up as they do read from the start of the query.
 struct Text {
     c: Vec<char>,

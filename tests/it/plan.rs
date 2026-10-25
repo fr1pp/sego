@@ -138,8 +138,8 @@ fn disagreements(path: &Path) -> (usize, Vec<String>) {
 }
 
 /// A few rows of `tests/fixtures/plan/examples.jsonl` for each kind of
-/// rule in rebuild spec §6.1, "The query's plan", written out.
-const SPEC_EXAMPLES: &[(&str, &str)] = &[
+/// planning rule, written out.
+const RULE_EXAMPLES: &[(&str, &str)] = &[
     // outcomes
     ("repo:x foo or bar file:y", "keyword 1 | repo:x file:y"),
     ("foo or bar repo:x", "keyword 2 |   ||  repo:x"),
@@ -273,8 +273,8 @@ const SPEC_EXAMPLES: &[(&str, &str)] = &[
 ];
 
 #[test]
-fn plans_the_spec_examples() {
-    for &(query, expected) in SPEC_EXAMPLES {
+fn plans_the_rule_examples() {
+    for &(query, expected) in RULE_EXAMPLES {
         assert_eq!(render(query, true), expected, "{query:?}");
     }
 }

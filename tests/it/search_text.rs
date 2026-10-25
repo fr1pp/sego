@@ -95,7 +95,7 @@ fn one_range(n: u32) -> Chunk {
 }
 
 #[test]
-fn the_two_spec_examples() {
+fn a_content_answer_and_a_cut_path_answer() {
     let mut s =
         base("repo:^github\\.com/BurntSushi/ripgrep$ fn main count:30");
     s.groups = vec![file(
