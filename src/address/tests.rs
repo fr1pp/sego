@@ -26,7 +26,7 @@ fn span(start: u32, end: u32) -> LineRange {
 }
 
 #[test]
-fn repos() {
+fn plain_and_ssh_repositories_resolve_to_a_host_qualified_name() {
     let cases = [
         (
             "github.com/gorilla/mux",
@@ -73,7 +73,7 @@ fn repos() {
 }
 
 #[test]
-fn revisions_and_paths() {
+fn a_revision_and_a_path_follow_the_repository() {
     let cases = [
         (
             "github.com/x/y@feature/x:src/a.go",
@@ -117,7 +117,7 @@ fn a_pinned_address_with_a_spaced_path_parses_back() {
 }
 
 #[test]
-fn ranges() {
+fn two_and_three_dot_ranges_parse_and_malformed_ranges_are_rejected() {
     let range = |base: &str, head: &str, dots| Rev::Range {
         base: base.into(),
         head: head.into(),
@@ -144,7 +144,7 @@ fn ranges() {
 }
 
 #[test]
-fn rejected() {
+fn addresses_that_cannot_name_a_repository_or_revision_are_rejected() {
     let cases = [
         (
             "github.com/x/y@",
@@ -190,7 +190,7 @@ fn empty_side_wins_over_no_repository() {
 }
 
 #[test]
-fn lines() {
+fn lines_parse_and_malformed_lines_are_rejected() {
     let range = |start, end| LineRange { start, end };
     let cases = [
         ("10", range(10, End::Line(10)), "10"),
@@ -243,7 +243,7 @@ fn four_to_forty_hex_digits_look_like_an_oid() {
 }
 
 #[test]
-fn github_forms() {
+fn github_blob_raw_blame_tree_commit_and_compare_urls_parse() {
     let base = "github.com/gorilla/mux/blob/v1.8.0/mux.go";
     for token in [
         format!("https://{base}#L10-L20"),
@@ -311,7 +311,7 @@ fn a_blob_url_at_a_commit_names_the_commit() {
 }
 
 #[test]
-fn raw_githubusercontent() {
+fn a_raw_githubusercontent_url_parses_as_a_blob() {
     let a = ok("https://raw.githubusercontent.com/gorilla/mux/v1.8.0/mux.go");
     assert_eq!(a.repo, exact("github.com/gorilla/mux"));
     assert_eq!(a.rev, split(&["v1.8.0", "mux.go"]));
@@ -319,7 +319,7 @@ fn raw_githubusercontent() {
 }
 
 #[test]
-fn gitlab_forms() {
+fn gitlab_blob_tree_and_commit_urls_parse() {
     let a = ok(
         "https://gitlab.com/gitlab-org/api/client-go/-/blob/main/README.md#L5",
     );
@@ -335,7 +335,7 @@ fn gitlab_forms() {
 }
 
 #[test]
-fn sourcegraph_forms() {
+fn sourcegraph_blob_and_tree_urls_parse() {
     for token in [
         "https://sourcegraph.com/github.com/gorilla/mux@v1.8.0/-/blob/mux.go?L3-5",
         "sourcegraph.com/r/github.com/gorilla/mux@v1.8.0/-/blob/mux.go?L3-5",
@@ -360,7 +360,7 @@ fn sourcegraph_forms() {
 }
 
 #[test]
-fn fragments() {
+fn line_fragments_and_queries_give_the_lines() {
     let cases = [
         ("#L10", Some(span(10, 10))),
         ("#L10-L20", Some(span(10, 20))),
@@ -382,7 +382,7 @@ fn fragments() {
 }
 
 #[test]
-fn percent_decoding() {
+fn percent_escapes_in_a_url_path_are_decoded_where_valid() {
     let a = ok("https://github.com/o/r/blob/main/a%20b.go");
     assert_eq!(a.rev, split(&["main", "a b.go"]));
     let a = ok("https://github.com/o/r/blob/main/a%zzb.go");
@@ -392,7 +392,7 @@ fn percent_decoding() {
 }
 
 #[test]
-fn rejected_urls() {
+fn urls_that_name_no_readable_revision_are_rejected() {
     let cases = [
         (
             "https://github.com/o/r/pull/12",
@@ -426,7 +426,7 @@ fn rejected_urls() {
 }
 
 #[test]
-fn submodule_targets() {
+fn a_submodule_url_resolves_against_its_parent_repository() {
     let cases = [
         (
             "../blesh-contrib",
@@ -497,7 +497,7 @@ fn web_revisions_are_validated() {
 }
 
 #[test]
-fn sourcegraph_without_revision() {
+fn a_sourcegraph_url_without_a_revision_has_the_default_revision() {
     for token in [
         "sourcegraph.com/github.com/o/r/-/blob/a.go",
         "sourcegraph.com/r/github.com/o/r/-/blob/a.go",
@@ -553,7 +553,7 @@ fn sourcegraph_splits_before_decoding() {
 }
 
 #[test]
-fn repository_urls() {
+fn repository_urls_resolve_to_a_repository_with_an_optional_revision() {
     let cases: [(&str, &str, Rev); _] = [
         ("https://www.github.com/o/r", "github.com/o/r", Rev::Default),
         ("www.github.com/o/r", "github.com/o/r", Rev::Default),

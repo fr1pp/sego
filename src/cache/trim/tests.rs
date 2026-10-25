@@ -20,7 +20,7 @@ fn stamp(time: SystemTime) -> String {
 }
 
 #[test]
-fn stamp_rules() {
+fn a_trim_is_due_for_a_missing_old_or_far_future_stamp() {
     let now = SystemTime::now();
     let hours = Duration::from_hours;
     assert!(due(None, now));

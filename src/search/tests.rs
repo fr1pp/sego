@@ -121,7 +121,8 @@ fn utility_counts(envelope: &Envelope) -> Result<(), String> {
 
 #[test]
 #[ignore = "sends requests to sourcegraph.com"]
-fn drift_rules() {
+fn the_rules_sego_relies_on_for_counts_and_unindexed_files_still_hold_on_the_live_server()
+ {
     let queries = [
         unindexed_of(r"repo:^github\.com/elixir-sqlite/exqlite$ x"),
         unindexed_of(r"repo:^github\.com/golang/go$ file:^src/crypto/x509/ x"),

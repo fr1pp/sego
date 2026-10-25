@@ -275,7 +275,7 @@ const RULE_EXAMPLES: &[(&str, &str)] = &[
 ];
 
 #[test]
-fn plans_the_rule_examples() {
+fn the_plan_of_each_rule_example_renders_as_documented() {
     for &(query, expected) in RULE_EXAMPLES {
         assert_eq!(render(query, true), expected, "{query:?}");
     }
@@ -298,7 +298,7 @@ fn pairs(n: usize) -> String {
 }
 
 #[test]
-fn searches_are_counted_and_listed_up_to_a_limit() {
+fn a_plan_lists_its_searches_only_when_they_fit_the_size_asked() {
     let Plan::Read(searches) = plan(&pairs(6)) else { panic!() };
     assert_eq!(searches.count(), 64);
     assert_eq!(searches.list(64).map(|list| list.len()), Some(64));
@@ -348,7 +348,7 @@ fn groups_nest_at_any_depth() {
 /// `)or` keeps a closed group's or-expression open, so a plan can nest far
 /// deeper than its groups; sego reads it at any nesting, on a small stack.
 #[test]
-fn or_expressions_nest_without_limit() {
+fn or_expressions_plan_at_any_nesting_on_a_small_stack() {
     let chain = |n| format!("{}y", "(a)or x ".repeat(n));
     let mebibyte = chain((1 << 20) / 8);
     let run = move || {
@@ -424,7 +424,7 @@ fn plans_the_costliest_queries_of_2_048_bytes() {
 /// One search can hold a filter for every few bytes; listing it, as
 /// `prepare` does for `index:no`, gives each of them once.
 #[test]
-fn lists_a_mebibyte_of_filters() {
+fn one_search_lists_every_filter_of_a_mebibyte_query() {
     let query = "f:a ".repeat((1 << 20) / 4);
     let searches = plan(&query).each().map(|each| each[0].len());
     assert_eq!(searches, Some(1 << 18));
@@ -432,7 +432,7 @@ fn lists_a_mebibyte_of_filters() {
 
 /// Every recorded plan of the server agrees, and there is at least one.
 #[test]
-fn plans_match_the_servers() {
+fn every_recorded_plan_of_the_server_agrees_with_ours() {
     let (rows, found) = disagreements();
     assert!(rows > 0, "no plans to compare");
     assert!(

@@ -49,7 +49,7 @@ fn usage_message(value: &str) -> String {
 }
 
 #[test]
-fn endpoint() {
+fn the_graphql_url_follows_sego_endpoint_and_malformed_values_are_rejected() {
     assert_eq!(
         graphql_url(None).expect("unset"),
         "https://sourcegraph.com/.api/graphql"
@@ -107,7 +107,7 @@ fn endpoint_must_be_utf8() {
 }
 
 #[test]
-fn sends_identification() {
+fn every_request_identifies_sego_in_its_headers() {
     let server = Server::start(|_| Response::new(200).body("{}"));
     client(&server).post(GRAPHQL_PATH, b"{}", soon()).expect("post");
     client(&server).get("/r/x", soon()).expect("get");
@@ -144,7 +144,7 @@ fn sends_identification() {
 }
 
 #[test]
-fn status_bodies_are_returned() {
+fn a_reply_with_an_error_status_returns_its_body_and_retry_after() {
     let server = Server::start(|request| {
         if request.path == "/400" {
             Response::new(400).body("bad")
@@ -176,7 +176,7 @@ fn redirects_are_not_followed() {
 }
 
 #[test]
-fn body_limit() {
+fn a_body_over_the_limit_is_too_large_and_one_at_the_limit_is_read() {
     let server = Server::start(|request| {
         let len =
             if request.path == "/over" { BODY_LIMIT + 1 } else { BODY_LIMIT };
@@ -189,7 +189,7 @@ fn body_limit() {
 }
 
 #[test]
-fn deadline_is_shared() {
+fn a_slow_reply_fails_at_the_deadline_and_a_past_deadline_sends_nothing() {
     let server = Server::start(|_| {
         Response::new(200).delay(Duration::from_secs(3)).body("late")
     });
@@ -210,7 +210,7 @@ fn deadline_is_shared() {
 }
 
 #[test]
-fn network_causes() {
+fn a_refused_or_dropped_connection_is_a_network_error_naming_its_cause() {
     let listener =
         TcpListener::bind("127.0.0.1:0").unwrap_or_else(|e| panic!("{e}"));
     let port = listener.local_addr().unwrap_or_else(|e| panic!("{e}")).port();

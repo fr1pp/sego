@@ -234,7 +234,7 @@ fn body_rows() -> Vec<Row> {
 }
 
 #[test]
-fn classification() {
+fn a_reply_is_classified_into_an_error_kind_and_message() {
     let rows = refusal_rows().into_iter().chain(body_rows());
     for (name, reply, kind, message) in rows {
         let error = refused(reply);
@@ -297,7 +297,7 @@ fn rate_limit_carries_retry_after() {
 }
 
 #[test]
-fn error_coverage() {
+fn an_error_covers_the_values_at_and_beneath_its_path() {
     let envelope = partial();
     assert!(envelope.get(&["r0", "c0", "meta"]).is_some());
     assert!(envelope.get(&["r0", "c0", "meta", "lfs"]).is_none());

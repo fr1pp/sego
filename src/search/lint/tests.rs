@@ -36,7 +36,7 @@ fn check(rows: Vec<(&str, Vec<Token>)>) {
 }
 
 #[test]
-fn groups_and_quotes() {
+fn parentheses_and_quotes_group_text_as_the_server_does() {
     check(vec![
         ("foo bar", vec![term("foo"), term("bar")]),
         ("", vec![]),
@@ -81,7 +81,7 @@ fn groups_and_quotes() {
 }
 
 #[test]
-fn patterns_filters_and_operators() {
+fn slash_patterns_filters_and_operators_tokenize_as_the_server_reads_them() {
     check(vec![
         ("/a b/", vec![pattern("/a b/")]),
         ("/a.*b/", vec![pattern("/a.*b/")]),
@@ -196,9 +196,8 @@ fn run(rows: Vec<(&str, Vec<String>)>) {
 }
 
 #[test]
-fn checks_filters_and_keywords() {
+fn a_misspelled_filter_is_noted_and_text_with_a_colon_is_not() {
     run(vec![
-        // 1: fire
         ("fiel:x", vec![not_a_filter("fiel", "fiel:x")]),
         ("langauge:go", vec![not_a_filter("langauge", "langauge:go")]),
         ("ext:go", vec![not_a_filter("ext", "ext:go")]),
@@ -210,7 +209,6 @@ fn checks_filters_and_keywords() {
                 not_a_filter("fiel", "fiel:y"),
             ],
         ),
-        // 1: don't fire
         ("std::mem", vec![]),
         ("https://x", vec![]),
         ("TODO:", vec![]),
@@ -228,13 +226,23 @@ fn checks_filters_and_keywords() {
         ("authors:a", vec![]),
         ("contents:a", vec![]),
         ("patch:a", vec![]),
-        // 2
+    ]);
+}
+
+#[test]
+fn filters_of_one_field_intersect() {
+    run(vec![
         ("lang:go lang:rust", vec![INTERSECT.to_owned()]),
         ("repo:a or repo:b", vec![]),
         ("file:^mux file:\\.go$", vec![]),
         ("repo:^github\\.com/gorilla/ repo:mux$", vec![]),
         ("lang:go lang:Go", vec![]),
-        // 3: fire
+    ]);
+}
+
+#[test]
+fn text_that_reads_as_a_regex_in_keyword_mode_is_noted() {
+    run(vec![
         ("\\bfoo\\b", vec![keyword("\\bfoo\\b")]),
         ("[a-zA-Z]", vec![keyword("[a-zA-Z]")]),
         ("[0-9]+", vec![keyword("[0-9]+")]),
@@ -242,7 +250,6 @@ fn checks_filters_and_keywords() {
         ("fmt\\.Errorf", vec![keyword("fmt\\.Errorf")]),
         ("a.*b", vec![keyword("a.*b")]),
         ("^foo", vec![keyword("^foo")]),
-        // 3: don't fire
         ("string|null", vec![]),
         ("Subrouter|NewRouter", vec![]),
         ("dp[i-j]", vec![]),
@@ -280,16 +287,14 @@ fn checks_filters_and_keywords() {
 }
 
 #[test]
-fn checks_or_types_and_revisions() {
+fn a_filter_beside_one_operand_of_or_is_noted_when_another_search_lacks_it() {
     run(vec![
-        // 4: fire
         ("repo:x file:mux.go or file:route.go", vec![ESCAPES_OR.to_owned()]),
         ("repo:x file:y a or (b and c)", vec![ESCAPES_OR.to_owned()]),
         ("repo:x (a case:yes) or (b case:no)", vec![ESCAPES_OR.to_owned()]),
         ("repo:x router or lang:markdown", vec![ESCAPES_OR.to_owned()]),
         ("foo or bar repo:x", vec![ESCAPES_OR.to_owned()]),
         ("a repo:x or b", vec![ESCAPES_OR.to_owned()]),
-        // 4: don't fire
         ("repo:x foo or bar", vec![]),
         ("repo:x a or b lang:go", vec![]),
         ("repo:x a or b or c file:y", vec![]),
@@ -299,7 +304,6 @@ fn checks_or_types_and_revisions() {
         ("repo:a x or (repo:b y)", vec![]),
         ("repo:a x or -repo:b y", vec![]),
         ("a -repo:x or b", vec![]),
-        // 4: the shared-filter rule
         ("repo:x not file:y foo or bar", vec![]),
         ("repo:x -file:y foo or bar", vec![]),
         ("repo:x foo or bar file:y", vec![]),
@@ -320,18 +324,33 @@ fn checks_or_types_and_revisions() {
         ("(foo or repo:x bar)", vec![ESCAPES_OR.to_owned()]),
         ("repo:x (a or file:y b) c", vec![]),
         ("repo:x (foo or bar) file:y", vec![]),
-        // 5
+    ]);
+}
+
+#[test]
+fn a_result_type_that_is_not_one_is_noted() {
+    run(vec![
         ("type:File", vec![bad_type("File")]),
         ("type:structural", vec![]),
         ("-type:bogus", vec![]),
         ("type:\"file\"", vec![]),
-        // 6
+    ]);
+}
+
+#[test]
+fn type_path_with_only_filters_is_noted() {
+    run(vec![
         ("repo:x type:path", vec![PATH_ONLY.to_owned()]),
         ("type:path NewRouter", vec![]),
         ("type:path file:\\.go$", vec![]),
         ("type:path lang:go", vec![]),
         ("type:path -file:_test", vec![]),
-        // 7
+    ]);
+}
+
+#[test]
+fn a_revision_range_in_a_repo_filter_is_noted_as_searching_its_end_only() {
+    run(vec![
         (
             "repo:^github\\.com/gorilla/mux$@v1.8.0..v1.7.4",
             vec![
@@ -351,7 +370,8 @@ fn checks_or_types_and_revisions() {
 }
 
 #[test]
-fn checks_or_text_in_parentheses() {
+fn or_inside_quoted_and_slash_text_in_parentheses_is_read_as_the_server_reads_it()
+ {
     run(vec![
         // quoted and slash text inside parentheses, read as the server does
         (
@@ -414,7 +434,7 @@ fn checks_or_text_in_parentheses() {
 }
 
 #[test]
-fn checks_several_at_once() {
+fn several_notes_come_in_check_order() {
     run(vec![(
         "lnag:go lang:go lang:rust foo\\.rs",
         vec![
@@ -433,7 +453,7 @@ structural search can parse files as the wrong language and miss matches; \
 lang: names the language";
 
 #[test]
-fn checks_structural_scope() {
+fn a_structural_search_is_noted_for_its_scope_and_language() {
     let both =
         || vec![STRUCTURAL_SCOPE.to_owned(), STRUCTURAL_LANGUAGE.to_owned()];
     let scope = || vec![STRUCTURAL_SCOPE.to_owned()];
@@ -504,7 +524,7 @@ fn checks_structural_scope() {
 }
 
 #[test]
-fn checks_structural_branches() {
+fn each_search_of_a_structural_plan_is_noted_with_its_own_filters() {
     let both =
         || vec![STRUCTURAL_SCOPE.to_owned(), STRUCTURAL_LANGUAGE.to_owned()];
     run(vec![
@@ -611,7 +631,8 @@ fn checks_structural_branches() {
 }
 
 #[test]
-fn checks_structural_groups() {
+fn structural_groups_with_quotes_empty_fields_and_deep_parentheses_are_noted()
+{
     let both =
         || vec![STRUCTURAL_SCOPE.to_owned(), STRUCTURAL_LANGUAGE.to_owned()];
     run(vec![
@@ -661,9 +682,8 @@ fn symbol_select_as_text(mode: &str) -> String {
 }
 
 #[test]
-fn checks_symbol_select_without_pattern() {
+fn a_symbol_select_without_a_pattern_is_noted() {
     run(vec![
-        // fire
         (
             "repo:^github\\.com/gorilla/mux$ type:symbol file:README\\.md$ select:symbol.class",
             vec![SYMBOL_SELECT.to_owned()],
@@ -689,7 +709,6 @@ fn checks_symbol_select_without_pattern() {
             "repo:x (type:symbol select:symbol.class)",
             vec![SYMBOL_SELECT.to_owned()],
         ),
-        // don't fire
         (
             "repo:^github\\.com/gorilla/mux$ type:symbol /./ file:README\\.md$ select:symbol.class",
             vec![],
@@ -757,7 +776,7 @@ fn checks_symbol_select_without_pattern() {
 }
 
 #[test]
-fn checks_symbol_select_remedy_by_mode() {
+fn the_symbol_select_note_names_the_remedy_for_the_pattern_type() {
     run(vec![
         // /./ is a regex in keyword, standard and regexp mode, and text in
         // literal and structural mode
@@ -804,11 +823,10 @@ fn flags(found: Vec<(&str, String)>, silent: Vec<&str>) {
 }
 
 #[test]
-fn finds_a_flag_after_the_closing_slash() {
+fn a_flag_after_the_closing_slash_is_noted() {
     let s = "flags go inside: /(?s).../";
     flags(
         vec![
-            // found
             (
                 r"repo:^github\.com/publicsuffix/list$ file:^public_suffix_list\.dat$ /cloudflare/i index:no count:all timeout:60s",
                 flag("/cloudflare/i", CASE),
@@ -892,7 +910,7 @@ fn finds_a_flag_after_the_closing_slash() {
 }
 
 #[test]
-fn finds_any_set_of_flags() {
+fn any_set_of_flags_after_the_closing_slash_is_noted() {
     let s = "flags go inside: /(?s).../";
     flags(
         vec![
