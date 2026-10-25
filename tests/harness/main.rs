@@ -12,6 +12,12 @@
               harness target"
 )]
 mod case;
+#[allow(
+    dead_code,
+    unused_imports,
+    reason = "cargo compiles the module's tests here but runs them in the \
+              harness target"
+)]
 mod check;
 mod compare;
 #[allow(
