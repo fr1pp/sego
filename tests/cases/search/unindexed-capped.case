@@ -1,12 +1,12 @@
 # A capped answer is a lower bound, so it gets no unindexed-files note.
-args: search 'repo:sego-fake/cap zzq'
+args: search 'repo:example.com/acme/widget zzq'
 exit: 0
 --- stdout
 1+ matches  1 repo  0.3 s
-query  repo:sego-fake/cap zzq
+query  repo:example.com/acme/widget zzq
 
-github.com/sego-fake/cap
---- request Search {"query":"repo:sego-fake/cap zzq","unindexed":"repo:sego-fake/cap type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
+example.com/acme/widget
+--- request Search {"query":"repo:example.com/acme/widget zzq","unindexed":"repo:example.com/acme/widget type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
 --- query
 query Search($query: String!, $unindexed: String!) {
   search(query: $query, version: V3, patternType: keyword) {
@@ -55,7 +55,7 @@ query Search($query: String!, $unindexed: String!) {
         "results": [
           {
             "__typename": "Repository",
-            "name": "github.com/sego-fake/cap"
+            "name": "example.com/acme/widget"
           }
         ],
         "timedout": []
@@ -76,7 +76,7 @@ query Search($query: String!, $unindexed: String!) {
               "path": "big.sql"
             },
             "repository": {
-              "name": "github.com/sego-fake/cap"
+              "name": "example.com/acme/widget"
             }
           }
         ],

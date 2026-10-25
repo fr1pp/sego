@@ -1,4 +1,4 @@
-# Check 5: an unknown result type.
+# An unknown result type is noted.
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 type:bogus NewRouter'
 exit: 0
 --- stdout

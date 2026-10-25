@@ -1,14 +1,14 @@
-# A result of a kind sego doesn't select is counted in a note and not printed.
-args: search 'repo:sego-fake/unknown foo'
+# At a pinned revision nothing lists the files too large to search.
+args: search 'repo:example.com/acme/widget@v1 foo'
 exit: 0
 --- stdout
-1 match  0.1 s
-query  repo:sego-fake/unknown foo
+0 matches  0.2 s
+query  repo:example.com/acme/widget@v1 foo
 --- stderr
-sego: note: 1 result of kind Weird not shown
---- request Search {"query":"repo:sego-fake/unknown foo","unindexed":"repo:sego-fake/unknown type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
+sego: note: at a pinned revision the search can't tell which files it skipped; files over 1 MiB are never searched
+--- request Search {"query":"repo:example.com/acme/widget@v1 foo"}
 --- query
-query Search($query: String!, $unindexed: String!) {
+query Search($query: String!) {
   search(query: $query, version: V3, patternType: keyword) {
     results {
       matchCount approximateResultCount limitHit
@@ -34,12 +34,6 @@ query Search($query: String!, $unindexed: String!) {
       }
     }
   }
-  unindexed: search(query: $unindexed, version: V3, patternType: keyword) {
-    results {
-      limitHit elapsedMilliseconds timedout { name } alert { title }
-      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
-    }
-  }
 }
 --- response 200 application/json
 {
@@ -47,24 +41,11 @@ query Search($query: String!, $unindexed: String!) {
     "search": {
       "results": {
         "alert": null,
-        "approximateResultCount": "1",
+        "approximateResultCount": "0",
         "dynamicFilters": [],
-        "elapsedMilliseconds": 100,
+        "elapsedMilliseconds": 200,
         "limitHit": false,
-        "matchCount": 1,
-        "results": [
-          {
-            "__typename": "Weird"
-          }
-        ],
-        "timedout": []
-      }
-    },
-    "unindexed": {
-      "results": {
-        "alert": null,
-        "elapsedMilliseconds": 10,
-        "limitHit": false,
+        "matchCount": 0,
         "results": [],
         "timedout": []
       }

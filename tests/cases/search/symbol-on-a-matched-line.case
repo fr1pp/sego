@@ -1,4 +1,5 @@
-# A path that arrives as symbols and as chunks prints as one group.
+# A symbol on a line a chunk matched prints after that line, in a file that holds
+# both chunks and symbols.
 args: search '(repo:^github\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter) or (repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter) count:100'
 exit: 0
 --- stdout

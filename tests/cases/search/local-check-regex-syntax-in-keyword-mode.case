@@ -1,4 +1,4 @@
-# Check 3: regex syntax in keyword mode.
+# Regular expression syntax in a keyword query is noted.
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter\('
 exit: 0
 --- stdout

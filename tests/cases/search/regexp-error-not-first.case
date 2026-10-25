@@ -1,9 +1,9 @@
 # A regexp error that isn't the message's own start stays generic.
-args: search 'repo:sego-fake/rx6@v1 /f/'
+args: search 'repo:example.com/acme/widget@v1 /f/'
 exit: 1
 --- stderr
 sego: error: Sourcegraph failed to answer the search
---- request Search {"query":"repo:sego-fake/rx6@v1 /f/"}
+--- request Search {"query":"repo:example.com/acme/widget@v1 /f/"}
 --- query
 query Search($query: String!) {
   search(query: $query, version: V3, patternType: keyword) {

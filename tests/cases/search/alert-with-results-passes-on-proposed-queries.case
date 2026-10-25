@@ -1,16 +1,16 @@
 # An alert with results is a note, and each proposed query is passed on.
-args: search 'repo:sego-fake/alert foo'
+args: search 'repo:example.com/acme/widget foo'
 exit: 0
 --- stdout
 1 match  1 repo  0.8 s
-query  repo:sego-fake/alert foo
+query  repo:example.com/acme/widget foo
 
-github.com/sego-fake/found
+example.com/acme/widget
 --- stderr
 sego: note: Too many results: Narrow the search.
-sego: note: the server proposes: repo:sego-fake/alert foo lang:go
-sego: note: the server proposes: repo:sego-fake/alert foo lang:rust
---- request Search {"query":"repo:sego-fake/alert foo","unindexed":"repo:sego-fake/alert type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
+sego: note: the server proposes: repo:example.com/acme/widget foo lang:go
+sego: note: the server proposes: repo:example.com/acme/widget foo lang:rust
+--- request Search {"query":"repo:example.com/acme/widget foo","unindexed":"repo:example.com/acme/widget type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
 --- query
 query Search($query: String!, $unindexed: String!) {
   search(query: $query, version: V3, patternType: keyword) {
@@ -56,11 +56,11 @@ query Search($query: String!, $unindexed: String!) {
           "proposedQueries": [
             {
               "description": "only go",
-              "query": "repo:sego-fake/alert foo lang:go"
+              "query": "repo:example.com/acme/widget foo lang:go"
             },
             {
               "description": "only rust",
-              "query": "repo:sego-fake/alert foo lang:rust"
+              "query": "repo:example.com/acme/widget foo lang:rust"
             }
           ],
           "title": "Too many results"
@@ -73,7 +73,7 @@ query Search($query: String!, $unindexed: String!) {
         "results": [
           {
             "__typename": "Repository",
-            "name": "github.com/sego-fake/found"
+            "name": "example.com/acme/widget"
           }
         ],
         "timedout": []

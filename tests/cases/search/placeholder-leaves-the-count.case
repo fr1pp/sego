@@ -1,10 +1,15 @@
-# The JSON form drops the placeholder too, and lists no unindexed file: a
-# binary file is not one.
-args: search --json 'repo:sego-fake/ph binary'
+# A NOT-INDEXED placeholder is dropped and its range leaves the count. Its file
+# is binary, which the unindexed list leaves out, so the side alias is empty.
+args: search 'repo:example.com/acme/widget binary'
 exit: 0
 --- stdout
-{"query":"repo:sego-fake/ph binary","pattern_type":"keyword","unit":"matches","count":2,"at_least":false,"stopped":false,"elapsed_ms":300,"limit_ms":20000,"widen":[],"unindexed":[],"alert":null,"results":[{"kind":"line","repo":"github.com/sego-fake/ph","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"src/real.txt","line":10,"text":"a binary value","match":true,"ranges":[[2,8]],"chunk":1},{"kind":"line","repo":"github.com/sego-fake/ph","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"src/real.txt","line":11,"text":"another binary","match":true,"ranges":[[8,14]],"chunk":1}],"server":{"match_count":3,"approximate_count":"3","limit_hit":false,"timedout":[]}}
---- request Search {"query":"repo:sego-fake/ph binary","unindexed":"repo:sego-fake/ph type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
+2 matches  1 repo  0.3 s
+query  repo:example.com/acme/widget binary
+
+example.com/acme/widget@0123456789ab:src/real.txt
+10:a binary value
+11:another binary
+--- request Search {"query":"repo:example.com/acme/widget binary","unindexed":"repo:example.com/acme/widget type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
 --- query
 query Search($query: String!, $unindexed: String!) {
   search(query: $query, version: V3, patternType: keyword) {
@@ -90,7 +95,7 @@ query Search($query: String!, $unindexed: String!) {
               "path": "src/real.txt"
             },
             "repository": {
-              "name": "github.com/sego-fake/ph"
+              "name": "example.com/acme/widget"
             },
             "revSpec": null,
             "symbols": []
@@ -124,7 +129,7 @@ query Search($query: String!, $unindexed: String!) {
               "path": "data/blob.dat"
             },
             "repository": {
-              "name": "github.com/sego-fake/ph"
+              "name": "example.com/acme/widget"
             },
             "revSpec": null,
             "symbols": []

@@ -1,12 +1,9 @@
-# Cloning and missing repositories get no note; the results still print.
-args: search 'repo:sego-fake/partial foo'
-exit: 0
---- stdout
-1 match  1 repo  0.8 s
-query  repo:sego-fake/partial foo
-
-github.com/sego-fake/found
---- request Search {"query":"repo:sego-fake/partial foo","unindexed":"repo:sego-fake/partial type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
+# A clean zero that came back after a 1ms deadline is stopped, not empty.
+args: search 'repo:example.com/acme/widget func timeout:1ms'
+exit: 1
+--- stderr
+sego: error: the search stopped at 0.0 s with no results
+--- request Search {"query":"repo:example.com/acme/widget func timeout:1ms","unindexed":"repo:example.com/acme/widget type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:1ms"}
 --- query
 query Search($query: String!, $unindexed: String!) {
   search(query: $query, version: V3, patternType: keyword) {
@@ -47,17 +44,12 @@ query Search($query: String!, $unindexed: String!) {
     "search": {
       "results": {
         "alert": null,
-        "approximateResultCount": "1",
+        "approximateResultCount": "0",
         "dynamicFilters": [],
-        "elapsedMilliseconds": 800,
+        "elapsedMilliseconds": 15,
         "limitHit": false,
-        "matchCount": 1,
-        "results": [
-          {
-            "__typename": "Repository",
-            "name": "github.com/sego-fake/found"
-          }
-        ],
+        "matchCount": 0,
+        "results": [],
         "timedout": []
       }
     },

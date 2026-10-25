@@ -1,16 +1,16 @@
 # An or query sends no side query, so the search can't name the files it
 # skipped.
-args: search 'repo:sego-fake/unlisted-or (foo or zzqqxx)'
+args: search 'repo:example.com/acme/widget (foo or zzqqxx)'
 exit: 0
 --- stdout
 1 match  1 repo  0.1 s
-query  repo:sego-fake/unlisted-or (foo or zzqqxx)
+query  repo:example.com/acme/widget (foo or zzqqxx)
 
-github.com/sego-fake/unlisted-or@0123456789ab:main.go
+example.com/acme/widget@0123456789ab:main.go
 1:foo
 --- stderr
 sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
---- request Search {"query":"repo:sego-fake/unlisted-or (foo or zzqqxx)"}
+--- request Search {"query":"repo:example.com/acme/widget (foo or zzqqxx)"}
 --- query
 query Search($query: String!) {
   search(query: $query, version: V3, patternType: keyword) {
@@ -80,7 +80,7 @@ query Search($query: String!) {
               "path": "main.go"
             },
             "repository": {
-              "name": "github.com/sego-fake/unlisted-or"
+              "name": "example.com/acme/widget"
             },
             "revSpec": null,
             "symbols": []

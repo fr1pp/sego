@@ -1,9 +1,12 @@
-# A timeout: filter sets the deadline the elapsed time is judged against.
-args: search 'repo:sego-fake/timeout foo timeout:5s'
-exit: 1
+# A regex flag after the closing slash, on a zero.
+args: search 'repo:example.com/acme/widget /cloudflare/i'
+exit: 0
+--- stdout
+0 matches  0.1 s
+query  repo:example.com/acme/widget /cloudflare/i
 --- stderr
-sego: error: the search stopped at 5.0 s with no results
---- request Search {"query":"repo:sego-fake/timeout foo timeout:5s","unindexed":"repo:sego-fake/timeout type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:5s"}
+sego: note: the server searches `/cloudflare/i` as text; it ignores case by default
+--- request Search {"query":"repo:example.com/acme/widget /cloudflare/i","unindexed":"repo:example.com/acme/widget type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
 --- query
 query Search($query: String!, $unindexed: String!) {
   search(query: $query, version: V3, patternType: keyword) {
@@ -46,7 +49,7 @@ query Search($query: String!, $unindexed: String!) {
         "alert": null,
         "approximateResultCount": "0",
         "dynamicFilters": [],
-        "elapsedMilliseconds": 5004,
+        "elapsedMilliseconds": 100,
         "limitHit": false,
         "matchCount": 0,
         "results": [],

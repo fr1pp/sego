@@ -1,11 +1,13 @@
-# The error shape was returned live on 2026-10-07; the query no longer
-# reproduces it.
-# The server answers with an error at [search, results].
-args: search 'repo:^github\.com/gorilla/mux$@v1.8.0:^v1.7.4 NewRouter'
-exit: 1
+# Filters outside parentheses bind to one operand of an or, and the note says
+# so.
+args: search 'repo:example.com/acme/widget file:a or file:b'
+exit: 0
+--- stdout
+0 files  0.1 s
+query  repo:example.com/acme/widget file:a or file:b
 --- stderr
-sego: error: Sourcegraph failed to answer the search
---- request Search {"query":"repo:^github\\.com/gorilla/mux$@v1.8.0:^v1.7.4 NewRouter"}
+sego: note: filters outside parentheses apply only to the operand of OR they sit in; the other operands search every repository
+--- request Search {"query":"repo:example.com/acme/widget file:a or file:b"}
 --- query
 query Search($query: String!) {
   search(query: $query, version: V3, patternType: keyword) {
@@ -37,15 +39,17 @@ query Search($query: String!) {
 --- response 200 application/json
 {
   "data": {
-    "search": null
-  },
-  "errors": [
-    {
-      "message": "rpc error: code = Unknown desc = ResolveRevision: got bad commit \"^75dcda0896e109a2a22c9315bca3bb21b87b2ba5\" for repo ID 1700 at revision \"^v1.7.4^0\"",
-      "path": [
-        "search",
-        "results"
-      ]
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "0",
+        "dynamicFilters": [],
+        "elapsedMilliseconds": 100,
+        "limitHit": false,
+        "matchCount": 0,
+        "results": [],
+        "timedout": []
+      }
     }
-  ]
+  }
 }

@@ -1,12 +1,9 @@
-# A clean answer that arrived at its deadline is stopped: line 1 says so.
-args: search 'repo:sego-fake/deadline foo'
-exit: 0
---- stdout
-1+ matches  1 repo  stopped at 60.0 s
-query  repo:sego-fake/deadline foo
-
-github.com/sego-fake/found
---- request Search {"query":"repo:sego-fake/deadline foo","unindexed":"repo:sego-fake/deadline type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
+# A timeout: filter sets the deadline the elapsed time is judged against.
+args: search 'repo:example.com/acme/widget foo timeout:5s'
+exit: 1
+--- stderr
+sego: error: the search stopped at 5.0 s with no results
+--- request Search {"query":"repo:example.com/acme/widget foo timeout:5s","unindexed":"repo:example.com/acme/widget type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:5s"}
 --- query
 query Search($query: String!, $unindexed: String!) {
   search(query: $query, version: V3, patternType: keyword) {
@@ -47,17 +44,12 @@ query Search($query: String!, $unindexed: String!) {
     "search": {
       "results": {
         "alert": null,
-        "approximateResultCount": "1",
+        "approximateResultCount": "0",
         "dynamicFilters": [],
-        "elapsedMilliseconds": 60009,
+        "elapsedMilliseconds": 5004,
         "limitHit": false,
-        "matchCount": 1,
-        "results": [
-          {
-            "__typename": "Repository",
-            "name": "github.com/sego-fake/found"
-          }
-        ],
+        "matchCount": 0,
+        "results": [],
         "timedout": []
       }
     },

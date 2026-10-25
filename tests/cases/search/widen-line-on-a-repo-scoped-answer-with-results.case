@@ -1,14 +1,14 @@
 # A search scoped by repo: lists the utility filters on a non-zero answer too.
-args: search 'repo:sego-fake/widen-nonzero foo'
+args: search 'repo:example.com/acme/widget foo'
 exit: 0
 --- stdout
 1 match  1 repo  0.1 s
-query  repo:sego-fake/widen-nonzero foo
+query  repo:example.com/acme/widget foo
 widen  archived:yes (10 repos)  fork:yes (1 repo)
 
-github.com/sego-fake/widen-nonzero@0123456789ab:main.go
+example.com/acme/widget@0123456789ab:main.go
 1:foo
---- request Search {"query":"repo:sego-fake/widen-nonzero foo","unindexed":"repo:sego-fake/widen-nonzero type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
+--- request Search {"query":"repo:example.com/acme/widget foo","unindexed":"repo:example.com/acme/widget type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
 --- query
 query Search($query: String!, $unindexed: String!) {
   search(query: $query, version: V3, patternType: keyword) {
@@ -100,7 +100,7 @@ query Search($query: String!, $unindexed: String!) {
               "path": "main.go"
             },
             "repository": {
-              "name": "github.com/sego-fake/widen-nonzero"
+              "name": "example.com/acme/widget"
             },
             "revSpec": null,
             "symbols": []

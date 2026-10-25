@@ -1,12 +1,15 @@
-# Check 4: filters outside parentheses bind to one operand of OR.
-args: search 'repo:x file:a or file:b'
+# A structural search wider than one file, with no language, gets a note for
+# each.
+args: search 'repo:example.com/acme/widget@v1 patterntype:structural foo(...)'
 exit: 0
 --- stdout
-0 files  0.1 s
-query  repo:x file:a or file:b
+0 matches  0.1 s
+query  repo:example.com/acme/widget@v1 patterntype:structural foo(...)
 --- stderr
-sego: note: filters outside parentheses apply only to the operand of OR they sit in; the other operands search every repository
---- request Search {"query":"repo:x file:a or file:b"}
+sego: note: a structural search over more than one file can miss matches without a +; file:^PATH$ makes it complete, and a regex search marks a cut with +
+sego: note: with no lang: and no file: extension, a structural search can parse files as the wrong language and miss matches; lang: names the language
+sego: note: at a pinned revision the search can't tell which files it skipped; files over 1 MiB are never searched
+--- request Search {"query":"repo:example.com/acme/widget@v1 patterntype:structural foo(...)"}
 --- query
 query Search($query: String!) {
   search(query: $query, version: V3, patternType: keyword) {

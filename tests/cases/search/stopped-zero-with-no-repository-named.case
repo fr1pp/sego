@@ -1,11 +1,10 @@
-# With no results the line lists the utility filters only.
-args: search 'repo:sego-fake/widen foo'
-exit: 0
---- stdout
-0 matches  0.1 s
-query  repo:sego-fake/widen foo
-widen  archived:yes (4 repos)  fork:yes (9 repos)
---- request Search {"query":"repo:sego-fake/widen foo","unindexed":"repo:sego-fake/widen type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
+# Zero results past the deadline with nothing named timed out: an error with no
+# fact.
+args: search 'repo:example.com/acme/widget foo'
+exit: 1
+--- stderr
+sego: error: the search stopped at 60.0 s with no results
+--- request Search {"query":"repo:example.com/acme/widget foo","unindexed":"repo:example.com/acme/widget type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
 --- query
 query Search($query: String!, $unindexed: String!) {
   search(query: $query, version: V3, patternType: keyword) {
@@ -47,24 +46,8 @@ query Search($query: String!, $unindexed: String!) {
       "results": {
         "alert": null,
         "approximateResultCount": "0",
-        "dynamicFilters": [
-          {
-            "count": 4,
-            "kind": "utility",
-            "value": "archived:yes"
-          },
-          {
-            "count": 9,
-            "kind": "utility",
-            "value": "fork:yes"
-          },
-          {
-            "count": 3,
-            "kind": "lang",
-            "value": "lang:go"
-          }
-        ],
-        "elapsedMilliseconds": 100,
+        "dynamicFilters": [],
+        "elapsedMilliseconds": 60009,
         "limitHit": false,
         "matchCount": 0,
         "results": [],

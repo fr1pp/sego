@@ -1,12 +1,12 @@
-# A regex flag after the closing slash, on a zero.
-args: search 'repo:sego-fake/flag /cloudflare/i'
+# A result of a kind sego doesn't select is counted in a note and not printed.
+args: search 'repo:example.com/acme/widget foo'
 exit: 0
 --- stdout
-0 matches  0.1 s
-query  repo:sego-fake/flag /cloudflare/i
+1 match  0.1 s
+query  repo:example.com/acme/widget foo
 --- stderr
-sego: note: the server searches `/cloudflare/i` as text; it ignores case by default
---- request Search {"query":"repo:sego-fake/flag /cloudflare/i","unindexed":"repo:sego-fake/flag type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
+sego: note: 1 result of kind Weird not shown
+--- request Search {"query":"repo:example.com/acme/widget foo","unindexed":"repo:example.com/acme/widget type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
 --- query
 query Search($query: String!, $unindexed: String!) {
   search(query: $query, version: V3, patternType: keyword) {
@@ -47,12 +47,16 @@ query Search($query: String!, $unindexed: String!) {
     "search": {
       "results": {
         "alert": null,
-        "approximateResultCount": "0",
+        "approximateResultCount": "1",
         "dynamicFilters": [],
         "elapsedMilliseconds": 100,
         "limitHit": false,
-        "matchCount": 0,
-        "results": [],
+        "matchCount": 1,
+        "results": [
+          {
+            "__typename": "Weird"
+          }
+        ],
         "timedout": []
       }
     },

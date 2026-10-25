@@ -1,11 +1,15 @@
-# A clean zero that came back after a 1ms deadline is stopped, not empty.
-args: search 'repo:sego-fake/et func timeout:1ms'
-exit: 1
+# A symbol select with no pattern is noted, after the note on the range.
+args: search 'repo:example.com/acme/widget@a..b type:symbol select:symbol.method'
+exit: 0
+--- stdout
+0 symbols  0.1 s
+query  repo:example.com/acme/widget@a..b type:symbol select:symbol.method
 --- stderr
-sego: error: the search stopped at 0.0 s with no results
---- request Search {"query":"repo:sego-fake/et func timeout:1ms","unindexed":"repo:sego-fake/et type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:1ms"}
+sego: note: repo:example.com/acme/widget@a..b searches b only
+sego: note: type:symbol with select:symbol and no pattern returns nothing; /./ matches every symbol
+--- request Search {"query":"repo:example.com/acme/widget@a..b type:symbol select:symbol.method"}
 --- query
-query Search($query: String!, $unindexed: String!) {
+query Search($query: String!) {
   search(query: $query, version: V3, patternType: keyword) {
     results {
       matchCount approximateResultCount limitHit
@@ -31,12 +35,6 @@ query Search($query: String!, $unindexed: String!) {
       }
     }
   }
-  unindexed: search(query: $unindexed, version: V3, patternType: keyword) {
-    results {
-      limitHit elapsedMilliseconds timedout { name } alert { title }
-      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
-    }
-  }
 }
 --- response 200 application/json
 {
@@ -46,18 +44,9 @@ query Search($query: String!, $unindexed: String!) {
         "alert": null,
         "approximateResultCount": "0",
         "dynamicFilters": [],
-        "elapsedMilliseconds": 15,
+        "elapsedMilliseconds": 100,
         "limitHit": false,
         "matchCount": 0,
-        "results": [],
-        "timedout": []
-      }
-    },
-    "unindexed": {
-      "results": {
-        "alert": null,
-        "elapsedMilliseconds": 10,
-        "limitHit": false,
         "results": [],
         "timedout": []
       }

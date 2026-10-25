@@ -1,4 +1,4 @@
-# Check 7: a range in a repository revision.
+# A range in a repository revision is noted.
 args: search 'repo:^github\.com/gorilla/mux$@v1.8.0..v1.7.4 NewRouter'
 exit: 0
 --- stdout

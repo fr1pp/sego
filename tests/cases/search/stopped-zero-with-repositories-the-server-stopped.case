@@ -1,10 +1,9 @@
-# Zero results past the deadline with nothing named timed out: an error with no
-# fact.
-args: search 'repo:sego-fake/elapsed foo'
+# Zero results with timed-out repositories: an error that names none of them.
+args: search 'repo:example.com/acme/widget foo'
 exit: 1
 --- stderr
-sego: error: the search stopped at 60.0 s with no results
---- request Search {"query":"repo:sego-fake/elapsed foo","unindexed":"repo:sego-fake/elapsed type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
+sego: error: the search stopped at 1.2 s with no results
+--- request Search {"query":"repo:example.com/acme/widget foo","unindexed":"repo:example.com/acme/widget type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}
 --- query
 query Search($query: String!, $unindexed: String!) {
   search(query: $query, version: V3, patternType: keyword) {
@@ -47,11 +46,33 @@ query Search($query: String!, $unindexed: String!) {
         "alert": null,
         "approximateResultCount": "0",
         "dynamicFilters": [],
-        "elapsedMilliseconds": 60009,
+        "elapsedMilliseconds": 1200,
         "limitHit": false,
         "matchCount": 0,
         "results": [],
-        "timedout": []
+        "timedout": [
+          {
+            "name": "example.com/acme/widget"
+          },
+          {
+            "name": "example.com/acme/gadget"
+          },
+          {
+            "name": "example.com/acme/lib"
+          },
+          {
+            "name": "example.com/acme/router"
+          },
+          {
+            "name": "example.com/acme/server"
+          },
+          {
+            "name": "example.com/acme/client"
+          },
+          {
+            "name": "example.com/acme/cli"
+          }
+        ]
       }
     },
     "unindexed": {
