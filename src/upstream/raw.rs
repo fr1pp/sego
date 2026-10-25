@@ -42,3 +42,6 @@ pub fn read(
         }
     }
 }
+
+#[cfg(test)]
+mod tests;

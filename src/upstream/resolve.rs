@@ -538,3 +538,6 @@ pub fn locate_repository(
         .map_or_else(|| repo.candidates()[index].clone(), str::to_owned);
     Ok(RepoAt { repo: name, index })
 }
+
+#[cfg(test)]
+mod tests;

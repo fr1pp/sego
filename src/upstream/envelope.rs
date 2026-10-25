@@ -239,3 +239,6 @@ fn dedup(errors: Vec<GqlError>) -> Vec<GqlError> {
     }
     kept
 }
+
+#[cfg(test)]
+mod tests;
