@@ -1,5 +1,5 @@
 use std::ffi::OsStr;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use serde_json::Value;
 
