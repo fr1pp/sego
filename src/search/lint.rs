@@ -887,3 +887,6 @@ fn ends_in_extension(value: &str) -> bool {
     });
     stem.len() < value.len() && stem.ends_with('.')
 }
+
+#[cfg(test)]
+mod tests;
