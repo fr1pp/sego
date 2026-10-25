@@ -6,9 +6,7 @@ use crate::case::{Case, Exchange, Request, Served};
 use crate::replay::Replay;
 use crate::run::{self, Outcome};
 
-module_tests!();
-
-#[path = "../../../src/escape/table.rs"]
+#[path = "../../src/escape/table.rs"]
 mod table;
 
 const ESC: &str = "esc\u{1b}[0m";
@@ -44,7 +42,7 @@ const KEPT: [&str; 6] =
 /// `body` with the corpus appended to its string values, except those the
 /// answer is built from: keys, `KEPT`, hex strings of 7 to 40 characters,
 /// numbers, strings in the request's `variables`, and GraphQL error paths.
-pub fn inject(body: &Value, variables: &Value) -> Value {
+pub(crate) fn inject(body: &Value, variables: &Value) -> Value {
     let mut asked = HashSet::new();
     strings(variables, &mut asked);
     let mut body = body.clone();
@@ -153,14 +151,17 @@ fn is_unsafe(c: char) -> bool {
 
 /// A line of `text` with a character that sego must have escaped. A newline
 /// is layout.
-pub fn unsafe_character(stream: &str, text: &str) -> Option<String> {
+pub(crate) fn unsafe_character(stream: &str, text: &str) -> Option<String> {
     let line = text.split('\n').find(|line| line.chars().any(is_unsafe))?;
     Some(format!("{stream} holds an unsafe character: {line:?}"))
 }
 
 /// A line of `text` that starts with the corpus: injected text standing alone
 /// at column 0, or the corpus after a newline that was not escaped.
-pub fn corpus_starts_a_line(stream: &str, text: &str) -> Option<String> {
+pub(crate) fn corpus_starts_a_line(
+    stream: &str,
+    text: &str,
+) -> Option<String> {
     let line = text.split('\n').find(|line| {
         line.starts_with(ESC_ESCAPED) || line.starts_with(AFTER_NEWLINE)
     })?;
@@ -169,7 +170,7 @@ pub fn corpus_starts_a_line(stream: &str, text: &str) -> Option<String> {
 
 /// A string of the JSON answer that carries part of the corpus and not all
 /// of it.
-pub fn partial_corpus(answer: &Value) -> Option<String> {
+pub(crate) fn partial_corpus(answer: &Value) -> Option<String> {
     match answer {
         Value::String(s) => {
             let marked = MARKED.iter().any(|piece| s.contains(piece));
@@ -185,7 +186,7 @@ pub fn partial_corpus(answer: &Value) -> Option<String> {
 /// The second run of a case: the hostile corpus in its responses, held to
 /// what ADR 0006 requires. Empty when the case was served no GraphQL
 /// response.
-pub fn check(case: &Case, normal: &Outcome) -> Vec<String> {
+pub(crate) fn check(case: &Case, normal: &Outcome) -> Vec<String> {
     let mut injected = false;
     let exchanges: Vec<Exchange> = case
         .exchanges
@@ -249,3 +250,6 @@ pub fn check(case: &Case, normal: &Outcome) -> Vec<String> {
         })
         .collect()
 }
+
+#[cfg(test)]
+mod tests;

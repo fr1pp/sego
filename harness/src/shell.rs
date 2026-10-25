@@ -1,9 +1,7 @@
-module_tests!();
-
 /// Splits like a POSIX shell, as bytes: single quotes are literal, double
 /// quotes honour backslash escapes, a backslash outside quotes escapes the
 /// next character, and `$'…'` decodes bash's ANSI-C escapes.
-pub fn split(line: &str) -> Result<Vec<Vec<u8>>, String> {
+pub(crate) fn split(line: &str) -> Result<Vec<Vec<u8>>, String> {
     let mut words = Vec::new();
     let mut word = Vec::new();
     let mut started = false;
@@ -130,3 +128,6 @@ fn unicode(chars: &mut impl Iterator<Item = char>) -> Result<char, String> {
         .and_then(char::from_u32)
         .ok_or_else(|| format!("\\u{digits} is not a character"))
 }
+
+#[cfg(test)]
+mod tests;

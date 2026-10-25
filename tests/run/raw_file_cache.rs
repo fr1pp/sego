@@ -10,7 +10,7 @@ use crate::envelope::{
     SHOW_BIG, json_reply, over_the_content_limit, under_the_content_limit,
 };
 use crate::invocation::{Ran, sego};
-use crate::replay::{Replay, reply};
+use harness::replay::{Replay, reply};
 
 const FILE: &[u8] = b"1\n2\n3\n4\n5\n";
 

@@ -4,7 +4,7 @@ use std::process::ExitCode;
 
 use sego::{Endpoint, Env, Transport, run};
 
-use crate::replay::Replay;
+use harness::replay::Replay;
 
 #[test]
 fn a_valid_command_connects_once_to_the_environment_endpoint() {

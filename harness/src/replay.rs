@@ -34,7 +34,7 @@ pub fn reply(
 /// A request that reached the transport.
 #[derive(Clone, Debug)]
 pub struct Call {
-    pub method: &'static str,
+    pub(crate) method: &'static str,
     pub deadline: Instant,
 }
 
@@ -65,12 +65,12 @@ struct State {
 type Forward<'a> = &'a dyn Fn(&dyn Transport) -> Result<Reply, TransportError>;
 
 impl Replay {
-    pub fn new(case: &Case) -> Replay {
+    pub(crate) fn new(case: &Case) -> Replay {
         Replay::serving(case, case.exchanges.clone())
     }
 
     /// A replay of `case` that serves `exchanges` in its place.
-    pub fn serving(case: &Case, exchanges: Vec<Exchange>) -> Replay {
+    pub(crate) fn serving(case: &Case, exchanges: Vec<Exchange>) -> Replay {
         Replay::with(State {
             exchanges,
             path: case.path.clone(),
@@ -94,18 +94,18 @@ impl Replay {
 
     /// A replay that forwards through `recorder` a request with no exchange,
     /// or whose recorded exchange answered a different request.
-    pub fn recording(case: &Case, recorder: Recorder) -> Replay {
+    pub(crate) fn recording(case: &Case, recorder: Recorder) -> Replay {
         let replay = Replay::new(case);
         replay.state.borrow_mut().recorder = Some(recorder);
         replay
     }
 
     /// The exchanges recorded, with the position of each in the case.
-    pub fn recorded(&self) -> Vec<(usize, Recorded)> {
+    pub(crate) fn recorded(&self) -> Vec<(usize, Recorded)> {
         self.state.borrow().recorded.clone()
     }
 
-    pub fn sent(&self) -> Vec<Request> {
+    pub(crate) fn sent(&self) -> Vec<Request> {
         self.state.borrow().sent.clone()
     }
 
@@ -119,7 +119,7 @@ impl Replay {
 
     /// What the transport could not make sense of: a request that is not
     /// GraphQL, a missing body file.
-    pub fn problems(&self) -> Vec<String> {
+    pub(crate) fn problems(&self) -> Vec<String> {
         self.state.borrow().problems.clone()
     }
 

@@ -1,8 +1,11 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-module_tests!();
-
+/// Appends the `.rs` files under `dir`.
+///
+/// # Panics
+///
+/// When a directory can't be read.
 pub fn rust_files(dir: &Path, files: &mut Vec<PathBuf>) {
     let entries =
         fs::read_dir(dir).unwrap_or_else(|e| panic!("{}: {e}", dir.display()));
@@ -107,3 +110,6 @@ pub fn string_literals(source: &str) -> Vec<String> {
     }
     out
 }
+
+#[cfg(test)]
+mod tests;

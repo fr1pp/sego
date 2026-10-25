@@ -17,3 +17,6 @@ changed.
 A case's exchanges pin the shape of each request: the runner fails a request whose operation,
 variables or query differ from the next exchange. A test that checks only the request a command
 sends is needed only where no case pins it.
+
+The case runner and the code it is built from are the `harness` crate, a member of the workspace
+beside sego, and its module tests follow the same layout.

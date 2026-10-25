@@ -1,28 +1,19 @@
-//! Runs every case file in `tests/cases` as its own test: the command line
-//! in-process against a replay of the case's own exchanges. `SEGO_BLESS=1`
-//! rewrites what a case expects. `SEGO_LIVE=1` instead sends each recorded
-//! request to sourcegraph.com and compares the response with the recorded one.
-//! `SEGO_RECORD=1` forwards the requests a case has no response for to
+//! The test harness for sego: runs the case files in `tests/cases` against a
+//! replay of each case's own exchanges, and re-sends their recorded requests to
+//! sourcegraph.com. `SEGO_BLESS=1` rewrites what a case expects. `SEGO_LIVE=1`
+//! sends each recorded request and compares the response with the recorded
+//! one. `SEGO_RECORD=1` forwards the requests a case has no response for to
 //! sourcegraph.com and writes the exchanges into it.
-
-#![allow(
-    dead_code,
-    reason = "the modules are shared with the other targets, which use the rest"
-)]
-
-// The modules' own tests run in the `harness` target.
-macro_rules! module_tests {
-    () => {};
-}
 
 mod case;
 mod check;
 mod compare;
 mod drift;
 mod hostile;
+pub mod literals;
 mod live;
 mod record;
-mod replay;
+pub mod replay;
 mod run;
 mod shell;
 
@@ -64,7 +55,9 @@ fn failed(failures: &[String]) -> datatest_stable::Result<()> {
     }
 }
 
-fn run_case(path: &Path) -> datatest_stable::Result<()> {
+/// Runs one case file: against its replay, or with `SEGO_LIVE` or
+/// `SEGO_RECORD`, against sourcegraph.com.
+pub fn run_case(path: &Path) -> datatest_stable::Result<()> {
     let mut case = Case::load(path)?;
     if flag("SEGO_LIVE") {
         live_case(&case)
@@ -115,8 +108,4 @@ fn compare_case(path: &Path, case: &mut Case) -> datatest_stable::Result<()> {
     }
     failures.extend(hostile::check(case, &outcome));
     failed(&failures)
-}
-
-datatest_stable::harness! {
-    { test = run_case, root = "tests/cases", pattern = r"\.case$" },
 }

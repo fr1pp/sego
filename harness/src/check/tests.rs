@@ -116,22 +116,30 @@ fn a_second_graphql_request_fails_the_case() {
         vec![refs("example.com/a/b", QUERY), refs("example.com/c/d", QUERY)];
     let failures = stopped_with(0, "", sent);
     let [failure] = &failures[..] else { panic!("{failures:?}") };
-    assert!(failure.contains("2 GraphQL requests and 0 raw reads"), "{failure}");
+    assert!(
+        failure.contains("2 GraphQL requests and 0 raw reads"),
+        "{failure}"
+    );
 }
 
 #[test]
 fn a_second_raw_read_fails_the_case() {
     let failures = stopped_with(0, "", vec![raw(), raw()]);
     let [failure] = &failures[..] else { panic!("{failures:?}") };
-    assert!(failure.contains("0 GraphQL requests and 2 raw reads"), "{failure}");
+    assert!(
+        failure.contains("0 GraphQL requests and 2 raw reads"),
+        "{failure}"
+    );
 }
 
 #[test]
 fn a_request_on_a_usage_error_fails_the_case() {
-    let failures =
-        stopped_with(2, "", vec![refs("example.com/a/b", QUERY)]);
+    let failures = stopped_with(2, "", vec![refs("example.com/a/b", QUERY)]);
     let [failure] = &failures[..] else { panic!("{failures:?}") };
-    assert!(failure.contains("reached the server on a usage error"), "{failure}");
+    assert!(
+        failure.contains("reached the server on a usage error"),
+        "{failure}"
+    );
     assert_eq!(stopped_with(2, "", Vec::new()), Vec::<String>::new());
     assert_eq!(
         stopped_with(1, "", vec![refs("example.com/a/b", QUERY)]),
@@ -147,13 +155,12 @@ fn a_note_or_error_line_ending_in_a_period_fails_the_case() {
         "  repo:, lang: or file: narrows what the search reads.\n",
     ] {
         let failures = noted(stderr);
-        let [failure] = &failures[..] else { panic!("{stderr:?}: {failures:?}") };
+        let [failure] = &failures[..] else {
+            panic!("{stderr:?}: {failures:?}")
+        };
         assert!(failure.contains("ends with a period"), "{failure}");
     }
-    assert_eq!(
-        noted("sego: note: a\nsego: error: b.\n  c\n").len(),
-        1
-    );
+    assert_eq!(noted("sego: note: a\nsego: error: b.\n  c\n").len(), 1);
 }
 
 #[test]
