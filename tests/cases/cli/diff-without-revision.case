@@ -1,5 +1,5 @@
 # diff needs a revision or a range; no request is made.
-args: diff github.com/x/y
+args: diff example.com/acme/widget
 exit: 2
 --- stderr
 sego: error: diff needs a revision or a range, like REPO@REV or REPO@A...B

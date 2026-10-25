@@ -1,5 +1,5 @@
 # An option given twice is a usage error.
-args: show --json github.com/x/y:a.go --json
+args: show --json example.com/acme/widget:a.go --json
 exit: 2
 --- stderr
 sego: error: --json given twice

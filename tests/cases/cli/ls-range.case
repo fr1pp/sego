@@ -1,5 +1,5 @@
 # A range revision is only valid in log and diff; no request is made.
-args: ls github.com/x/y@a..b:src
+args: ls example.com/acme/widget@a..b:src
 exit: 2
 --- stderr
 sego: error: a range is only valid in log (A..B) and diff (A...B): a..b
