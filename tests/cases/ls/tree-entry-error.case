@@ -1,9 +1,9 @@
 # A listing with an error beneath the tree is not used.
-args: ls example.com/handwritten/partial@v3.0.0:docs
+args: ls example.com/acme/partial@v3.0.0:docs
 exit: 1
 --- stderr
 sego: error: Sourcegraph failed to answer the directory listing
---- request ListTree {"parent_0":"","path_0":"docs","recursive_0":false,"repo0":"example.com/handwritten/partial","rev0":"v3.0.0"}
+--- request ListTree {"parent_0":"","path_0":"docs","recursive_0":false,"repo0":"example.com/acme/partial","rev0":"v3.0.0"}
 --- query
 query ListTree($repo0: String!, $rev0: String!, $path_0: String!, $recursive_0: Boolean!, $parent_0: String!) {
   r0: repository(name: $repo0) {
@@ -45,7 +45,7 @@ query ListTree($repo0: String!, $rev0: String!, $path_0: String!, $recursive_0: 
       "defaultBranch": {
         "displayName": "main"
       },
-      "name": "example.com/handwritten/partial"
+      "name": "example.com/acme/partial"
     }
   },
   "errors": [

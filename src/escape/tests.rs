@@ -1,13 +1,15 @@
 use std::borrow::Cow;
 
-use sego::internal::escape::{
-    CUT_COLUMNS, escape, is_unsafe, one_line, render_line, strip_cr,
-};
+use super::{CUT_COLUMNS, escape, is_unsafe, one_line, render_line, strip_cr};
 
 const FAMILY: &str = "👨\u{200d}👩\u{200d}👧";
 
+fn tail(hidden: usize) -> String {
+    format!("… (+{hidden} more columns; --json has the full line)")
+}
+
 #[test]
-fn unsafe_set() {
+fn controls_separators_and_invisible_characters_are_unsafe() {
     let cases = [
         ('\u{1b}', true),
         ('\u{7f}', true),
@@ -29,7 +31,7 @@ fn unsafe_set() {
 }
 
 #[test]
-fn escape_forms() {
+fn an_unsafe_character_is_written_as_a_unicode_escape() {
     let cases = [
         ("a\u{1b}[0m", "a\\u{1b}[0m"),
         ("\u{202e}x", "\\u{202e}x"),
@@ -38,11 +40,15 @@ fn escape_forms() {
     for (input, expected) in cases {
         assert_eq!(escape(input), expected, "{input:?}");
     }
+}
+
+#[test]
+fn text_with_nothing_unsafe_is_returned_as_it_is() {
     assert!(matches!(escape("plain"), Cow::Borrowed("plain")));
 }
 
 #[test]
-fn one_line_forms() {
+fn a_line_break_becomes_a_space_and_a_lone_carriage_return_is_escaped() {
     let cases = [
         ("a\r\nb", "a b"),
         ("a\nb", "a b"),
@@ -55,7 +61,7 @@ fn one_line_forms() {
 }
 
 #[test]
-fn strip_cr_forms() {
+fn one_trailing_carriage_return_is_split_off() {
     let cases =
         [("a\r", ("a", true)), ("a", ("a", false)), ("a\r\r", ("a\r", true))];
     for (input, expected) in cases {
@@ -63,12 +69,8 @@ fn strip_cr_forms() {
     }
 }
 
-fn tail(hidden: usize) -> String {
-    format!("… (+{hidden} more columns; --json has the full line)")
-}
-
 #[test]
-fn cut() {
+fn a_line_is_cut_past_500_columns_around_the_focus() {
     assert_eq!(CUT_COLUMNS, 500);
 
     let focus_550 = format!("{}Y{}", "x".repeat(550), "x".repeat(49));
@@ -115,7 +117,7 @@ fn cut() {
 }
 
 #[test]
-fn cut_keeps_emoji_sequences_whole() {
+fn a_cut_keeps_emoji_modifiers_and_flags_whole() {
     let wave = "👋🏽";
     let flag = "🇫🇷";
     let cases = [
@@ -141,7 +143,7 @@ fn cut_keeps_emoji_sequences_whole() {
 }
 
 #[test]
-fn cut_never_splits_a_zwj_sequence() {
+fn a_cut_never_splits_a_zero_width_joiner_sequence() {
     let families = FAMILY.repeat(300);
     let out = render_line(&families, None);
     let kept =
@@ -150,7 +152,7 @@ fn cut_never_splits_a_zwj_sequence() {
 }
 
 #[test]
-fn cut_measures_escaped_text() {
+fn a_cut_measures_the_escaped_text() {
     let line = "\u{1b}".repeat(100);
     let out = render_line(&line, None);
     let expected = format!(
