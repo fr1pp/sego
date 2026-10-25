@@ -2,7 +2,7 @@ use serde_json::{Value, json};
 
 use sego::Reply;
 
-use crate::replay::reply;
+use harness::replay::reply;
 
 pub const SHOW_BIG: [&str; 3] = ["show", "example.com/x/y@main:big.c", "1-5"];
 

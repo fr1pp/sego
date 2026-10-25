@@ -5,7 +5,7 @@ use crate::run::Outcome;
 
 /// What differs between the case's expected exit code, stdout and stderr and
 /// the outcome's.
-pub fn expectations(case: &Case, outcome: &Outcome) -> Vec<String> {
+pub(crate) fn expectations(case: &Case, outcome: &Outcome) -> Vec<String> {
     let mut failures = Vec::new();
     if outcome.exit != case.exit {
         failures.push(format!(

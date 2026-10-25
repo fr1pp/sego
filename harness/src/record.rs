@@ -13,11 +13,9 @@ use crate::case::{
 use crate::replay::Replay;
 use crate::run;
 
-module_tests!();
-
 /// Forwards the requests a case has no response for to an upstream and turns
 /// the replies into recorded exchanges.
-pub struct Recorder {
+pub(crate) struct Recorder {
     upstream: Box<dyn Transport>,
     stamp: Stamp,
 }
@@ -25,19 +23,19 @@ pub struct Recorder {
 /// An exchange as recorded. A raw read's body is kept apart from the
 /// exchange, which holds none.
 #[derive(Clone, Debug)]
-pub struct Recorded {
-    pub exchange: Exchange,
-    pub raw_body: Option<Vec<u8>>,
+pub(crate) struct Recorded {
+    pub(crate) exchange: Exchange,
+    pub(crate) raw_body: Option<Vec<u8>>,
 }
 
 impl Recorder {
-    pub fn new(upstream: Box<dyn Transport>, stamp: Stamp) -> Recorder {
+    pub(crate) fn new(upstream: Box<dyn Transport>, stamp: Stamp) -> Recorder {
         Recorder { upstream, stamp }
     }
 
     /// A recorder that reads from sourcegraph.com, stamped with the date of
     /// `now`.
-    pub fn sourcegraph(now: SystemTime) -> Result<Recorder, String> {
+    pub(crate) fn sourcegraph(now: SystemTime) -> Result<Recorder, String> {
         let endpoint = Endpoint::from_env(None::<&OsStr>)?;
         let stamp = Stamp {
             date: date(now),
@@ -49,7 +47,7 @@ impl Recorder {
 
     /// Sends `request` upstream with `forward` and records the reply. The
     /// error says why the reply was refused.
-    pub fn record(
+    pub(crate) fn record(
         &self,
         request: &Request,
         forward: &dyn Fn(&dyn Transport) -> Result<Reply, TransportError>,
@@ -143,7 +141,10 @@ fn strip(value: &mut Value) {
 /// Runs the case, forwarding what it has no response for, and writes what
 /// was recorded into the case file, and a raw read's body beside it. Nothing
 /// is written if any reply is refused.
-pub fn record_case(case: &mut Case, recorder: Recorder) -> Result<(), String> {
+pub(crate) fn record_case(
+    case: &mut Case,
+    recorder: Recorder,
+) -> Result<(), String> {
     let replay = Replay::recording(case, recorder);
     run::run_with(case, &replay)?;
     write_recorded(case, &replay)
@@ -175,7 +176,7 @@ fn write(path: &std::path::Path, bytes: &[u8]) -> Result<(), String> {
 }
 
 /// The UTC date of `now` as `YYYY-MM-DD`.
-pub fn date(now: SystemTime) -> String {
+pub(crate) fn date(now: SystemTime) -> String {
     let secs = now.duration_since(UNIX_EPOCH).map_or(0, |d| d.as_secs());
     let days = i64::try_from(secs / 86_400).unwrap_or(0) + 719_468;
     let era = days.div_euclid(146_097);
@@ -192,3 +193,6 @@ pub fn date(now: SystemTime) -> String {
     let year = year_of_era + era * 400 + i64::from(month <= 2);
     format!("{year:04}-{month:02}-{day:02}")
 }
+
+#[cfg(test)]
+mod tests;

@@ -12,19 +12,18 @@ use sego::{Endpoint, Reply, Transport, TransportError};
 use crate::case::{Case, Exchange, Request, Served};
 use crate::drift::{digest, drift};
 
-module_tests!();
-
 const GRAPHQL_PATH: &str = "/.api/graphql";
 const DEADLINE: Duration = Duration::from_secs(90);
 
 /// How `check` reaches the server a response was recorded from, given the
 /// endpoint in its stamp.
-pub type Connect<'a> = &'a dyn Fn(&str) -> Result<Box<dyn Transport>, String>;
+pub(crate) type Connect<'a> =
+    &'a dyn Fn(&str) -> Result<Box<dyn Transport>, String>;
 
 /// What differs between the case's recorded responses and what the server
 /// answers to the same requests now. A response without a stamp is not sent
 /// for.
-pub fn check(case: &Case, connect: Connect) -> Vec<String> {
+pub(crate) fn check(case: &Case, connect: Connect) -> Vec<String> {
     let mut failures = Vec::new();
     for (i, exchange) in case.exchanges.iter().enumerate() {
         let Some(stamp) = &exchange.response.stamp else { continue };
@@ -130,7 +129,7 @@ static BLOCKED: AtomicBool = AtomicBool::new(false);
 /// The real transport to a recording's endpoint, spaced a second apart from
 /// the last request of any case, and refusing every request once
 /// sourcegraph.com has blocked one.
-pub fn connect(endpoint: &str) -> Result<Box<dyn Transport>, String> {
+pub(crate) fn connect(endpoint: &str) -> Result<Box<dyn Transport>, String> {
     let endpoint = Endpoint::from_env(Some(OsStr::new(endpoint)))?;
     Ok(Box::new(Paced(sego::connect(endpoint))))
 }
@@ -186,3 +185,6 @@ impl Transport for Paced {
         watch(self.0.get(path, deadline))
     }
 }
+
+#[cfg(test)]
+mod tests;

@@ -6,44 +6,42 @@ use serde_json::Value;
 
 use crate::shell;
 
-module_tests!();
-
 /// A case file: its header, its expected answer and its exchanges. The file's
 /// text is kept as it was read, so a rewrite touches only the parts it owns.
 #[derive(Debug)]
-pub struct Case {
-    pub path: PathBuf,
-    pub args: Vec<Vec<u8>>,
-    pub env: Vec<(String, String)>,
-    pub exit: i32,
-    pub stdout_closed: bool,
-    pub stdout: String,
-    pub stderr: String,
-    pub exchanges: Vec<Exchange>,
+pub(crate) struct Case {
+    pub(crate) path: PathBuf,
+    pub(crate) args: Vec<Vec<u8>>,
+    pub(crate) env: Vec<(String, String)>,
+    pub(crate) exit: i32,
+    pub(crate) stdout_closed: bool,
+    pub(crate) stdout: String,
+    pub(crate) stderr: String,
+    pub(crate) exchanges: Vec<Exchange>,
     document: Document,
 }
 
 /// A request sego sends and the response it gets. A response written alone
 /// has no request.
 #[derive(Clone, Debug, PartialEq)]
-pub struct Exchange {
-    pub request: Option<Request>,
-    pub response: Response,
+pub(crate) struct Exchange {
+    pub(crate) request: Option<Request>,
+    pub(crate) response: Response,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Request {
+pub(crate) enum Request {
     Graphql { operation: String, variables: Value, query: String },
     Raw { method: String, path: String },
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Response {
-    pub served: Served,
-    pub stamp: Option<Stamp>,
+pub(crate) struct Response {
+    pub(crate) served: Served,
+    pub(crate) stamp: Option<Stamp>,
     /// The text under the response line; empty for a raw read, whose body is
     /// the case's `.body` file.
-    pub body: String,
+    pub(crate) body: String,
 }
 
 impl Response {
@@ -87,22 +85,22 @@ impl Response {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Served {
+pub(crate) enum Served {
     Reply { status: u16, content_type: Option<String>, headers: Headers },
     Fault(Fault),
 }
 
 /// The response headers besides the content type that sego reads.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct Headers {
-    pub location: Option<String>,
-    pub retry_after: Option<String>,
-    pub cf_mitigated: Option<String>,
+pub(crate) struct Headers {
+    pub(crate) location: Option<String>,
+    pub(crate) retry_after: Option<String>,
+    pub(crate) cf_mitigated: Option<String>,
 }
 
 /// A way the transport fails, written as the response line.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Fault {
+pub(crate) enum Fault {
     Network,
     Redirect,
     HtmlChallenge,
@@ -111,20 +109,20 @@ pub enum Fault {
 /// When and where a response was recorded, and whether `just live` compares
 /// its values and not only its shape.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Stamp {
-    pub date: String,
-    pub endpoint: String,
-    pub live_values: bool,
+pub(crate) struct Stamp {
+    pub(crate) date: String,
+    pub(crate) endpoint: String,
+    pub(crate) live_values: bool,
 }
 
-pub fn normalise(query: &str) -> String {
+pub(crate) fn normalise(query: &str) -> String {
     query.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
 impl Request {
     /// Whether `other` is the same request: the same operation and variables
     /// and the same query up to whitespace, or the same raw read.
-    pub fn same_as(&self, other: &Request) -> bool {
+    pub(crate) fn same_as(&self, other: &Request) -> bool {
         match (self, other) {
             (
                 Request::Graphql { operation, variables, query },
@@ -147,7 +145,7 @@ impl Request {
     }
 
     /// The request as text for a failure message.
-    pub fn describe(&self) -> String {
+    pub(crate) fn describe(&self) -> String {
         match self {
             Request::Graphql { operation, variables, query } => {
                 format!("{operation} {variables}\n{}", normalise(query))
@@ -207,7 +205,7 @@ enum Marker<'a> {
 }
 
 /// Whether `line` starts a section of a case file.
-pub fn is_marker(line: &str) -> bool {
+pub(crate) fn is_marker(line: &str) -> bool {
     marker(line).is_some()
 }
 
@@ -358,7 +356,7 @@ impl Document {
 }
 
 impl Case {
-    pub fn parse(text: &str, path: &Path) -> Result<Case, String> {
+    pub(crate) fn parse(text: &str, path: &Path) -> Result<Case, String> {
         let document = Document::parse(text);
         let mut args = None;
         let mut env = Vec::new();
@@ -406,7 +404,7 @@ impl Case {
         })
     }
 
-    pub fn load(path: &Path) -> Result<Case, String> {
+    pub(crate) fn load(path: &Path) -> Result<Case, String> {
         let text = fs::read_to_string(path)
             .map_err(|e| format!("{}: {e}", path.display()))?;
         Case::parse(&text, path)
@@ -414,12 +412,12 @@ impl Case {
     }
 
     /// The file's text, byte for byte as it was read or last blessed.
-    pub fn to_text(&self) -> String {
+    pub(crate) fn to_text(&self) -> String {
         self.document.render()
     }
 
     /// Where the bodies of this case's raw reads are kept.
-    pub fn body_path(&self) -> PathBuf {
+    pub(crate) fn body_path(&self) -> PathBuf {
         self.path.with_extension("body")
     }
 
@@ -427,7 +425,7 @@ impl Case {
     /// the request and query of each exchange without a recording stamp, to
     /// what a run produced. A recorded exchange whose request changed is an
     /// error and nothing is rewritten.
-    pub fn bless(
+    pub(crate) fn bless(
         &mut self,
         exit: i32,
         stdout: Option<&str>,
@@ -479,7 +477,7 @@ impl Case {
     /// Writes `exchange` as exchange number `at` (counting from 0): in place
     /// of the one there, or after the last when `at` is one past it. The rest
     /// of the file is kept as it was.
-    pub fn set_exchange(
+    pub(crate) fn set_exchange(
         &mut self,
         at: usize,
         exchange: &Exchange,
@@ -679,3 +677,6 @@ fn split_headers(line: &str) -> Result<(&str, Headers), String> {
     }
     Ok((line[..start].trim(), headers))
 }
+
+#[cfg(test)]
+mod tests;

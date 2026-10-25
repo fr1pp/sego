@@ -5,7 +5,7 @@ use crate::run::Outcome;
 
 /// The checks every case gets: at most one GraphQL request and one raw read,
 /// no request on a usage error, and no note or error line ending in a period.
-pub fn every_case(outcome: &Outcome) -> Vec<String> {
+pub(crate) fn every_case(outcome: &Outcome) -> Vec<String> {
     let mut failures = Vec::new();
     let graphql = outcome
         .sent
@@ -46,7 +46,7 @@ fn ends_in_a_period(line: &str) -> Option<String> {
 }
 
 /// A request with no exchange left, and exchanges that went unused.
-pub fn exchanges_used(case: &Case, outcome: &Outcome) -> Vec<String> {
+pub(crate) fn exchanges_used(case: &Case, outcome: &Outcome) -> Vec<String> {
     let mut failures = Vec::new();
     for (i, request) in outcome.sent.iter().enumerate() {
         if i >= case.exchanges.len() {
@@ -73,7 +73,7 @@ pub fn exchanges_used(case: &Case, outcome: &Outcome) -> Vec<String> {
 
 /// Each request sent against the exchange written for it, both shown when
 /// they differ.
-pub fn requests_match(case: &Case, outcome: &Outcome) -> Vec<String> {
+pub(crate) fn requests_match(case: &Case, outcome: &Outcome) -> Vec<String> {
     let mut failures = Vec::new();
     for (i, (sent, exchange)) in
         outcome.sent.iter().zip(&case.exchanges).enumerate()
@@ -102,4 +102,5 @@ pub fn requests_match(case: &Case, outcome: &Outcome) -> Vec<String> {
     failures
 }
 
-module_tests!();
+#[cfg(test)]
+mod tests;

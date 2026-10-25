@@ -3,7 +3,7 @@ use std::process::ExitCode;
 
 use sego::{Endpoint, Env, Transport, run};
 
-use crate::replay::Replay;
+use harness::replay::Replay;
 
 /// What one invocation of `run` wrote and returned.
 pub struct Ran {

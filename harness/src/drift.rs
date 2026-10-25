@@ -4,8 +4,6 @@ use std::hash::{Hash, Hasher};
 
 use serde_json::Value;
 
-module_tests!();
-
 const TRANSIENT: [&str; 3] =
     ["elapsedMilliseconds", "requestId", "extensions"];
 
@@ -15,7 +13,11 @@ type Shape = BTreeMap<String, BTreeSet<&'static str>>;
 /// are not drift and an error at a path the recording has none at is; list
 /// elements share one shape. With `values`, the values must also be equal,
 /// whatever the order of the errors.
-pub fn drift(recorded: &Value, live: &Value, values: bool) -> Option<String> {
+pub(crate) fn drift(
+    recorded: &Value,
+    live: &Value,
+    values: bool,
+) -> Option<String> {
     let (mut recorded, mut live) = (recorded.clone(), live.clone());
     for value in [&mut recorded, &mut live] {
         without_transient(value);
@@ -35,7 +37,7 @@ pub fn drift(recorded: &Value, live: &Value, values: bool) -> Option<String> {
 }
 
 /// A short stand-in for a body too large to show.
-pub fn digest(bytes: &[u8]) -> String {
+pub(crate) fn digest(bytes: &[u8]) -> String {
     let mut hasher = DefaultHasher::new();
     bytes.hash(&mut hasher);
     format!("{} bytes, hash {:016x}", bytes.len(), hasher.finish())
@@ -208,3 +210,6 @@ fn new_error_path(recorded: &Value, live: &Value) -> Option<String> {
     let known = error_paths(recorded);
     error_paths(live).into_iter().find(|path| !known.contains(path))
 }
+
+#[cfg(test)]
+mod tests;

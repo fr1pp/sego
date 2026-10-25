@@ -6,7 +6,7 @@ use sego::TransportError;
 
 use crate::envelope::{SHOW_BIG, json_reply, over_the_content_limit};
 use crate::invocation::sego;
-use crate::replay::{Replay, reply};
+use harness::replay::{Replay, reply};
 
 const CLIENT_DEADLINE: Duration = Duration::from_secs(90);
 

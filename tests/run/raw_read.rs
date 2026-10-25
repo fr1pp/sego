@@ -5,7 +5,7 @@ use sego::TransportError;
 
 use crate::envelope::{SHOW_BIG, json_reply, over_the_content_limit};
 use crate::invocation::sego;
-use crate::replay::Replay;
+use harness::replay::Replay;
 
 #[test]
 fn a_raw_read_that_passes_the_client_deadline_writes_only_its_error() {

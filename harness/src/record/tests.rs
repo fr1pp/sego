@@ -121,7 +121,8 @@ fn record(
 #[test]
 fn a_request_with_no_exchange_is_forwarded_and_written_with_its_stamp() {
     let written = Written::new(NEW_CASE);
-    let (result, calls) = record(&written, vec![reply(200, JSON, SERVER_JSON)]);
+    let (result, calls) =
+        record(&written, vec![reply(200, JSON, SERVER_JSON)]);
     result.unwrap_or_else(|e| panic!("{e}"));
     assert_eq!(*calls.borrow(), ["POST /.api/graphql"]);
     let text = written.text();
@@ -185,7 +186,8 @@ fn a_recorded_exchange_whose_request_changed_is_recorded_again() {
     let stale =
         written.text().replace("example.com/a/b\"}", "example.com/c/d\"}");
     fs::write(&written.path, &stale).unwrap_or_else(|e| panic!("{e}"));
-    let (result, calls) = record(&written, vec![reply(200, JSON, SERVER_JSON)]);
+    let (result, calls) =
+        record(&written, vec![reply(200, JSON, SERVER_JSON)]);
     result.unwrap_or_else(|e| panic!("{e}"));
     assert_eq!(calls.borrow().len(), 1);
     assert_eq!(written.case().exchanges.len(), 1);
@@ -254,7 +256,8 @@ fn refused_replies_fail_with_the_status_and_write_nothing() {
 #[test]
 fn a_bad_request_reply_is_kept() {
     let written = Written::new(NEW_CASE);
-    let (result, _) = record(&written, vec![reply(400, JSON, "{\"errors\": []}")]);
+    let (result, _) =
+        record(&written, vec![reply(400, JSON, "{\"errors\": []}")]);
     result.unwrap_or_else(|e| panic!("{e}"));
     let case = written.case();
     assert_eq!(
@@ -282,7 +285,8 @@ fn a_reply_that_is_not_json_is_kept_as_text() {
 #[test]
 fn a_reply_with_a_line_that_starts_a_section_is_refused() {
     let written = Written::new(NEW_CASE);
-    let (result, _) = record(&written, vec![reply(400, JSON, "oops\n--- stdout\n")]);
+    let (result, _) =
+        record(&written, vec![reply(400, JSON, "oops\n--- stdout\n")]);
     assert!(result.is_err());
     assert_eq!(written.text(), NEW_CASE);
 }
@@ -334,7 +338,10 @@ fn nothing_is_written_when_a_later_request_is_refused() {
     let written = Written::new("args: x\nexit: 0\n");
     let (replay, calls) = replay_of(
         &written,
-        vec![reply(200, JSON, SERVER_JSON), reply(502, JSON, "upstream says no")],
+        vec![
+            reply(200, JSON, SERVER_JSON),
+            reply(502, JSON, "upstream says no"),
+        ],
     );
     let body = json!({"operationName": "Op", "variables": {}, "query": "q"});
     replay

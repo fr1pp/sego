@@ -10,14 +10,12 @@ use sego::{Endpoint, Env, Transport, run};
 use crate::case::{Case, Request};
 use crate::replay::Replay;
 
-module_tests!();
-
-pub struct Outcome {
-    pub exit: i32,
-    pub stdout: String,
-    pub stderr: String,
-    pub sent: Vec<Request>,
-    pub problems: Vec<String>,
+pub(crate) struct Outcome {
+    pub(crate) exit: i32,
+    pub(crate) stdout: String,
+    pub(crate) stderr: String,
+    pub(crate) sent: Vec<Request>,
+    pub(crate) problems: Vec<String>,
 }
 
 /// A writer for a closed stdout pipe.
@@ -36,12 +34,15 @@ impl Write for Closed {
 /// Runs the case's command line in-process against a replay of its
 /// exchanges, with an empty cache directory of its own unless the case sets
 /// `SEGO_CACHE_DIR`.
-pub fn run_case(case: &Case) -> Result<Outcome, String> {
+pub(crate) fn run_case(case: &Case) -> Result<Outcome, String> {
     run_with(case, &Replay::new(case))
 }
 
 /// Runs the case's command line in-process through `replay`.
-pub fn run_with(case: &Case, replay: &Replay) -> Result<Outcome, String> {
+pub(crate) fn run_with(
+    case: &Case,
+    replay: &Replay,
+) -> Result<Outcome, String> {
     let cache = TempDir::new().map_err(|e| format!("cache directory: {e}"))?;
     let mut endpoint = None;
     let mut cache_dir = cache.path().as_os_str().to_owned();
@@ -79,3 +80,6 @@ fn exit_code(code: ExitCode) -> Result<i32, String> {
         .map(i32::from)
         .ok_or_else(|| "run returned an unknown exit code".to_owned())
 }
+
+#[cfg(test)]
+mod tests;
