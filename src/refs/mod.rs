@@ -305,3 +305,6 @@ fn listing(
     }
     Ok(Listing { total, rows })
 }
+
+#[cfg(test)]
+mod tests;

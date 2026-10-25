@@ -58,3 +58,6 @@ pub enum Marker {
     Match,
     Context,
 }
+
+#[cfg(test)]
+mod tests;

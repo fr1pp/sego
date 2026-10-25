@@ -1,0 +1,65 @@
+# A submodule with no commit prints its target without a revision.
+args: ls example.com/acme/shell@d81fd54feb0d996fdff20dca27eaf0201f7015cc:contrib
+exit: 0
+--- stdout
+example.com/acme/shell@d81fd54feb0d:contrib  1 entry  1 submodule
+submodule  contrib  example.com/acme/contrib
+--- request ListTree {"parent_0":"","path_0":"contrib","recursive_0":false,"repo0":"example.com/acme/shell","rev0":"d81fd54feb0d996fdff20dca27eaf0201f7015cc"}
+--- query
+query ListTree($repo0: String!, $rev0: String!, $path_0: String!, $recursive_0: Boolean!, $parent_0: String!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    c0: commit(rev: $rev0) {
+      oid
+      tree: tree(path: $path_0) { entries(recursive: $recursive_0) { path isDirectory submodule { url commit } } }
+      file: blob(path: $path_0) { totalLines byteSize binary }
+      parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "file": null,
+        "oid": "d81fd54feb0d996fdff20dca27eaf0201f7015cc",
+        "parent": {
+          "entries": [
+            {
+              "path": "contrib",
+              "submodule": {
+                "commit": "",
+                "url": "../contrib"
+              }
+            }
+          ]
+        },
+        "tree": null
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/shell"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a directory: \"contrib\"",
+      "path": [
+        "r0",
+        "c0",
+        "tree"
+      ]
+    },
+    {
+      "message": "not a blob: \"contrib\"",
+      "path": [
+        "r0",
+        "c0",
+        "file"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+# A missing path is reported before a failed comparison.
+args: diff example.com/acme/widget@v1...v2 nope.go
+exit: 1
+--- stderr
+sego: error: nope.go not found in example.com/acme/widget@0123456789ab or @89abcdef0123
+--- request Diff {"a":"v1","b":"v2","path0":"nope.go","paths":["nope.go"],"repo0":"example.com/acme/widget"}
+--- query
+query Diff($repo0: String!, $a: String!, $b: String!, $paths: [String!], $path0: String!) {
+  a0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $a) { oid p0: path(path: $path0) { __typename } }
+  }
+  b0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $b) { oid parents { oid } p0: path(path: $path0) { __typename } }
+  }
+  c0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    comparison(base: $a, head: $b) {
+    all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 201, paths: $paths) { nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } } }
+    patch: fileDiffs(paths: $paths) { rawDiff }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "0123456789abcdef0123456789abcdef01234567",
+        "p0": null
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "b0": {
+      "commit": {
+        "oid": "89abcdef0123456789abcdef0123456789abcdef",
+        "p0": null,
+        "parents": [
+          {
+            "oid": "0123456789abcdef0123456789abcdef01234567"
+          }
+        ]
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "c0": null
+  },
+  "errors": [
+    {
+      "message": "x",
+      "path": [
+        "c0",
+        "comparison"
+      ]
+    }
+  ]
+}

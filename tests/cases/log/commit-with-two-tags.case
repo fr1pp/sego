@@ -1,0 +1,265 @@
+# A commit with two tags is marked with both.
+args: log github.com/gorilla/context@v1.1.1..v1.1.2
+exit: 0
+--- stdout
+github.com/gorilla/context@08b5f424b927..6a490e2f9d52  9 commits  rev v1.1.1..v1.1.2
+6a490e2f9d52  2023-10-18  Corey Daley  (tag: v2.0.0, tag: v1.1.2) Updating github actions workflows to test 1.20 and 1.21 (#45)
+a45ea70b19f4  2023-09-22  Corey Daley  Updating Go version and Github Actions (#44)
+1cbd4c16de64  2023-07-31  Corey Daley  Update go version, add tools for verification and testing (#43)
+39a447022b01  2023-07-15  Corey Daley  Merge pull request #41 from gorilla/coreydaley-patch-1
+a01379df10af  2023-07-15  Corey Daley  Update README.md
+8559d4a6b87e  2019-06-27  Matt Silverlock  Update README.md (#40)
+dc31bb267b79  2019-06-27  Matt Silverlock  Create config.yml (#39)
+30a41ee8e7bf  2019-06-27  Matt Silverlock  Update README.md (#38)
+51ce91d2eadd  2018-10-12  Kamil Kisiel  README.md: Update site URL
+--- request Log {"a":"v1.1.1","b":"v1.1.2","path":null,"repo0":"github.com/gorilla/context"}
+--- query
+query Log($repo0: String!, $a: String!, $b: String!, $path: String) {
+  a0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $a) { oid }
+  }
+  b0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $b) { oid }
+  }
+  n0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $b) { behindAhead(revspec: $a) { ahead } }
+  }
+  c0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    comparison(base: $a, head: $b) { commits(first: 151, path: $path) { nodes { oid subject author { date person { displayName } } parents { oid } } pageInfo { hasNextPage } } }
+  }
+  t0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
+  }
+}
+--- response 200 application/json recorded 2026-10-25 https://sourcegraph.com live: values
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/context"
+    },
+    "b0": {
+      "commit": {
+        "oid": "6a490e2f9d5230449188a699ba53618c3364b26d"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/context"
+    },
+    "c0": {
+      "comparison": {
+        "commits": {
+          "nodes": [
+            {
+              "author": {
+                "date": "2023-10-18T00:46:33Z",
+                "person": {
+                  "displayName": "Corey Daley"
+                }
+              },
+              "oid": "6a490e2f9d5230449188a699ba53618c3364b26d",
+              "parents": [
+                {
+                  "oid": "a45ea70b19f4801253061c655e1adf2b9f921118"
+                }
+              ],
+              "subject": "Updating github actions workflows to test 1.20 and 1.21 (#45)"
+            },
+            {
+              "author": {
+                "date": "2023-09-22T07:20:52Z",
+                "person": {
+                  "displayName": "Corey Daley"
+                }
+              },
+              "oid": "a45ea70b19f4801253061c655e1adf2b9f921118",
+              "parents": [
+                {
+                  "oid": "1cbd4c16de64273a6e63fc710b0d89bfad72cd32"
+                }
+              ],
+              "subject": "Updating Go version and Github Actions (#44)"
+            },
+            {
+              "author": {
+                "date": "2023-07-31T15:42:59Z",
+                "person": {
+                  "displayName": "Corey Daley"
+                }
+              },
+              "oid": "1cbd4c16de64273a6e63fc710b0d89bfad72cd32",
+              "parents": [
+                {
+                  "oid": "39a447022b01f56854e149ad5cf747a55e329789"
+                }
+              ],
+              "subject": "Update go version, add tools for verification and testing (#43)"
+            },
+            {
+              "author": {
+                "date": "2023-07-15T20:06:42Z",
+                "person": {
+                  "displayName": "Corey Daley"
+                }
+              },
+              "oid": "39a447022b01f56854e149ad5cf747a55e329789",
+              "parents": [
+                {
+                  "oid": "8559d4a6b87e4f517ec1846eb90a192b8748cc89"
+                },
+                {
+                  "oid": "a01379df10af3e69dd7f416e462e04b65c3d4071"
+                }
+              ],
+              "subject": "Merge pull request #41 from gorilla/coreydaley-patch-1"
+            },
+            {
+              "author": {
+                "date": "2023-07-15T14:50:55Z",
+                "person": {
+                  "displayName": "Corey Daley"
+                }
+              },
+              "oid": "a01379df10af3e69dd7f416e462e04b65c3d4071",
+              "parents": [
+                {
+                  "oid": "8559d4a6b87e4f517ec1846eb90a192b8748cc89"
+                }
+              ],
+              "subject": "Update README.md"
+            },
+            {
+              "author": {
+                "date": "2019-06-27T02:46:05Z",
+                "person": {
+                  "displayName": "Matt Silverlock"
+                }
+              },
+              "oid": "8559d4a6b87e4f517ec1846eb90a192b8748cc89",
+              "parents": [
+                {
+                  "oid": "dc31bb267b7960f818abb4c4ec6e61d7932864bb"
+                }
+              ],
+              "subject": "Update README.md (#40)"
+            },
+            {
+              "author": {
+                "date": "2019-06-27T02:44:13Z",
+                "person": {
+                  "displayName": "Matt Silverlock"
+                }
+              },
+              "oid": "dc31bb267b7960f818abb4c4ec6e61d7932864bb",
+              "parents": [
+                {
+                  "oid": "30a41ee8e7bff21403ce7f0965679ad336646e98"
+                }
+              ],
+              "subject": "Create config.yml (#39)"
+            },
+            {
+              "author": {
+                "date": "2019-06-27T02:43:38Z",
+                "person": {
+                  "displayName": "Matt Silverlock"
+                }
+              },
+              "oid": "30a41ee8e7bff21403ce7f0965679ad336646e98",
+              "parents": [
+                {
+                  "oid": "51ce91d2eaddeca0ef29a71d766bb3634dadf729"
+                }
+              ],
+              "subject": "Update README.md (#38)"
+            },
+            {
+              "author": {
+                "date": "2018-10-12T15:35:48Z",
+                "person": {
+                  "displayName": "Kamil Kisiel"
+                }
+              },
+              "oid": "51ce91d2eaddeca0ef29a71d766bb3634dadf729",
+              "parents": [
+                {
+                  "oid": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
+                }
+              ],
+              "subject": "README.md: Update site URL"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/context"
+    },
+    "n0": {
+      "commit": {
+        "behindAhead": {
+          "ahead": 9
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/context"
+    },
+    "t0": {
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "gitRefs": {
+        "nodes": [
+          {
+            "displayName": "v2.0.0",
+            "target": {
+              "oid": "6a490e2f9d5230449188a699ba53618c3364b26d"
+            }
+          },
+          {
+            "displayName": "v1.1.2",
+            "target": {
+              "oid": "6a490e2f9d5230449188a699ba53618c3364b26d"
+            }
+          },
+          {
+            "displayName": "v1.1.1",
+            "target": {
+              "oid": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
+            }
+          },
+          {
+            "displayName": "v1.1",
+            "target": {
+              "oid": "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
+            }
+          }
+        ],
+        "totalCount": 4
+      },
+      "name": "github.com/gorilla/context"
+    }
+  }
+}

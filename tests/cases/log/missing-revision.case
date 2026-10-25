@@ -1,0 +1,132 @@
+# A revision that does not exist is an error.
+args: log github.com/gorilla/mux@v9.9.9
+exit: 1
+--- stderr
+sego: error: revision v9.9.9 not found in github.com/gorilla/mux
+--- request Log {"path":null,"repo0":"github.com/gorilla/mux","rev":"v9.9.9"}
+--- query
+query Log($repo0: String!, $rev: String!, $path: String) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $rev) { oid ancestors(first: 151, path: $path) { nodes { oid subject author { date person { displayName } } parents { oid } } pageInfo { hasNextPage } } }
+  }
+  t0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
+  }
+}
+--- response 200 application/json recorded 2026-10-25 https://sourcegraph.com live: values
+{
+  "data": {
+    "r0": {
+      "commit": null,
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    },
+    "t0": {
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "gitRefs": {
+        "nodes": [
+          {
+            "displayName": "v1.8.1",
+            "target": {
+              "oid": "b4617d0b9670ad14039b2739167fd35a60f557c5"
+            }
+          },
+          {
+            "displayName": "v1.8.0",
+            "target": {
+              "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+            }
+          },
+          {
+            "displayName": "v1.7.4",
+            "target": {
+              "oid": "75dcda0896e109a2a22c9315bca3bb21b87b2ba5"
+            }
+          },
+          {
+            "displayName": "v1.7.3",
+            "target": {
+              "oid": "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15"
+            }
+          },
+          {
+            "displayName": "v1.7.2",
+            "target": {
+              "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+            }
+          },
+          {
+            "displayName": "v1.7.1",
+            "target": {
+              "oid": "c5c6c98bc25355028a63748a498942a6398ccd22"
+            }
+          },
+          {
+            "displayName": "v1.7.0",
+            "target": {
+              "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+            }
+          },
+          {
+            "displayName": "v1.6.2",
+            "target": {
+              "oid": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+            }
+          },
+          {
+            "displayName": "v1.6.1",
+            "target": {
+              "oid": "53c1911da2b537f792e7cafcb446b05ffe33b996"
+            }
+          },
+          {
+            "displayName": "v1.6.0",
+            "target": {
+              "oid": "7f08801859139f86dfafd1c296e2cba9a80d292e"
+            }
+          },
+          {
+            "displayName": "v1.5.0",
+            "target": {
+              "oid": "24fca303ac6da784b9e8269f724ddeb0b2eea5e7"
+            }
+          },
+          {
+            "displayName": "v1.4.0",
+            "target": {
+              "oid": "bcd8bc72b08df0f70df986b97f95590779502d31"
+            }
+          },
+          {
+            "displayName": "v1.3.0",
+            "target": {
+              "oid": "392c28fe23e1c45ddba891b0320b3b5df220beea"
+            }
+          },
+          {
+            "displayName": "v1.2.0",
+            "target": {
+              "oid": "b12896167c61cb7a17ee5f15c2ba0729d78793db"
+            }
+          },
+          {
+            "displayName": "v1.1",
+            "target": {
+              "oid": "0eeaf8392f5b04950925b8a69fe70f110fa7cbfc"
+            }
+          }
+        ],
+        "totalCount": 15
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  }
+}

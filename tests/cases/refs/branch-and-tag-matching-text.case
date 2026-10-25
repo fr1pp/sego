@@ -1,0 +1,55 @@
+# A filter's counts use the singular unit of the unfiltered total.
+args: refs example.com/acme/widget release
+exit: 0
+--- stdout
+example.com/acme/widget  1 of 1 branch match "release"  0 of 1 tag match "release"
+branch  000000000000  2026-01-02  release  (default)
+--- request Refs {"first":101,"query":"release","repo0":"example.com/acme/widget"}
+--- query
+query Refs($repo0: String!, $first: Int!, $query: String) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    branches(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+    tags(first: $first, query: $query) { totalCount nodes { displayName target { oid commit { committer { date } } } } }
+    all_branches: branches(first: 1) { totalCount }
+    all_tags: tags(first: 1) { totalCount }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "all_branches": {
+        "totalCount": 1
+      },
+      "all_tags": {
+        "totalCount": 1
+      },
+      "branches": {
+        "nodes": [
+          {
+            "displayName": "release",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-01-02T03:04:05Z"
+                }
+              },
+              "oid": "0000000000000000000000000000000000000001"
+            }
+          }
+        ],
+        "totalCount": 1
+      },
+      "defaultBranch": {
+        "displayName": "release"
+      },
+      "name": "example.com/acme/widget",
+      "tags": {
+        "nodes": [],
+        "totalCount": 0
+      }
+    }
+  }
+}
