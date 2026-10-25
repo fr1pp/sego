@@ -1,0 +1,81 @@
+# An open range of a raw read ends at a last line with no newline.
+args: show --json example.com/acme/widget@main:big.c 5-
+exit: 0
+--- stdout
+{"repo":"example.com/acme/widget","rev":"main","commit":"d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809","path":"big.c","total_lines":5,"byte_size":2000000,"binary":false,"crlf":false,"lfs_size":null,"submodule":null,"start":5,"end":5,"lines":[{"line":5,"text":"5"}],"via_raw":true}
+--- request ShowFile {"end_0":500005,"parent_0":"","path_0":"big.c","repo0":"example.com/acme/widget","rev0":"main","start_0":5}
+--- query
+query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    c0: commit(rev: $rev0) {
+      oid
+      meta: blob(path: $path_0) { byteSize totalLines binary rawURL lfs { byteSize } }
+      body: blob(path: $path_0) { content(startLine: $start_0, endLine: $end_0, textOnly: true) }
+      dir: tree(path: $path_0) { entries { path } }
+      parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "body": null,
+        "dir": null,
+        "meta": {
+          "binary": false,
+          "byteSize": 2000000,
+          "lfs": null,
+          "rawURL": "/r/example.com/acme/widget@d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809/-/raw/big.c",
+          "totalLines": 5
+        },
+        "oid": "d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809",
+        "parent": {
+          "entries": [
+            {
+              "path": "big.c",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a directory: \"big.c\"",
+      "path": [
+        "r0",
+        "c0",
+        "dir"
+      ]
+    },
+    {
+      "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
+      "path": [
+        "r0",
+        "c0",
+        "body",
+        "content"
+      ]
+    },
+    {
+      "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
+      "path": [
+        "r0",
+        "c0",
+        "meta",
+        "lfs"
+      ]
+    }
+  ]
+}
+--- request GET /r/example.com/acme/widget@d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809/-/raw/big.c
+--- response 200 text/plain; charset=utf-8

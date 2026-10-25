@@ -1,0 +1,342 @@
+# A diff answer under the cap counts its commits, not the highlights the
+# server counted, and is exact.
+args: search 'repo:example.com/app type:diff skipClean count:all'
+exit: 0
+--- stdout
+8 commits  1 repo  0.4 s
+query  repo:example.com/app type:diff skipClean count:all
+
+example.com/app@010101010101  2024-05-06  Ann  change 1
+    f1.go f1.go
+    @@ -1,1 +1,1 @@
+    -old
+    +skipClean
+
+example.com/app@020202020202  2024-05-06  Ann  change 2
+    f2.go f2.go
+    @@ -1,1 +1,1 @@
+    -old
+    +skipClean
+
+example.com/app@030303030303  2024-05-06  Ann  change 3
+    f3.go f3.go
+    @@ -1,1 +1,1 @@
+    -old
+    +skipClean
+
+example.com/app@040404040404  2024-05-06  Ann  change 4
+    f4.go f4.go
+    @@ -1,1 +1,1 @@
+    -old
+    +skipClean
+
+example.com/app@050505050505  2024-05-06  Ann  change 5
+    f5.go f5.go
+    @@ -1,1 +1,1 @@
+    -old
+    +skipClean
+
+example.com/app@060606060606  2024-05-06  Ann  change 6
+    f6.go f6.go
+    @@ -1,1 +1,1 @@
+    -old
+    +skipClean
+
+example.com/app@070707070707  2024-05-06  Ann  change 7
+    f7.go f7.go
+    @@ -1,1 +1,1 @@
+    -old
+    +skipClean
+
+example.com/app@080808080808  2024-05-06  Ann  change 8
+    f8.go f8.go
+    @@ -1,1 +1,1 @@
+    -old
+    +skipClean
+--- request Search {"query":"repo:example.com/app type:diff skipClean count:all"}
+--- query
+query Search($query: String!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "27",
+        "dynamicFilters": [],
+        "elapsedMilliseconds": 400,
+        "limitHit": false,
+        "matchCount": 27,
+        "results": [
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2024-05-06T07:08:09Z",
+                "person": {
+                  "displayName": "Ann"
+                }
+              },
+              "oid": "0101010101010101010101010101010101010101",
+              "repository": {
+                "name": "example.com/app"
+              },
+              "subject": "change 1"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```diff\nf1.go f1.go\n@@ -1,1 +1,1 @@\n-old\n+skipClean\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 1,
+                    "length": 9,
+                    "line": 4
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2024-05-06T07:08:09Z",
+                "person": {
+                  "displayName": "Ann"
+                }
+              },
+              "oid": "0202020202020202020202020202020202020202",
+              "repository": {
+                "name": "example.com/app"
+              },
+              "subject": "change 2"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```diff\nf2.go f2.go\n@@ -1,1 +1,1 @@\n-old\n+skipClean\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 1,
+                    "length": 9,
+                    "line": 4
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2024-05-06T07:08:09Z",
+                "person": {
+                  "displayName": "Ann"
+                }
+              },
+              "oid": "0303030303030303030303030303030303030303",
+              "repository": {
+                "name": "example.com/app"
+              },
+              "subject": "change 3"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```diff\nf3.go f3.go\n@@ -1,1 +1,1 @@\n-old\n+skipClean\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 1,
+                    "length": 9,
+                    "line": 4
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2024-05-06T07:08:09Z",
+                "person": {
+                  "displayName": "Ann"
+                }
+              },
+              "oid": "0404040404040404040404040404040404040404",
+              "repository": {
+                "name": "example.com/app"
+              },
+              "subject": "change 4"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```diff\nf4.go f4.go\n@@ -1,1 +1,1 @@\n-old\n+skipClean\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 1,
+                    "length": 9,
+                    "line": 4
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2024-05-06T07:08:09Z",
+                "person": {
+                  "displayName": "Ann"
+                }
+              },
+              "oid": "0505050505050505050505050505050505050505",
+              "repository": {
+                "name": "example.com/app"
+              },
+              "subject": "change 5"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```diff\nf5.go f5.go\n@@ -1,1 +1,1 @@\n-old\n+skipClean\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 1,
+                    "length": 9,
+                    "line": 4
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2024-05-06T07:08:09Z",
+                "person": {
+                  "displayName": "Ann"
+                }
+              },
+              "oid": "0606060606060606060606060606060606060606",
+              "repository": {
+                "name": "example.com/app"
+              },
+              "subject": "change 6"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```diff\nf6.go f6.go\n@@ -1,1 +1,1 @@\n-old\n+skipClean\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 1,
+                    "length": 9,
+                    "line": 4
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2024-05-06T07:08:09Z",
+                "person": {
+                  "displayName": "Ann"
+                }
+              },
+              "oid": "0707070707070707070707070707070707070707",
+              "repository": {
+                "name": "example.com/app"
+              },
+              "subject": "change 7"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```diff\nf7.go f7.go\n@@ -1,1 +1,1 @@\n-old\n+skipClean\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 1,
+                    "length": 9,
+                    "line": 4
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2024-05-06T07:08:09Z",
+                "person": {
+                  "displayName": "Ann"
+                }
+              },
+              "oid": "0808080808080808080808080808080808080808",
+              "repository": {
+                "name": "example.com/app"
+              },
+              "subject": "change 8"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```diff\nf8.go f8.go\n@@ -1,1 +1,1 @@\n-old\n+skipClean\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 1,
+                    "length": 9,
+                    "line": 4
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}

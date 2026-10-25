@@ -1,0 +1,107 @@
+# A commit record keeps the highlights that fall in the message or diff, and
+# drops the ones before its first line or past its last.
+args: search --json 'repo:example.com/app type:diff foo'
+exit: 0
+--- stdout
+{"query":"repo:example.com/app type:diff foo","pattern_type":"keyword","unit":"commits","count":1,"at_least":false,"stopped":false,"elapsed_ms":100,"limit_ms":20000,"widen":[],"unindexed":null,"alert":null,"results":[{"kind":"commit","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","date":"2024-05-06","author":"Ann","subject":"fix","lines":["old_test.go old_test.go","@@ -263,0 +263,3 @@ x","+a"],"highlights":[[2,1,3]],"preview_limited":false}],"server":{"match_count":4,"approximate_count":"4","limit_hit":false,"timedout":[]}}
+--- request Search {"query":"repo:example.com/app type:diff foo"}
+--- query
+query Search($query: String!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "4",
+        "dynamicFilters": [],
+        "elapsedMilliseconds": 100,
+        "limitHit": false,
+        "matchCount": 4,
+        "results": [
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2024-05-06T07:08:09Z",
+                "person": {
+                  "displayName": "Ann"
+                }
+              },
+              "oid": "0123456789abcdef0123456789abcdef01234567",
+              "repository": {
+                "name": "example.com/app"
+              },
+              "subject": "fix"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```diff\nold_test.go old_test.go\n@@ -263,0 +263,3 @@ x\n+a\n\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 1,
+                    "length": 2,
+                    "line": 3
+                  },
+                  {
+                    "character": 1,
+                    "length": 2,
+                    "line": 4
+                  },
+                  {
+                    "character": 1,
+                    "length": 2,
+                    "line": 0
+                  },
+                  {
+                    "character": 1,
+                    "length": 2,
+                    "line": 40
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "timedout": []
+      }
+    },
+    "unindexed": {
+      "results": {
+        "alert": null,
+        "elapsedMilliseconds": 10,
+        "limitHit": false,
+        "results": [],
+        "timedout": []
+      }
+    }
+  }
+}

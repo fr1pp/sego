@@ -115,6 +115,13 @@ fn empty_content_stays_empty_and_a_final_newline_adds_no_line() {
 }
 
 #[test]
+fn a_message_gets_the_corpus_on_every_line_but_its_fences() {
+    let line = content_corpus();
+    let body = injected(&json!({"text": "```diff\r\nx\r\n+y\n```"}));
+    assert_eq!(body["text"], format!("```diff\r\nx{line}\r\n+y{line}\n```"));
+}
+
+#[test]
 fn an_unsafe_character_other_than_a_newline_is_found() {
     assert!(unsafe_character("stdout", "a\nb\n").is_none());
     for text in

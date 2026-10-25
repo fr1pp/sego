@@ -90,6 +90,8 @@ fn walk(value: &mut Value, key: Option<&str>, asked: &HashSet<String>) {
             }
             if key == Some("content") {
                 *s = in_content(s);
+            } else if key == Some("text") {
+                *s = in_message(s);
             } else if !left_alone(s, asked) {
                 s.push_str(&corpus());
             }
@@ -113,19 +115,31 @@ fn is_number(s: &str) -> bool {
 /// `content` with the content corpus at the end of every line, before any
 /// `\r`, including an unterminated last line.
 fn in_content(content: &str) -> String {
+    in_lines(content, |_| false)
+}
+
+/// A commit message or diff, fenced by lines of backticks, as `in_content`
+/// except for the fences, which sego drops and tells a diff by.
+fn in_message(text: &str) -> String {
+    in_lines(text, |line| line.starts_with("```"))
+}
+
+fn in_lines(text: &str, kept: impl Fn(&str) -> bool) -> String {
     let corpus = content_corpus();
-    let mut out = String::with_capacity(content.len() + corpus.len());
-    for line in content.split_inclusive('\n') {
-        let (text, ending) = match line.strip_suffix('\n') {
-            Some(text) => (text, "\n"),
+    let mut out = String::with_capacity(text.len() + corpus.len());
+    for line in text.split_inclusive('\n') {
+        let (line, ending) = match line.strip_suffix('\n') {
+            Some(line) => (line, "\n"),
             None => (line, ""),
         };
-        let (text, cr) = match text.strip_suffix('\r') {
-            Some(text) => (text, "\r"),
-            None => (text, ""),
+        let (line, cr) = match line.strip_suffix('\r') {
+            Some(line) => (line, "\r"),
+            None => (line, ""),
         };
-        out.push_str(text);
-        out.push_str(&corpus);
+        out.push_str(line);
+        if !kept(line) {
+            out.push_str(&corpus);
+        }
         out.push_str(cr);
         out.push_str(ending);
     }
