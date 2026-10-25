@@ -34,6 +34,11 @@ impl Write for Closed {
 /// Runs the case's command line in-process against a replay of its
 /// exchanges, with an empty cache directory of its own.
 pub fn run_case(case: &Case) -> Result<Outcome, String> {
+    run_with(case, &Replay::new(case))
+}
+
+/// Runs the case's command line in-process through `replay`.
+pub fn run_with(case: &Case, replay: &Replay) -> Result<Outcome, String> {
     let mut endpoint = None;
     for (name, value) in &case.env {
         match name.as_str() {
@@ -45,7 +50,6 @@ pub fn run_case(case: &Case) -> Result<Outcome, String> {
     let env =
         Env { endpoint, cache_dir: Some(cache.path().as_os_str().to_owned()) };
     let args = case.args.iter().cloned().map(OsString::from_vec).collect();
-    let replay = Replay::new(case);
     let handle = replay.clone();
     let connect =
         move |_: Endpoint| -> Box<dyn Transport> { Box::new(handle.clone()) };

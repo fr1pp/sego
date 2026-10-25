@@ -2,7 +2,7 @@ use std::path::Path;
 
 use serde_json::json;
 
-use super::{Case, Fault, Request, Served, Stamp};
+use super::{Case, Exchange, Fault, Request, Response, Served, Stamp};
 
 fn parse(text: &str) -> Case {
     Case::parse(text, Path::new("x.case")).unwrap_or_else(|e| panic!("{e}"))
@@ -430,4 +430,88 @@ fn bless_leaves_a_recorded_exchange_whose_request_is_unchanged() {
     );
     case.bless(0, Some(""), "", &[sent]).unwrap_or_else(|e| panic!("{e}"));
     assert_eq!(case.to_text(), text);
+}
+
+fn recorded(body: &str) -> Exchange {
+    Exchange {
+        request: Some(refs_request("example.com/c/d", "query Refs { r0 }\n")),
+        response: Response {
+            served: Served::Reply {
+                status: 200,
+                content_type: Some("application/json".to_owned()),
+            },
+            stamp: Some(Stamp {
+                date: "2026-10-07".to_owned(),
+                endpoint: "https://sourcegraph.com".to_owned(),
+                live_values: false,
+            }),
+            body: body.to_owned(),
+        },
+    }
+}
+
+#[test]
+fn an_exchange_set_after_the_last_is_appended_and_the_rest_is_kept() {
+    let before = "# unrelated\nargs: x\nexit: 0\n--- stdout\nout\n";
+    let mut case = parse(before);
+    case.set_exchange(0, &recorded("{\n  \"data\": null\n}\n"))
+        .unwrap_or_else(|e| panic!("{e}"));
+    assert_eq!(
+        case.to_text(),
+        format!(
+            "{before}--- request Refs \
+             {{\"first\":101,\"repo0\":\"example.com/c/d\"}}\n--- query\nquery \
+             Refs {{ r0 }}\n--- response 200 application/json recorded \
+             2026-10-07 https://sourcegraph.com\n{{\n  \"data\": null\n}}\n"
+        )
+    );
+    assert_eq!(case.exchanges, [recorded("{\n  \"data\": null\n}\n")]);
+}
+
+#[test]
+fn an_exchange_set_in_place_replaces_only_that_exchange() {
+    let text = format!("{}{EXCHANGE}", with_exchange(""));
+    let mut case = parse(&text);
+    case.set_exchange(0, &recorded("{}\n")).unwrap_or_else(|e| panic!("{e}"));
+    let replaced = case.to_text();
+    assert!(replaced.ends_with(EXCHANGE), "{replaced}");
+    assert!(replaced.starts_with("args: refs example.com/a/b\nexit: 0\n"));
+    assert_eq!(case.exchanges.len(), 2);
+    assert_eq!(case.exchanges[0], recorded("{}\n"));
+}
+
+#[test]
+fn an_exchange_cannot_skip_ahead_or_follow_an_unterminated_file() {
+    let mut case = parse("args: x\nexit: 0\n");
+    assert!(case.set_exchange(1, &recorded("{}\n")).is_err());
+    let mut case = parse("args: x\nexit: 0");
+    assert!(case.set_exchange(0, &recorded("{}\n")).is_err());
+    assert_eq!(case.to_text(), "args: x\nexit: 0");
+}
+
+#[test]
+fn a_raw_read_is_written_with_its_stamp_and_an_empty_body() {
+    let mut case = parse("args: x\nexit: 0\n");
+    let exchange = Exchange {
+        request: Some(Request::Raw {
+            method: "GET".to_owned(),
+            path: "/r/x".to_owned(),
+        }),
+        response: Response {
+            served: Served::Reply { status: 404, content_type: None },
+            stamp: Some(Stamp {
+                date: "2026-10-07".to_owned(),
+                endpoint: "https://sourcegraph.com".to_owned(),
+                live_values: false,
+            }),
+            body: String::new(),
+        },
+    };
+    case.set_exchange(0, &exchange).unwrap_or_else(|e| panic!("{e}"));
+    assert_eq!(
+        case.to_text(),
+        "args: x\nexit: 0\n--- request GET /r/x\n--- response 404 recorded \
+         2026-10-07 https://sourcegraph.com\n"
+    );
+    assert_eq!(case.exchanges, [exchange]);
 }

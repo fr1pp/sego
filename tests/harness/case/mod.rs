@@ -47,6 +47,37 @@ pub struct Response {
     pub body: String,
 }
 
+impl Response {
+    fn marker(&self) -> String {
+        let mut line = match &self.served {
+            Served::Reply { status, content_type } => {
+                let mut line = format!("--- response {status}");
+                if let Some(content_type) = content_type {
+                    let _ = write!(line, " {content_type}");
+                }
+                line
+            }
+            Served::Fault(Fault::Network) => {
+                "--- response network error".to_owned()
+            }
+            Served::Fault(Fault::Redirect) => {
+                "--- response redirect".to_owned()
+            }
+            Served::Fault(Fault::HtmlChallenge) => {
+                "--- response html challenge".to_owned()
+            }
+        };
+        if let Some(Stamp { date, endpoint, live_values }) = &self.stamp {
+            let _ = write!(line, " recorded {date} {endpoint}");
+            if *live_values {
+                line.push_str(" live: values");
+            }
+        }
+        line.push('\n');
+        line
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Served {
     Reply { status: u16, content_type: Option<String> },
@@ -109,6 +140,19 @@ impl Request {
         }
     }
 
+    fn sections(&self) -> Vec<Section> {
+        let mut sections =
+            vec![Section { marker: self.marker(), body: String::new() }];
+        if let Request::Graphql { query, .. } = self {
+            let mut body = query.clone();
+            if !body.ends_with('\n') {
+                body.push('\n');
+            }
+            sections.push(Section { marker: "--- query\n".to_owned(), body });
+        }
+        sections
+    }
+
     fn marker(&self) -> String {
         match self {
             Request::Graphql { operation, variables, .. } => {
@@ -144,6 +188,11 @@ enum Marker<'a> {
     Query,
     Request(&'a str),
     Response(&'a str),
+}
+
+/// Whether `line` starts a section of a case file.
+pub fn is_marker(line: &str) -> bool {
+    marker(line).is_some()
 }
 
 fn marker(line: &str) -> Option<Marker<'_>> {
@@ -259,16 +308,36 @@ impl Document {
         for at in [query_at, request_at].into_iter().flatten() {
             self.sections.remove(at);
         }
-        let mut sections =
-            vec![Section { marker: request.marker(), body: String::new() }];
-        if let Request::Graphql { query, .. } = request {
-            let mut body = query.clone();
-            if !body.ends_with('\n') {
-                body.push('\n');
+        self.sections.splice(first..first, request.sections());
+    }
+
+    /// Writes `exchange` as exchange number `at`: in place of the one there,
+    /// or after the last when `at` is one past it.
+    fn set_exchange(
+        &mut self,
+        at: usize,
+        exchange: &Exchange,
+    ) -> Result<(), String> {
+        let mut sections: Vec<Section> =
+            exchange.request.iter().flat_map(Request::sections).collect();
+        sections.push(Section {
+            marker: exchange.response.marker(),
+            body: exchange.response.body.clone(),
+        });
+        let spans = self.exchange_spans();
+        if let Some(span) = spans.get(at) {
+            let first = span.iter().flatten().min().copied().unwrap_or(0);
+            let last = span[2].unwrap_or(first);
+            self.sections.splice(first..=last, sections);
+        } else if at == spans.len() {
+            if !self.render().is_empty() && !self.render().ends_with('\n') {
+                return Err("the file does not end in a newline".to_owned());
             }
-            sections.push(Section { marker: "--- query\n".to_owned(), body });
+            self.sections.extend(sections);
+        } else {
+            return Err(format!("exchange {} is not next", at + 1));
         }
-        self.sections.splice(first..first, sections);
+        Ok(())
     }
 }
 
@@ -387,6 +456,20 @@ impl Case {
         for i in changed {
             document.set_request(i, &sent[i]);
         }
+        *self = Case::parse(&document.render(), &self.path)?;
+        Ok(())
+    }
+
+    /// Writes `exchange` as exchange number `at` (counting from 0): in place
+    /// of the one there, or after the last when `at` is one past it. The rest
+    /// of the file is kept as it was.
+    pub fn set_exchange(
+        &mut self,
+        at: usize,
+        exchange: &Exchange,
+    ) -> Result<(), String> {
+        let mut document = self.document.clone();
+        document.set_exchange(at, exchange)?;
         *self = Case::parse(&document.render(), &self.path)?;
         Ok(())
     }
