@@ -10,11 +10,11 @@ sends as well as its answer. The runner also checks every case for one request p
 0002), no request on a usage error, and no note or error line ending in a period. One test runs the
 built binary, for what `main` adds.
 
-A recorded response names the endpoint and date it was recorded. Any other response was made for
-its case, for an answer sourcegraph.com can't be made to give on demand, such as a stopped search. A
-search is recorded only when it ran to completion, because cut results vary from run to run. Bless
-rewrites a case's expectations, and the request of an exchange made for the case; a recorded
-exchange whose request changed must be recorded again.
+A response is recorded unless sourcegraph.com can't be made to give it on demand, such as a
+stopped search, and a recorded response names the endpoint and date it was recorded. A search is
+recorded only when it ran to completion, because cut results vary from run to run. Bless rewrites a
+case's expectations, and the request of any exchange that isn't recorded; a recorded exchange whose
+request changed must be recorded again.
 
 `just live` re-sends every recorded request to sourcegraph.com and fails when the response's shape
 changes or new errors appear, or, for a response marked `live: values`, when its values change.
