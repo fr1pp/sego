@@ -2,6 +2,8 @@ use std::cell::RefCell;
 use std::collections::VecDeque;
 use std::time::Instant;
 
+use serde_json::Value;
+
 use super::{Reply, Transport, TransportError};
 
 /// A reply with only the headers a test sets.
@@ -14,6 +16,11 @@ pub fn reply(status: u16, content_type: Option<&str>, body: &str) -> Reply {
         cf_mitigated: None,
         body: body.as_bytes().to_vec(),
     }
+}
+
+/// A 200 reply carrying `body` as JSON.
+pub fn json_reply(body: &Value) -> Reply {
+    reply(200, Some("application/json"), &body.to_string())
 }
 
 pub struct Call {
@@ -37,6 +44,12 @@ impl Script {
             replies: RefCell::new(replies.into()),
             calls: RefCell::new(Vec::new()),
         }
+    }
+
+    /// A transport that answers its one request with `body` as a 200 JSON
+    /// reply.
+    pub fn graphql(body: &Value) -> Script {
+        Script::new(vec![Ok(json_reply(body))])
     }
 
     pub fn named(mut self, host: &str) -> Script {

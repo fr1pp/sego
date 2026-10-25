@@ -36,7 +36,7 @@ fn pretty(map: &serde_json::Map<String, serde_json::Value>) -> String {
 }
 
 #[test]
-fn document_shapes() {
+fn a_plain_address_builds_one_candidate_document() {
     let request =
         build(&toy(), &address("github.com/gorilla/mux@v1.8.0:mux.go"));
     assert_eq!(request.operation, "Toy");
@@ -100,7 +100,7 @@ query Toy($repo0: String!, $repo1: String!, $rev0: String!, $path_0: String!) {
 }
 
 #[test]
-fn document_shapes_for_splits() {
+fn a_slashed_url_revision_builds_a_document_with_a_candidate_per_split() {
     let request = build(
         &toy(),
         &address(
@@ -178,7 +178,7 @@ fn placeholders_are_renamed_whole_word() {
 }
 
 #[test]
-fn candidates_for_splits() {
+fn a_slashed_url_revision_has_a_candidate_per_split() {
     let a = address(
         "https://github.com/bminor/glibc/blob/release/2.34/master/NEWS",
     );
@@ -195,7 +195,7 @@ fn candidates_for_splits() {
 }
 
 #[test]
-fn candidates_for_other_revs() {
+fn an_address_without_a_split_has_one_candidate_and_a_range_has_none() {
     let default = candidates(&address("github.com/a/b:x"));
     assert_eq!(default.len(), 1);
     assert_eq!(default[0].rev, "HEAD");
@@ -367,7 +367,8 @@ fn at(parts: &[&str]) -> Vec<String> {
 }
 
 #[test]
-fn locate_cases() {
+fn located_reads_the_repository_commit_revision_and_path_or_names_what_is_missing()
+ {
     assert_eq!(
         located(&found(), "gorilla/mux@v1.8.0:mux.go"),
         Located {
@@ -448,7 +449,7 @@ fn locate_cases() {
 }
 
 #[test]
-fn locate_splits() {
+fn a_slashed_url_revision_is_located_at_the_split_that_resolves() {
     let split = envelope(
         &json!({"r0": glibc(&json!({
             "c0": resolved("x0", None),
@@ -503,7 +504,7 @@ fn locate_splits() {
 }
 
 #[test]
-fn locate_split_hex() {
+fn hex_and_tilde_split_prefixes_are_located_by_their_ref_lookups() {
     let prefix = envelope(
         &json!({"r0": repository("github.com/o/r", Some("main"), &json!({
             "c0": resolved("x0", Some("GitBlob")),
@@ -531,7 +532,7 @@ fn locate_split_hex() {
 }
 
 #[test]
-fn errors_are_not_missing_things() {
+fn an_error_is_a_failed_lookup_not_a_missing_repository_or_revision() {
     let root = refused(&root_error(), "github.com/gorilla/mux");
     assert!(root.contains(LOOKUP), "{root}");
     assert!(!root.contains("internal git failure"), "{root}");
@@ -567,7 +568,7 @@ fn errors_are_not_missing_things() {
 }
 
 #[test]
-fn empty_repository_through_a_split() {
+fn a_repository_without_commits_is_named_through_a_split_address() {
     let empty = envelope(
         &json!({"r0": repository(
             "github.com/bminor/glibc",
@@ -699,7 +700,7 @@ fn repo_refused(envelope: &Envelope, token: &str) -> String {
 }
 
 #[test]
-fn repository_lookup_errors() {
+fn repository_lookups_name_what_is_missing_or_failed() {
     let none = envelope(&json!({"r0": null, "r1": null}), &[]);
     let blocked = repo_refused(&none, "gorilla/mux");
     assert!(
@@ -832,7 +833,7 @@ fn repo_of(token: &str) -> Repo {
 }
 
 #[test]
-fn repository_roots() {
+fn a_repository_request_builds_its_document_from_the_plan() {
     let request =
         build_repository(&repo_plan(), &repo_of("github.com/gorilla/mux"));
     assert_eq!(request.operation, "Toy");
@@ -923,7 +924,7 @@ query Toy($repo0: String!, $repo1: String!, $first: Int!) {
 }
 
 #[test]
-fn named_roots() {
+fn a_plan_with_named_roots_builds_a_document_with_a_root_per_name() {
     let request =
         build_repository(&named_plan(), &repo_of("github.com/gorilla/mux"));
     assert_eq!(request.operation, "Named");

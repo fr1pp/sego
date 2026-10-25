@@ -2,7 +2,7 @@ use serde_json::{Value, json};
 
 use sego::Reply;
 
-use crate::transport::reply;
+use crate::replay::reply;
 
 pub const SHOW_BIG: [&str; 3] = ["show", "example.com/x/y@main:big.c", "1-5"];
 
@@ -52,5 +52,5 @@ pub fn under_the_content_limit() -> Value {
 }
 
 pub fn json_reply(value: &Value) -> Reply {
-    reply(200, "application/json", value.to_string().as_bytes())
+    reply(200, Some("application/json"), value.to_string())
 }

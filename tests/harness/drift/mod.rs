@@ -4,8 +4,7 @@ use std::hash::{Hash, Hasher};
 
 use serde_json::Value;
 
-#[cfg(test)]
-mod tests;
+module_tests!();
 
 const TRANSIENT: [&str; 3] =
     ["elapsedMilliseconds", "requestId", "extensions"];

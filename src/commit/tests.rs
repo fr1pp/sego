@@ -1,12 +1,12 @@
-use std::cell::Cell;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use serde_json::{Value, json};
 
 use crate::address;
-use crate::error::report;
+use crate::error::reported;
 use crate::output::Notes;
-use crate::upstream::{Reply, Transport, TransportError};
+use crate::upstream::DEADLINE;
+use crate::upstream::script::Script;
 
 use super::{Committed, run};
 
@@ -14,26 +14,6 @@ const REPO: &str = "example.com/acme/widget";
 const OID: &str = "affe2b9b7c608f4e354d7e83d0583ed35e845650";
 const PARENT: &str = "6b668aa526afdc623c1a9ed1d6ae920e04a717ad";
 const SECRET: &str = "git command [git show --secret] failed";
-
-/// Answers the one GraphQL request with `reply`.
-struct Server {
-    reply: Cell<Option<Reply>>,
-}
-
-impl Transport for Server {
-    fn post(
-        &self,
-        _: &str,
-        _: &[u8],
-        _: Instant,
-    ) -> Result<Reply, TransportError> {
-        Ok(self.reply.take().expect("one GraphQL request"))
-    }
-
-    fn get(&self, _: &str, _: Instant) -> Result<Reply, TransportError> {
-        Err(TransportError::Network("no raw route"))
-    }
-}
 
 fn commit() -> Value {
     json!({
@@ -87,24 +67,12 @@ fn commit_mut(envelope: &mut Value) -> &mut Value {
 }
 
 fn committed(envelope: &Value) -> Result<Committed, String> {
-    let server = Server {
-        reply: Cell::new(Some(Reply {
-            status: 200,
-            content_type: Some("application/json".to_owned()),
-            location: None,
-            retry_after: None,
-            cf_mitigated: None,
-            body: envelope.to_string().into_bytes(),
-        })),
-    };
+    let server = Script::graphql(envelope);
     let address =
         address::parse(&format!("{REPO}@v1")).expect("a well-formed address");
-    let deadline = Instant::now() + Duration::from_secs(90);
-    run(&address, &server, deadline, &mut Notes::new()).map_err(|error| {
-        let mut written = Vec::new();
-        report(&error, &mut written).expect("a vector takes a write");
-        String::from_utf8_lossy(&written).into_owned()
-    })
+    let deadline = Instant::now() + DEADLINE;
+    run(&address, &server, deadline, &mut Notes::new())
+        .map_err(|error| reported(&error))
 }
 
 fn failed(envelope: &Value, part: &str) {
@@ -162,7 +130,7 @@ fn an_error_in_the_file_list_hides_the_server_text() {
 }
 
 #[test]
-fn the_author_is_required() {
+fn a_missing_author_fails_the_revision_lookup() {
     for path in [
         &["author"][..],
         &["author", "date"],
@@ -180,7 +148,7 @@ fn the_author_is_required() {
 }
 
 #[test]
-fn the_committer_is_optional() {
+fn a_missing_committer_is_read_as_none() {
     let mut body = envelope();
     commit_mut(&mut body)["committer"] = Value::Null;
     let committed = committed(&body).expect("the commit reads");

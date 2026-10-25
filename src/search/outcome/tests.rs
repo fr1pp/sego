@@ -70,7 +70,7 @@ fn notes_for(
 }
 
 #[test]
-fn binary_sizes() {
+fn binary_sizes_are_written_in_the_largest_whole_unit() {
     assert_eq!(binary_size(4_273_688), "4.1 MiB");
     assert_eq!(binary_size(263_448), "257.3 KiB");
     assert_eq!(binary_size(12), "12 B");

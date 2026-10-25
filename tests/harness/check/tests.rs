@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use super::{exchanges_used, requests_match};
+use super::{every_case, exchanges_used, requests_match};
 use crate::case::{Case, Request};
 use crate::run::Outcome;
 
@@ -90,4 +90,79 @@ fn an_exchange_that_goes_unused_fails_the_case() {
     let failures = exchanges_used(&case, &outcome(Vec::new()));
     let [failure] = &failures[..] else { panic!("{failures:?}") };
     assert!(failure.contains("1 of 1 exchanges went unused"), "{failure}");
+}
+
+fn raw() -> Request {
+    Request::Raw { method: "GET".to_owned(), path: "/r/x/-/raw/f".to_owned() }
+}
+
+fn stopped_with(exit: i32, stderr: &str, sent: Vec<Request>) -> Vec<String> {
+    every_case(&Outcome { exit, stderr: stderr.to_owned(), ..outcome(sent) })
+}
+
+fn noted(stderr: &str) -> Vec<String> {
+    stopped_with(0, stderr, Vec::new())
+}
+
+#[test]
+fn one_graphql_request_and_one_raw_read_are_allowed() {
+    let sent = vec![refs("example.com/a/b", QUERY), raw()];
+    assert_eq!(stopped_with(0, "", sent), Vec::<String>::new());
+}
+
+#[test]
+fn a_second_graphql_request_fails_the_case() {
+    let sent =
+        vec![refs("example.com/a/b", QUERY), refs("example.com/c/d", QUERY)];
+    let failures = stopped_with(0, "", sent);
+    let [failure] = &failures[..] else { panic!("{failures:?}") };
+    assert!(failure.contains("2 GraphQL requests and 0 raw reads"), "{failure}");
+}
+
+#[test]
+fn a_second_raw_read_fails_the_case() {
+    let failures = stopped_with(0, "", vec![raw(), raw()]);
+    let [failure] = &failures[..] else { panic!("{failures:?}") };
+    assert!(failure.contains("0 GraphQL requests and 2 raw reads"), "{failure}");
+}
+
+#[test]
+fn a_request_on_a_usage_error_fails_the_case() {
+    let failures =
+        stopped_with(2, "", vec![refs("example.com/a/b", QUERY)]);
+    let [failure] = &failures[..] else { panic!("{failures:?}") };
+    assert!(failure.contains("reached the server on a usage error"), "{failure}");
+    assert_eq!(stopped_with(2, "", Vec::new()), Vec::<String>::new());
+    assert_eq!(
+        stopped_with(1, "", vec![refs("example.com/a/b", QUERY)]),
+        Vec::<String>::new()
+    );
+}
+
+#[test]
+fn a_note_or_error_line_ending_in_a_period_fails_the_case() {
+    for stderr in [
+        "sego: note: tags marked from the 1000 newest.\n",
+        "sego: error: no such file.\n",
+        "  repo:, lang: or file: narrows what the search reads.\n",
+    ] {
+        let failures = noted(stderr);
+        let [failure] = &failures[..] else { panic!("{stderr:?}: {failures:?}") };
+        assert!(failure.contains("ends with a period"), "{failure}");
+    }
+    assert_eq!(
+        noted("sego: note: a\nsego: error: b.\n  c\n").len(),
+        1
+    );
+}
+
+#[test]
+fn a_line_that_ends_in_an_ellipsis_or_starts_in_uppercase_is_not_checked() {
+    assert_eq!(
+        noted(
+            "sego: note: the rest follows...\nsego: error: Sourcegraph says \
+             no.\n  Not found.\n"
+        ),
+        Vec::<String>::new()
+    );
 }

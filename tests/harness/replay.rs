@@ -1,5 +1,7 @@
 use std::cell::RefCell;
+use std::collections::VecDeque;
 use std::fs;
+use std::path::PathBuf;
 use std::rc::Rc;
 use std::time::Instant;
 
@@ -13,20 +15,47 @@ use crate::record::{Recorded, Recorder};
 const GRAPHQL_PATH: &str = "/.api/graphql";
 const CHALLENGE_LEN: usize = 5 * 1024;
 
+/// A reply with only the status, content type and body a test sets.
+pub fn reply(
+    status: u16,
+    content_type: Option<&str>,
+    body: impl AsRef<[u8]>,
+) -> Reply {
+    Reply {
+        status,
+        content_type: content_type.map(str::to_owned),
+        location: None,
+        retry_after: None,
+        cf_mitigated: None,
+        body: body.as_ref().to_vec(),
+    }
+}
+
+/// A request that reached the transport.
+#[derive(Clone, Debug)]
+pub struct Call {
+    pub method: &'static str,
+    pub deadline: Instant,
+}
+
 /// The transport `run` connects through in a case: it serves the case's
 /// exchanges in order, whatever is asked, and logs each request. A request
 /// beyond the last exchange gets a network error, unless the replay records.
-/// Clones share one log.
+/// A replay made with `answering` serves the replies and errors it was given
+/// instead. Clones share one log.
 #[derive(Clone)]
 pub struct Replay {
     state: Rc<RefCell<State>>,
 }
 
+#[derive(Default)]
 struct State {
     exchanges: Vec<Exchange>,
-    path: std::path::PathBuf,
-    body_path: std::path::PathBuf,
+    path: PathBuf,
+    body_path: PathBuf,
+    answers: Option<VecDeque<Result<Reply, TransportError>>>,
     sent: Vec<Request>,
+    calls: Vec<Call>,
     problems: Vec<String>,
     recorder: Option<Recorder>,
     recorded: Vec<(usize, Recorded)>,
@@ -42,17 +71,25 @@ impl Replay {
 
     /// A replay of `case` that serves `exchanges` in its place.
     pub fn serving(case: &Case, exchanges: Vec<Exchange>) -> Replay {
-        Replay {
-            state: Rc::new(RefCell::new(State {
-                exchanges,
-                path: case.path.clone(),
-                body_path: case.body_path(),
-                sent: Vec::new(),
-                problems: Vec::new(),
-                recorder: None,
-                recorded: Vec::new(),
-            })),
-        }
+        Replay::with(State {
+            exchanges,
+            path: case.path.clone(),
+            body_path: case.body_path(),
+            ..State::default()
+        })
+    }
+
+    /// A replay that answers each request with the next of `answers`, and a
+    /// network error once they run out.
+    pub fn answering(answers: Vec<Result<Reply, TransportError>>) -> Replay {
+        Replay::with(State {
+            answers: Some(answers.into()),
+            ..State::default()
+        })
+    }
+
+    fn with(state: State) -> Replay {
+        Replay { state: Rc::new(RefCell::new(state)) }
     }
 
     /// A replay that forwards through `recorder` a request with no exchange,
@@ -72,10 +109,22 @@ impl Replay {
         self.state.borrow().sent.clone()
     }
 
+    pub fn calls(&self) -> Vec<Call> {
+        self.state.borrow().calls.clone()
+    }
+
+    pub fn methods(&self) -> Vec<&'static str> {
+        self.calls().iter().map(|call| call.method).collect()
+    }
+
     /// What the transport could not make sense of: a request that is not
     /// GraphQL, a missing body file.
     pub fn problems(&self) -> Vec<String> {
         self.state.borrow().problems.clone()
+    }
+
+    fn log(&self, method: &'static str, deadline: Instant) {
+        self.state.borrow_mut().calls.push(Call { method, deadline });
     }
 
     fn serve(
@@ -87,6 +136,11 @@ impl Replay {
         let at = state.sent.len();
         let raw = matches!(request, Request::Raw { .. });
         state.sent.push(request.clone());
+        if let Some(answers) = &mut state.answers {
+            return answers
+                .pop_front()
+                .unwrap_or(Err(TransportError::Network("no reply left")));
+        }
         let (exchange, recorded_body) =
             state.exchange(at, request, forward)?;
         let response = exchange.response;
@@ -237,6 +291,7 @@ impl Transport for Replay {
                 .unwrap_or(Value::Null),
             query: text("query"),
         };
+        self.log("POST", deadline);
         self.serve(&request, &|upstream| upstream.post(path, body, deadline))
     }
 
@@ -247,6 +302,7 @@ impl Transport for Replay {
     ) -> Result<Reply, TransportError> {
         let request =
             Request::Raw { method: "GET".to_owned(), path: path.to_owned() };
+        self.log("GET", deadline);
         self.serve(&request, &|upstream| upstream.get(path, deadline))
     }
 }

@@ -5,59 +5,28 @@
 //! `SEGO_RECORD=1` forwards the requests a case has no response for to
 //! sourcegraph.com and writes the exchanges into it.
 
-#[allow(
+#![allow(
     dead_code,
-    unused_imports,
-    reason = "cargo compiles the module's tests here but runs them in the \
-              harness target"
+    reason = "the modules are shared with the other targets, which use the rest"
 )]
+
+// The modules' own tests run in the `harness` target.
+macro_rules! module_tests {
+    () => {};
+}
+
 mod case;
-#[allow(
-    dead_code,
-    unused_imports,
-    reason = "cargo compiles the module's tests here but runs them in the \
-              harness target"
-)]
 mod check;
 mod compare;
-#[allow(
-    dead_code,
-    unused_imports,
-    reason = "cargo compiles the module's tests here but runs them in the \
-              harness target"
-)]
 mod drift;
-#[allow(
-    dead_code,
-    unused_imports,
-    reason = "cargo compiles the module's tests here but runs them in the \
-              harness target"
-)]
 mod hostile;
-#[allow(
-    dead_code,
-    unused_imports,
-    reason = "cargo compiles the module's tests here but runs them in the \
-              harness target"
-)]
 mod live;
-#[allow(
-    dead_code,
-    unused_imports,
-    reason = "cargo compiles the module's tests here but runs them in the \
-              harness target"
-)]
 mod record;
 mod replay;
 mod run;
-#[allow(
-    dead_code,
-    unused_imports,
-    reason = "cargo compiles the module's tests here but runs them in the \
-              harness target"
-)]
 mod shell;
 
+use std::fmt;
 use std::fs;
 use std::path::Path;
 use std::time::SystemTime;
@@ -65,57 +34,66 @@ use std::time::SystemTime;
 use case::Case;
 use record::Recorder;
 
-fn blessing() -> bool {
-    std::env::var("SEGO_BLESS").is_ok_and(|v| !v.is_empty() && v != "0")
-}
-
-fn living() -> bool {
-    std::env::var("SEGO_LIVE").is_ok_and(|v| !v.is_empty() && v != "0")
-}
-
-fn recording() -> bool {
-    std::env::var("SEGO_RECORD").is_ok_and(|v| !v.is_empty() && v != "0")
+fn flag(name: &str) -> bool {
+    std::env::var(name).is_ok_and(|v| !v.is_empty() && v != "0")
 }
 
 /// A failure whose `Debug` is its text, so the test runner prints it as
 /// written.
 struct Failure(String);
 
-impl std::fmt::Debug for Failure {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for Failure {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&self.0)
     }
 }
 
-impl std::fmt::Display for Failure {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.0)
+impl fmt::Debug for Failure {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }
 
 impl std::error::Error for Failure {}
 
+fn failed(failures: &[String]) -> datatest_stable::Result<()> {
+    if failures.is_empty() {
+        Ok(())
+    } else {
+        Err(Box::new(Failure(failures.join("\n"))))
+    }
+}
+
 fn run_case(path: &Path) -> datatest_stable::Result<()> {
     let mut case = Case::load(path)?;
-    if living() {
-        let failures = live::check(&case, &live::connect);
-        return if failures.is_empty() {
-            Ok(())
-        } else {
-            Err(Box::new(Failure(failures.join("\n"))))
-        };
+    if flag("SEGO_LIVE") {
+        live_case(&case)
+    } else if flag("SEGO_RECORD") {
+        record_case(&mut case)
+    } else {
+        compare_case(path, &mut case)
     }
-    if recording() {
-        if blessing() {
-            return Err("SEGO_BLESS and SEGO_RECORD are both set".into());
-        }
-        let recorder = Recorder::sourcegraph(SystemTime::now())?;
-        return Ok(record::record_case(&mut case, recorder)?);
+}
+
+fn live_case(case: &Case) -> datatest_stable::Result<()> {
+    failed(&live::check(case, &live::connect))
+}
+
+fn record_case(case: &mut Case) -> datatest_stable::Result<()> {
+    if flag("SEGO_BLESS") {
+        return Err("SEGO_BLESS and SEGO_RECORD are both set".into());
     }
-    let outcome = run::run_case(&case)?;
+    let recorder = Recorder::sourcegraph(SystemTime::now())?;
+    Ok(record::record_case(case, recorder)?)
+}
+
+/// Runs the case and compares what it did with what the case expects; with
+/// `SEGO_BLESS`, rewrites the case to what it did.
+fn compare_case(path: &Path, case: &mut Case) -> datatest_stable::Result<()> {
+    let outcome = run::run_case(case)?;
     let mut failures = check::every_case(&outcome);
-    failures.extend(check::exchanges_used(&case, &outcome));
-    if blessing() {
+    failures.extend(check::exchanges_used(case, &outcome));
+    if flag("SEGO_BLESS") {
         let before = case.to_text();
         let blessed = case.bless(
             outcome.exit,
@@ -132,15 +110,11 @@ fn run_case(path: &Path) -> datatest_stable::Result<()> {
             Err(failure) => failures.push(failure),
         }
     } else {
-        failures.extend(compare::expectations(&case, &outcome));
-        failures.extend(check::requests_match(&case, &outcome));
+        failures.extend(compare::expectations(case, &outcome));
+        failures.extend(check::requests_match(case, &outcome));
     }
-    failures.extend(hostile::check(&case, &outcome));
-    if failures.is_empty() {
-        Ok(())
-    } else {
-        Err(Box::new(Failure(failures.join("\n"))))
-    }
+    failures.extend(hostile::check(case, &outcome));
+    failed(&failures)
 }
 
 datatest_stable::harness! {

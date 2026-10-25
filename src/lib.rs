@@ -1,3 +1,10 @@
+//! sego reads public source code at any revision through Sourcegraph's public
+//! API, for coding agents, and the `sego` binary is this library's [`run`].
+//!
+//! [`run`] takes the arguments, the [`Env`] and a `connect` function that
+//! makes the [`Transport`] for an [`Endpoint`], so a test can answer every
+//! request itself. [`connect`] makes the one that sends them over HTTP.
+
 mod address;
 mod cache;
 mod cli;
@@ -116,7 +123,7 @@ fn dispatch(
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> Result<(), Failure> {
-    let endpoint = || Endpoint::from_env(env.endpoint.as_deref());
+    let endpoint = || Endpoint::parse(env.endpoint.as_deref());
     let open =
         |endpoint: Endpoint| (connect(endpoint), Instant::now() + DEADLINE);
     let mut cache = None;

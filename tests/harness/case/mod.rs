@@ -6,8 +6,7 @@ use serde_json::Value;
 
 use crate::shell;
 
-#[cfg(test)]
-mod tests;
+module_tests!();
 
 /// A case file: its header, its expected answer and its exchanges. The file's
 /// text is kept as it was read, so a rewrite touches only the parts it owns.

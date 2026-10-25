@@ -1,8 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-#[cfg(test)]
-mod tests;
+module_tests!();
 
 pub fn rust_files(dir: &Path, files: &mut Vec<PathBuf>) {
     let entries =

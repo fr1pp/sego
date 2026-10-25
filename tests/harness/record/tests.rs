@@ -12,7 +12,7 @@ use sego::{Reply, Transport, TransportError};
 
 use super::{Recorder, date, record_case, write_recorded};
 use crate::case::{Case, Headers, Request, Served, Stamp};
-use crate::replay::Replay;
+use crate::replay::{Replay, reply};
 use crate::run::run_case;
 
 type Calls = Rc<RefCell<Vec<String>>>;
@@ -53,16 +53,7 @@ impl Upstream {
     }
 }
 
-fn reply(status: u16, body: &str) -> Reply {
-    Reply {
-        status,
-        content_type: Some("application/json".to_owned()),
-        location: None,
-        retry_after: None,
-        cf_mitigated: None,
-        body: body.as_bytes().to_vec(),
-    }
-}
+const JSON: Option<&str> = Some("application/json");
 
 fn recorder(replies: Vec<Reply>) -> (Recorder, Calls) {
     let calls = Calls::default();
@@ -130,7 +121,7 @@ fn record(
 #[test]
 fn a_request_with_no_exchange_is_forwarded_and_written_with_its_stamp() {
     let written = Written::new(NEW_CASE);
-    let (result, calls) = record(&written, vec![reply(200, SERVER_JSON)]);
+    let (result, calls) = record(&written, vec![reply(200, JSON, SERVER_JSON)]);
     result.unwrap_or_else(|e| panic!("{e}"));
     assert_eq!(*calls.borrow(), ["POST /.api/graphql"]);
     let text = written.text();
@@ -158,7 +149,7 @@ fn a_request_with_no_exchange_is_forwarded_and_written_with_its_stamp() {
 #[test]
 fn a_recorded_case_replays_without_an_upstream() {
     let written = Written::new(NEW_CASE);
-    let (result, _) = record(&written, vec![reply(200, SERVER_JSON)]);
+    let (result, _) = record(&written, vec![reply(200, JSON, SERVER_JSON)]);
     result.unwrap_or_else(|e| panic!("{e}"));
     let case = written.case();
     let outcome = run_case(&case).unwrap_or_else(|e| panic!("{e}"));
@@ -177,10 +168,10 @@ fn a_recorded_case_replays_without_an_upstream() {
 #[test]
 fn a_request_that_has_an_exchange_is_not_forwarded() {
     let written = Written::new(NEW_CASE);
-    let (result, _) = record(&written, vec![reply(200, SERVER_JSON)]);
+    let (result, _) = record(&written, vec![reply(200, JSON, SERVER_JSON)]);
     result.unwrap_or_else(|e| panic!("{e}"));
     let recorded = written.text();
-    let (result, calls) = record(&written, vec![reply(200, "{}")]);
+    let (result, calls) = record(&written, vec![reply(200, JSON, "{}")]);
     result.unwrap_or_else(|e| panic!("{e}"));
     assert!(calls.borrow().is_empty());
     assert_eq!(written.text(), recorded);
@@ -189,12 +180,12 @@ fn a_request_that_has_an_exchange_is_not_forwarded() {
 #[test]
 fn a_recorded_exchange_whose_request_changed_is_recorded_again() {
     let written = Written::new(NEW_CASE);
-    let (result, _) = record(&written, vec![reply(200, SERVER_JSON)]);
+    let (result, _) = record(&written, vec![reply(200, JSON, SERVER_JSON)]);
     result.unwrap_or_else(|e| panic!("{e}"));
     let stale =
         written.text().replace("example.com/a/b\"}", "example.com/c/d\"}");
     fs::write(&written.path, &stale).unwrap_or_else(|e| panic!("{e}"));
-    let (result, calls) = record(&written, vec![reply(200, SERVER_JSON)]);
+    let (result, calls) = record(&written, vec![reply(200, JSON, SERVER_JSON)]);
     result.unwrap_or_else(|e| panic!("{e}"));
     assert_eq!(calls.borrow().len(), 1);
     assert_eq!(written.case().exchanges.len(), 1);
@@ -206,14 +197,14 @@ fn a_recorded_exchange_whose_request_changed_is_recorded_again() {
 #[test]
 fn recording_again_keeps_the_live_values_mark() {
     let written = Written::new(NEW_CASE);
-    let (result, _) = record(&written, vec![reply(200, SERVER_JSON)]);
+    let (result, _) = record(&written, vec![reply(200, JSON, SERVER_JSON)]);
     result.unwrap_or_else(|e| panic!("{e}"));
     let marked = written
         .text()
         .replace(&format!("{STAMP}\n"), &format!("{STAMP} live: values\n"))
         .replace("example.com/a/b\"}", "example.com/c/d\"}");
     fs::write(&written.path, marked).unwrap_or_else(|e| panic!("{e}"));
-    let (result, _) = record(&written, vec![reply(200, SERVER_JSON)]);
+    let (result, _) = record(&written, vec![reply(200, JSON, SERVER_JSON)]);
     result.unwrap_or_else(|e| panic!("{e}"));
     let text = written.text();
     assert!(
@@ -229,7 +220,7 @@ fn an_exchange_without_a_stamp_is_never_forwarded() {
          200 application/json\n{{\"data\": null}}\n"
     ));
     let before = written.text();
-    let (result, calls) = record(&written, vec![reply(200, "{}")]);
+    let (result, calls) = record(&written, vec![reply(200, JSON, "{}")]);
     result.unwrap_or_else(|e| panic!("{e}"));
     assert!(calls.borrow().is_empty());
     assert_eq!(written.text(), before);
@@ -244,7 +235,7 @@ fn refused_replies_fail_with_the_status_and_write_nothing() {
         (403, Some("challenge"), "HTTP 403 (cf-mitigated: challenge)"),
     ] {
         let written = Written::new(NEW_CASE);
-        let mut refused = reply(status, "upstream says no");
+        let mut refused = reply(status, JSON, "upstream says no");
         refused.cf_mitigated = mitigated.map(str::to_owned);
         let (result, calls) = record(&written, vec![refused]);
         let error = result.err().unwrap_or_else(|| panic!("{status} kept"));
@@ -263,7 +254,7 @@ fn refused_replies_fail_with_the_status_and_write_nothing() {
 #[test]
 fn a_bad_request_reply_is_kept() {
     let written = Written::new(NEW_CASE);
-    let (result, _) = record(&written, vec![reply(400, "{\"errors\": []}")]);
+    let (result, _) = record(&written, vec![reply(400, JSON, "{\"errors\": []}")]);
     result.unwrap_or_else(|e| panic!("{e}"));
     let case = written.case();
     assert_eq!(
@@ -279,7 +270,7 @@ fn a_bad_request_reply_is_kept() {
 #[test]
 fn a_reply_that_is_not_json_is_kept_as_text() {
     let written = Written::new(NEW_CASE);
-    let mut text = reply(400, "Bad Request");
+    let mut text = reply(400, JSON, "Bad Request");
     text.content_type = Some("text/plain".to_owned());
     let (result, _) = record(&written, vec![text]);
     result.unwrap_or_else(|e| panic!("{e}"));
@@ -291,7 +282,7 @@ fn a_reply_that_is_not_json_is_kept_as_text() {
 #[test]
 fn a_reply_with_a_line_that_starts_a_section_is_refused() {
     let written = Written::new(NEW_CASE);
-    let (result, _) = record(&written, vec![reply(400, "oops\n--- stdout\n")]);
+    let (result, _) = record(&written, vec![reply(400, JSON, "oops\n--- stdout\n")]);
     assert!(result.is_err());
     assert_eq!(written.text(), NEW_CASE);
 }
@@ -317,11 +308,7 @@ fn a_raw_read_is_recorded_with_its_body_beside_the_case() {
     let written = Written::new("args: x\nexit: 0\n");
     let (replay, _) = replay_of(
         &written,
-        vec![Reply {
-            content_type: Some("text/plain".to_owned()),
-            body: b"\xff\0bytes".to_vec(),
-            ..reply(200, "")
-        }],
+        vec![reply(200, Some("text/plain"), b"\xff\0bytes")],
     );
     replay
         .get("/r/x/-/raw/f", Instant::now() + SOON)
@@ -347,7 +334,7 @@ fn nothing_is_written_when_a_later_request_is_refused() {
     let written = Written::new("args: x\nexit: 0\n");
     let (replay, calls) = replay_of(
         &written,
-        vec![reply(200, SERVER_JSON), reply(502, "upstream says no")],
+        vec![reply(200, JSON, SERVER_JSON), reply(502, JSON, "upstream says no")],
     );
     let body = json!({"operationName": "Op", "variables": {}, "query": "q"});
     replay
@@ -370,7 +357,7 @@ fn nothing_is_written_when_a_later_request_is_refused() {
 #[test]
 fn the_request_forwarded_is_the_one_run_sent() {
     let written = Written::new(NEW_CASE);
-    let (replay, _) = replay_of(&written, vec![reply(200, SERVER_JSON)]);
+    let (replay, _) = replay_of(&written, vec![reply(200, JSON, SERVER_JSON)]);
     let body =
         json!({"operationName": "Op", "variables": {"a": 1}, "query": "q"});
     replay

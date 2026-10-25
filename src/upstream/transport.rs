@@ -71,8 +71,13 @@ pub struct Endpoint {
 
 impl Endpoint {
     /// The endpoint named by `SEGO_ENDPOINT`, or sourcegraph.com when it is
-    /// unset or empty.
-    pub fn from_env(value: Option<&OsStr>) -> Result<Endpoint, Error> {
+    /// unset or empty. An invalid value is an error whose text is what
+    /// `run` reports.
+    pub fn from_env(value: Option<&OsStr>) -> Result<Endpoint, String> {
+        Endpoint::parse(value).map_err(|error| error.to_string())
+    }
+
+    pub(crate) fn parse(value: Option<&OsStr>) -> Result<Endpoint, Error> {
         let Some(value) = value.filter(|value| !value.is_empty()) else {
             return Ok(Endpoint { base: DEFAULT_ENDPOINT.to_owned() });
         };
@@ -101,7 +106,7 @@ impl Endpoint {
 
     /// The base URL with a lowercase scheme and host and no `user[:pw]@`,
     /// so that spellings of one endpoint share a cache.
-    pub fn cache_key(&self) -> String {
+    pub(crate) fn cache_key(&self) -> String {
         let (scheme, rest) =
             self.base.split_once("://").unwrap_or(("", &self.base));
         let (authority, path) =
@@ -115,7 +120,7 @@ impl Endpoint {
     }
 
     /// The base URL's `host[:port]`, without any `user[:pw]@`.
-    pub fn host(&self) -> String {
+    pub(crate) fn host(&self) -> String {
         let (_, rest) =
             self.base.split_once("://").unwrap_or(("", &self.base));
         let authority = rest.split('/').next().unwrap_or_default();
@@ -304,7 +309,7 @@ fn classify_io(error: io::Error) -> TransportError {
 }
 
 impl TransportError {
-    pub fn into_error(self, host: &str) -> Error {
+    pub(crate) fn into_error(self, host: &str) -> Error {
         match self {
             TransportError::Network(cause) => {
                 Error::network(format!("could not reach {host}: {cause}"))

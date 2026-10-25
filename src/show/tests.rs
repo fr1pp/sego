@@ -1,40 +1,18 @@
-use std::cell::Cell;
 use std::ffi::OsStr;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use serde_json::{Value, json};
 
 use crate::address;
 use crate::cache::Cache;
-use crate::error::report;
+use crate::error::reported;
 use crate::output::Notes;
-use crate::upstream::{Reply, Transport, TransportError};
+use crate::upstream::DEADLINE;
+use crate::upstream::script::Script;
 
 use super::run;
 
 const SHA: &str = "d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809";
-
-/// Answers the one GraphQL request with `reply` and counts the raw reads.
-struct Server {
-    reply: Cell<Option<Reply>>,
-    raw_reads: Cell<usize>,
-}
-
-impl Transport for Server {
-    fn post(
-        &self,
-        _: &str,
-        _: &[u8],
-        _: Instant,
-    ) -> Result<Reply, TransportError> {
-        Ok(self.reply.take().expect("one GraphQL request"))
-    }
-
-    fn get(&self, _: &str, _: Instant) -> Result<Reply, TransportError> {
-        self.raw_reads.set(self.raw_reads.get() + 1);
-        Err(TransportError::Network("no raw route"))
-    }
-}
 
 fn file() -> Value {
     json!({"data": {"r0": {
@@ -78,28 +56,18 @@ fn errors(list: &[(&[&str], &str)]) -> Value {
 /// What `sego show example.com/x/y@main:a.go` writes to stderr as an error
 /// on `envelope`, and how many raw reads it made.
 fn failure(envelope: &Value) -> (String, usize) {
-    let server = Server {
-        reply: Cell::new(Some(Reply {
-            status: 200,
-            content_type: Some("application/json".to_owned()),
-            location: None,
-            retry_after: None,
-            cf_mitigated: None,
-            body: envelope.to_string().into_bytes(),
-        })),
-        raw_reads: Cell::new(0),
-    };
+    let server = Script::graphql(envelope);
     let address = address::parse("example.com/x/y@main:a.go")
         .expect("a well-formed address");
     let cache = Cache::new(Some(OsStr::new("off")), String::new());
-    let deadline = Instant::now() + Duration::from_secs(90);
+    let deadline = Instant::now() + DEADLINE;
     let error =
         run(&address, None, &server, deadline, &cache, &mut Notes::new())
             .err()
             .expect("the show fails");
-    let mut written = Vec::new();
-    report(&error, &mut written).expect("a vector takes a write");
-    (String::from_utf8_lossy(&written).into_owned(), server.raw_reads.get())
+    let raw_reads =
+        server.calls().iter().filter(|call| call.method == "GET").count();
+    (reported(&error), raw_reads)
 }
 
 #[test]
@@ -136,7 +104,7 @@ fn upstream_errors_name_the_part_and_hide_the_server_text() {
 }
 
 #[test]
-fn only_the_limit_error_at_meta_lfs_means_not_lfs() {
+fn only_the_content_limit_error_at_meta_lfs_means_not_lfs() {
     let secret = "lfs backend exploded";
     let mut envelope = file();
     envelope["data"]["r0"]["c0"]["meta"]["lfs"] = json!(null);

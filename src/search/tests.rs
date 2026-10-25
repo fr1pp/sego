@@ -121,7 +121,8 @@ fn utility_counts(envelope: &Envelope) -> Result<(), String> {
 
 #[test]
 #[ignore = "sends requests to sourcegraph.com"]
-fn drift_rules() {
+fn the_rules_sego_relies_on_for_counts_and_unindexed_files_still_hold_on_the_live_server()
+ {
     let queries = [
         unindexed_of(r"repo:^github\.com/elixir-sqlite/exqlite$ x"),
         unindexed_of(r"repo:^github\.com/golang/go$ file:^src/crypto/x509/ x"),
@@ -153,7 +154,7 @@ fn drift_rules() {
         .join("\n");
     let request = top_level("DriftRules", vars, &selection);
     let endpoint =
-        Endpoint::from_env(None::<&OsStr>).unwrap_or_else(|e| panic!("{e}"));
+        Endpoint::parse(None::<&OsStr>).unwrap_or_else(|e| panic!("{e}"));
     let upstream = Ureq::new(endpoint);
     let envelope = exchange(&upstream, &request, Instant::now() + DEADLINE)
         .unwrap_or_else(|e| panic!("{e}"));

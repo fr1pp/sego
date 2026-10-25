@@ -10,6 +10,8 @@ use sego::{Endpoint, Env, Transport, run};
 use crate::case::{Case, Request};
 use crate::replay::Replay;
 
+module_tests!();
+
 pub struct Outcome {
     pub exit: i32,
     pub stdout: String,

@@ -11,6 +11,7 @@ use sego::{Reply, Transport, TransportError};
 
 use super::check;
 use crate::case::Case;
+use crate::replay::reply;
 
 /// A server that answers each request with the next reply and keeps what it
 /// was asked.
@@ -19,17 +20,6 @@ struct Server {
     replies: Rc<RefCell<Vec<Reply>>>,
     asked: Rc<RefCell<Vec<String>>>,
     endpoints: Rc<RefCell<Vec<String>>>,
-}
-
-fn reply(status: u16, body: &[u8]) -> Reply {
-    Reply {
-        status,
-        content_type: None,
-        location: None,
-        retry_after: None,
-        cf_mitigated: None,
-        body: body.to_vec(),
-    }
 }
 
 impl Server {
@@ -94,7 +84,7 @@ fn parse(exchanges: &[String]) -> Case {
 #[test]
 fn a_recorded_request_is_sent_again_as_written() {
     let case = parse(&[graphql(&format!("200 {STAMP}"), r#"{"data":{}}"#)]);
-    let server = Server::answering(vec![reply(200, br#"{"data":{}}"#)]);
+    let server = Server::answering(vec![reply(200, None, br#"{"data":{}}"#)]);
     assert_eq!(server.check(&case), Vec::<String>::new());
     let sent = server.asked();
     assert_eq!(sent.len(), 1);
@@ -129,8 +119,8 @@ fn each_recorded_exchange_is_sent_and_the_rest_are_not() {
             .to_owned(),
     ]);
     let server = Server::answering(vec![
-        reply(200, br#"{"data":{}}"#),
-        reply(200, b"raw"),
+        reply(200, None, br#"{"data":{}}"#),
+        reply(200, None, b"raw"),
     ]);
     assert_eq!(server.check(&case), Vec::<String>::new());
     assert_eq!(server.asked().len(), 2);
@@ -144,7 +134,7 @@ fn a_changed_shape_fails_naming_the_exchange() {
         r#"{"data":{"r0":{"name":"a"}}}"#,
     )]);
     let server =
-        Server::answering(vec![reply(200, br#"{"data":{"r0":null}}"#)]);
+        Server::answering(vec![reply(200, None, br#"{"data":{"r0":null}}"#)]);
     let failures = server.check(&case);
     assert_eq!(failures.len(), 1);
     assert!(failures[0].starts_with("x.case: exchange 1 Refs: shape:"));
@@ -156,6 +146,7 @@ fn values_are_compared_only_when_the_response_is_marked() {
     let case = parse(&[graphql(&format!("200 {STAMP}"), recorded)]);
     let server = Server::answering(vec![reply(
         200,
+        None,
         br#"{"data":{"r0":{"name":"b"}}}"#,
     )]);
     assert_eq!(server.check(&case), Vec::<String>::new());
@@ -164,6 +155,7 @@ fn values_are_compared_only_when_the_response_is_marked() {
         parse(&[graphql(&format!("200 {STAMP} live: values"), recorded)]);
     let server = Server::answering(vec![reply(
         200,
+        None,
         br#"{"data":{"r0":{"name":"b"}}}"#,
     )]);
     let failures = server.check(&case);
@@ -174,7 +166,7 @@ fn values_are_compared_only_when_the_response_is_marked() {
 #[test]
 fn a_different_status_fails() {
     let case = parse(&[graphql(&format!("200 {STAMP}"), "{}")]);
-    let server = Server::answering(vec![reply(400, b"{}")]);
+    let server = Server::answering(vec![reply(400, None, b"{}")]);
     let failures = server.check(&case);
     assert_eq!(failures.len(), 1);
     assert!(failures[0].ends_with("status 400, was 200"));
@@ -183,7 +175,7 @@ fn a_different_status_fails() {
 #[test]
 fn a_body_that_is_not_json_fails() {
     let case = parse(&[graphql(&format!("200 {STAMP}"), "{}")]);
-    let server = Server::answering(vec![reply(200, b"<html>")]);
+    let server = Server::answering(vec![reply(200, None, b"<html>")]);
     let failures = server.check(&case);
     assert_eq!(failures.len(), 1);
     assert!(failures[0].contains("body is not JSON"));
@@ -222,13 +214,13 @@ fn a_raw_read_compares_its_body_only_when_marked() {
         Case::parse(&text, &path).unwrap_or_else(|e| panic!("{e}"))
     };
 
-    let server = Server::answering(vec![reply(200, b"moved")]);
+    let server = Server::answering(vec![reply(200, None, b"moved")]);
     assert_eq!(server.check(&load("")), Vec::<String>::new());
 
-    let server = Server::answering(vec![reply(200, b"recorded")]);
+    let server = Server::answering(vec![reply(200, None, b"recorded")]);
     assert_eq!(server.check(&load(" live: values")), Vec::<String>::new());
 
-    let server = Server::answering(vec![reply(200, b"moved")]);
+    let server = Server::answering(vec![reply(200, None, b"moved")]);
     let failures = server.check(&load(" live: values"));
     assert_eq!(failures.len(), 1);
     assert!(

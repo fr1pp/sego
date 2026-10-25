@@ -1,5 +1,4 @@
-#[cfg(test)]
-mod tests;
+module_tests!();
 
 /// Splits like a POSIX shell, as bytes: single quotes are literal, double
 /// quotes honour backslash escapes, a backslash outside quotes escapes the

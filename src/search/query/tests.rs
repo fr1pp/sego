@@ -11,7 +11,7 @@ use crate::search::query::{
 const OVERFLOW: &str = "340282366920938463463374607431.9s";
 
 #[test]
-fn facts() {
+fn the_cap_and_deadline_follow_the_count_filter() {
     let rows = [
         ("NewRouter", Some(30), 20_000),
         ("\"count:5\" foo", Some(30), 20_000),
@@ -28,7 +28,7 @@ fn facts() {
 }
 
 #[test]
-fn pattern_types() {
+fn the_pattern_type_is_the_last_valid_patterntype_filter_else_keyword() {
     let rows = [
         ("foo", "keyword"),
         ("patterntype:regexp", "regexp"),
@@ -49,7 +49,7 @@ fn pattern_types() {
 }
 
 #[test]
-fn deadlines() {
+fn the_deadline_is_the_timeout_filter_else_20_s_or_60_s_with_a_count() {
     let rows = [
         ("foo", 20_000),
         ("foo count:5", 60_000),
@@ -76,7 +76,7 @@ fn deadlines() {
 }
 
 #[test]
-fn go_durations() {
+fn go_durations_parse_as_the_server_reads_them() {
     let go_duration = |text: &str| match parse(text)? {
         (true, d) if !d.is_zero() => None,
         (_, d) => Some(d),
@@ -112,7 +112,7 @@ fn t(query: &str) -> Vec<Token> {
 }
 
 #[test]
-fn cap_in_force() {
+fn the_cap_is_the_last_count_or_30_and_all_has_none() {
     assert_eq!(cap(&t("foo")), Some(30));
     assert_eq!(cap(&t("foo count:5")), Some(5));
     assert_eq!(cap(&t("foo COUNT:all")), None);
@@ -122,7 +122,7 @@ fn cap_in_force() {
 }
 
 #[test]
-fn deadline_defaults_to_20_s() {
+fn the_deadline_is_20_s_unless_a_count_or_timeout_changes_it() {
     assert_eq!(deadline_ms(&t("foo")), 20_000);
     assert_eq!(deadline_ms(&t("foo count:5")), 60_000);
     assert_eq!(deadline_ms(&t("foo timeout:90s")), 60_000);
@@ -131,7 +131,7 @@ fn deadline_defaults_to_20_s() {
 }
 
 #[test]
-fn unit_from_the_query() {
+fn the_unit_follows_select_and_type() {
     let rows = [
         ("repo:x foo select:repo", Unit::Repos),
         ("foo type:repo", Unit::Repos),
@@ -190,7 +190,7 @@ fn unit_from_the_query() {
 }
 
 #[test]
-fn unindexed_query_for_an_eligible_query() {
+fn an_eligible_query_gets_an_unindexed_files_query() {
     assert_eq!(
         unindexed_query(
             &t(r"repo:^github\.com/gorilla/mux$ file:\.go$ -lang:markdown foo count:5"),
@@ -225,7 +225,7 @@ fn unindexed_query_for_an_eligible_query() {
 }
 
 #[test]
-fn unindexed_query_absent_when_not_eligible() {
+fn an_ineligible_query_gets_no_unindexed_files_query() {
     for q in [
         "foo",
         "-repo:x foo",
@@ -255,7 +255,7 @@ fn unindexed_query_absent_when_not_eligible() {
 }
 
 #[test]
-fn tenths_rounds_to_one_decimal() {
+fn tenths_rounds_to_one_decimal_place() {
     assert_eq!(tenths(1449), "1.4");
     assert_eq!(tenths(21_300), "21.3");
     assert_eq!(tenths(15), "0.0");
@@ -263,7 +263,7 @@ fn tenths_rounds_to_one_decimal() {
 }
 
 #[test]
-fn lower_bound_queries() {
+fn a_directory_count_is_a_lower_bound_unless_count_all() {
     let rows = [
         ("repo:x type:diff foo", false),
         ("repo:x SELECT:file.directory foo", true),
@@ -306,7 +306,7 @@ fn lower_bound_queries() {
 }
 
 #[test]
-fn select_cut_queries() {
+fn a_pinned_select_search_gets_its_cut_from_the_cap() {
     let rows = [
         ("repo:x@v1 Router select:file", Some(30)),
         ("repo:x@v1 type:symbol /./ select:symbol.method count:50", Some(50)),
@@ -339,7 +339,7 @@ fn select_cut_queries() {
 }
 
 #[test]
-fn select_drops_queries() {
+fn a_pinned_select_of_symbols_or_content_drops_results() {
     let rows = [
         ("repo:x@v1 type:symbol foo select:symbol", true),
         ("repo:x@v1 type:symbol foo select:symbol.method", true),
@@ -360,7 +360,7 @@ fn select_drops_queries() {
 }
 
 #[test]
-fn prepared_carries_the_facts() {
+fn prepare_carries_every_fact_of_a_query() {
     let prepared = prepare("repo:x type:diff foo");
     assert_eq!(prepared.query, "repo:x type:diff foo");
     assert_eq!(prepared.cap, Some(30));
@@ -379,7 +379,7 @@ fn prepared_carries_the_facts() {
 }
 
 #[test]
-fn pinned_searches() {
+fn a_query_at_a_revision_other_than_head_is_a_pinned_search() {
     for q in ["repo:x@v1 foo", "repo:x rev:v1 foo", "repo:x revision:v1 foo"] {
         let prepared = prepare(q);
         assert!(prepared.pinned, "{q}");
@@ -439,7 +439,7 @@ fn pinned_searches() {
 }
 
 #[test]
-fn repo_scoped_queries() {
+fn a_positive_repo_filter_scopes_a_query() {
     for q in ["repo:x foo", "r:x foo", r"repo:^github\.com/org/ file:a foo"] {
         assert!(prepare(q).repo_scoped, "{q}");
     }
@@ -449,7 +449,8 @@ fn repo_scoped_queries() {
 }
 
 #[test]
-fn repo_names_queries() {
+fn a_query_naming_one_repository_gets_a_repository_lookup_by_its_last_name_segment()
+ {
     let rows = [
         (
             r#"repo:^github\.com/jackc/pgx/v5$@v5.5.5 -file:_test\.go$ "conn busy" timeout:60s"#,
@@ -497,7 +498,7 @@ fn repo_names_queries() {
 }
 
 #[test]
-fn content_searches() {
+fn only_a_pattern_that_searches_contents_or_symbols_makes_a_content_search() {
     for q in [
         "foo",
         "repo:x foo",
@@ -534,7 +535,7 @@ fn content_searches() {
 }
 
 #[test]
-fn index_no_queries() {
+fn index_no_is_any_value_the_server_reads_as_no() {
     for value in
         ["n", "N", "no", "NO", "No", "0", "f", "F", "false", "FALSE", "False"]
     {
