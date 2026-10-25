@@ -1,0 +1,19 @@
+# A located branch list error names the part, not the server's text.
+args: refs example.com/acme/widget
+exit: 1
+--- response 200 application/json
+{
+  "data": {
+    "r0": null
+  },
+  "errors": [
+    {
+      "message": "panic occurred: runtime error: slice bounds out of range [:-1]",
+      "path": [
+        "r0",
+        "branches",
+        "nodes"
+      ]
+    }
+  ]
+}

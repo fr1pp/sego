@@ -1,0 +1,62 @@
+# Control characters in a file's lines are escaped, and a carriage return before a line feed is not one.
+args: show example.com/acme/widget@0123456789abcdef0123456789abcdef01234567:f.txt
+exit: 0
+--- stdout
+example.com/acme/widget@0123456789ab:f.txt  lines 1-9 of 9  CRLF
+1:a\u{1b}b
+2:c\u{202e}d
+3:e\u{200b}f
+4:g\u{0}h
+5:i\u{2028}j
+6:k\u{7f}l
+7:mid\u{d}cr
+8:tab	ok
+9:crlf
+--- request ShowFile {"end_0":500,"parent_0":"","path_0":"f.txt","repo0":"example.com/acme/widget","rev0":"0123456789abcdef0123456789abcdef01234567","start_0":1}
+--- query
+query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    c0: commit(rev: $rev0) {
+      oid
+      meta: blob(path: $path_0) { byteSize totalLines binary rawURL lfs { byteSize } }
+      body: blob(path: $path_0) { content(startLine: $start_0, endLine: $end_0, textOnly: true) }
+      dir: tree(path: $path_0) { entries { path } }
+      parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "body": {
+          "content": "a\u001bb\nc\u202ed\ne\u200bf\ng\u0000h\ni\u2028j\nk\u007fl\nmid\rcr\ntab\tok\ncrlf\r\n"
+        },
+        "dir": null,
+        "meta": {
+          "binary": false,
+          "byteSize": 50,
+          "lfs": null,
+          "rawURL": "/r/example.com/acme/widget@0123456789abcdef0123456789abcdef01234567/-/raw/f.txt",
+          "totalLines": 9
+        },
+        "oid": "0123456789abcdef0123456789abcdef01234567",
+        "parent": {
+          "entries": [
+            {
+              "path": "f.txt",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}

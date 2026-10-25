@@ -12,7 +12,6 @@ mod ls_cli;
 mod output;
 mod quote;
 mod refs;
-mod safety;
 mod search_cli;
 mod search_request;
 mod search_text;

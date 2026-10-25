@@ -1,0 +1,53 @@
+# In JSON the path holds the characters themselves.
+args: show --json $'example.com/acme/widget@0123456789abcdef0123456789abcdef01234567:a\eb\u{202e}c\u{200b}d\ne\rf\0g\u{2028}h\x7fi'
+exit: 0
+--- stdout
+{"repo":"example.com/acme/widget","rev":"0123456789abcdef0123456789abcdef01234567","commit":"0123456789abcdef0123456789abcdef01234567","path":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","total_lines":1,"byte_size":2,"binary":false,"crlf":false,"lfs_size":null,"submodule":null,"start":1,"end":1,"lines":[{"line":1,"text":"x"}],"via_raw":false}
+--- request ShowFile {"end_0":500,"parent_0":"","path_0":"a\u001bb‮c​d\ne\rf\u0000g hi","repo0":"example.com/acme/widget","rev0":"0123456789abcdef0123456789abcdef01234567","start_0":1}
+--- query
+query ShowFile($repo0: String!, $rev0: String!, $parent_0: String!, $path_0: String!, $start_0: Int!, $end_0: Int!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    c0: commit(rev: $rev0) {
+      oid
+      meta: blob(path: $path_0) { byteSize totalLines binary rawURL lfs { byteSize } }
+      body: blob(path: $path_0) { content(startLine: $start_0, endLine: $end_0, textOnly: true) }
+      dir: tree(path: $path_0) { entries { path } }
+      parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "body": {
+          "content": "x\n"
+        },
+        "dir": null,
+        "meta": {
+          "binary": false,
+          "byteSize": 2,
+          "lfs": null,
+          "rawURL": "/r/example.com/acme/widget@0123456789abcdef0123456789abcdef01234567/-/raw/f.txt",
+          "totalLines": 1
+        },
+        "oid": "0123456789abcdef0123456789abcdef01234567",
+        "parent": {
+          "entries": [
+            {
+              "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}

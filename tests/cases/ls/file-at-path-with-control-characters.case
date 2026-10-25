@@ -1,0 +1,57 @@
+# A file where a directory was asked for names the path, escaped, in the error.
+args: ls $'example.com/acme/widget:a\eb\u{202e}c\u{200b}d\ne\rf\0g\u{2028}h\x7fi'
+exit: 1
+--- stderr
+sego: error: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i is a file at example.com/acme/widget@0123456789ab (3 lines)
+--- request ListTree {"parent_0":"","path_0":"a\u001bb‮c​d\ne\rf\u0000g hi","recursive_0":false,"repo0":"example.com/acme/widget","rev0":"HEAD"}
+--- query
+query ListTree($repo0: String!, $rev0: String!, $path_0: String!, $recursive_0: Boolean!, $parent_0: String!) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    c0: commit(rev: $rev0) {
+      oid
+      tree: tree(path: $path_0) { entries(recursive: $recursive_0) { path isDirectory submodule { url commit } } }
+      file: blob(path: $path_0) { totalLines byteSize binary }
+      parent: tree(path: $parent_0) { entries { path submodule { url commit } } }
+    }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "file": {
+          "binary": false,
+          "byteSize": 40,
+          "totalLines": 3
+        },
+        "oid": "0123456789abcdef0123456789abcdef01234567",
+        "parent": {
+          "entries": [
+            {
+              "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+              "submodule": null
+            }
+          ]
+        },
+        "tree": null
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a directory: \"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi\"",
+      "path": [
+        "r0",
+        "c0",
+        "tree"
+      ]
+    }
+  ]
+}

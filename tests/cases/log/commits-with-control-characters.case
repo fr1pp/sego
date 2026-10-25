@@ -1,0 +1,113 @@
+# A path with control characters, given as the argument, is escaped in the header, and so are the authors, subjects and tags of the rows.
+args: log $'example.com/acme/widget@v2.0.0:a\eb\u{202e}c\u{200b}d\ne\rf\0g\u{2028}h\x7fi'
+exit: 0
+--- stdout
+$'example.com/acme/widget@0123456789ab:a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i'  3 commits  rev v2.0.0
+0123456789ab  2026-08-01  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i  (tag: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i, tag: t-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i) a\u{1b}b\u{202e}c\u{200b}d\u{a}e\u{d}f\u{0}g\u{2028}h\u{7f}i
+89abcdef0123  a\u{1b}b\u{202e}c\u{200b}d e\u{d}  b-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i  b-a\u{1b}b\u{202e}c\u{200b}d\u{a}e\u{d}f\u{0}g\u{2028}h\u{7f}i
+a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}  2026-07-01  c-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i  (tag: u-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i) c-a\u{1b}b\u{202e}c\u{200b}d\u{a}e\u{d}f\u{0}g\u{2028}h\u{7f}i
+--- request Log {"path":"a\u001bb‮c​d\ne\rf\u0000g hi","repo0":"example.com/acme/widget","rev":"v2.0.0"}
+--- query
+query Log($repo0: String!, $rev: String!, $path: String) {
+  r0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    commit(rev: $rev) { oid ancestors(first: 151, path: $path) { nodes { oid subject author { date person { displayName } } parents { oid } } pageInfo { hasNextPage } } }
+  }
+  t0: repository(name: $repo0) {
+    name
+    defaultBranch { displayName }
+    gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
+  }
+}
+--- response 200 application/json
+{
+  "data": {
+    "r0": {
+      "commit": {
+        "ancestors": {
+          "nodes": [
+            {
+              "author": {
+                "date": "2026-08-01T09:00:00Z",
+                "person": {
+                  "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                }
+              },
+              "oid": "0123456789abcdef0123456789abcdef01234567",
+              "parents": [
+                {
+                  "oid": "89abcdef0123456789abcdef0123456789abcdef"
+                }
+              ],
+              "subject": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+            },
+            {
+              "author": {
+                "date": "a\u001bb\u202ec\u200bd\ne\rT00:00:00Z",
+                "person": {
+                  "displayName": "b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                }
+              },
+              "oid": "89abcdef0123456789abcdef0123456789abcdef",
+              "parents": [
+                {
+                  "oid": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                }
+              ],
+              "subject": "b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+            },
+            {
+              "author": {
+                "date": "2026-07-01T00:00:00Z",
+                "person": {
+                  "displayName": "c-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                }
+              },
+              "oid": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+              "parents": [],
+              "subject": "c-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        },
+        "oid": "0123456789abcdef0123456789abcdef01234567"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "t0": {
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "gitRefs": {
+        "nodes": [
+          {
+            "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+            "target": {
+              "oid": "0123456789abcdef0123456789abcdef01234567"
+            }
+          },
+          {
+            "displayName": "t-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+            "target": {
+              "oid": "0123456789abcdef0123456789abcdef01234567"
+            }
+          },
+          {
+            "displayName": "u-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+            "target": {
+              "oid": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+            }
+          }
+        ],
+        "totalCount": 3
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}
