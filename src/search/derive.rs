@@ -76,3 +76,6 @@ pub fn counted(
         select_cut,
     }
 }
+
+#[cfg(test)]
+mod tests;

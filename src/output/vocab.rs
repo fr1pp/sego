@@ -7,3 +7,6 @@ pub fn symbol_kind(server: &str) -> String {
         other => other.to_lowercase(),
     }
 }
+
+#[cfg(test)]
+mod tests;
