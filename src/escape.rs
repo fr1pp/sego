@@ -1,3 +1,5 @@
+//! Makes text safe to print, or to paste into a shell.
+
 use std::borrow::Cow;
 use std::fmt::Write as _;
 
@@ -150,8 +152,7 @@ pub fn render_line(line: &str, focus: Option<usize>) -> String {
         kept += width;
     }
 
-    let window: String =
-        units[start..end].iter().map(|unit| unit.text.as_str()).collect();
+    let window: String = units[start..end].iter().map(|unit| unit.text.as_str()).collect();
     let mut out = String::with_capacity(window.len() + 64);
     if start > 0 {
         out.push('…');
@@ -159,13 +160,265 @@ pub fn render_line(line: &str, focus: Option<usize>) -> String {
     out.push_str(&window);
     if start > 0 || end < units.len() {
         let hidden = total.saturating_sub(window.width());
-        let _ = write!(
-            out,
-            "… (+{hidden} more columns; --json has the full line)"
-        );
+        let _ = write!(out, "… (+{hidden} more columns; --json has the full line)");
     }
     out
 }
 
+fn is_bare(c: char) -> bool {
+    c.is_ascii_alphanumeric() || "@%+=:,./_-".contains(c)
+}
+
+fn needs_ansi_c(c: char) -> bool {
+    c.is_control() || is_unsafe(c)
+}
+
+pub fn shell_word(s: &str) -> Cow<'_, str> {
+    if !s.is_empty() && !s.starts_with(['-', '=']) && s.chars().all(is_bare) {
+        return Cow::Borrowed(s);
+    }
+    let mut out = String::with_capacity(s.len() + 3);
+    if s.chars().any(needs_ansi_c) {
+        out.push_str("$'");
+        for c in s.chars() {
+            match c {
+                '\n' => out.push_str("\\n"),
+                '\t' => out.push_str("\\t"),
+                '\\' => out.push_str("\\\\"),
+                '\'' => out.push_str("\\'"),
+                c if needs_ansi_c(c) => {
+                    let mut buf = [0; 4];
+                    for byte in c.encode_utf8(&mut buf).bytes() {
+                        let _ = write!(out, "\\{byte:03o}");
+                    }
+                }
+                c => out.push(c),
+            }
+        }
+        out.push('\'');
+    } else {
+        out.push('\'');
+        for c in s.chars() {
+            if c == '\'' {
+                out.push_str("'\\''");
+            } else {
+                out.push(c);
+            }
+        }
+        out.push('\'');
+    }
+    Cow::Owned(out)
+}
+
 #[cfg(test)]
-mod tests;
+mod tests {
+    use super::*;
+
+    use std::borrow::Cow;
+    use std::process::Command;
+
+    const FAMILY: &str = "👨\u{200d}👩\u{200d}👧";
+
+    fn tail(hidden: usize) -> String {
+        format!("… (+{hidden} more columns; --json has the full line)")
+    }
+
+    #[test]
+    fn controls_separators_and_invisible_characters_are_unsafe() {
+        let cases = [
+            ('\u{1b}', true),
+            ('\u{7f}', true),
+            ('\u{85}', true),
+            ('\u{202e}', true),
+            ('\u{200b}', true),
+            ('\u{2028}', true),
+            ('\r', true),
+            ('\0', true),
+            ('\t', false),
+            ('\u{200d}', false),
+            ('\u{fe0f}', false),
+            ('é', false),
+            ('日', false),
+        ];
+        for (c, expected) in cases {
+            assert_eq!(is_unsafe(c), expected, "{c:?}");
+        }
+    }
+
+    #[test]
+    fn an_unsafe_character_is_written_as_a_unicode_escape() {
+        let cases = [
+            ("a\u{1b}[0m", "a\\u{1b}[0m"),
+            ("\u{202e}x", "\\u{202e}x"),
+            ("\0\u{85}", "\\u{0}\\u{85}"),
+        ];
+        for (input, expected) in cases {
+            assert_eq!(escape(input), expected, "{input:?}");
+        }
+    }
+
+    #[test]
+    fn text_with_nothing_unsafe_is_returned_as_it_is() {
+        assert!(matches!(escape("plain"), Cow::Borrowed("plain")));
+    }
+
+    #[test]
+    fn a_line_break_becomes_a_space_and_a_lone_carriage_return_is_escaped() {
+        let cases = [
+            ("a\r\nb", "a b"),
+            ("a\nb", "a b"),
+            ("a\rb", "a\\u{d}b"),
+            ("a\u{1b}\nb", "a\\u{1b} b"),
+        ];
+        for (input, expected) in cases {
+            assert_eq!(one_line(input), expected, "{input:?}");
+        }
+    }
+
+    #[test]
+    fn one_trailing_carriage_return_is_split_off() {
+        let cases = [("a\r", ("a", true)), ("a", ("a", false)), ("a\r\r", ("a\r", true))];
+        for (input, expected) in cases {
+            assert_eq!(strip_cr(input), expected, "{input:?}");
+        }
+    }
+
+    #[test]
+    fn a_line_is_cut_past_500_columns_around_the_focus() {
+        assert_eq!(CUT_COLUMNS, 500);
+
+        let focus_550 = format!("{}Y{}", "x".repeat(550), "x".repeat(49));
+        let focus_300 = format!("{}Y{}", "x".repeat(300), "x".repeat(299));
+        let families = FAMILY.repeat(100);
+        let exact = "x".repeat(500);
+        let cases: Vec<(&str, String, Option<usize>, String)> = vec![
+            ("ascii, no focus", "x".repeat(600), None, format!("{}{}", "x".repeat(500), tail(100))),
+            (
+                "focus near the end",
+                focus_550,
+                Some(550),
+                format!("…{}Y{}{}", "x".repeat(450), "x".repeat(49), tail(100)),
+            ),
+            (
+                "focus in the middle",
+                focus_300,
+                Some(300),
+                format!("…{}Y{}{}", "x".repeat(250), "x".repeat(249), tail(100)),
+            ),
+            (
+                "wide characters",
+                "日".repeat(300),
+                None,
+                format!("{}{}", "日".repeat(250), tail(100)),
+            ),
+            ("tabs count 1", "\t".repeat(600), None, format!("{}{}", "\t".repeat(500), tail(100))),
+            ("zwj families under the limit", families.clone(), None, families),
+            ("exactly 500 columns", exact.clone(), None, exact),
+        ];
+        for (label, line, focus, expected) in cases {
+            assert_eq!(render_line(&line, focus), expected, "{label}");
+        }
+    }
+
+    #[test]
+    fn a_cut_keeps_emoji_modifiers_and_flags_whole() {
+        let wave = "👋🏽";
+        let flag = "🇫🇷";
+        let cases = [
+            ("modifier", wave.repeat(300), format!("{}{}", wave.repeat(250), tail(100))),
+            (
+                "modifier after ascii",
+                format!("x{}", wave.repeat(300)),
+                format!("x{}{}", wave.repeat(249), tail(102)),
+            ),
+            (
+                "flag after ascii",
+                format!("x{}", flag.repeat(300)),
+                format!("x{}{}", flag.repeat(249), tail(102)),
+            ),
+        ];
+        for (label, line, expected) in cases {
+            assert_eq!(render_line(&line, None), expected, "{label}");
+        }
+    }
+
+    #[test]
+    fn a_cut_never_splits_a_zero_width_joiner_sequence() {
+        let families = FAMILY.repeat(300);
+        let out = render_line(&families, None);
+        let kept = out.strip_suffix("… (+100 more columns; --json has the full line)");
+        assert_eq!(kept, Some(FAMILY.repeat(250).as_str()));
+    }
+
+    #[test]
+    fn a_cut_measures_the_escaped_text() {
+        let line = "\u{1b}".repeat(100);
+        let out = render_line(&line, None);
+        let expected = format!(
+            "{}… (+{} more columns; --json has the full line)",
+            "\\u{1b}".repeat(83),
+            100 * 6 - 83 * 6
+        );
+        assert_eq!(out, expected);
+    }
+
+    #[test]
+    fn a_token_that_needs_quoting_is_single_quoted() {
+        let cases = [
+            ("a b.txt", "'a b.txt'"),
+            ("it's", "'it'\\''s'"),
+            ("-x", "'-x'"),
+            ("=x", "'=x'"),
+            ("", "''"),
+        ];
+        for (token, expected) in cases {
+            assert_eq!(shell_word(token), expected, "{token:?}");
+        }
+    }
+
+    #[test]
+    fn a_token_with_a_control_character_is_ansi_c_quoted() {
+        let cases = [
+            ("a\nb", "$'a\\nb'"),
+            ("a\tb", "$'a\\tb'"),
+            ("a\u{1b}b", "$'a\\033b'"),
+            ("a\\\nb", "$'a\\\\\\nb'"),
+            ("it's\n", "$'it\\'s\\n'"),
+            ("日本 \u{202e}\n", "$'日本 \\342\\200\\256\\n'"),
+        ];
+        for (token, expected) in cases {
+            assert_eq!(shell_word(token), expected, "{token:?}");
+        }
+    }
+
+    #[test]
+    fn bash_reads_a_quoted_token_back_as_the_token() {
+        if Command::new("bash").arg("--version").output().is_err() {
+            eprintln!("skipping: bash is not installed");
+            return;
+        }
+        let corpus = [
+            "github.com/gorilla/mux@98cb6bf42e08:mux.go",
+            "a b.txt",
+            "it's",
+            "-x",
+            "=x",
+            "",
+            "a\nb",
+            "a\u{1b}b",
+            "日本 語",
+            "$HOME",
+            "`",
+            "!x",
+            "*",
+            "[a]",
+            "a\u{202e}b",
+        ];
+        for token in corpus {
+            let script = format!("shopt -s failglob; printf %s {}", shell_word(token));
+            let output = Command::new("bash").arg("-c").arg(&script).output().unwrap();
+            assert!(output.status.success(), "{script}");
+            assert_eq!(output.stdout, token.as_bytes(), "{script}");
+        }
+    }
+}

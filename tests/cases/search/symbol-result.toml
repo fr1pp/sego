@@ -1,0 +1,155 @@
+# A symbol search prints one row per symbol.
+args = ["search", 'repo:^github\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter']
+status.code = 0
+stdout = '''
+2 symbols  1 repo  0.0 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter
+
+github.com/gorilla/mux@98cb6bf42e08:mux.go
+25:function  NewRouter
+
+github.com/gorilla/mux@98cb6bf42e08:regexp.go
+41:function  newRouteRegexp
+'''
+
+[[exchange]]
+operation = "Search"
+variables = '{"listed":false,"query":"repo:^github\\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter","unindexed":""}'
+query = '''
+query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
+    results {
+      limitHit elapsedMilliseconds timedout { name } alert { title }
+      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
+    }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "2",
+        "dynamicFilters": [
+          {
+            "count": 2,
+            "kind": "type",
+            "value": "type:symbol"
+          },
+          {
+            "count": 2,
+            "kind": "lang",
+            "value": "lang:go"
+          },
+          {
+            "count": 2,
+            "kind": "repo",
+            "value": "repo:^github\\.com/gorilla/mux$@v1.8.0"
+          },
+          {
+            "count": 2,
+            "kind": "symbol type",
+            "value": "select:symbol.function"
+          }
+        ],
+        "elapsedMilliseconds": 13,
+        "limitHit": false,
+        "matchCount": 2,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "mux.go"
+            },
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": [
+              {
+                "containerName": "mux",
+                "kind": "FUNCTION",
+                "location": {
+                  "range": {
+                    "start": {
+                      "line": 24
+                    }
+                  }
+                },
+                "name": "NewRouter"
+              }
+            ]
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "regexp.go"
+            },
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": [
+              {
+                "containerName": "mux",
+                "kind": "FUNCTION",
+                "location": {
+                  "range": {
+                    "start": {
+                      "line": 40
+                    }
+                  }
+                },
+                "name": "newRouteRegexp"
+              }
+            ]
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}
+'''

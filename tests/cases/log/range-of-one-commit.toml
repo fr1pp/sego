@@ -1,0 +1,162 @@
+# A range of one commit says commit in the singular.
+args = ["log", "github.com/gorilla/context@a45ea70b19f4..6a490e2f9d52"]
+status.code = 0
+stdout = '''
+github.com/gorilla/context@a45ea70b19f4..6a490e2f9d52  1 commit
+6a490e2f9d52  2023-10-18  Corey Daley  (tag: v2.0.0, tag: v1.1.2) Updating github actions workflows to test 1.20 and 1.21 (#45)
+'''
+
+[[exchange]]
+operation = "Log"
+variables = '{"a":"a45ea70b19f4","b":"6a490e2f9d52","count":true,"first":151,"gitlab":false,"path":null,"probe":false,"repo0":"github.com/gorilla/context","repo1":""}'
+query = '''
+query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $path: String, $first: Int, $count: Boolean!, $probe: Boolean!) {
+  a0: repository(name: $repo0) { ...Base }
+  b0: repository(name: $repo0) { ...Head }
+  n0: repository(name: $repo0) { ...Ahead }
+  c0: repository(name: $repo0) { ...Commits }
+  t0: repository(name: $repo0) { ...Tags }
+  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
+  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
+  n1: repository(name: $repo1) @include(if: $gitlab) { ...Ahead }
+  c1: repository(name: $repo1) @include(if: $gitlab) { ...Commits }
+  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
+}
+
+fragment Base on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $a) { oid x: path(path: $path) @include(if: $probe) { __typename } }
+}
+
+fragment Head on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $b) { oid x: path(path: $path) @include(if: $probe) { __typename } }
+}
+
+fragment Ahead on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $b) @include(if: $count) { behindAhead(revspec: $a) { ahead } }
+}
+
+fragment Commits on Repository {
+  name
+  defaultBranch { displayName }
+  comparison(base: $a, head: $b) { commits(first: $first, path: $path) { ...Page } }
+}
+fragment Page on GitCommitConnection {
+  nodes { oid subject author { date person { displayName } } parents { oid } }
+  pageInfo { hasNextPage }
+}
+
+fragment Tags on Repository {
+  name
+  defaultBranch { displayName }
+  gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "a45ea70b19f4801253061c655e1adf2b9f921118"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/context"
+    },
+    "b0": {
+      "commit": {
+        "oid": "6a490e2f9d5230449188a699ba53618c3364b26d"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/context"
+    },
+    "c0": {
+      "comparison": {
+        "commits": {
+          "nodes": [
+            {
+              "author": {
+                "date": "2023-10-18T00:46:33Z",
+                "person": {
+                  "displayName": "Corey Daley"
+                }
+              },
+              "oid": "6a490e2f9d5230449188a699ba53618c3364b26d",
+              "parents": [
+                {
+                  "oid": "a45ea70b19f4801253061c655e1adf2b9f921118"
+                }
+              ],
+              "subject": "Updating github actions workflows to test 1.20 and 1.21 (#45)"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/context"
+    },
+    "n0": {
+      "commit": {
+        "behindAhead": {
+          "ahead": 1
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/context"
+    },
+    "t0": {
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "gitRefs": {
+        "nodes": [
+          {
+            "displayName": "v2.0.0",
+            "target": {
+              "oid": "6a490e2f9d5230449188a699ba53618c3364b26d"
+            }
+          },
+          {
+            "displayName": "v1.1.2",
+            "target": {
+              "oid": "6a490e2f9d5230449188a699ba53618c3364b26d"
+            }
+          },
+          {
+            "displayName": "v1.1.1",
+            "target": {
+              "oid": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
+            }
+          },
+          {
+            "displayName": "v1.1",
+            "target": {
+              "oid": "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
+            }
+          }
+        ],
+        "totalCount": 4
+      },
+      "name": "github.com/gorilla/context"
+    }
+  }
+}
+'''

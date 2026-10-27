@@ -1,0 +1,110 @@
+# JSON carries the commit and its files.
+args = ["show", "--json", "github.com/gorilla/mux@v1.8.0"]
+status.code = 0
+stdout = '''
+{"repo":"github.com/gorilla/mux","rev":"v1.8.0","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","author":"Harshavardhana","author_date":"2020-07-11","committer":"GitHub","committer_date":"2020-07-11","parents":["948bec34b5168796bf3fc4dbb09215baa970351a"],"subject":"fix: regression in vars extract for wildcard host (#579)","message":"fix: regression in vars extract for wildcard host (#579)\n\nContinuing from PR #447 we have to add extra\ncheck to ignore the port as well\n\nadd tests to cover this case","files":[{"status":"M","old_path":"old_test.go","new_path":"old_test.go","added":22,"deleted":1},{"status":"M","old_path":"regexp.go","new_path":"regexp.go","added":6,"deleted":0}],"files_total":2,"added":28,"deleted":1}
+'''
+
+[[exchange]]
+operation = "ShowCommit"
+variables = '{"base":"v1.8.0^1","gitlab":false,"repo0":"github.com/gorilla/mux","repo1":"","rev":"v1.8.0"}'
+query = '''
+query ShowCommit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $base: String!) {
+  m0: repository(name: $repo0) { ...Commit }
+  d0: repository(name: $repo0) { ...Changes }
+  m1: repository(name: $repo1) @include(if: $gitlab) { ...Commit }
+  d1: repository(name: $repo1) @include(if: $gitlab) { ...Changes }
+}
+
+fragment Commit on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $rev) {
+    oid subject message
+    author { date person { displayName } }
+    committer { date person { displayName } }
+    parents { oid }
+  }
+}
+
+fragment Changes on Repository {
+  name
+  defaultBranch { displayName }
+  comparison(base: $base, head: $rev) {
+    all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "d0": {
+      "comparison": {
+        "all": {
+          "diffStat": {
+            "added": 28,
+            "deleted": 1
+          },
+          "totalCount": 2
+        },
+        "page": {
+          "nodes": [
+            {
+              "newPath": "old_test.go",
+              "oldPath": "old_test.go",
+              "stat": {
+                "added": 22,
+                "deleted": 1
+              }
+            },
+            {
+              "newPath": "regexp.go",
+              "oldPath": "regexp.go",
+              "stat": {
+                "added": 6,
+                "deleted": 0
+              }
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    },
+    "m0": {
+      "commit": {
+        "author": {
+          "date": "2020-07-11T20:05:21Z",
+          "person": {
+            "displayName": "Harshavardhana"
+          }
+        },
+        "committer": {
+          "date": "2020-07-11T20:05:21Z",
+          "person": {
+            "displayName": "GitHub"
+          }
+        },
+        "message": "fix: regression in vars extract for wildcard host (#579)\n\nContinuing from PR #447 we have to add extra\ncheck to ignore the port as well\n\nadd tests to cover this case",
+        "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+        "parents": [
+          {
+            "oid": "948bec34b5168796bf3fc4dbb09215baa970351a"
+          }
+        ],
+        "subject": "fix: regression in vars extract for wildcard host (#579)"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  }
+}
+'''

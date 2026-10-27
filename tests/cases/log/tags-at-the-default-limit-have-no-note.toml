@@ -1,0 +1,107 @@
+# Exactly 1000 tags mark commits with no note.
+args = ["log", "example.com/acme/widget@v2"]
+status.code = 0
+stdout = '''
+example.com/acme/widget@000100010001  2 commits  rev v2
+000100010001  2026-08-01  Ada Lovelace  (tag: v2) Release 2.0.0
+000200020002  2026-08-01  Ada Lovelace  Fix the parser
+'''
+
+[[exchange]]
+operation = "Log"
+variables = '{"first":151,"gitlab":false,"path":null,"repo0":"example.com/acme/widget","repo1":"","rev":"v2"}'
+query = '''
+query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String, $first: Int) {
+  r0: repository(name: $repo0) { ...History }
+  t0: repository(name: $repo0) { ...Tags }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...History }
+  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
+}
+
+fragment History on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $rev) { oid ancestors(first: $first, path: $path) { ...Page } }
+}
+fragment Page on GitCommitConnection {
+  nodes { oid subject author { date person { displayName } } parents { oid } }
+  pageInfo { hasNextPage }
+}
+
+fragment Tags on Repository {
+  name
+  defaultBranch { displayName }
+  gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "r0": {
+      "commit": {
+        "ancestors": {
+          "nodes": [
+            {
+              "author": {
+                "date": "2026-08-01T09:00:00Z",
+                "person": {
+                  "displayName": "Ada Lovelace"
+                }
+              },
+              "oid": "0001000100010001000100010001000100010001",
+              "parents": [
+                {
+                  "oid": "0002000200020002000200020002000200020002"
+                }
+              ],
+              "subject": "Release 2.0.0"
+            },
+            {
+              "author": {
+                "date": "2026-08-01T09:00:00Z",
+                "person": {
+                  "displayName": "Ada Lovelace"
+                }
+              },
+              "oid": "0002000200020002000200020002000200020002",
+              "parents": [
+                {
+                  "oid": "0003000300030003000300030003000300030003"
+                }
+              ],
+              "subject": "Fix the parser"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        },
+        "oid": "0001000100010001000100010001000100010001"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "t0": {
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "gitRefs": {
+        "nodes": [
+          {
+            "displayName": "v2",
+            "target": {
+              "oid": "0001000100010001000100010001000100010001"
+            }
+          }
+        ],
+        "totalCount": 1000
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}
+'''

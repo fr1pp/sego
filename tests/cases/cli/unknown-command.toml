@@ -1,0 +1,8 @@
+# An unknown command is named and the commands listed, with no suggestion.
+args = ["shwo", "example.com/acme/widget:a.go"]
+status.code = 2
+stderr = '''
+sego: error: unknown command 'shwo'
+  commands: search, show, ls, refs, log, diff
+usage: sego COMMAND [--json] ...
+'''

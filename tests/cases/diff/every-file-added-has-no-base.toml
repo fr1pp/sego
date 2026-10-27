@@ -1,0 +1,161 @@
+# When every file was added there is no base.
+args = ["diff", "github.com/gorilla/mux@v1.6.2...v1.7.0", ".github"]
+status.code = 0
+stdout = '''
+github.com/gorilla/mux@e3702bed27f0...a7962380ca08:.github  2 files  +20 -0  rev v1.6.2...v1.7.0
+A  +8 -0  .github/release-drafter.yml
+A  +12 -0  .github/stale.yml
+
+    diff --git .github/release-drafter.yml .github/release-drafter.yml
+    new file mode 100644
+    index 0000000000000000000000000000000000000000..2db2e1397ec7b63ebe94d7536548cba72f20e7bd
+    --- /dev/null
+    +++ .github/release-drafter.yml
+    @@ -0,0 +1,8 @@
+    +# Config for https://github.com/apps/release-drafter
+    +template: |
+    +  
+    +  <summary of changes here>
+    +  
+    +  ## CHANGELOG
+    +
+    +  $CHANGES
+    diff --git .github/stale.yml .github/stale.yml
+    new file mode 100644
+    index 0000000000000000000000000000000000000000..de8a67804bf3b119c5d4926d2acddd958ae0b5cd
+    --- /dev/null
+    +++ .github/stale.yml
+    @@ -0,0 +1,12 @@
+    +daysUntilStale: 60
+    +daysUntilClose: 7
+    +# Issues with these labels will never be considered stale
+    +exemptLabels:
+    +  - v2
+    +  - needs-review
+    +  - work-required
+    +staleLabel: stale
+    +markComment: >
+    +  This issue has been automatically marked as stale because it hasn't seen
+    +  a recent update. It'll be automatically closed in a few days.
+    +closeComment: false
+'''
+
+[[exchange]]
+operation = "Diff"
+variables = '{"a":"v1.6.2","b":"v1.7.0","first":201,"gitlab":false,"patch":true,"path0":".github","paths":[".github"],"repo0":"github.com/gorilla/mux","repo1":""}'
+query = '''
+query Diff($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!, $path0: String!) {
+  a0: repository(name: $repo0) { ...Base }
+  b0: repository(name: $repo0) { ...Head }
+  c0: repository(name: $repo0) { ...Comparison }
+  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
+  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
+  c1: repository(name: $repo1) @include(if: $gitlab) { ...Comparison }
+}
+
+fragment Base on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $a) {
+    oid
+    p0: path(path: $path0) { __typename }
+  }
+}
+
+fragment Head on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $b) {
+    oid parents { oid }
+    p0: path(path: $path0) { __typename }
+  }
+}
+
+fragment Comparison on Repository {
+  name
+  defaultBranch { displayName }
+  comparison(base: $a, head: $b) {
+    all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: $first, paths: $paths) {
+      nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }
+    }
+    patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf",
+        "p0": null
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    },
+    "b0": {
+      "commit": {
+        "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+        "p0": {
+          "__typename": "GitTree"
+        },
+        "parents": [
+          {
+            "oid": "797e653da60e4619dcb0ae703714147b5a7454c6"
+          }
+        ]
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    },
+    "c0": {
+      "comparison": {
+        "all": {
+          "diffStat": {
+            "added": 20,
+            "deleted": 0
+          },
+          "totalCount": 2
+        },
+        "page": {
+          "nodes": [
+            {
+              "newPath": ".github/release-drafter.yml",
+              "oldFile": null,
+              "oldPath": null,
+              "stat": {
+                "added": 8,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": ".github/stale.yml",
+              "oldFile": null,
+              "oldPath": null,
+              "stat": {
+                "added": 12,
+                "deleted": 0
+              }
+            }
+          ]
+        },
+        "patch": {
+          "rawDiff": "diff --git .github/release-drafter.yml .github/release-drafter.yml\nnew file mode 100644\nindex 0000000000000000000000000000000000000000..2db2e1397ec7b63ebe94d7536548cba72f20e7bd\n--- /dev/null\n+++ .github/release-drafter.yml\n@@ -0,0 +1,8 @@\n+# Config for https://github.com/apps/release-drafter\n+template: |\n+  \n+  <summary of changes here>\n+  \n+  ## CHANGELOG\n+\n+  $CHANGES\ndiff --git .github/stale.yml .github/stale.yml\nnew file mode 100644\nindex 0000000000000000000000000000000000000000..de8a67804bf3b119c5d4926d2acddd958ae0b5cd\n--- /dev/null\n+++ .github/stale.yml\n@@ -0,0 +1,12 @@\n+daysUntilStale: 60\n+daysUntilClose: 7\n+# Issues with these labels will never be considered stale\n+exemptLabels:\n+  - v2\n+  - needs-review\n+  - work-required\n+staleLabel: stale\n+markComment: >\n+  This issue has been automatically marked as stale because it hasn't seen\n+  a recent update. It'll be automatically closed in a few days.\n+closeComment: false\n"
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  }
+}
+'''

@@ -1,0 +1,344 @@
+# A recursive listing sorts segment by segment, so a directory's entries follow
+# it.
+args = ["ls", "--recursive", "github.com/gorilla/websocket@v1.5.3:examples"]
+status.code = 0
+stdout = '''
+github.com/gorilla/websocket@ce903f6d1d96:examples  22 entries  6 dirs  16 files  rev v1.5.3
+dir        examples/autobahn/
+file       examples/autobahn/README.md
+dir        examples/autobahn/config/
+file       examples/autobahn/config/fuzzingclient.json
+file       examples/autobahn/server.go
+dir        examples/chat/
+file       examples/chat/README.md
+file       examples/chat/client.go
+file       examples/chat/home.html
+file       examples/chat/hub.go
+file       examples/chat/main.go
+dir        examples/command/
+file       examples/command/README.md
+file       examples/command/home.html
+file       examples/command/main.go
+dir        examples/echo/
+file       examples/echo/README.md
+file       examples/echo/client.go
+file       examples/echo/server.go
+dir        examples/filewatch/
+file       examples/filewatch/README.md
+file       examples/filewatch/main.go
+'''
+
+[[exchange]]
+operation = "ListTree"
+variables = '{"ambiguous0":false,"gitlab":false,"parent0":"","path0":"examples","recursive":true,"repo0":"github.com/gorilla/websocket","repo1":"","rev0":"v1.5.3","split":false}'
+query = '''
+query ListTree($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $recursive: Boolean!
+$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
+  r0: repository(name: $repo0) { ...Guesses }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
+}
+
+fragment Guesses on Repository {
+  name
+  defaultBranch { displayName }
+c0: commit(rev: $rev0) {
+    oid
+    tree: tree(path: $path0) { entries(recursive: $recursive) { path isDirectory submodule { url commit } } }
+    file: blob(path: $path0) { totalLines byteSize binary }
+    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
+    x0: path(path: $path0) @include(if: $split) { __typename }
+  }
+  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "file": null,
+        "oid": "ce903f6d1d961af3a8602f2842c8b1c3fca58c4d",
+        "parent": {
+          "entries": [
+            {
+              "path": ".circleci",
+              "submodule": null
+            },
+            {
+              "path": ".github",
+              "submodule": null
+            },
+            {
+              "path": "examples",
+              "submodule": null
+            },
+            {
+              "path": ".gitignore",
+              "submodule": null
+            },
+            {
+              "path": "AUTHORS",
+              "submodule": null
+            },
+            {
+              "path": "LICENSE",
+              "submodule": null
+            },
+            {
+              "path": "README.md",
+              "submodule": null
+            },
+            {
+              "path": "client.go",
+              "submodule": null
+            },
+            {
+              "path": "client_server_test.go",
+              "submodule": null
+            },
+            {
+              "path": "client_test.go",
+              "submodule": null
+            },
+            {
+              "path": "compression.go",
+              "submodule": null
+            },
+            {
+              "path": "compression_test.go",
+              "submodule": null
+            },
+            {
+              "path": "conn.go",
+              "submodule": null
+            },
+            {
+              "path": "conn_broadcast_test.go",
+              "submodule": null
+            },
+            {
+              "path": "conn_test.go",
+              "submodule": null
+            },
+            {
+              "path": "doc.go",
+              "submodule": null
+            },
+            {
+              "path": "example_test.go",
+              "submodule": null
+            },
+            {
+              "path": "go.mod",
+              "submodule": null
+            },
+            {
+              "path": "go.sum",
+              "submodule": null
+            },
+            {
+              "path": "join.go",
+              "submodule": null
+            },
+            {
+              "path": "join_test.go",
+              "submodule": null
+            },
+            {
+              "path": "json.go",
+              "submodule": null
+            },
+            {
+              "path": "json_test.go",
+              "submodule": null
+            },
+            {
+              "path": "mask.go",
+              "submodule": null
+            },
+            {
+              "path": "mask_safe.go",
+              "submodule": null
+            },
+            {
+              "path": "mask_test.go",
+              "submodule": null
+            },
+            {
+              "path": "prepared.go",
+              "submodule": null
+            },
+            {
+              "path": "prepared_test.go",
+              "submodule": null
+            },
+            {
+              "path": "proxy.go",
+              "submodule": null
+            },
+            {
+              "path": "server.go",
+              "submodule": null
+            },
+            {
+              "path": "server_test.go",
+              "submodule": null
+            },
+            {
+              "path": "tls_handshake.go",
+              "submodule": null
+            },
+            {
+              "path": "tls_handshake_116.go",
+              "submodule": null
+            },
+            {
+              "path": "util.go",
+              "submodule": null
+            },
+            {
+              "path": "util_test.go",
+              "submodule": null
+            },
+            {
+              "path": "x_net_proxy.go",
+              "submodule": null
+            }
+          ]
+        },
+        "tree": {
+          "entries": [
+            {
+              "isDirectory": true,
+              "path": "examples/autobahn",
+              "submodule": null
+            },
+            {
+              "isDirectory": true,
+              "path": "examples/autobahn/config",
+              "submodule": null
+            },
+            {
+              "isDirectory": true,
+              "path": "examples/chat",
+              "submodule": null
+            },
+            {
+              "isDirectory": true,
+              "path": "examples/command",
+              "submodule": null
+            },
+            {
+              "isDirectory": true,
+              "path": "examples/echo",
+              "submodule": null
+            },
+            {
+              "isDirectory": true,
+              "path": "examples/filewatch",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "examples/autobahn/README.md",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "examples/autobahn/config/fuzzingclient.json",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "examples/autobahn/server.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "examples/chat/README.md",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "examples/chat/client.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "examples/chat/home.html",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "examples/chat/hub.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "examples/chat/main.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "examples/command/README.md",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "examples/command/home.html",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "examples/command/main.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "examples/echo/README.md",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "examples/echo/client.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "examples/echo/server.go",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "examples/filewatch/README.md",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "examples/filewatch/main.go",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/websocket"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a blob: \"examples\"",
+      "path": [
+        "r0",
+        "c0",
+        "file"
+      ]
+    }
+  ]
+}
+'''

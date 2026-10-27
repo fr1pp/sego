@@ -1,0 +1,183 @@
+# A path with control characters in a range is escaped in the header.
+args = ["log", "example.com/acme/widget@v1.0.0..v2.0.0:a\u001Bb\u202Ec\u200Bd\ne\rf\u0000g\u2028h\u007Fi"]
+status.code = 0
+stdout = '''
+$'example.com/acme/widget@fedcba987654..0123456789ab:a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i'  3 commits  rev v1.0.0..v2.0.0
+0123456789ab  2026-08-01  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i  (tag: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i, tag: t-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i) a\u{1b}b\u{202e}c\u{200b}d\u{a}e\u{d}f\u{0}g\u{2028}h\u{7f}i
+89abcdef0123  a\u{1b}b\u{202e}c\u{200b}d e\u{d}  b-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i  b-a\u{1b}b\u{202e}c\u{200b}d\u{a}e\u{d}f\u{0}g\u{2028}h\u{7f}i
+a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}  2026-07-01  c-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i  (tag: u-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i) c-a\u{1b}b\u{202e}c\u{200b}d\u{a}e\u{d}f\u{0}g\u{2028}h\u{7f}i
+'''
+
+[[exchange]]
+operation = "Log"
+variables = "{\"a\":\"v1.0.0\",\"b\":\"v2.0.0\",\"count\":false,\"first\":151,\"gitlab\":false,\"path\":\"a\\u001bb\u202Ec\u200Bd\\ne\\rf\\u0000g\u2028h\u007Fi\",\"probe\":true,\"repo0\":\"example.com/acme/widget\",\"repo1\":\"\"}"
+query = '''
+query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $path: String, $first: Int, $count: Boolean!, $probe: Boolean!) {
+  a0: repository(name: $repo0) { ...Base }
+  b0: repository(name: $repo0) { ...Head }
+  n0: repository(name: $repo0) { ...Ahead }
+  c0: repository(name: $repo0) { ...Commits }
+  t0: repository(name: $repo0) { ...Tags }
+  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
+  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
+  n1: repository(name: $repo1) @include(if: $gitlab) { ...Ahead }
+  c1: repository(name: $repo1) @include(if: $gitlab) { ...Commits }
+  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
+}
+
+fragment Base on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $a) { oid x: path(path: $path) @include(if: $probe) { __typename } }
+}
+
+fragment Head on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $b) { oid x: path(path: $path) @include(if: $probe) { __typename } }
+}
+
+fragment Ahead on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $b) @include(if: $count) { behindAhead(revspec: $a) { ahead } }
+}
+
+fragment Commits on Repository {
+  name
+  defaultBranch { displayName }
+  comparison(base: $a, head: $b) { commits(first: $first, path: $path) { ...Page } }
+}
+fragment Page on GitCommitConnection {
+  nodes { oid subject author { date person { displayName } } parents { oid } }
+  pageInfo { hasNextPage }
+}
+
+fragment Tags on Repository {
+  name
+  defaultBranch { displayName }
+  gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "fedcba9876543210fedcba9876543210fedcba98"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "b0": {
+      "commit": {
+        "oid": "0123456789abcdef0123456789abcdef01234567"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "c0": {
+      "comparison": {
+        "commits": {
+          "nodes": [
+            {
+              "author": {
+                "date": "2026-08-01T09:00:00Z",
+                "person": {
+                  "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                }
+              },
+              "oid": "0123456789abcdef0123456789abcdef01234567",
+              "parents": [
+                {
+                  "oid": "89abcdef0123456789abcdef0123456789abcdef"
+                }
+              ],
+              "subject": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+            },
+            {
+              "author": {
+                "date": "a\u001bb\u202ec\u200bd\ne\rT00:00:00Z",
+                "person": {
+                  "displayName": "b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                }
+              },
+              "oid": "89abcdef0123456789abcdef0123456789abcdef",
+              "parents": [
+                {
+                  "oid": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                }
+              ],
+              "subject": "b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+            },
+            {
+              "author": {
+                "date": "2026-07-01T00:00:00Z",
+                "person": {
+                  "displayName": "c-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                }
+              },
+              "oid": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+              "parents": [],
+              "subject": "c-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "n0": {
+      "commit": {
+        "behindAhead": {
+          "ahead": 3
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "t0": {
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "gitRefs": {
+        "nodes": [
+          {
+            "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+            "target": {
+              "oid": "0123456789abcdef0123456789abcdef01234567"
+            }
+          },
+          {
+            "displayName": "t-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+            "target": {
+              "oid": "0123456789abcdef0123456789abcdef01234567"
+            }
+          },
+          {
+            "displayName": "u-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+            "target": {
+              "oid": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+            }
+          }
+        ],
+        "totalCount": 3
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}
+'''

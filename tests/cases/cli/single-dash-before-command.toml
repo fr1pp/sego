@@ -1,0 +1,7 @@
+# A single dash before the command is an option, not query text.
+args = ["-x", "search", "widget"]
+status.code = 2
+stderr = '''
+sego: error: unknown option -x
+usage: sego COMMAND [--json] ...
+'''

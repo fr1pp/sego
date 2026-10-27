@@ -1,0 +1,79 @@
+# A submodule whose URL is not a repository prints the URL as written.
+args = ["ls", "example.com/acme/shell@d81fd54feb0d996fdff20dca27eaf0201f7015cc:contrib"]
+status.code = 0
+stdout = '''
+example.com/acme/shell@d81fd54feb0d:contrib  1 entry  1 submodule
+submodule  contrib  file:///srv/contrib
+'''
+
+[[exchange]]
+operation = "ListTree"
+variables = '{"ambiguous0":false,"gitlab":false,"parent0":"","path0":"contrib","recursive":false,"repo0":"example.com/acme/shell","repo1":"","rev0":"d81fd54feb0d996fdff20dca27eaf0201f7015cc","split":false}'
+query = '''
+query ListTree($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $recursive: Boolean!
+$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
+  r0: repository(name: $repo0) { ...Guesses }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
+}
+
+fragment Guesses on Repository {
+  name
+  defaultBranch { displayName }
+c0: commit(rev: $rev0) {
+    oid
+    tree: tree(path: $path0) { entries(recursive: $recursive) { path isDirectory submodule { url commit } } }
+    file: blob(path: $path0) { totalLines byteSize binary }
+    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
+    x0: path(path: $path0) @include(if: $split) { __typename }
+  }
+  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "file": null,
+        "oid": "d81fd54feb0d996fdff20dca27eaf0201f7015cc",
+        "parent": {
+          "entries": [
+            {
+              "path": "contrib",
+              "submodule": {
+                "commit": "d2109203480a7dfe1dead5f5f8f9f15a9146c90d",
+                "url": "file:///srv/contrib"
+              }
+            }
+          ]
+        },
+        "tree": null
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/shell"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a directory: \"contrib\"",
+      "path": [
+        "r0",
+        "c0",
+        "tree"
+      ]
+    },
+    {
+      "message": "not a blob: \"contrib\"",
+      "path": [
+        "r0",
+        "c0",
+        "file"
+      ]
+    }
+  ]
+}
+'''

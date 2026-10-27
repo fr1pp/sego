@@ -11,5 +11,5 @@ fn main() -> ExitCode {
     };
     let mut out = io::stdout().lock();
     let mut err = io::stderr().lock();
-    run(args, &env, &connect, &mut out, &mut err)
+    ExitCode::from(run(args, &env, &connect, &mut out, &mut err))
 }

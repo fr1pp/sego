@@ -1,0 +1,599 @@
+# A range lists its commits with tag marks.
+args = ["log", "github.com/gorilla/mux@v1.7.1..v1.7.4"]
+status.code = 0
+stdout = '''
+github.com/gorilla/mux@c5c6c98bc253..75dcda0896e1  24 commits  rev v1.7.1..v1.7.4
+75dcda0896e1  2020-01-12  Klaus Post  (tag: v1.7.4) perf: reduce allocations in (*routeRegexp).getURLQuery (#544)
+49c01487a141  2019-11-21  Veselkov Konstantin  lint: Remove golint warning (#526)
+4de8a5a4d283  2019-11-19  wangming  fix headers regexp test (#536)
+2854a05fd3e2  2019-11-17  Matt Silverlock  Merge pull request #535 from fharding1/cors-subrouter-bug
+946b6237eb8d  2019-11-14  Franklin Harding  Fix the CORSMethodMiddleware bug with subrouters
+f395758b854c  2019-10-24  Franklin Harding  Remove/cleanup request context helpers (#525)
+ff4e71f14416  2019-10-18  Euan Kemp  Guess the scheme if r.URL.Scheme is unset (#474)
+884b5ffcbd3a  2019-08-30  Vivek V  Added capacity to slice creation, when capacity is known (#516)
+e1863a64f3c6  2019-08-27  Vivek V  Modified http status codes, using constants provided by the http package (#514)
+9536e4053d76  2019-08-26  Jonas De Beukelaer  bugfix: subrouter custom methodNotAllowed handler returning 404 (#509) (#510)
+e0cdff45b7de  2019-08-24  Matt Silverlock  Update README (self-host logo) (#513)
+e67b3c02c719  2019-07-20  Matt Silverlock  Remove TravisCI badge (#503)
+7a1bf406d6f5  2019-07-20  Franklin Harding  [docs] Add documentation for using mux to serve a SPA (#493)
+eab9c4f3d22d  2019-07-20  Christian Muehlhaeuser  Simplify code (#501)
+50fbc3e7fbfc  2019-07-20  Christian Muehlhaeuser  Avoid unnecessary conversion (#502)
+d83b6ffe499a  2019-07-01  Matt Silverlock  Update config.yml (#495)
+00bdffe0f3c7  2019-06-30  Matt Silverlock  (tag: v1.7.3) Update stale.yml (#494)
+05347690167e  2019-06-29  Franklin Harding  Improve CORS Method Middleware (#477)
+d70f7b4baacb  2019-06-29  Matt Silverlock  Delete ISSUE_TEMPLATE.md (#492)
+48f941fa9994  2019-06-29  Franklin Harding  Use subtests for middleware tests (#478)
+64954673e972  2019-06-28  Matt Silverlock  Delete .travis.yml (#490)
+4248f5cd8717  2019-06-28  Franklin Harding  Fix nil panic in authentication middleware example (#489)
+212aa90d7cec  2019-06-24  Matt Silverlock  [WIP] Create CircleCI config (#484)
+ed099d423848  2019-05-17  M@  (tag: v1.7.2) host:port matching does not require a :port to be specified.
+'''
+
+[[exchange]]
+operation = "Log"
+variables = '{"a":"v1.7.1","b":"v1.7.4","count":true,"first":151,"gitlab":false,"path":null,"probe":false,"repo0":"github.com/gorilla/mux","repo1":""}'
+query = '''
+query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $path: String, $first: Int, $count: Boolean!, $probe: Boolean!) {
+  a0: repository(name: $repo0) { ...Base }
+  b0: repository(name: $repo0) { ...Head }
+  n0: repository(name: $repo0) { ...Ahead }
+  c0: repository(name: $repo0) { ...Commits }
+  t0: repository(name: $repo0) { ...Tags }
+  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
+  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
+  n1: repository(name: $repo1) @include(if: $gitlab) { ...Ahead }
+  c1: repository(name: $repo1) @include(if: $gitlab) { ...Commits }
+  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
+}
+
+fragment Base on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $a) { oid x: path(path: $path) @include(if: $probe) { __typename } }
+}
+
+fragment Head on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $b) { oid x: path(path: $path) @include(if: $probe) { __typename } }
+}
+
+fragment Ahead on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $b) @include(if: $count) { behindAhead(revspec: $a) { ahead } }
+}
+
+fragment Commits on Repository {
+  name
+  defaultBranch { displayName }
+  comparison(base: $a, head: $b) { commits(first: $first, path: $path) { ...Page } }
+}
+fragment Page on GitCommitConnection {
+  nodes { oid subject author { date person { displayName } } parents { oid } }
+  pageInfo { hasNextPage }
+}
+
+fragment Tags on Repository {
+  name
+  defaultBranch { displayName }
+  gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "c5c6c98bc25355028a63748a498942a6398ccd22"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    },
+    "b0": {
+      "commit": {
+        "oid": "75dcda0896e109a2a22c9315bca3bb21b87b2ba5"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    },
+    "c0": {
+      "comparison": {
+        "commits": {
+          "nodes": [
+            {
+              "author": {
+                "date": "2020-01-12T19:17:43Z",
+                "person": {
+                  "displayName": "Klaus Post"
+                }
+              },
+              "oid": "75dcda0896e109a2a22c9315bca3bb21b87b2ba5",
+              "parents": [
+                {
+                  "oid": "49c01487a141b49f8ffe06277f3dca3ee80a55fa"
+                }
+              ],
+              "subject": "perf: reduce allocations in (*routeRegexp).getURLQuery (#544)"
+            },
+            {
+              "author": {
+                "date": "2019-11-21T17:05:00Z",
+                "person": {
+                  "displayName": "Veselkov Konstantin"
+                }
+              },
+              "oid": "49c01487a141b49f8ffe06277f3dca3ee80a55fa",
+              "parents": [
+                {
+                  "oid": "4de8a5a4d283677c69afa1a86a044c8451633a18"
+                }
+              ],
+              "subject": "lint: Remove golint warning (#526)"
+            },
+            {
+              "author": {
+                "date": "2019-11-19T13:02:14Z",
+                "person": {
+                  "displayName": "wangming"
+                }
+              },
+              "oid": "4de8a5a4d283677c69afa1a86a044c8451633a18",
+              "parents": [
+                {
+                  "oid": "2854a05fd3e2a9ecec0802bcb6eda09bbc0eea9f"
+                }
+              ],
+              "subject": "fix headers regexp test (#536)"
+            },
+            {
+              "author": {
+                "date": "2019-11-17T01:33:21Z",
+                "person": {
+                  "displayName": "Matt Silverlock"
+                }
+              },
+              "oid": "2854a05fd3e2a9ecec0802bcb6eda09bbc0eea9f",
+              "parents": [
+                {
+                  "oid": "f395758b854c4efa789b8c1e9b73479704c548cb"
+                },
+                {
+                  "oid": "946b6237eb8d0ce3225f502b7fd4208d0b60ce5f"
+                }
+              ],
+              "subject": "Merge pull request #535 from fharding1/cors-subrouter-bug"
+            },
+            {
+              "author": {
+                "date": "2019-11-14T20:19:09Z",
+                "person": {
+                  "displayName": "Franklin Harding"
+                }
+              },
+              "oid": "946b6237eb8d0ce3225f502b7fd4208d0b60ce5f",
+              "parents": [
+                {
+                  "oid": "ff4e71f144166b1dfe3017a146f8ed32a82e688b"
+                }
+              ],
+              "subject": "Fix the CORSMethodMiddleware bug with subrouters"
+            },
+            {
+              "author": {
+                "date": "2019-10-24T12:12:56Z",
+                "person": {
+                  "displayName": "Franklin Harding"
+                }
+              },
+              "oid": "f395758b854c4efa789b8c1e9b73479704c548cb",
+              "parents": [
+                {
+                  "oid": "ff4e71f144166b1dfe3017a146f8ed32a82e688b"
+                }
+              ],
+              "subject": "Remove/cleanup request context helpers (#525)"
+            },
+            {
+              "author": {
+                "date": "2019-10-18T00:48:19Z",
+                "person": {
+                  "displayName": "Euan Kemp"
+                }
+              },
+              "oid": "ff4e71f144166b1dfe3017a146f8ed32a82e688b",
+              "parents": [
+                {
+                  "oid": "884b5ffcbd3a11b730f0b75f5c86ac408753c34d"
+                }
+              ],
+              "subject": "Guess the scheme if r.URL.Scheme is unset (#474)"
+            },
+            {
+              "author": {
+                "date": "2019-08-30T12:11:56Z",
+                "person": {
+                  "displayName": "Vivek V"
+                }
+              },
+              "oid": "884b5ffcbd3a11b730f0b75f5c86ac408753c34d",
+              "parents": [
+                {
+                  "oid": "e1863a64f3c620ef604fb7905a0351e69f6a51e4"
+                }
+              ],
+              "subject": "Added capacity to slice creation, when capacity is known (#516)"
+            },
+            {
+              "author": {
+                "date": "2019-08-27T12:58:13Z",
+                "person": {
+                  "displayName": "Vivek V"
+                }
+              },
+              "oid": "e1863a64f3c620ef604fb7905a0351e69f6a51e4",
+              "parents": [
+                {
+                  "oid": "9536e4053d763b54d935f1ce731a315cfb42b979"
+                }
+              ],
+              "subject": "Modified http status codes, using constants provided by the http package (#514)"
+            },
+            {
+              "author": {
+                "date": "2019-08-26T00:11:59Z",
+                "person": {
+                  "displayName": "Jonas De Beukelaer"
+                }
+              },
+              "oid": "9536e4053d763b54d935f1ce731a315cfb42b979",
+              "parents": [
+                {
+                  "oid": "e0cdff45b7de56d3ad24ef9871c14fe4238475aa"
+                }
+              ],
+              "subject": "bugfix: subrouter custom methodNotAllowed handler returning 404 (#509) (#510)"
+            },
+            {
+              "author": {
+                "date": "2019-08-24T00:44:47Z",
+                "person": {
+                  "displayName": "Matt Silverlock"
+                }
+              },
+              "oid": "e0cdff45b7de56d3ad24ef9871c14fe4238475aa",
+              "parents": [
+                {
+                  "oid": "e67b3c02c7195c052acff13261f0c9fd1ba53011"
+                }
+              ],
+              "subject": "Update README (self-host logo) (#513)"
+            },
+            {
+              "author": {
+                "date": "2019-07-20T20:14:35Z",
+                "person": {
+                  "displayName": "Matt Silverlock"
+                }
+              },
+              "oid": "e67b3c02c7195c052acff13261f0c9fd1ba53011",
+              "parents": [
+                {
+                  "oid": "7a1bf406d6f5f8cfef4802eb0d949606c6ee7aea"
+                }
+              ],
+              "subject": "Remove TravisCI badge (#503)"
+            },
+            {
+              "author": {
+                "date": "2019-07-20T14:53:35Z",
+                "person": {
+                  "displayName": "Franklin Harding"
+                }
+              },
+              "oid": "7a1bf406d6f5f8cfef4802eb0d949606c6ee7aea",
+              "parents": [
+                {
+                  "oid": "eab9c4f3d22d907d728aa0f5918934357866249e"
+                }
+              ],
+              "subject": "[docs] Add documentation for using mux to serve a SPA (#493)"
+            },
+            {
+              "author": {
+                "date": "2019-07-20T14:49:38Z",
+                "person": {
+                  "displayName": "Christian Muehlhaeuser"
+                }
+              },
+              "oid": "eab9c4f3d22d907d728aa0f5918934357866249e",
+              "parents": [
+                {
+                  "oid": "50fbc3e7fbfcdb4fb850686588071e5f0bdd4a0a"
+                }
+              ],
+              "subject": "Simplify code (#501)"
+            },
+            {
+              "author": {
+                "date": "2019-07-20T14:48:32Z",
+                "person": {
+                  "displayName": "Christian Muehlhaeuser"
+                }
+              },
+              "oid": "50fbc3e7fbfcdb4fb850686588071e5f0bdd4a0a",
+              "parents": [
+                {
+                  "oid": "d83b6ffe499a29cc05fc977988d0392851779620"
+                }
+              ],
+              "subject": "Avoid unnecessary conversion (#502)"
+            },
+            {
+              "author": {
+                "date": "2019-07-01T20:26:33Z",
+                "person": {
+                  "displayName": "Matt Silverlock"
+                }
+              },
+              "oid": "d83b6ffe499a29cc05fc977988d0392851779620",
+              "parents": [
+                {
+                  "oid": "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15"
+                }
+              ],
+              "subject": "Update config.yml (#495)"
+            },
+            {
+              "author": {
+                "date": "2019-06-30T04:17:52Z",
+                "person": {
+                  "displayName": "Matt Silverlock"
+                }
+              },
+              "oid": "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15",
+              "parents": [
+                {
+                  "oid": "05347690167e152b85ece29fdfa9cc12a7b8c385"
+                }
+              ],
+              "subject": "Update stale.yml (#494)"
+            },
+            {
+              "author": {
+                "date": "2019-06-29T20:52:29Z",
+                "person": {
+                  "displayName": "Franklin Harding"
+                }
+              },
+              "oid": "05347690167e152b85ece29fdfa9cc12a7b8c385",
+              "parents": [
+                {
+                  "oid": "d70f7b4baacbd8115844925606cf68ee63d438cc"
+                }
+              ],
+              "subject": "Improve CORS Method Middleware (#477)"
+            },
+            {
+              "author": {
+                "date": "2019-06-29T18:01:59Z",
+                "person": {
+                  "displayName": "Matt Silverlock"
+                }
+              },
+              "oid": "d70f7b4baacbd8115844925606cf68ee63d438cc",
+              "parents": [
+                {
+                  "oid": "48f941fa99947e50375f2b0dd4b3b060d15b2fe8"
+                }
+              ],
+              "subject": "Delete ISSUE_TEMPLATE.md (#492)"
+            },
+            {
+              "author": {
+                "date": "2019-06-29T17:24:12Z",
+                "person": {
+                  "displayName": "Franklin Harding"
+                }
+              },
+              "oid": "48f941fa99947e50375f2b0dd4b3b060d15b2fe8",
+              "parents": [
+                {
+                  "oid": "64954673e972292a409b5c8d13b16ed797b905d0"
+                }
+              ],
+              "subject": "Use subtests for middleware tests (#478)"
+            },
+            {
+              "author": {
+                "date": "2019-06-28T23:07:30Z",
+                "person": {
+                  "displayName": "Matt Silverlock"
+                }
+              },
+              "oid": "64954673e972292a409b5c8d13b16ed797b905d0",
+              "parents": [
+                {
+                  "oid": "4248f5cd8717eaea35eded08100714b2b2bac756"
+                }
+              ],
+              "subject": "Delete .travis.yml (#490)"
+            },
+            {
+              "author": {
+                "date": "2019-06-28T15:33:07Z",
+                "person": {
+                  "displayName": "Franklin Harding"
+                }
+              },
+              "oid": "4248f5cd8717eaea35eded08100714b2b2bac756",
+              "parents": [
+                {
+                  "oid": "212aa90d7cec051ab29930d5c56f758f6f69a789"
+                }
+              ],
+              "subject": "Fix nil panic in authentication middleware example (#489)"
+            },
+            {
+              "author": {
+                "date": "2019-06-24T16:05:39Z",
+                "person": {
+                  "displayName": "Matt Silverlock"
+                }
+              },
+              "oid": "212aa90d7cec051ab29930d5c56f758f6f69a789",
+              "parents": [
+                {
+                  "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+                }
+              ],
+              "subject": "[WIP] Create CircleCI config (#484)"
+            },
+            {
+              "author": {
+                "date": "2019-05-17T00:20:44Z",
+                "person": {
+                  "displayName": "M@"
+                }
+              },
+              "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38",
+              "parents": [
+                {
+                  "oid": "c5c6c98bc25355028a63748a498942a6398ccd22"
+                }
+              ],
+              "subject": "host:port matching does not require a :port to be specified."
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    },
+    "n0": {
+      "commit": {
+        "behindAhead": {
+          "ahead": 24
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    },
+    "t0": {
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "gitRefs": {
+        "nodes": [
+          {
+            "displayName": "v1.8.1",
+            "target": {
+              "oid": "b4617d0b9670ad14039b2739167fd35a60f557c5"
+            }
+          },
+          {
+            "displayName": "v1.8.0",
+            "target": {
+              "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+            }
+          },
+          {
+            "displayName": "v1.7.4",
+            "target": {
+              "oid": "75dcda0896e109a2a22c9315bca3bb21b87b2ba5"
+            }
+          },
+          {
+            "displayName": "v1.7.3",
+            "target": {
+              "oid": "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15"
+            }
+          },
+          {
+            "displayName": "v1.7.2",
+            "target": {
+              "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+            }
+          },
+          {
+            "displayName": "v1.7.1",
+            "target": {
+              "oid": "c5c6c98bc25355028a63748a498942a6398ccd22"
+            }
+          },
+          {
+            "displayName": "v1.7.0",
+            "target": {
+              "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+            }
+          },
+          {
+            "displayName": "v1.6.2",
+            "target": {
+              "oid": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+            }
+          },
+          {
+            "displayName": "v1.6.1",
+            "target": {
+              "oid": "53c1911da2b537f792e7cafcb446b05ffe33b996"
+            }
+          },
+          {
+            "displayName": "v1.6.0",
+            "target": {
+              "oid": "7f08801859139f86dfafd1c296e2cba9a80d292e"
+            }
+          },
+          {
+            "displayName": "v1.5.0",
+            "target": {
+              "oid": "24fca303ac6da784b9e8269f724ddeb0b2eea5e7"
+            }
+          },
+          {
+            "displayName": "v1.4.0",
+            "target": {
+              "oid": "bcd8bc72b08df0f70df986b97f95590779502d31"
+            }
+          },
+          {
+            "displayName": "v1.3.0",
+            "target": {
+              "oid": "392c28fe23e1c45ddba891b0320b3b5df220beea"
+            }
+          },
+          {
+            "displayName": "v1.2.0",
+            "target": {
+              "oid": "b12896167c61cb7a17ee5f15c2ba0729d78793db"
+            }
+          },
+          {
+            "displayName": "v1.1",
+            "target": {
+              "oid": "0eeaf8392f5b04950925b8a69fe70f110fa7cbfc"
+            }
+          }
+        ],
+        "totalCount": 15
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  }
+}
+'''

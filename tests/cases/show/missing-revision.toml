@@ -1,0 +1,47 @@
+# A missing revision is an error.
+args = ["show", "github.com/gorilla/mux@v9.9:mux.go"]
+status.code = 1
+stderr = '''
+sego: error: revision v9.9 not found in github.com/gorilla/mux
+'''
+
+[[exchange]]
+operation = "ShowFile"
+variables = '{"ambiguous0":false,"end":500,"gitlab":false,"parent0":"","path0":"mux.go","repo0":"github.com/gorilla/mux","repo1":"","rev0":"v9.9","split":false,"start":1}'
+query = '''
+query ShowFile($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $start: Int!, $end: Int!
+$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
+  r0: repository(name: $repo0) { ...Guesses }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
+}
+
+fragment Guesses on Repository {
+  name
+  defaultBranch { displayName }
+c0: commit(rev: $rev0) {
+    oid
+    meta: blob(path: $path0) { byteSize totalLines binary rawURL lfs { byteSize } }
+    body: blob(path: $path0) { content(startLine: $start, endLine: $end, textOnly: true) }
+    dir: tree(path: $path0) { entries { path } }
+    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
+    x0: path(path: $path0) @include(if: $split) { __typename }
+  }
+  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "r0": {
+      "c0": null,
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  }
+}
+'''

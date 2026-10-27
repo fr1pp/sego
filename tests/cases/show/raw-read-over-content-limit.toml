@@ -1,0 +1,138 @@
+# A file over the content limit is read from the raw route.
+args = ["show", "github.com/azadkuh/sqlite-amalgamation@15d0ff10ebc7e7225eced1de84bb52137000899b:sqlite3.c", "1-5"]
+status.code = 0
+stdout = '''
+github.com/azadkuh/sqlite-amalgamation@15d0ff10ebc7:sqlite3.c  lines 1-5 of 239379
+1:/******************************************************************************
+2:** This file is an amalgamation of many separate C source files from SQLite
+3:** version 3.38.2.  By combining all the individual C code files into this
+4:** single large file, the entire code can be compiled as a single translation
+5:** unit.  This allows many compilers to do optimizations that would not be
+'''
+
+[[exchange]]
+operation = "ShowFile"
+variables = '{"ambiguous0":false,"end":5,"gitlab":false,"parent0":"","path0":"sqlite3.c","repo0":"github.com/azadkuh/sqlite-amalgamation","repo1":"","rev0":"15d0ff10ebc7e7225eced1de84bb52137000899b","split":false,"start":1}'
+query = '''
+query ShowFile($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $start: Int!, $end: Int!
+$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
+  r0: repository(name: $repo0) { ...Guesses }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
+}
+
+fragment Guesses on Repository {
+  name
+  defaultBranch { displayName }
+c0: commit(rev: $rev0) {
+    oid
+    meta: blob(path: $path0) { byteSize totalLines binary rawURL lfs { byteSize } }
+    body: blob(path: $path0) { content(startLine: $start, endLine: $end, textOnly: true) }
+    dir: tree(path: $path0) { entries { path } }
+    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
+    x0: path(path: $path0) @include(if: $split) { __typename }
+  }
+  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "body": null,
+        "dir": null,
+        "meta": {
+          "binary": false,
+          "byteSize": 8462111,
+          "lfs": null,
+          "rawURL": "/r/github.com/azadkuh/sqlite-amalgamation@15d0ff10ebc7e7225eced1de84bb52137000899b/-/raw/sqlite3.c",
+          "totalLines": 239379
+        },
+        "oid": "15d0ff10ebc7e7225eced1de84bb52137000899b",
+        "parent": {
+          "entries": [
+            {
+              "path": ".gitignore",
+              "submodule": null
+            },
+            {
+              "path": "CMakeLists.txt",
+              "submodule": null
+            },
+            {
+              "path": "LICENSE",
+              "submodule": null
+            },
+            {
+              "path": "README.md",
+              "submodule": null
+            },
+            {
+              "path": "shell.c",
+              "submodule": null
+            },
+            {
+              "path": "sqlite3.c",
+              "submodule": null
+            },
+            {
+              "path": "sqlite3.h",
+              "submodule": null
+            },
+            {
+              "path": "sqlite3_config.h.in",
+              "submodule": null
+            },
+            {
+              "path": "sqlite3ext.h",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "master"
+      },
+      "name": "github.com/azadkuh/sqlite-amalgamation"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a directory: \"sqlite3.c\"",
+      "path": [
+        "r0",
+        "c0",
+        "dir"
+      ]
+    },
+    {
+      "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
+      "path": [
+        "r0",
+        "c0",
+        "body",
+        "content"
+      ]
+    },
+    {
+      "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
+      "path": [
+        "r0",
+        "c0",
+        "meta",
+        "lfs"
+      ]
+    }
+  ]
+}
+'''
+
+[[exchange]]
+get = "/r/github.com/azadkuh/sqlite-amalgamation@15d0ff10ebc7e7225eced1de84bb52137000899b/-/raw/sqlite3.c"
+status = 200
+content-type = "text/plain; charset=utf-8"
+recorded = { date = 2026-10-07, endpoint = "https://sourcegraph.com", live = "values" }
+body = "raw-read-over-content-limit.body"

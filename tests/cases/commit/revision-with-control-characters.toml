@@ -1,0 +1,8 @@
+# A revision with control characters is escaped in the usage error.
+args = ["show", "example.com/acme/widget@a\u001Bb\u202Ec\u200Bd\ne\rf\u0000g\u2028h\u007Fi"]
+status.code = 2
+stderr = '''
+sego: error: invalid revision 'a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i'; a revision cannot start with - or contain whitespace or control characters
+usage: sego show [--json] REPO[@REV]:PATH [LINES]
+       sego show [--json] REPO@REV
+'''

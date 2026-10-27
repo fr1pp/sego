@@ -1,0 +1,8 @@
+# --recursive belongs to ls; diff names it and prints its own synopsis.
+args = ["diff", "example.com/acme/widget@v1", "--recursive"]
+status.code = 2
+stderr = '''
+sego: error: diff takes no --recursive
+usage: sego diff [--json] REPO@A...B[:PATH] [PATH...]
+       sego diff [--json] REPO@REV[:PATH] [PATH...]
+'''

@@ -1,0 +1,84 @@
+# select:file.owners runs with no cap, so it has no note.
+args = ["search", "repo:example.com/acme/router@v1 NewRouter select:file.owners"]
+status.code = 0
+stdout = '''
+1 file  1 repo  0.1 s
+query  repo:example.com/acme/router@v1 NewRouter select:file.owners
+
+example.com/acme/router@0123456789ab:main.go
+'''
+
+[[exchange]]
+operation = "Search"
+variables = '{"listed":false,"query":"repo:example.com/acme/router@v1 NewRouter select:file.owners","unindexed":""}'
+query = '''
+query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
+    results {
+      limitHit elapsedMilliseconds timedout { name } alert { title }
+      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
+    }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "1",
+        "dynamicFilters": [],
+        "elapsedMilliseconds": 100,
+        "limitHit": false,
+        "matchCount": 1,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "main.go"
+            },
+            "repository": {
+              "name": "example.com/acme/router"
+            },
+            "revSpec": null,
+            "symbols": []
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}
+'''

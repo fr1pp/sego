@@ -1,0 +1,501 @@
+//! The reading of a query's text, as the server reads it: groups, `and`,
+//! `or` and `not`, filters, quoted and `/`-delimited patterns.
+
+use std::mem::take;
+
+use super::{
+    Filter, KNOWN, Kind, Node, PREDICATES, PatternType, Written, WrittenFilter, combine, pattern,
+};
+
+fn ascii_space(c: char) -> bool {
+    matches!(c, '\t' | '\n' | '\x0B' | '\x0C' | '\r' | ' ')
+}
+
+fn known(letters: &[char]) -> bool {
+    letters.len() <= 18 && {
+        let field: String = letters.iter().map(char::to_ascii_lowercase).collect();
+        KNOWN.contains(&field.as_str())
+    }
+}
+
+fn starts(c: &[char], i: usize, word: &str) -> bool {
+    word.chars().enumerate().all(|(k, w)| c.get(i + k).is_some_and(|c| c.eq_ignore_ascii_case(&w)))
+}
+
+/// The query's characters, with what a balanced run needs worked out once,
+/// so that reading takes time linear in the query's length. A run starts after a character that isn't `\`, so its
+/// escapes pair up as they do read from the start of the query.
+pub struct Text {
+    c: Vec<char>,
+    /// The end of the run of ASCII letters from each index.
+    letters: Vec<u32>,
+    /// The parentheses open before each index, counted up from the fewest
+    /// any index has, so that the counts index an array from 0.
+    depth: Vec<u32>,
+    stop: Vec<bool>,
+    /// The first unescaped whitespace or `)` at or after each index whose
+    /// depth equals the index's.
+    level_end: Vec<u32>,
+    /// The first unescaped `(` or whitespace at or after each index that a
+    /// stop follows.
+    stopped: Vec<u32>,
+    /// For an unescaped `(`, the index of its `)`, or `NONE`.
+    close: Vec<u32>,
+    first: usize,
+}
+
+const NONE: u32 = u32::MAX;
+
+/// An index into a `Text`, which holds fewer than `NONE` characters.
+fn ix(i: usize) -> u32 {
+    u32::try_from(i).unwrap_or(NONE)
+}
+
+impl Text {
+    #[expect(clippy::many_single_char_names, reason = "indices into `c`")]
+    pub fn new(query: &str) -> Option<Text> {
+        let c: Vec<char> = query.chars().collect();
+        let n = c.len();
+        if ix(n) == NONE {
+            return None;
+        }
+        let mut escaped = vec![false; n];
+        let mut i = 0;
+        while i < n {
+            if c[i] == '\\' && i + 1 < n {
+                escaped[i + 1] = true;
+                i += 1;
+            }
+            i += 1;
+        }
+        let change = |i: usize| -> i32 {
+            match c[i] {
+                '(' if !escaped[i] => 1,
+                ')' if !escaped[i] => -1,
+                _ => 0,
+            }
+        };
+        let (mut d, mut low, mut high) = (0i64, 0i64, 0i64);
+        for i in 0..n {
+            d += i64::from(change(i));
+            (low, high) = (low.min(d), high.max(d));
+        }
+        let mut depth = vec![u32::try_from(-low).ok()?; n + 1];
+        for i in 0..n {
+            depth[i + 1] = depth[i].checked_add_signed(change(i))?;
+        }
+        // The counts run from 0 to `high - low`, one entry each; a `(`
+        // looks one level up, to a count some later index has.
+        let levels = usize::try_from(high - low).ok()? + 1;
+        let mut letters = vec![ix(n); n + 1];
+        let mut stop = vec![false; n + 1];
+        let mut level_end = vec![ix(n); n];
+        let mut stopped = vec![ix(n); n + 1];
+        let mut close = vec![NONE; n];
+        let (mut near, mut near_close) = (vec![ix(n); levels], vec![NONE; levels]);
+        for i in (0..n).rev() {
+            letters[i] = if c[i].is_ascii_alphabetic() { letters[i + 1] } else { ix(i) };
+            let j = i + usize::from(c[i] == '-');
+            let end = letters[j] as usize;
+            stop[i] = (end > j && c.get(end) == Some(&':') && known(&c[j..end]))
+                || ["and ", "or ", "not "].iter().any(|w| starts(&c, i, w));
+            let (d, plain) = (depth[i] as usize, !escaped[i]);
+            if plain && (c[i].is_whitespace() || c[i] == ')') {
+                near[d] = ix(i);
+            }
+            if plain && c[i] == ')' {
+                near_close[d] = ix(i);
+            }
+            if plain && c[i] == '(' {
+                close[i] = near_close[d + 1];
+            }
+            level_end[i] = near[d];
+            let opens = plain && (c[i] == '(' || c[i].is_whitespace());
+            stopped[i] = if opens && stop[i + 1] { ix(i) } else { stopped[i + 1] };
+        }
+        let first = c.iter().position(|c| !c.is_whitespace()).unwrap_or(n);
+        Some(Text { c, letters, depth, stop, level_end, stopped, close, first })
+    }
+
+    /// The end of the balanced run from `s`, or `None` when it fails.
+    fn run(&self, s: usize) -> Option<usize> {
+        let n = self.c.len();
+        if s == n {
+            return Some(n);
+        }
+        let end = self.level_end[s] as usize;
+        let unbalanced = end == n && self.depth[n] != self.depth[s];
+        let stopped = self.stopped[s] as usize;
+        (!self.stop[s] && stopped >= end && !unbalanced).then_some(end)
+    }
+
+    /// The end of a plain run from `s`: to whitespace, or a parenthesis
+    /// too with `parens`, a `\` keeping the next character with `escapes`.
+    fn plain(&self, s: usize, parens: bool, escapes: bool) -> usize {
+        let mut i = s;
+        while let Some(&c) = self.c.get(i) {
+            if escapes && c == '\\' {
+                i += 2;
+                continue;
+            }
+            if c.is_whitespace() || (parens && (c == '(' || c == ')')) {
+                break;
+            }
+            i += 1;
+        }
+        i.min(self.c.len())
+    }
+
+    /// The index of the unescaped character that closes the quote or slash
+    /// at `open`.
+    fn closing(&self, open: usize) -> Option<usize> {
+        let mut i = open + 1;
+        while let Some(&c) = self.c.get(i) {
+            if c == '\\' {
+                i += 2;
+            } else if c == self.c[open] {
+                return Some(i);
+            } else {
+                i += 1;
+            }
+        }
+        None
+    }
+
+    fn terminal(&self, i: usize) -> bool {
+        self.c.get(i).is_none_or(|&c| ascii_space(c) || c == ')')
+    }
+
+    /// A quoted filter value's text, its escapes read. An escape the server
+    /// doesn't know is kept as written, the `\` with it.
+    fn unquote(&self, open: usize, close: usize) -> String {
+        let mut out = String::new();
+        let mut i = open + 1;
+        while i < close {
+            let c = self.c[i];
+            i += 1;
+            if c != '\\' {
+                out.push(c);
+                continue;
+            }
+            let e = self.c[i];
+            i += 1;
+            match e {
+                'n' => out.push('\n'),
+                'r' => out.push('\r'),
+                't' => out.push('\t'),
+                _ if e == '\\' || e == self.c[open] => out.push(e),
+                _ => out.extend(['\\', e]),
+            }
+        }
+        out
+    }
+
+    /// The end of a predicate value starting at `s`, for the field as
+    /// written.
+    fn predicate(&self, field: &str, s: usize) -> Option<usize> {
+        let (_, names) =
+            PREDICATES.iter().find(|(fields, _)| fields.split(' ').any(|f| f == field))?;
+        let open =
+            (s..self.c.len()).find(|&i| !(self.c[i].is_ascii_alphabetic() || self.c[i] == '.'))?;
+        let name = self.text(s, open);
+        let close = self.close[open];
+        (close != NONE && names.split_whitespace().any(|n| n == name)).then(|| close as usize + 1)
+    }
+
+    fn text(&self, start: usize, end: usize) -> String {
+        self.c[start..end].iter().collect()
+    }
+}
+
+pub enum Halt {
+    Reject,
+    Missing,
+}
+
+pub struct Reading {
+    pub root: Node,
+    pub flat: bool,
+    pub sharing_off: bool,
+    pub written: Vec<Written>,
+}
+
+/// Reads the query in `ty` with groups, or, when a group is left open or
+/// an operand is missing, with every parenthesis as text.
+pub fn read(text: &Text, ty: PatternType) -> Result<Reading, Halt> {
+    let mut groups = Reader::new(text, ty, false);
+    match groups.read() {
+        Ok(root) if groups.open == 0 => {
+            let strict = matches!(ty, PatternType::Standard | PatternType::Literal);
+            if strict && groups.mixed {
+                return Err(Halt::Reject);
+            }
+            let sharing_off = groups.sharing_off;
+            return Ok(Reading { root, flat: false, sharing_off, written: groups.written });
+        }
+        Ok(_) | Err(Halt::Missing) => {}
+        Err(halt) => return Err(halt),
+    }
+    let mut flat = Reader::new(text, ty, true);
+    match flat.read() {
+        Ok(root) => Ok(Reading { root, flat: true, sharing_off: false, written: flat.written }),
+        Err(_) => Err(Halt::Reject),
+    }
+}
+
+/// An or-expression being read: its operands, the levels of the operand
+/// being read, and the items of the level being read.
+#[derive(Default)]
+struct Frame {
+    operands: Vec<Node>,
+    levels: Vec<Node>,
+    items: Vec<Node>,
+}
+
+impl Frame {
+    /// Ends the level being read, noting in `mixed` a sequence of patterns
+    /// that holds a group read as `and` or `or`.
+    fn end_level(&mut self, mixed: &mut bool) -> Result<(), Halt> {
+        if self.items.is_empty() {
+            return Err(Halt::Missing);
+        }
+        let (mut level, patterns): (Vec<Node>, Vec<Node>) =
+            self.items.drain(..).partition(|n| n.leaves().1 == 0);
+        if patterns.len() > 1 {
+            let op = |n: &Node| matches!(n, Node::Op(op) if op.kind != Kind::Seq);
+            *mixed |= patterns.iter().any(op);
+            level.push(combine(Kind::Seq, patterns));
+        } else {
+            level.extend(patterns);
+        }
+        self.levels.push(combine(Kind::And, level));
+        Ok(())
+    }
+
+    fn end_operand(&mut self) {
+        let levels = take(&mut self.levels);
+        self.operands.push(combine(Kind::And, levels));
+    }
+
+    fn end(mut self, mixed: &mut bool) -> Result<Node, Halt> {
+        self.end_level(mixed)?;
+        self.end_operand();
+        Ok(combine(Kind::Or, self.operands))
+    }
+}
+
+#[expect(
+    clippy::struct_excessive_bools,
+    reason = "independent facts about one reading, not a state machine"
+)]
+struct Reader<'t> {
+    t: &'t Text,
+    ty: PatternType,
+    flat: bool,
+    pos: usize,
+    open: usize,
+    or_seen: bool,
+    close_seen: bool,
+    /// The shared-filter rule is off: a group opened after an `or`, or an
+    /// `or` followed a `)`.
+    sharing_off: bool,
+    mixed: bool,
+    written: Vec<Written>,
+}
+
+impl<'t> Reader<'t> {
+    fn new(t: &'t Text, ty: PatternType, flat: bool) -> Self {
+        Reader {
+            t,
+            ty,
+            flat,
+            pos: 0,
+            open: 0,
+            or_seen: false,
+            close_seen: false,
+            sharing_off: false,
+            mixed: false,
+            written: Vec::new(),
+        }
+    }
+
+    fn write_pattern(&mut self, start: usize, end: usize, negated: bool, delimited: bool) {
+        let text = self.t.text(start, end);
+        self.written.push(Written::Pattern { text, negated, delimited });
+    }
+
+    /// A `)` ends the innermost or-expression being read, unless `or`
+    /// follows it: then that or-expression carries on, though its group is
+    /// closed.
+    fn read(&mut self) -> Result<Node, Halt> {
+        let t = self.t;
+        let mut frames = vec![Frame::default()];
+        loop {
+            while t.c.get(self.pos).is_some_and(|c| c.is_whitespace()) {
+                self.pos += 1;
+            }
+            let Some(frame) = frames.last_mut() else { unreachable!() };
+            let Some(&c) = t.c.get(self.pos) else {
+                let mut node = None;
+                while let Some(mut frame) = frames.pop() {
+                    frame.items.extend(node);
+                    node = Some(frame.end(&mut self.mixed)?);
+                }
+                return node.ok_or(Halt::Missing);
+            };
+            if !self.flat && c == '(' {
+                if self.ty != PatternType::Keyword
+                    && let Some(end) = t.run(self.pos)
+                {
+                    frame.items.push(pattern(self.pos, false, false, false));
+                    self.write_pattern(self.pos, end, false, false);
+                    self.pos = end;
+                    continue;
+                }
+                self.sharing_off |= self.or_seen;
+                self.open += 1;
+                self.pos += 1;
+                frames.push(Frame::default());
+            } else if !self.flat && c == ')' {
+                self.open = self.open.checked_sub(1).ok_or(Halt::Reject)?;
+                self.close_seen = true;
+                if frame.items.is_empty() {
+                    frame.items.push(pattern(self.pos, false, false, false));
+                    // The server reads an empty group as the pattern `()`.
+                    let empty = Written::Pattern {
+                        text: "()".to_owned(),
+                        negated: false,
+                        delimited: false,
+                    };
+                    self.written.push(empty);
+                }
+                self.pos += 1;
+                if starts(&t.c, self.pos, "or") {
+                    self.written.push(Written::Or);
+                    self.pos += 2;
+                    frame.end_level(&mut self.mixed)?;
+                    frame.end_operand();
+                } else if let Some(frame) = frames.pop() {
+                    let group = frame.end(&mut self.mixed)?;
+                    let Some(outer) = frames.last_mut() else { unreachable!() };
+                    outer.items.push(group);
+                }
+            } else if let Some((or, len)) = self.operator() {
+                frame.end_level(&mut self.mixed)?;
+                if or {
+                    self.sharing_off |= self.close_seen;
+                    self.or_seen = true;
+                    self.written.push(Written::Or);
+                    frame.end_operand();
+                }
+                self.pos += len;
+            } else {
+                let item = self.item()?;
+                let Some(frame) = frames.last_mut() else { unreachable!() };
+                frame.items.push(item);
+            }
+        }
+    }
+
+    fn operator(&self) -> Option<(bool, usize)> {
+        let (c, s) = (&self.t.c, self.pos);
+        if s <= self.t.first || !(ascii_space(c[s - 1]) || c[s - 1] == ')') {
+            return None;
+        }
+        [("and", false), ("or", true)].into_iter().find_map(|(word, or)| {
+            let after = c.get(s + word.len());
+            (starts(c, s, word) && after.is_some_and(|&a| ascii_space(a) || a == '('))
+                .then_some((or, word.len()))
+        })
+    }
+
+    fn item(&mut self) -> Result<Node, Halt> {
+        let (c, start) = (&self.t.c, self.pos);
+        let after_space = start == 0 || {
+            let before = c[start - 1];
+            ascii_space(before) || before == '(' || before == ')'
+        };
+        let not = after_space
+            && starts(c, start, "not")
+            && c.get(start + 3).is_some_and(|&a| ascii_space(a));
+        if not {
+            self.pos += 3;
+            while c.get(self.pos).is_some_and(|c| c.is_whitespace()) {
+                self.pos += 1;
+            }
+            if c.get(self.pos) == Some(&'(') {
+                return Err(Halt::Reject);
+            }
+        }
+        let filter = self.filter(not.then_some(start))?;
+        Ok(filter.unwrap_or_else(|| self.pattern(start, not)))
+    }
+
+    /// A filter at the current position; after `not` at `not`, a negated
+    /// one. `None` when there is none, or when a quoted value after `not`
+    /// is malformed, which leaves the text after the `:` to read.
+    fn filter(&mut self, not: Option<usize>) -> Result<Option<Node>, Halt> {
+        let (t, s) = (self.t, self.pos);
+        let Some(&first) = t.c.get(s) else { return Ok(None) };
+        let dash = first == '-';
+        let letters = s + usize::from(dash);
+        let colon = t.letters[letters] as usize;
+        if colon == letters || t.c.get(colon) != Some(&':') || !known(&t.c[letters..colon]) {
+            return Ok(None);
+        }
+        let field = t.text(letters, colon);
+        let v = colon + 1;
+        let (value, end, predicate) = if matches!(t.c.get(v), Some('"' | '\'')) {
+            let close = t.closing(v);
+            match close.map(|close| (t.unquote(v, close), close)) {
+                Some((value, close)) => (value, close + 1, false),
+                None if not.is_some() => {
+                    self.pos = v;
+                    return Ok(None);
+                }
+                None => return Err(Halt::Reject),
+            }
+        } else if let Some(end) = t.predicate(&field, v) {
+            (t.text(v, end), end, true)
+        } else {
+            let end = t.run(v).unwrap_or_else(|| t.plain(v, true, true));
+            (t.text(v, end), end, false)
+        };
+        if dash && not.is_some() {
+            return Err(Halt::Reject);
+        }
+        self.pos = end;
+        let negated = dash || not.is_some();
+        let at = not.unwrap_or(s);
+        if !value.is_empty() {
+            let written = WrittenFilter { negated, field: field.clone(), value: t.text(v, end) };
+            self.written.push(Written::Filter(written));
+        }
+        let filter = Filter { field, value, negated, predicate, at };
+        Ok(Some(Node::Filter(Box::new(filter))))
+    }
+
+    fn pattern(&mut self, at: usize, negated: bool) -> Node {
+        let (t, s, ty) = (self.t, self.pos, self.ty);
+        let slashes = !matches!(ty, PatternType::Literal | PatternType::Structural);
+        let quotes = matches!(ty, PatternType::Keyword | PatternType::Regexp);
+        let close = match t.c.get(s) {
+            Some('/') if slashes => t.closing(s),
+            Some('"' | '\'') if quotes => t.closing(s),
+            _ => None,
+        };
+        if let Some(c) = close.filter(|&c| t.terminal(c + 1)) {
+            self.pos = c + 1;
+            self.write_pattern(s, self.pos, negated, true);
+            let slash = t.c[s] == '/';
+            return pattern(at, negated, c == s + 1 && !slash, slash && c > s + 1);
+        }
+        self.pos = match (!self.flat).then(|| t.run(s)).flatten() {
+            Some(end) => end,
+            None if ty == PatternType::Regexp => t.plain(s, !self.flat, true),
+            None => t.plain(s, false, false),
+        };
+        self.write_pattern(s, self.pos, negated, false);
+        pattern(at, negated, self.pos == s, false)
+    }
+}

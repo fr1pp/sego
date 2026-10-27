@@ -1,6 +1,0 @@
-# ls needs an address; no request is made.
-args: ls
-exit: 2
---- stderr
-sego: error: ls needs an address, like REPO[@REV][:PATH]
-usage: sego ls [--json] [--recursive] REPO[@REV][:PATH]

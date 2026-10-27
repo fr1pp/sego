@@ -1,0 +1,161 @@
+# A range starting past the end prints no lines and exits 0.
+args = ["show", "github.com/gorilla/mux@v1.8.0:mux.go", "700-710"]
+status.code = 0
+stdout = '''
+github.com/gorilla/mux@98cb6bf42e08:mux.go  no lines 700-710; the file has 606  rev v1.8.0
+'''
+stderr = '''
+sego: note: no lines 700-710; the file has 606
+'''
+
+[[exchange]]
+operation = "ShowFile"
+variables = '{"ambiguous0":false,"end":710,"gitlab":false,"parent0":"","path0":"mux.go","repo0":"github.com/gorilla/mux","repo1":"","rev0":"v1.8.0","split":false,"start":700}'
+query = '''
+query ShowFile($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $start: Int!, $end: Int!
+$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
+  r0: repository(name: $repo0) { ...Guesses }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
+}
+
+fragment Guesses on Repository {
+  name
+  defaultBranch { displayName }
+c0: commit(rev: $rev0) {
+    oid
+    meta: blob(path: $path0) { byteSize totalLines binary rawURL lfs { byteSize } }
+    body: blob(path: $path0) { content(startLine: $start, endLine: $end, textOnly: true) }
+    dir: tree(path: $path0) { entries { path } }
+    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
+    x0: path(path: $path0) @include(if: $split) { __typename }
+  }
+  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "body": {
+          "content": ""
+        },
+        "dir": null,
+        "meta": {
+          "binary": false,
+          "byteSize": 17677,
+          "lfs": null,
+          "rawURL": "/r/github.com/gorilla/mux@98cb6bf42e086f6af920b965c38cacc07402d51b/-/raw/mux.go",
+          "totalLines": 606
+        },
+        "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+        "parent": {
+          "entries": [
+            {
+              "path": ".circleci",
+              "submodule": null
+            },
+            {
+              "path": ".github",
+              "submodule": null
+            },
+            {
+              "path": "AUTHORS",
+              "submodule": null
+            },
+            {
+              "path": "LICENSE",
+              "submodule": null
+            },
+            {
+              "path": "README.md",
+              "submodule": null
+            },
+            {
+              "path": "bench_test.go",
+              "submodule": null
+            },
+            {
+              "path": "doc.go",
+              "submodule": null
+            },
+            {
+              "path": "example_authentication_middleware_test.go",
+              "submodule": null
+            },
+            {
+              "path": "example_cors_method_middleware_test.go",
+              "submodule": null
+            },
+            {
+              "path": "example_route_test.go",
+              "submodule": null
+            },
+            {
+              "path": "go.mod",
+              "submodule": null
+            },
+            {
+              "path": "middleware.go",
+              "submodule": null
+            },
+            {
+              "path": "middleware_test.go",
+              "submodule": null
+            },
+            {
+              "path": "mux.go",
+              "submodule": null
+            },
+            {
+              "path": "mux_httpserver_test.go",
+              "submodule": null
+            },
+            {
+              "path": "mux_test.go",
+              "submodule": null
+            },
+            {
+              "path": "old_test.go",
+              "submodule": null
+            },
+            {
+              "path": "regexp.go",
+              "submodule": null
+            },
+            {
+              "path": "regexp_test.go",
+              "submodule": null
+            },
+            {
+              "path": "route.go",
+              "submodule": null
+            },
+            {
+              "path": "test_helpers.go",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a directory: \"mux.go\"",
+      "path": [
+        "r0",
+        "c0",
+        "dir"
+      ]
+    }
+  ]
+}
+'''

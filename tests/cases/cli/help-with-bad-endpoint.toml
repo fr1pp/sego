@@ -1,0 +1,5 @@
+# --help is answered without reading SEGO_ENDPOINT, so a bad endpoint does not matter.
+args = ["--help"]
+env = { SEGO_ENDPOINT = "ftp://x" }
+status.code = 0
+stdout.closed = true

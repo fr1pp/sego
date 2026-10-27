@@ -1,0 +1,136 @@
+# A range between two commit ids has no rev field in its header.
+args = ["log", "example.com/acme/widget@0123456789ab..456789abcdef"]
+status.code = 0
+stdout = '''
+example.com/acme/widget@0123456789ab..456789abcdef  1 commit
+456789abcdef  2026-09-14  Ada Lovelace  Add the widget
+'''
+
+[[exchange]]
+operation = "Log"
+variables = '{"a":"0123456789ab","b":"456789abcdef","count":true,"first":151,"gitlab":false,"path":null,"probe":false,"repo0":"example.com/acme/widget","repo1":""}'
+query = '''
+query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $path: String, $first: Int, $count: Boolean!, $probe: Boolean!) {
+  a0: repository(name: $repo0) { ...Base }
+  b0: repository(name: $repo0) { ...Head }
+  n0: repository(name: $repo0) { ...Ahead }
+  c0: repository(name: $repo0) { ...Commits }
+  t0: repository(name: $repo0) { ...Tags }
+  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
+  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
+  n1: repository(name: $repo1) @include(if: $gitlab) { ...Ahead }
+  c1: repository(name: $repo1) @include(if: $gitlab) { ...Commits }
+  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
+}
+
+fragment Base on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $a) { oid x: path(path: $path) @include(if: $probe) { __typename } }
+}
+
+fragment Head on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $b) { oid x: path(path: $path) @include(if: $probe) { __typename } }
+}
+
+fragment Ahead on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $b) @include(if: $count) { behindAhead(revspec: $a) { ahead } }
+}
+
+fragment Commits on Repository {
+  name
+  defaultBranch { displayName }
+  comparison(base: $a, head: $b) { commits(first: $first, path: $path) { ...Page } }
+}
+fragment Page on GitCommitConnection {
+  nodes { oid subject author { date person { displayName } } parents { oid } }
+  pageInfo { hasNextPage }
+}
+
+fragment Tags on Repository {
+  name
+  defaultBranch { displayName }
+  gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "0123456789abcdef0123456789abcdef01234567"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "b0": {
+      "commit": {
+        "oid": "456789abcdef0123456789abcdef0123456789ab"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "c0": {
+      "comparison": {
+        "commits": {
+          "nodes": [
+            {
+              "author": {
+                "date": "2026-09-14T10:00:00Z",
+                "person": {
+                  "displayName": "Ada Lovelace"
+                }
+              },
+              "oid": "456789abcdef0123456789abcdef0123456789ab",
+              "parents": [
+                {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              ],
+              "subject": "Add the widget"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "n0": {
+      "commit": {
+        "behindAhead": {
+          "ahead": 1
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "t0": {
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "gitRefs": {
+        "nodes": [],
+        "totalCount": 0
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}
+'''

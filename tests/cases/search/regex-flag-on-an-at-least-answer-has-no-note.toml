@@ -1,0 +1,105 @@
+# A flag after the closing slash is noted only on a zero, so a lower bound has
+# none.
+args = ["search", "lang:javascript /msie/i"]
+status.code = 0
+stdout = '''
+3+ matches  1 repo  0.1 s
+query  lang:javascript /msie/i
+
+example.com/acme/widget@0123456789ab:ie.js
+1:msie
+'''
+
+[[exchange]]
+operation = "Search"
+variables = '{"listed":false,"query":"lang:javascript /msie/i","unindexed":""}'
+query = '''
+query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
+    results {
+      limitHit elapsedMilliseconds timedout { name } alert { title }
+      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
+    }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "3",
+        "dynamicFilters": [],
+        "elapsedMilliseconds": 100,
+        "limitHit": true,
+        "matchCount": 3,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "msie",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 4,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "ie.js"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}
+'''

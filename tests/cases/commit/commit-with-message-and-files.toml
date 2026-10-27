@@ -1,0 +1,109 @@
+# A commit shows its message and changed files.
+args = ["show", "github.com/ast-grep/agent-skill@affe2b9b7c608f4e354d7e83d0583ed35e845650"]
+status.code = 0
+stdout = '''
+github.com/ast-grep/agent-skill@affe2b9b7c60  2026-09-09  Jonathan Davies  parents 6b668aa526af  1 file  +33 -0
+    docs(ast-grep): document run --json output and zero-match debugging (#11)
+
+    * docs: document run --json output schema and jq extraction in ast-grep skill
+
+    * docs: add node-granularity and zero-match debugging tips to ast-grep skill
+
+M  +33 -0  ast-grep/skills/ast-grep/SKILL.md
+'''
+
+[[exchange]]
+operation = "ShowCommit"
+variables = '{"base":"affe2b9b7c608f4e354d7e83d0583ed35e845650^1","gitlab":false,"repo0":"github.com/ast-grep/agent-skill","repo1":"","rev":"affe2b9b7c608f4e354d7e83d0583ed35e845650"}'
+query = '''
+query ShowCommit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $base: String!) {
+  m0: repository(name: $repo0) { ...Commit }
+  d0: repository(name: $repo0) { ...Changes }
+  m1: repository(name: $repo1) @include(if: $gitlab) { ...Commit }
+  d1: repository(name: $repo1) @include(if: $gitlab) { ...Changes }
+}
+
+fragment Commit on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $rev) {
+    oid subject message
+    author { date person { displayName } }
+    committer { date person { displayName } }
+    parents { oid }
+  }
+}
+
+fragment Changes on Repository {
+  name
+  defaultBranch { displayName }
+  comparison(base: $base, head: $rev) {
+    all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "d0": {
+      "comparison": {
+        "all": {
+          "diffStat": {
+            "added": 33,
+            "deleted": 0
+          },
+          "totalCount": 1
+        },
+        "page": {
+          "nodes": [
+            {
+              "newPath": "ast-grep/skills/ast-grep/SKILL.md",
+              "oldPath": "ast-grep/skills/ast-grep/SKILL.md",
+              "stat": {
+                "added": 33,
+                "deleted": 0
+              }
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/ast-grep/agent-skill"
+    },
+    "m0": {
+      "commit": {
+        "author": {
+          "date": "2026-09-09T20:14:26Z",
+          "person": {
+            "displayName": "Jonathan Davies"
+          }
+        },
+        "committer": {
+          "date": "2026-09-09T20:14:26Z",
+          "person": {
+            "displayName": "GitHub"
+          }
+        },
+        "message": "docs(ast-grep): document run --json output and zero-match debugging (#11)\n\n* docs: document run --json output schema and jq extraction in ast-grep skill\n\n* docs: add node-granularity and zero-match debugging tips to ast-grep skill",
+        "oid": "affe2b9b7c608f4e354d7e83d0583ed35e845650",
+        "parents": [
+          {
+            "oid": "6b668aa526afdc623c1a9ed1d6ae920e04a717ad"
+          }
+        ],
+        "subject": "docs(ast-grep): document run --json output and zero-match debugging (#11)"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/ast-grep/agent-skill"
+    }
+  }
+}
+'''

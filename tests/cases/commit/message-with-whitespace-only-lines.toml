@@ -1,0 +1,96 @@
+# A whitespace-only line of a message is blank; a line of U+2028 is escaped.
+args = ["show", "example.com/acme/widget@v1"]
+status.code = 0
+stdout = '''
+example.com/acme/widget@affe2b9b7c60  2026-09-09  Jonathan Davies  parents 6b668aa526af  0 files  +0 -0  rev v1
+    A
+
+    \u{2028}
+    B
+'''
+
+[[exchange]]
+operation = "ShowCommit"
+variables = '{"base":"v1^1","gitlab":false,"repo0":"example.com/acme/widget","repo1":"","rev":"v1"}'
+query = '''
+query ShowCommit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $base: String!) {
+  m0: repository(name: $repo0) { ...Commit }
+  d0: repository(name: $repo0) { ...Changes }
+  m1: repository(name: $repo1) @include(if: $gitlab) { ...Commit }
+  d1: repository(name: $repo1) @include(if: $gitlab) { ...Changes }
+}
+
+fragment Commit on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $rev) {
+    oid subject message
+    author { date person { displayName } }
+    committer { date person { displayName } }
+    parents { oid }
+  }
+}
+
+fragment Changes on Repository {
+  name
+  defaultBranch { displayName }
+  comparison(base: $base, head: $rev) {
+    all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+response = """
+{
+  "data": {
+    "d0": {
+      "comparison": {
+        "all": {
+          "diffStat": {
+            "added": 0,
+            "deleted": 0
+          },
+          "totalCount": 0
+        },
+        "page": {
+          "nodes": []
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "m0": {
+      "commit": {
+        "author": {
+          "date": "2026-09-09T20:14:26Z",
+          "person": {
+            "displayName": "Jonathan Davies"
+          }
+        },
+        "committer": {
+          "date": "2026-09-10T01:02:03Z",
+          "person": {
+            "displayName": "GitHub"
+          }
+        },
+        "message": "A\\n \\t \\n\u2028\\nB",
+        "oid": "affe2b9b7c608f4e354d7e83d0583ed35e845650",
+        "parents": [
+          {
+            "oid": "6b668aa526afdc623c1a9ed1d6ae920e04a717ad"
+          }
+        ],
+        "subject": "A"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}
+"""

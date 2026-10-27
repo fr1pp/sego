@@ -1,0 +1,160 @@
+# select:file.directory returns directories, and the root as ./.
+args = ["search", 'repo:^github\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade']
+status.code = 0
+stdout = '''
+4+ directories  1 repo  0.7 s
+query  repo:^github\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade
+
+github.com/gorilla/websocket@ce903f6d1d96:examples/chat/
+github.com/gorilla/websocket@ce903f6d1d96:examples/echo/
+github.com/gorilla/websocket@ce903f6d1d96:examples/command/
+github.com/gorilla/websocket@ce903f6d1d96:./
+'''
+stderr = '''
+sego: note: at a pinned revision, select: keeps only what each repository's first 30 matches hold; count:all gives every one
+'''
+
+[[exchange]]
+operation = "Search"
+variables = '{"listed":false,"query":"repo:^github\\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade","unindexed":""}'
+query = '''
+query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
+    results {
+      limitHit elapsedMilliseconds timedout { name } alert { title }
+      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
+    }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "4",
+        "dynamicFilters": [
+          {
+            "count": 4,
+            "kind": "type",
+            "value": "type:path"
+          },
+          {
+            "count": 4,
+            "kind": "lang",
+            "value": "lang:go"
+          },
+          {
+            "count": 4,
+            "kind": "repo",
+            "value": "repo:^github\\.com/gorilla/websocket$@v1.5.3"
+          }
+        ],
+        "elapsedMilliseconds": 745,
+        "limitHit": false,
+        "matchCount": 4,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "ce903f6d1d961af3a8602f2842c8b1c3fca58c4d"
+              },
+              "path": "examples/chat/"
+            },
+            "repository": {
+              "name": "github.com/gorilla/websocket"
+            },
+            "revSpec": {
+              "expr": "v1.5.3"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "ce903f6d1d961af3a8602f2842c8b1c3fca58c4d"
+              },
+              "path": "examples/echo/"
+            },
+            "repository": {
+              "name": "github.com/gorilla/websocket"
+            },
+            "revSpec": {
+              "expr": "v1.5.3"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "ce903f6d1d961af3a8602f2842c8b1c3fca58c4d"
+              },
+              "path": "examples/command/"
+            },
+            "repository": {
+              "name": "github.com/gorilla/websocket"
+            },
+            "revSpec": {
+              "expr": "v1.5.3"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "ce903f6d1d961af3a8602f2842c8b1c3fca58c4d"
+              },
+              "path": "./"
+            },
+            "repository": {
+              "name": "github.com/gorilla/websocket"
+            },
+            "revSpec": {
+              "expr": "v1.5.3"
+            },
+            "symbols": []
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}
+'''

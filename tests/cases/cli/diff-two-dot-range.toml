@@ -1,0 +1,8 @@
+# diff takes A...B; a two-dot range is a usage error and no request is made.
+args = ["diff", "example.com/acme/widget@a..b"]
+status.code = 2
+stderr = '''
+sego: error: diff takes A...B (Sourcegraph compares from the merge base)
+usage: sego diff [--json] REPO@A...B[:PATH] [PATH...]
+       sego diff [--json] REPO@REV[:PATH] [PATH...]
+'''

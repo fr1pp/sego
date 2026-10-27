@@ -1,0 +1,143 @@
+# Both paths together recognise a rename.
+args = ["diff", "github.com/evilmartians/lefthook@v2.0.0...v2.1.0", "internal/run/controller/filters/detect_text.go", "internal/run/controller/filter/detect_text.go"]
+status.code = 0
+stdout = '''
+github.com/evilmartians/lefthook@509b737647ad...c43361a52db7  1 file  +1 -1  paths internal/run/controller/filters/detect_text.go internal/run/controller/filter/detect_text.go  base 509b737647ad  rev v2.0.0...v2.1.0
+R  +1 -1  internal/run/controller/filters/detect_text.go -> internal/run/controller/filter/detect_text.go
+
+    diff --git internal/run/controller/filters/detect_text.go internal/run/controller/filter/detect_text.go
+    similarity index 98%
+    rename from internal/run/controller/filters/detect_text.go
+    rename to internal/run/controller/filter/detect_text.go
+    index 193c5cea6154cf7419273e17c25f4a3a6655b79a..2875a0ff7e579acaefa1a108138e854582e34062 100644
+    --- internal/run/controller/filters/detect_text.go
+    +++ internal/run/controller/filter/detect_text.go
+    @@ -1,4 +1,4 @@
+    -package filters
+    +package filter
+     
+     import (
+     	"bytes"
+'''
+
+[[exchange]]
+operation = "Diff"
+variables = '{"a":"v2.0.0","b":"v2.1.0","first":201,"gitlab":false,"patch":true,"path0":"internal/run/controller/filters/detect_text.go","path1":"internal/run/controller/filter/detect_text.go","paths":["internal/run/controller/filters/detect_text.go","internal/run/controller/filter/detect_text.go"],"repo0":"github.com/evilmartians/lefthook","repo1":""}'
+query = '''
+query Diff($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!, $path0: String!
+, $path1: String!) {
+  a0: repository(name: $repo0) { ...Base }
+  b0: repository(name: $repo0) { ...Head }
+  c0: repository(name: $repo0) { ...Comparison }
+  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
+  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
+  c1: repository(name: $repo1) @include(if: $gitlab) { ...Comparison }
+}
+
+fragment Base on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $a) {
+    oid
+    p0: path(path: $path0) { __typename }
+    p1: path(path: $path1) { __typename }
+  }
+}
+
+fragment Head on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $b) {
+    oid parents { oid }
+    p0: path(path: $path0) { __typename }
+    p1: path(path: $path1) { __typename }
+  }
+}
+
+fragment Comparison on Repository {
+  name
+  defaultBranch { displayName }
+  comparison(base: $a, head: $b) {
+    all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: $first, paths: $paths) {
+      nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }
+    }
+    patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "509b737647ad4f404aee6f0bb49e940530eaaf9c",
+        "p0": {
+          "__typename": "GitBlob"
+        },
+        "p1": null
+      },
+      "defaultBranch": {
+        "displayName": "master"
+      },
+      "name": "github.com/evilmartians/lefthook"
+    },
+    "b0": {
+      "commit": {
+        "oid": "c43361a52db7af1d75f5e877cb0e4bd803d28e77",
+        "p0": null,
+        "p1": {
+          "__typename": "GitBlob"
+        },
+        "parents": [
+          {
+            "oid": "9ace994a09c6a642a1be7df8fe11586f72827bfe"
+          }
+        ]
+      },
+      "defaultBranch": {
+        "displayName": "master"
+      },
+      "name": "github.com/evilmartians/lefthook"
+    },
+    "c0": {
+      "comparison": {
+        "all": {
+          "diffStat": {
+            "added": 1,
+            "deleted": 1
+          },
+          "totalCount": 1
+        },
+        "page": {
+          "nodes": [
+            {
+              "newPath": "internal/run/controller/filter/detect_text.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "509b737647ad4f404aee6f0bb49e940530eaaf9c"
+                }
+              },
+              "oldPath": "internal/run/controller/filters/detect_text.go",
+              "stat": {
+                "added": 1,
+                "deleted": 1
+              }
+            }
+          ]
+        },
+        "patch": {
+          "rawDiff": "diff --git internal/run/controller/filters/detect_text.go internal/run/controller/filter/detect_text.go\nsimilarity index 98%\nrename from internal/run/controller/filters/detect_text.go\nrename to internal/run/controller/filter/detect_text.go\nindex 193c5cea6154cf7419273e17c25f4a3a6655b79a..2875a0ff7e579acaefa1a108138e854582e34062 100644\n--- internal/run/controller/filters/detect_text.go\n+++ internal/run/controller/filter/detect_text.go\n@@ -1,4 +1,4 @@\n-package filters\n+package filter\n \n import (\n \t\"bytes\"\n"
+        }
+      },
+      "defaultBranch": {
+        "displayName": "master"
+      },
+      "name": "github.com/evilmartians/lefthook"
+    }
+  }
+}
+'''

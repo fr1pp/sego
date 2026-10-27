@@ -1,7 +1,0 @@
-# show REPO names neither a file nor a commit; no request is made.
-args: show example.com/acme/widget
-exit: 2
---- stderr
-sego: error: show needs a file's path or a revision, like REPO[@REV]:PATH or REPO@REV
-usage: sego show [--json] REPO[@REV]:PATH [LINES]
-       sego show [--json] REPO@REV

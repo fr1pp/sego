@@ -1,6 +1,0 @@
-# An empty TEXT operand is refused and no request is made.
-args: refs example.com/acme/widget ''
-exit: 2
---- stderr
-sego: error: the TEXT operand is empty
-usage: sego refs [--json] REPO [TEXT]

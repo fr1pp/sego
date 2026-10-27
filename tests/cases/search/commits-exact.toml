@@ -1,0 +1,152 @@
+# A commit answer under the cap counts its commits, not the highlights the
+# server counted, and is exact.
+args = ["search", "repo:example.com/app type:commit fix count:30"]
+status.code = 0
+stdout = '''
+2 commits  1 repo  0.1 s
+query  repo:example.com/app type:commit fix count:30
+
+example.com/app@aaaaaaaaaaaa  2024-05-06  Ann  fix the parser
+    fix the parser
+    fix the lexer
+
+example.com/app@bbbbbbbbbbbb  2024-05-06  Ann  fix the printer
+    fix the printer
+    fix the cache
+    fix docs
+'''
+
+[[exchange]]
+operation = "Search"
+variables = '{"listed":false,"query":"repo:example.com/app type:commit fix count:30","unindexed":""}'
+query = '''
+query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
+    results {
+      limitHit elapsedMilliseconds timedout { name } alert { title }
+      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
+    }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "5",
+        "dynamicFilters": [],
+        "elapsedMilliseconds": 100,
+        "limitHit": false,
+        "matchCount": 5,
+        "results": [
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2024-05-06T07:08:09Z",
+                "person": {
+                  "displayName": "Ann"
+                }
+              },
+              "oid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "repository": {
+                "name": "example.com/app"
+              },
+              "subject": "fix the parser"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```\nfix the parser\nfix the lexer\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 0,
+                    "length": 3,
+                    "line": 1
+                  },
+                  {
+                    "character": 0,
+                    "length": 3,
+                    "line": 2
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2024-05-06T07:08:09Z",
+                "person": {
+                  "displayName": "Ann"
+                }
+              },
+              "oid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "repository": {
+                "name": "example.com/app"
+              },
+              "subject": "fix the printer"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```\nfix the printer\nfix the cache\nfix docs\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 0,
+                    "length": 3,
+                    "line": 1
+                  },
+                  {
+                    "character": 0,
+                    "length": 3,
+                    "line": 2
+                  },
+                  {
+                    "character": 0,
+                    "length": 3,
+                    "line": 3
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}
+'''

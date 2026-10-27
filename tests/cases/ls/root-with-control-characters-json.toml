@@ -1,0 +1,79 @@
+# In JSON the names, the submodule's URL and its commit hold the characters themselves.
+args = ["ls", "--json", "example.com/acme/widget"]
+status.code = 0
+stdout = '''
+{"repo":"example.com/acme/widget","rev":null,"commit":"0123456789abcdef0123456789abcdef01234567","path":null,"recursive":false,"entries":[{"path":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi-dir","kind":"dir","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"mod","kind":"submodule","submodule_url":"https://example.com/acme/lib","submodule_target":"example.com/acme/lib@a\u001bb\u202ec\u200bd\ne\rf\u0000","submodule_commit":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"},{"path":"sub","kind":"submodule","submodule_url":"https://example.com/a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","submodule_target":null,"submodule_commit":"0123456789abcdef0123456789abcdef01234567"}]}
+'''
+
+[[exchange]]
+operation = "ListTree"
+variables = '{"ambiguous0":false,"gitlab":false,"parent0":"","path0":"","recursive":false,"repo0":"example.com/acme/widget","repo1":"","rev0":"HEAD","split":false}'
+query = '''
+query ListTree($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $recursive: Boolean!
+$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
+  r0: repository(name: $repo0) { ...Guesses }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
+}
+
+fragment Guesses on Repository {
+  name
+  defaultBranch { displayName }
+c0: commit(rev: $rev0) {
+    oid
+    tree: tree(path: $path0) { entries(recursive: $recursive) { path isDirectory submodule { url commit } } }
+    file: blob(path: $path0) { totalLines byteSize binary }
+    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
+    x0: path(path: $path0) @include(if: $split) { __typename }
+  }
+  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "file": null,
+        "oid": "0123456789abcdef0123456789abcdef01234567",
+        "parent": null,
+        "tree": {
+          "entries": [
+            {
+              "isDirectory": false,
+              "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+              "submodule": null
+            },
+            {
+              "isDirectory": true,
+              "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi-dir",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "sub",
+              "submodule": {
+                "commit": "0123456789abcdef0123456789abcdef01234567",
+                "url": "https://example.com/a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "mod",
+              "submodule": {
+                "commit": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+                "url": "https://example.com/acme/lib"
+              }
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}
+'''

@@ -1,0 +1,50 @@
+# A repository Sourcegraph does not hold is an error.
+args = ["show", "github.com/facebook/react@main"]
+status.code = 1
+stderr = '''
+sego: error: github.com/facebook/react is not on sourcegraph.com
+  sourcegraph.com serves indexed repositories from github.com, gitlab.com and a few other hosts; a renamed repository appears only under its new name
+'''
+
+[[exchange]]
+operation = "ShowCommit"
+variables = '{"base":"main^1","gitlab":false,"repo0":"github.com/facebook/react","repo1":"","rev":"main"}'
+query = '''
+query ShowCommit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $base: String!) {
+  m0: repository(name: $repo0) { ...Commit }
+  d0: repository(name: $repo0) { ...Changes }
+  m1: repository(name: $repo1) @include(if: $gitlab) { ...Commit }
+  d1: repository(name: $repo1) @include(if: $gitlab) { ...Changes }
+}
+
+fragment Commit on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $rev) {
+    oid subject message
+    author { date person { displayName } }
+    committer { date person { displayName } }
+    parents { oid }
+  }
+}
+
+fragment Changes on Repository {
+  name
+  defaultBranch { displayName }
+  comparison(base: $base, head: $rev) {
+    all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "d0": null,
+    "m0": null
+  }
+}
+'''

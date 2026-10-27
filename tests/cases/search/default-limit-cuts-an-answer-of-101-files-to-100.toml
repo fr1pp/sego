@@ -1,0 +1,1683 @@
+# An answer of 101 files prints the first 100, and line 1 says 100 of 101.
+args = ["search", 'repo:example.com/acme/widget type:path file:\.go$ count:all']
+status.code = 0
+stdout = '''
+100 of 101 files  1 repo  0.7 s
+query  repo:example.com/acme/widget type:path file:\.go$ count:all
+
+example.com/acme/widget@0123456789ab:src/file001.go
+example.com/acme/widget@0123456789ab:src/file002.go
+example.com/acme/widget@0123456789ab:src/file003.go
+example.com/acme/widget@0123456789ab:src/file004.go
+example.com/acme/widget@0123456789ab:src/file005.go
+example.com/acme/widget@0123456789ab:src/file006.go
+example.com/acme/widget@0123456789ab:src/file007.go
+example.com/acme/widget@0123456789ab:src/file008.go
+example.com/acme/widget@0123456789ab:src/file009.go
+example.com/acme/widget@0123456789ab:src/file010.go
+example.com/acme/widget@0123456789ab:src/file011.go
+example.com/acme/widget@0123456789ab:src/file012.go
+example.com/acme/widget@0123456789ab:src/file013.go
+example.com/acme/widget@0123456789ab:src/file014.go
+example.com/acme/widget@0123456789ab:src/file015.go
+example.com/acme/widget@0123456789ab:src/file016.go
+example.com/acme/widget@0123456789ab:src/file017.go
+example.com/acme/widget@0123456789ab:src/file018.go
+example.com/acme/widget@0123456789ab:src/file019.go
+example.com/acme/widget@0123456789ab:src/file020.go
+example.com/acme/widget@0123456789ab:src/file021.go
+example.com/acme/widget@0123456789ab:src/file022.go
+example.com/acme/widget@0123456789ab:src/file023.go
+example.com/acme/widget@0123456789ab:src/file024.go
+example.com/acme/widget@0123456789ab:src/file025.go
+example.com/acme/widget@0123456789ab:src/file026.go
+example.com/acme/widget@0123456789ab:src/file027.go
+example.com/acme/widget@0123456789ab:src/file028.go
+example.com/acme/widget@0123456789ab:src/file029.go
+example.com/acme/widget@0123456789ab:src/file030.go
+example.com/acme/widget@0123456789ab:src/file031.go
+example.com/acme/widget@0123456789ab:src/file032.go
+example.com/acme/widget@0123456789ab:src/file033.go
+example.com/acme/widget@0123456789ab:src/file034.go
+example.com/acme/widget@0123456789ab:src/file035.go
+example.com/acme/widget@0123456789ab:src/file036.go
+example.com/acme/widget@0123456789ab:src/file037.go
+example.com/acme/widget@0123456789ab:src/file038.go
+example.com/acme/widget@0123456789ab:src/file039.go
+example.com/acme/widget@0123456789ab:src/file040.go
+example.com/acme/widget@0123456789ab:src/file041.go
+example.com/acme/widget@0123456789ab:src/file042.go
+example.com/acme/widget@0123456789ab:src/file043.go
+example.com/acme/widget@0123456789ab:src/file044.go
+example.com/acme/widget@0123456789ab:src/file045.go
+example.com/acme/widget@0123456789ab:src/file046.go
+example.com/acme/widget@0123456789ab:src/file047.go
+example.com/acme/widget@0123456789ab:src/file048.go
+example.com/acme/widget@0123456789ab:src/file049.go
+example.com/acme/widget@0123456789ab:src/file050.go
+example.com/acme/widget@0123456789ab:src/file051.go
+example.com/acme/widget@0123456789ab:src/file052.go
+example.com/acme/widget@0123456789ab:src/file053.go
+example.com/acme/widget@0123456789ab:src/file054.go
+example.com/acme/widget@0123456789ab:src/file055.go
+example.com/acme/widget@0123456789ab:src/file056.go
+example.com/acme/widget@0123456789ab:src/file057.go
+example.com/acme/widget@0123456789ab:src/file058.go
+example.com/acme/widget@0123456789ab:src/file059.go
+example.com/acme/widget@0123456789ab:src/file060.go
+example.com/acme/widget@0123456789ab:src/file061.go
+example.com/acme/widget@0123456789ab:src/file062.go
+example.com/acme/widget@0123456789ab:src/file063.go
+example.com/acme/widget@0123456789ab:src/file064.go
+example.com/acme/widget@0123456789ab:src/file065.go
+example.com/acme/widget@0123456789ab:src/file066.go
+example.com/acme/widget@0123456789ab:src/file067.go
+example.com/acme/widget@0123456789ab:src/file068.go
+example.com/acme/widget@0123456789ab:src/file069.go
+example.com/acme/widget@0123456789ab:src/file070.go
+example.com/acme/widget@0123456789ab:src/file071.go
+example.com/acme/widget@0123456789ab:src/file072.go
+example.com/acme/widget@0123456789ab:src/file073.go
+example.com/acme/widget@0123456789ab:src/file074.go
+example.com/acme/widget@0123456789ab:src/file075.go
+example.com/acme/widget@0123456789ab:src/file076.go
+example.com/acme/widget@0123456789ab:src/file077.go
+example.com/acme/widget@0123456789ab:src/file078.go
+example.com/acme/widget@0123456789ab:src/file079.go
+example.com/acme/widget@0123456789ab:src/file080.go
+example.com/acme/widget@0123456789ab:src/file081.go
+example.com/acme/widget@0123456789ab:src/file082.go
+example.com/acme/widget@0123456789ab:src/file083.go
+example.com/acme/widget@0123456789ab:src/file084.go
+example.com/acme/widget@0123456789ab:src/file085.go
+example.com/acme/widget@0123456789ab:src/file086.go
+example.com/acme/widget@0123456789ab:src/file087.go
+example.com/acme/widget@0123456789ab:src/file088.go
+example.com/acme/widget@0123456789ab:src/file089.go
+example.com/acme/widget@0123456789ab:src/file090.go
+example.com/acme/widget@0123456789ab:src/file091.go
+example.com/acme/widget@0123456789ab:src/file092.go
+example.com/acme/widget@0123456789ab:src/file093.go
+example.com/acme/widget@0123456789ab:src/file094.go
+example.com/acme/widget@0123456789ab:src/file095.go
+example.com/acme/widget@0123456789ab:src/file096.go
+example.com/acme/widget@0123456789ab:src/file097.go
+example.com/acme/widget@0123456789ab:src/file098.go
+example.com/acme/widget@0123456789ab:src/file099.go
+example.com/acme/widget@0123456789ab:src/file100.go
+'''
+
+[[exchange]]
+operation = "Search"
+variables = '{"listed":false,"query":"repo:example.com/acme/widget type:path file:\\.go$ count:all","unindexed":""}'
+query = '''
+query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
+    results {
+      limitHit elapsedMilliseconds timedout { name } alert { title }
+      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
+    }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "101",
+        "dynamicFilters": [],
+        "elapsedMilliseconds": 700,
+        "limitHit": false,
+        "matchCount": 101,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file001.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file002.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file003.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file004.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file005.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file006.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file007.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file008.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file009.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file010.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file011.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file012.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file013.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file014.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file015.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file016.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file017.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file018.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file019.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file020.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file021.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file022.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file023.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file024.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file025.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file026.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file027.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file028.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file029.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file030.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file031.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file032.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file033.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file034.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file035.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file036.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file037.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file038.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file039.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file040.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file041.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file042.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file043.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file044.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file045.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file046.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file047.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file048.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file049.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file050.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file051.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file052.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file053.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file054.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file055.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file056.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file057.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file058.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file059.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file060.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file061.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file062.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file063.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file064.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file065.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file066.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file067.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file068.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file069.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file070.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file071.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file072.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file073.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file074.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file075.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file076.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file077.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file078.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file079.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file080.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file081.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file082.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file083.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file084.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file085.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file086.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file087.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file088.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file089.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file090.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file091.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file092.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file093.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file094.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file095.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file096.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file097.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file098.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file099.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file100.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "src/file101.go"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": []
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}
+'''

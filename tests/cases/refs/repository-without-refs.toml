@@ -1,0 +1,51 @@
+# A repository without refs prints zero of each.
+args = ["refs", "github.com/ascoders/blog"]
+status.code = 0
+stdout = '''
+github.com/ascoders/blog  0 branches  0 tags
+'''
+
+[[exchange]]
+operation = "Refs"
+variables = '{"first":101,"gitlab":false,"query":null,"repo0":"github.com/ascoders/blog","repo1":"","unfiltered":false}'
+query = '''
+query Refs($repo0: String!, $repo1: String!, $gitlab: Boolean!, $first: Int, $query: String, $unfiltered: Boolean!) {
+  r0: repository(name: $repo0) { ...Refs }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...Refs }
+}
+
+fragment Refs on Repository {
+  name
+  defaultBranch { displayName }
+  branches(first: $first, query: $query) { ...Listing }
+  tags(first: $first, query: $query) { ...Listing }
+  all_branches: branches(first: 1) @include(if: $unfiltered) { totalCount }
+  all_tags: tags(first: 1) @include(if: $unfiltered) { totalCount }
+}
+
+fragment Listing on GitRefConnection {
+  totalCount
+  nodes { displayName target { oid commit { committer { date } } } }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "r0": {
+      "branches": {
+        "nodes": [],
+        "totalCount": 0
+      },
+      "defaultBranch": null,
+      "name": "github.com/ascoders/blog",
+      "tags": {
+        "nodes": [],
+        "totalCount": 0
+      }
+    }
+  }
+}
+'''

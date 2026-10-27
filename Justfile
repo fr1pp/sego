@@ -6,19 +6,19 @@ check:
     cargo clippy --all-targets -- -D warnings
     cargo test
 
-# `check` with blessing, recording and live checks refused, then fail if anything tracked changed.
+# `check` with blessing refused, then fail if anything tracked changed.
 ci:
-    if [[ -n "${SEGO_BLESS:-}" || -n "${SEGO_RECORD:-}" || -n "${SEGO_LIVE:-}" ]]; then echo "error: unset SEGO_BLESS, SEGO_RECORD and SEGO_LIVE for ci" >&2; exit 1; fi
+    if [[ -n "${SEGO_BLESS:-}" ]]; then echo "error: unset SEGO_BLESS for ci" >&2; exit 1; fi
     just check
     git diff --exit-code
 
-# Record the responses that cases lack, one request at a time.
+# Record the responses that cases lack, and those whose request changed, one request a second.
 record:
-    SEGO_RECORD=1 cargo test --test cases -- --test-threads=1
+    cargo test --test it -- --ignored --exact missing_and_stale_responses_are_recorded
 
 # Re-send every recorded request to sourcegraph.com and compare the responses, then run the other live drift tests.
 live:
-    SEGO_LIVE=1 cargo test --test cases -- --test-threads=1
+    cargo test --test it -- --ignored --exact recorded_responses_still_match_sourcegraph_com
     cargo test --lib -- --ignored --test-threads=1
 
 # Regenerate src/escape/table.rs from the pinned Unicode data.

@@ -1,0 +1,116 @@
+# A filter with control characters, given as the argument, is escaped in the header.
+args = ["refs", "example.com/acme/widget", "a\u001Bb\u202Ec\u200Bd\ne\rf\u0000g\u2028h\u007Fi"]
+status.code = 0
+stdout = '''
+example.com/acme/widget  2 of 9 branches match "a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i"  3 of 12 tags match "a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i"
+branch  0123456789ab  2026-03-01  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i  (default)
+branch  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}  a\u{1b}b\u{202e}c\u{200b}d e\u{d}  b-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+tag     0123456789ab  a\u{1b}b\u{202e}c\u{200b}d e\u{d}  t-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+tag     0123456789ab  2026-02-01  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+tag     -             -           u-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+'''
+
+[[exchange]]
+operation = "Refs"
+variables = "{\"first\":101,\"gitlab\":false,\"query\":\"a\\u001bb\u202Ec\u200Bd\\ne\\rf\\u0000g\u2028h\u007Fi\",\"repo0\":\"example.com/acme/widget\",\"repo1\":\"\",\"unfiltered\":true}"
+query = '''
+query Refs($repo0: String!, $repo1: String!, $gitlab: Boolean!, $first: Int, $query: String, $unfiltered: Boolean!) {
+  r0: repository(name: $repo0) { ...Refs }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...Refs }
+}
+
+fragment Refs on Repository {
+  name
+  defaultBranch { displayName }
+  branches(first: $first, query: $query) { ...Listing }
+  tags(first: $first, query: $query) { ...Listing }
+  all_branches: branches(first: 1) @include(if: $unfiltered) { totalCount }
+  all_tags: tags(first: 1) @include(if: $unfiltered) { totalCount }
+}
+
+fragment Listing on GitRefConnection {
+  totalCount
+  nodes { displayName target { oid commit { committer { date } } } }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "r0": {
+      "all_branches": {
+        "totalCount": 9
+      },
+      "all_tags": {
+        "totalCount": 12
+      },
+      "branches": {
+        "nodes": [
+          {
+            "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-03-01T12:00:00Z"
+                }
+              },
+              "oid": "0123456789abcdef0123456789abcdef01234567"
+            }
+          },
+          {
+            "displayName": "b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                }
+              },
+              "oid": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+            }
+          }
+        ],
+        "totalCount": 2
+      },
+      "defaultBranch": {
+        "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+      },
+      "name": "example.com/acme/widget",
+      "tags": {
+        "nodes": [
+          {
+            "displayName": "t-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                }
+              },
+              "oid": "0123456789abcdef0123456789abcdef01234567"
+            }
+          },
+          {
+            "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-02-01T08:30:00Z"
+                }
+              },
+              "oid": "0123456789abcdef0123456789abcdef01234567"
+            }
+          },
+          {
+            "displayName": "u-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+            "target": {
+              "commit": null,
+              "oid": "0123456789abcdef0123456789abcdef01234567"
+            }
+          }
+        ],
+        "totalCount": 3
+      }
+    }
+  }
+}
+'''

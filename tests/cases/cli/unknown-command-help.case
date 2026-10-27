@@ -1,7 +1,0 @@
-# A help flag does not excuse an unknown command.
-args: shwo --help
-exit: 2
---- stderr
-sego: error: unknown command 'shwo'
-  commands: search, show, ls, refs, log, diff
-usage: sego COMMAND [--json] ...

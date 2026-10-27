@@ -1,0 +1,61 @@
+# A failed repository lookup fails the commit, and the server's text is not printed.
+args = ["show", "example.com/acme/widget@v1"]
+status.code = 1
+stderr = '''
+sego: error: Sourcegraph failed to answer the repository lookup
+'''
+
+[[exchange]]
+operation = "ShowCommit"
+variables = '{"base":"v1^1","gitlab":false,"repo0":"example.com/acme/widget","repo1":"","rev":"v1"}'
+query = '''
+query ShowCommit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $base: String!) {
+  m0: repository(name: $repo0) { ...Commit }
+  d0: repository(name: $repo0) { ...Changes }
+  m1: repository(name: $repo1) @include(if: $gitlab) { ...Commit }
+  d1: repository(name: $repo1) @include(if: $gitlab) { ...Changes }
+}
+
+fragment Commit on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $rev) {
+    oid subject message
+    author { date person { displayName } }
+    committer { date person { displayName } }
+    parents { oid }
+  }
+}
+
+fragment Changes on Repository {
+  name
+  defaultBranch { displayName }
+  comparison(base: $base, head: $rev) {
+    all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "d0": null,
+    "m0": {
+      "commit": null,
+      "defaultBranch": null,
+      "name": "example.com/acme/widget"
+    }
+  },
+  "errors": [
+    {
+      "message": "secret",
+      "path": [
+        "m0",
+        "defaultBranch"
+      ]
+    }
+  ]
+}
+'''

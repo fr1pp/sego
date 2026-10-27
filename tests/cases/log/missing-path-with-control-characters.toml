@@ -1,0 +1,67 @@
+# A missing path with control characters, given as the argument, is escaped in the error.
+args = ["log", "example.com/acme/widget@v2.0.0:a\u001Bb\u202Ec\u200Bd\ne\rf\u0000g\u2028h\u007Fi-gone"]
+status.code = 1
+stderr = '''
+sego: error: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i-gone not found in example.com/acme/widget@0123456789ab
+'''
+
+[[exchange]]
+operation = "Log"
+variables = "{\"first\":151,\"gitlab\":false,\"path\":\"a\\u001bb\u202Ec\u200Bd\\ne\\rf\\u0000g\u2028h\u007Fi-gone\",\"repo0\":\"example.com/acme/widget\",\"repo1\":\"\",\"rev\":\"v2.0.0\"}"
+query = '''
+query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String, $first: Int) {
+  r0: repository(name: $repo0) { ...History }
+  t0: repository(name: $repo0) { ...Tags }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...History }
+  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
+}
+
+fragment History on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $rev) { oid ancestors(first: $first, path: $path) { ...Page } }
+}
+fragment Page on GitCommitConnection {
+  nodes { oid subject author { date person { displayName } } parents { oid } }
+  pageInfo { hasNextPage }
+}
+
+fragment Tags on Repository {
+  name
+  defaultBranch { displayName }
+  gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "r0": {
+      "commit": {
+        "ancestors": {
+          "nodes": [],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        },
+        "oid": "0123456789abcdef0123456789abcdef01234567"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "t0": {
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "gitRefs": {
+        "nodes": [],
+        "totalCount": 0
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}
+'''

@@ -1,0 +1,124 @@
+# A relative and an ssh URL resolve to addresses; an empty URL prints `?`.
+args = ["ls", "example.com/acme/submods@abcdef0123456789abcdef0123456789abcdef01"]
+status.code = 0
+stdout = '''
+example.com/acme/submods@abcdef012345  5 entries  1 dir  1 file  3 submodules
+file       README.md
+submodule  empty  ?
+submodule  rel  example.com/acme/shared-lib@222222222222
+dir        src/
+submodule  ssh  example.com/acme/ssh-lib@333333333333
+'''
+
+[[exchange]]
+operation = "ListTree"
+variables = '{"ambiguous0":false,"gitlab":false,"parent0":"","path0":"","recursive":false,"repo0":"example.com/acme/submods","repo1":"","rev0":"abcdef0123456789abcdef0123456789abcdef01","split":false}'
+query = '''
+query ListTree($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $recursive: Boolean!
+$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
+  r0: repository(name: $repo0) { ...Guesses }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
+}
+
+fragment Guesses on Repository {
+  name
+  defaultBranch { displayName }
+c0: commit(rev: $rev0) {
+    oid
+    tree: tree(path: $path0) { entries(recursive: $recursive) { path isDirectory submodule { url commit } } }
+    file: blob(path: $path0) { totalLines byteSize binary }
+    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
+    x0: path(path: $path0) @include(if: $split) { __typename }
+  }
+  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "file": null,
+        "oid": "abcdef0123456789abcdef0123456789abcdef01",
+        "parent": {
+          "entries": [
+            {
+              "path": "src",
+              "submodule": null
+            },
+            {
+              "path": "ssh",
+              "submodule": {
+                "commit": "3333333333333333333333333333333333333333",
+                "url": "ssh://git@example.com/acme/ssh-lib.git"
+              }
+            },
+            {
+              "path": "rel",
+              "submodule": {
+                "commit": "2222222222222222222222222222222222222222",
+                "url": "../shared-lib"
+              }
+            },
+            {
+              "path": "empty",
+              "submodule": {
+                "commit": "1111111111111111111111111111111111111111",
+                "url": ""
+              }
+            },
+            {
+              "path": "README.md",
+              "submodule": null
+            }
+          ]
+        },
+        "tree": {
+          "entries": [
+            {
+              "isDirectory": true,
+              "path": "src",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "ssh",
+              "submodule": {
+                "commit": "3333333333333333333333333333333333333333",
+                "url": "ssh://git@example.com/acme/ssh-lib.git"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "rel",
+              "submodule": {
+                "commit": "2222222222222222222222222222222222222222",
+                "url": "../shared-lib"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "empty",
+              "submodule": {
+                "commit": "1111111111111111111111111111111111111111",
+                "url": ""
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "README.md",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/submods"
+    }
+  }
+}
+'''

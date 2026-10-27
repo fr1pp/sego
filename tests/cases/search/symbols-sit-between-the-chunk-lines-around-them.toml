@@ -1,0 +1,241 @@
+# A symbol prints after the chunk line it starts on, between chunks when no
+# chunk holds its line, and a symbol with no line is left out.
+args = ["search", "(repo:example.com/acme/widget type:symbol one) or (repo:example.com/acme/widget one)"]
+status.code = 0
+stdout = '''
+6 matches  1 repo  0.7 s
+query  (repo:example.com/acme/widget type:symbol one) or (repo:example.com/acme/widget one)
+
+example.com/acme/widget@0123456789ab:a.rs
+9-a
+10:fn one() {
+10:function  one
+11:b
+20:struct  Mid
+23-c
+24-d
+25:e
+25:function  inner
+26-f
+26:function  edge
+30:g
+40:struct  Tail
+'''
+stderr = '''
+sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
+'''
+
+[[exchange]]
+operation = "Search"
+variables = '{"listed":false,"query":"(repo:example.com/acme/widget type:symbol one) or (repo:example.com/acme/widget one)","unindexed":""}'
+query = '''
+query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
+    results {
+      limitHit elapsedMilliseconds timedout { name } alert { title }
+      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
+    }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "6",
+        "dynamicFilters": [],
+        "elapsedMilliseconds": 700,
+        "limitHit": false,
+        "matchCount": 6,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "a\nfn one() {",
+                "contentStart": {
+                  "line": 8
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 6,
+                      "line": 9
+                    },
+                    "start": {
+                      "character": 3,
+                      "line": 9
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "b",
+                "contentStart": {
+                  "line": 10
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 1,
+                      "line": 10
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 10
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "c\nd\ne\nf",
+                "contentStart": {
+                  "line": 22
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 1,
+                      "line": 24
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 24
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "g",
+                "contentStart": {
+                  "line": 29
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 1,
+                      "line": 29
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 29
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "a.rs"
+            },
+            "repository": {
+              "name": "example.com/acme/widget"
+            },
+            "revSpec": null,
+            "symbols": [
+              {
+                "containerName": null,
+                "kind": "FUNCTION",
+                "location": {
+                  "range": {
+                    "start": {
+                      "line": 9
+                    }
+                  }
+                },
+                "name": "one"
+              },
+              {
+                "containerName": null,
+                "kind": "STRUCT",
+                "location": {
+                  "range": {
+                    "start": {
+                      "line": 19
+                    }
+                  }
+                },
+                "name": "Mid"
+              },
+              {
+                "containerName": null,
+                "kind": "FUNCTION",
+                "location": {
+                  "range": {
+                    "start": {
+                      "line": 24
+                    }
+                  }
+                },
+                "name": "inner"
+              },
+              {
+                "containerName": null,
+                "kind": "FUNCTION",
+                "location": {
+                  "range": {
+                    "start": {
+                      "line": 25
+                    }
+                  }
+                },
+                "name": "edge"
+              },
+              {
+                "containerName": null,
+                "kind": "STRUCT",
+                "location": null,
+                "name": "ghost"
+              },
+              {
+                "containerName": null,
+                "kind": "STRUCT",
+                "location": {
+                  "range": {
+                    "start": {
+                      "line": 39
+                    }
+                  }
+                },
+                "name": "Tail"
+              }
+            ]
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}
+'''

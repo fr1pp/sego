@@ -1,0 +1,153 @@
+# A commit prints the message line before and after each highlight; context that
+# touches has no separator.
+args = ["search", "repo:example.com/acme/widget type:commit m"]
+status.code = 0
+stdout = '''
+2 commits  1 repo  0.7 s
+query  repo:example.com/acme/widget type:commit m
+
+example.com/acme/widget@aaaaaaaaaaaa  2024-05-06  Ann  Fix it
+    m1
+    m2
+--
+    m5
+    m6
+    m7
+
+example.com/acme/widget@bbbbbbbbbbbb  2024-05-06  Ann  Fix it again
+    m2
+    m3
+    m4
+    m5
+    m6
+'''
+
+[[exchange]]
+operation = "Search"
+variables = '{"listed":false,"query":"repo:example.com/acme/widget type:commit m","unindexed":""}'
+query = '''
+query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
+    results {
+      limitHit elapsedMilliseconds timedout { name } alert { title }
+      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
+    }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "4",
+        "dynamicFilters": [],
+        "elapsedMilliseconds": 700,
+        "limitHit": false,
+        "matchCount": 4,
+        "results": [
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2024-05-06T07:08:09Z",
+                "person": {
+                  "displayName": "Ann"
+                }
+              },
+              "oid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "repository": {
+                "name": "example.com/acme/widget"
+              },
+              "subject": "Fix it"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```\nm1\nm2\nm3\nm4\nm5\nm6\nm7\nm8\nm9\nm10\nm11\nm12\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 0,
+                    "length": 1,
+                    "line": 1
+                  },
+                  {
+                    "character": 0,
+                    "length": 1,
+                    "line": 6
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2024-05-06T07:08:09Z",
+                "person": {
+                  "displayName": "Ann"
+                }
+              },
+              "oid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "repository": {
+                "name": "example.com/acme/widget"
+              },
+              "subject": "Fix it again"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```\nm1\nm2\nm3\nm4\nm5\nm6\nm7\nm8\nm9\nm10\nm11\nm12\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 0,
+                    "length": 1,
+                    "line": 3
+                  },
+                  {
+                    "character": 0,
+                    "length": 1,
+                    "line": 5
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}
+'''

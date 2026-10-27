@@ -1,0 +1,7 @@
+# A range revision is only valid in log and diff; no request is made.
+args = ["ls", "example.com/acme/widget@a..b:src"]
+status.code = 2
+stderr = '''
+sego: error: a range is only valid in log (A..B) and diff (A...B): a..b
+usage: sego ls [--json] [--recursive] REPO[@REV][:PATH]
+'''

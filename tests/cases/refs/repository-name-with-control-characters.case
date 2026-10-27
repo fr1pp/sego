@@ -1,6 +1,0 @@
-# A repository name with control characters is escaped in the usage error.
-args: refs $'example.com/acme/widgeta\eb\u{202e}c\u{200b}d\ne\rf\0g\u{2028}h\x7fi'
-exit: 2
---- stderr
-sego: error: invalid repository name 'example.com/acme/widgeta\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i'
-usage: sego refs [--json] REPO [TEXT]

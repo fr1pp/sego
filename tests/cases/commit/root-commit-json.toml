@@ -1,0 +1,84 @@
+# A root commit's JSON has no parents, files or totals.
+args = ["show", "--json", "github.com/gorilla/mux@4e8d10dc715feb79b43f1d607b45148537546a0a"]
+status.code = 0
+stdout = '''
+{"repo":"github.com/gorilla/mux","rev":"4e8d10dc715feb79b43f1d607b45148537546a0a","commit":"4e8d10dc715feb79b43f1d607b45148537546a0a","author":"rodrigo moraes","author_date":"2012-10-02","committer":"rodrigo moraes","committer_date":"2012-10-02","parents":[],"subject":"Initial commit","message":"Initial commit","files":[],"files_total":null,"added":null,"deleted":null}
+'''
+stderr = '''
+sego: note: root commit: Sourcegraph has no diff for it
+'''
+
+[[exchange]]
+operation = "ShowCommit"
+variables = '{"base":"4e8d10dc715feb79b43f1d607b45148537546a0a^1","gitlab":false,"repo0":"github.com/gorilla/mux","repo1":"","rev":"4e8d10dc715feb79b43f1d607b45148537546a0a"}'
+query = '''
+query ShowCommit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $base: String!) {
+  m0: repository(name: $repo0) { ...Commit }
+  d0: repository(name: $repo0) { ...Changes }
+  m1: repository(name: $repo1) @include(if: $gitlab) { ...Commit }
+  d1: repository(name: $repo1) @include(if: $gitlab) { ...Changes }
+}
+
+fragment Commit on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $rev) {
+    oid subject message
+    author { date person { displayName } }
+    committer { date person { displayName } }
+    parents { oid }
+  }
+}
+
+fragment Changes on Repository {
+  name
+  defaultBranch { displayName }
+  comparison(base: $base, head: $rev) {
+    all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "d0": null,
+    "m0": {
+      "commit": {
+        "author": {
+          "date": "2012-10-02T21:32:24Z",
+          "person": {
+            "displayName": "rodrigo moraes"
+          }
+        },
+        "committer": {
+          "date": "2012-10-02T21:32:24Z",
+          "person": {
+            "displayName": "rodrigo moraes"
+          }
+        },
+        "message": "Initial commit",
+        "oid": "4e8d10dc715feb79b43f1d607b45148537546a0a",
+        "parents": [],
+        "subject": "Initial commit"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  },
+  "errors": [
+    {
+      "message": "revision not found: repo 1700 @4e8d10dc715feb79b43f1d607b45148537546a0a^1^0",
+      "path": [
+        "d0",
+        "comparison"
+      ]
+    }
+  ]
+}
+'''

@@ -1,0 +1,2473 @@
+// Generated from tests/cases by `SEGO_BLESS=1 cargo test --test it`. Do not edit.
+
+mod cli {
+    use crate::support::case;
+
+    #[test]
+    fn closed_pipe() {
+        case("cli/closed-pipe.toml");
+    }
+
+    #[test]
+    fn commit_range() {
+        case("cli/commit-range.toml");
+    }
+
+    #[test]
+    fn commit_with_lines() {
+        case("cli/commit-with-lines.toml");
+    }
+
+    #[test]
+    fn diff_help() {
+        case("cli/diff-help.toml");
+    }
+
+    #[test]
+    fn diff_recursive() {
+        case("cli/diff-recursive.toml");
+    }
+
+    #[test]
+    fn diff_two_dot_range() {
+        case("cli/diff-two-dot-range.toml");
+    }
+
+    #[test]
+    fn diff_without_revision() {
+        case("cli/diff-without-revision.toml");
+    }
+
+    #[test]
+    fn endpoint_from_environment() {
+        case("cli/endpoint-from-environment.toml");
+    }
+
+    #[test]
+    fn general_help() {
+        case("cli/general-help.toml");
+    }
+
+    #[test]
+    fn help_flag_before_command() {
+        case("cli/help-flag-before-command.toml");
+    }
+
+    #[test]
+    fn help_with_bad_endpoint() {
+        case("cli/help-with-bad-endpoint.toml");
+    }
+
+    #[test]
+    fn json_with_value() {
+        case("cli/json-with-value.toml");
+    }
+
+    #[test]
+    fn limit_option_pointer() {
+        case("cli/limit-option-pointer.toml");
+    }
+
+    #[test]
+    fn log_empty_path() {
+        case("cli/log-empty-path.toml");
+    }
+
+    #[test]
+    fn log_help() {
+        case("cli/log-help.toml");
+    }
+
+    #[test]
+    fn log_recursive() {
+        case("cli/log-recursive.toml");
+    }
+
+    #[test]
+    fn log_three_dot_range() {
+        case("cli/log-three-dot-range.toml");
+    }
+
+    #[test]
+    fn log_two_paths() {
+        case("cli/log-two-paths.toml");
+    }
+
+    #[test]
+    fn ls_help() {
+        case("cli/ls-help.toml");
+    }
+
+    #[test]
+    fn ls_no_address() {
+        case("cli/ls-no-address.toml");
+    }
+
+    #[test]
+    fn ls_range() {
+        case("cli/ls-range.toml");
+    }
+
+    #[test]
+    fn malformed_endpoint() {
+        case("cli/malformed-endpoint.toml");
+    }
+
+    #[test]
+    fn no_command() {
+        case("cli/no-command.toml");
+    }
+
+    #[test]
+    fn option_given_twice() {
+        case("cli/option-given-twice.toml");
+    }
+
+    #[test]
+    fn refs_empty_text() {
+        case("cli/refs-empty-text.toml");
+    }
+
+    #[test]
+    fn refs_help() {
+        case("cli/refs-help.toml");
+    }
+
+    #[test]
+    fn refs_revision() {
+        case("cli/refs-revision.toml");
+    }
+
+    #[test]
+    fn search_help() {
+        case("cli/search-help.toml");
+    }
+
+    #[test]
+    fn search_without_query() {
+        case("cli/search-without-query.toml");
+    }
+
+    #[test]
+    fn show_empty_path() {
+        case("cli/show-empty-path.toml");
+    }
+
+    #[test]
+    fn show_help() {
+        case("cli/show-help.toml");
+    }
+
+    #[test]
+    fn show_recursive() {
+        case("cli/show-recursive.toml");
+    }
+
+    #[test]
+    fn show_repository_alone() {
+        case("cli/show-repository-alone.toml");
+    }
+
+    #[test]
+    fn single_dash_before_command() {
+        case("cli/single-dash-before-command.toml");
+    }
+
+    #[test]
+    fn unknown_command_help() {
+        case("cli/unknown-command-help.toml");
+    }
+
+    #[test]
+    fn unknown_command_version() {
+        case("cli/unknown-command-version.toml");
+    }
+
+    #[test]
+    fn unknown_command_with_control_characters() {
+        case("cli/unknown-command-with-control-characters.toml");
+    }
+
+    #[test]
+    fn unknown_command() {
+        case("cli/unknown-command.toml");
+    }
+
+    #[test]
+    fn unknown_option() {
+        case("cli/unknown-option.toml");
+    }
+
+    #[test]
+    fn usage_error_with_closed_stderr() {
+        case("cli/usage-error-with-closed-stderr.toml");
+    }
+
+    #[test]
+    fn version() {
+        case("cli/version.toml");
+    }
+}
+
+mod commit {
+    use crate::support::case;
+
+    #[test]
+    fn commit_url_with_crlf_message() {
+        case("commit/commit-url-with-crlf-message.toml");
+    }
+
+    #[test]
+    fn commit_with_message_and_files() {
+        case("commit/commit-with-message-and-files.toml");
+    }
+
+    #[test]
+    fn comparison_without_totals() {
+        case("commit/comparison-without-totals.toml");
+    }
+
+    #[test]
+    fn file_list_error_hides_server_text() {
+        case("commit/file-list-error-hides-server-text.toml");
+    }
+
+    #[test]
+    fn files_added_deleted_and_renamed() {
+        case("commit/files-added-deleted-and-renamed.toml");
+    }
+
+    #[test]
+    fn files_at_the_default_limit() {
+        case("commit/files-at-the-default-limit.toml");
+    }
+
+    #[test]
+    fn files_past_the_default_limit_json() {
+        case("commit/files-past-the-default-limit-json.toml");
+    }
+
+    #[test]
+    fn files_past_the_default_limit() {
+        case("commit/files-past-the-default-limit.toml");
+    }
+
+    #[test]
+    fn json_answer() {
+        case("commit/json-answer.toml");
+    }
+
+    #[test]
+    fn merge_subject_with_one_parent() {
+        case("commit/merge-subject-with-one-parent.toml");
+    }
+
+    #[test]
+    fn merge_with_no_files() {
+        case("commit/merge-with-no-files.toml");
+    }
+
+    #[test]
+    fn merge_with_two_parents_json() {
+        case("commit/merge-with-two-parents-json.toml");
+    }
+
+    #[test]
+    fn merge_with_two_parents() {
+        case("commit/merge-with-two-parents.toml");
+    }
+
+    #[test]
+    fn message_and_names_with_control_characters_json() {
+        case("commit/message-and-names-with-control-characters-json.toml");
+    }
+
+    #[test]
+    fn message_and_names_with_control_characters() {
+        case("commit/message-and-names-with-control-characters.toml");
+    }
+
+    #[test]
+    fn message_with_long_line_and_blank_lines_json() {
+        case("commit/message-with-long-line-and-blank-lines-json.toml");
+    }
+
+    #[test]
+    fn message_with_long_line_and_blank_lines() {
+        case("commit/message-with-long-line-and-blank-lines.toml");
+    }
+
+    #[test]
+    fn message_with_trailing_blank_lines() {
+        case("commit/message-with-trailing-blank-lines.toml");
+    }
+
+    #[test]
+    fn message_with_whitespace_only_lines() {
+        case("commit/message-with-whitespace-only-lines.toml");
+    }
+
+    #[test]
+    fn missing_revision_json() {
+        case("commit/missing-revision-json.toml");
+    }
+
+    #[test]
+    fn missing_revision() {
+        case("commit/missing-revision.toml");
+    }
+
+    #[test]
+    fn rejected_request_with_control_characters() {
+        case("commit/rejected-request-with-control-characters.toml");
+    }
+
+    #[test]
+    fn repository_lookup_error() {
+        case("commit/repository-lookup-error.toml");
+    }
+
+    #[test]
+    fn repository_not_on_sourcegraph() {
+        case("commit/repository-not-on-sourcegraph.toml");
+    }
+
+    #[test]
+    fn repository_with_no_commits() {
+        case("commit/repository-with-no-commits.toml");
+    }
+
+    #[test]
+    fn revision_not_found_after_waiting_for_a_fetch() {
+        case("commit/revision-not-found-after-waiting-for-a-fetch.toml");
+    }
+
+    #[test]
+    fn revision_with_control_characters() {
+        case("commit/revision-with-control-characters.toml");
+    }
+
+    #[test]
+    fn revision_written_as_abbreviated_commit() {
+        case("commit/revision-written-as-abbreviated-commit.toml");
+    }
+
+    #[test]
+    fn revision_written_as_branch() {
+        case("commit/revision-written-as-branch.toml");
+    }
+
+    #[test]
+    fn root_commit_json() {
+        case("commit/root-commit-json.toml");
+    }
+
+    #[test]
+    fn root_commit_with_file_list_error() {
+        case("commit/root-commit-with-file-list-error.toml");
+    }
+
+    #[test]
+    fn root_commit() {
+        case("commit/root-commit.toml");
+    }
+}
+
+mod diff {
+    use crate::support::case;
+
+    #[test]
+    fn abbreviated_commit_base() {
+        case("diff/abbreviated-commit-base.toml");
+    }
+
+    #[test]
+    fn abbreviated_commit_range() {
+        case("diff/abbreviated-commit-range.toml");
+    }
+
+    #[test]
+    fn abbreviated_commit_revision() {
+        case("diff/abbreviated-commit-revision.toml");
+    }
+
+    #[test]
+    fn base_from_first_existing_file() {
+        case("diff/base-from-first-existing-file.toml");
+    }
+
+    #[test]
+    fn binary_file() {
+        case("diff/binary-file.toml");
+    }
+
+    #[test]
+    fn commit_ids_have_no_rev_field() {
+        case("diff/commit-ids-have-no-rev-field.toml");
+    }
+
+    #[test]
+    fn compare_url_with_path() {
+        case("diff/compare-url-with-path.toml");
+    }
+
+    #[test]
+    fn comparison_without_answer() {
+        case("diff/comparison-without-answer.toml");
+    }
+
+    #[test]
+    fn default_limit_cut_json() {
+        case("diff/default-limit-cut-json.toml");
+    }
+
+    #[test]
+    fn default_limit_cut() {
+        case("diff/default-limit-cut.toml");
+    }
+
+    #[test]
+    fn empty_comparison_json() {
+        case("diff/empty-comparison-json.toml");
+    }
+
+    #[test]
+    fn empty_comparison() {
+        case("diff/empty-comparison.toml");
+    }
+
+    #[test]
+    fn every_file_added_has_no_base_json() {
+        case("diff/every-file-added-has-no-base-json.toml");
+    }
+
+    #[test]
+    fn every_file_added_has_no_base() {
+        case("diff/every-file-added-has-no-base.toml");
+    }
+
+    #[test]
+    fn exactly_the_default_limit() {
+        case("diff/exactly-the-default-limit.toml");
+    }
+
+    #[test]
+    fn failed_comparison() {
+        case("diff/failed-comparison.toml");
+    }
+
+    #[test]
+    fn file_statuses() {
+        case("diff/file-statuses.toml");
+    }
+
+    #[test]
+    fn glob_path() {
+        case("diff/glob-path.toml");
+    }
+
+    #[test]
+    fn magic_paths() {
+        case("diff/magic-paths.toml");
+    }
+
+    #[test]
+    fn missing_base_revision() {
+        case("diff/missing-base-revision.toml");
+    }
+
+    #[test]
+    fn missing_both_revisions() {
+        case("diff/missing-both-revisions.toml");
+    }
+
+    #[test]
+    fn missing_head_revision() {
+        case("diff/missing-head-revision.toml");
+    }
+
+    #[test]
+    fn missing_path_with_comparison_error() {
+        case("diff/missing-path-with-comparison-error.toml");
+    }
+
+    #[test]
+    fn missing_path_with_control_characters() {
+        case("diff/missing-path-with-control-characters.toml");
+    }
+
+    #[test]
+    fn missing_repository() {
+        case("diff/missing-repository.toml");
+    }
+
+    #[test]
+    fn missing_revision() {
+        case("diff/missing-revision.toml");
+    }
+
+    #[test]
+    fn mixed_paths() {
+        case("diff/mixed-paths.toml");
+    }
+
+    #[test]
+    fn owner_name() {
+        case("diff/owner-name.toml");
+    }
+
+    #[test]
+    fn patch_lines_that_look_like_headers() {
+        case("diff/patch-lines-that-look-like-headers.toml");
+    }
+
+    #[test]
+    fn patch_with_control_characters_json() {
+        case("diff/patch-with-control-characters-json.toml");
+    }
+
+    #[test]
+    fn patch_with_control_characters() {
+        case("diff/patch-with-control-characters.toml");
+    }
+
+    #[test]
+    fn path_added_in_range() {
+        case("diff/path-added-in-range.toml");
+    }
+
+    #[test]
+    fn path_deleted_in_range() {
+        case("diff/path-deleted-in-range.toml");
+    }
+
+    #[test]
+    fn path_in_address_and_operand() {
+        case("diff/path-in-address-and-operand.toml");
+    }
+
+    #[test]
+    fn path_in_address() {
+        case("diff/path-in-address.toml");
+    }
+
+    #[test]
+    fn path_missing_at_both_ends() {
+        case("diff/path-missing-at-both-ends.toml");
+    }
+
+    #[test]
+    fn path_with_spaces() {
+        case("diff/path-with-spaces.toml");
+    }
+
+    #[test]
+    fn paths_in_address_and_operand() {
+        case("diff/paths-in-address-and-operand.toml");
+    }
+
+    #[test]
+    fn paths_with_control_characters_json() {
+        case("diff/paths-with-control-characters-json.toml");
+    }
+
+    #[test]
+    fn paths_with_control_characters() {
+        case("diff/paths-with-control-characters.toml");
+    }
+
+    #[test]
+    fn range_head_is_a_root_commit() {
+        case("diff/range-head-is-a-root-commit.toml");
+    }
+
+    #[test]
+    fn range_with_path_json() {
+        case("diff/range-with-path-json.toml");
+    }
+
+    #[test]
+    fn rejected_request_with_control_characters() {
+        case("diff/rejected-request-with-control-characters.toml");
+    }
+
+    #[test]
+    fn rename_from_two_paths() {
+        case("diff/rename-from-two-paths.toml");
+    }
+
+    #[test]
+    fn repository_without_commits() {
+        case("diff/repository-without-commits.toml");
+    }
+
+    #[test]
+    fn root_commit_has_no_parent() {
+        case("diff/root-commit-has-no-parent.toml");
+    }
+
+    #[test]
+    fn second_path_missing() {
+        case("diff/second-path-missing.toml");
+    }
+
+    #[test]
+    fn single_revision_json() {
+        case("diff/single-revision-json.toml");
+    }
+
+    #[test]
+    fn single_revision() {
+        case("diff/single-revision.toml");
+    }
+
+    #[test]
+    fn tag_range_json() {
+        case("diff/tag-range-json.toml");
+    }
+
+    #[test]
+    fn tag_range_with_path() {
+        case("diff/tag-range-with-path.toml");
+    }
+
+    #[test]
+    fn tag_range() {
+        case("diff/tag-range.toml");
+    }
+
+    #[test]
+    fn unchanged_path_json() {
+        case("diff/unchanged-path-json.toml");
+    }
+
+    #[test]
+    fn unchanged_path() {
+        case("diff/unchanged-path.toml");
+    }
+
+    #[test]
+    fn unrelated_histories() {
+        case("diff/unrelated-histories.toml");
+    }
+}
+
+mod log {
+    use crate::support::case;
+
+    #[test]
+    fn commit_count_error() {
+        case("log/commit-count-error.toml");
+    }
+
+    #[test]
+    fn commit_id_range() {
+        case("log/commit-id-range.toml");
+    }
+
+    #[test]
+    fn commit_with_two_tags() {
+        case("log/commit-with-two-tags.toml");
+    }
+
+    #[test]
+    fn commits_with_control_characters_json() {
+        case("log/commits-with-control-characters-json.toml");
+    }
+
+    #[test]
+    fn commits_with_control_characters() {
+        case("log/commits-with-control-characters.toml");
+    }
+
+    #[test]
+    fn commits_without_subjects() {
+        case("log/commits-without-subjects.toml");
+    }
+
+    #[test]
+    fn compare_url() {
+        case("log/compare-url.toml");
+    }
+
+    #[test]
+    fn default_revision_json() {
+        case("log/default-revision-json.toml");
+    }
+
+    #[test]
+    fn default_revision() {
+        case("log/default-revision.toml");
+    }
+
+    #[test]
+    fn deleted_path_in_range() {
+        case("log/deleted-path-in-range.toml");
+    }
+
+    #[test]
+    fn deleted_path() {
+        case("log/deleted-path.toml");
+    }
+
+    #[test]
+    fn empty_range_json() {
+        case("log/empty-range-json.toml");
+    }
+
+    #[test]
+    fn empty_range() {
+        case("log/empty-range.toml");
+    }
+
+    #[test]
+    fn empty_repository() {
+        case("log/empty-repository.toml");
+    }
+
+    #[test]
+    fn missing_base_revision() {
+        case("log/missing-base-revision.toml");
+    }
+
+    #[test]
+    fn missing_path_with_control_characters() {
+        case("log/missing-path-with-control-characters.toml");
+    }
+
+    #[test]
+    fn missing_path() {
+        case("log/missing-path.toml");
+    }
+
+    #[test]
+    fn missing_revision() {
+        case("log/missing-revision.toml");
+    }
+
+    #[test]
+    fn note_for_tags_past_the_default_limit() {
+        case("log/note-for-tags-past-the-default-limit.toml");
+    }
+
+    #[test]
+    fn one_commit() {
+        case("log/one-commit.toml");
+    }
+
+    #[test]
+    fn path_in_address() {
+        case("log/path-in-address.toml");
+    }
+
+    #[test]
+    fn range_at_default_limit() {
+        case("log/range-at-default-limit.toml");
+    }
+
+    #[test]
+    fn range_from_commit_id_to_tag() {
+        case("log/range-from-commit-id-to-tag.toml");
+    }
+
+    #[test]
+    fn range_from_tag_to_commit_id() {
+        case("log/range-from-tag-to-commit-id.toml");
+    }
+
+    #[test]
+    fn range_glob_path_past_default_limit_json() {
+        case("log/range-glob-path-past-default-limit-json.toml");
+    }
+
+    #[test]
+    fn range_glob_path_past_default_limit() {
+        case("log/range-glob-path-past-default-limit.toml");
+    }
+
+    #[test]
+    fn range_glob_path() {
+        case("log/range-glob-path.toml");
+    }
+
+    #[test]
+    fn range_in_empty_repository() {
+        case("log/range-in-empty-repository.toml");
+    }
+
+    #[test]
+    fn range_json() {
+        case("log/range-json.toml");
+    }
+
+    #[test]
+    fn range_of_one_commit() {
+        case("log/range-of-one-commit.toml");
+    }
+
+    #[test]
+    fn range_past_default_limit_json() {
+        case("log/range-past-default-limit-json.toml");
+    }
+
+    #[test]
+    fn range_past_default_limit() {
+        case("log/range-past-default-limit.toml");
+    }
+
+    #[test]
+    fn range_path_with_control_characters() {
+        case("log/range-path-with-control-characters.toml");
+    }
+
+    #[test]
+    fn range_path() {
+        case("log/range-path.toml");
+    }
+
+    #[test]
+    fn range() {
+        case("log/range.toml");
+    }
+
+    #[test]
+    fn rejected_request_with_control_characters() {
+        case("log/rejected-request-with-control-characters.toml");
+    }
+
+    #[test]
+    fn revision_at_default_limit() {
+        case("log/revision-at-default-limit.toml");
+    }
+
+    #[test]
+    fn revision_one_past_default_limit() {
+        case("log/revision-one-past-default-limit.toml");
+    }
+
+    #[test]
+    fn revision_past_default_limit_json() {
+        case("log/revision-past-default-limit-json.toml");
+    }
+
+    #[test]
+    fn revision_past_default_limit() {
+        case("log/revision-past-default-limit.toml");
+    }
+
+    #[test]
+    fn subject_past_500_columns_json() {
+        case("log/subject-past-500-columns-json.toml");
+    }
+
+    #[test]
+    fn subject_past_500_columns() {
+        case("log/subject-past-500-columns.toml");
+    }
+
+    #[test]
+    fn tags_at_the_default_limit_have_no_note() {
+        case("log/tags-at-the-default-limit-have-no-note.toml");
+    }
+}
+
+mod ls {
+    use crate::support::case;
+
+    #[test]
+    fn default_branch_json() {
+        case("ls/default-branch-json.toml");
+    }
+
+    #[test]
+    fn empty_directory() {
+        case("ls/empty-directory.toml");
+    }
+
+    #[test]
+    fn entries_at_the_default_limit() {
+        case("ls/entries-at-the-default-limit.toml");
+    }
+
+    #[test]
+    fn entries_past_the_default_limit_json() {
+        case("ls/entries-past-the-default-limit-json.toml");
+    }
+
+    #[test]
+    fn entries_past_the_default_limit_recursive() {
+        case("ls/entries-past-the-default-limit-recursive.toml");
+    }
+
+    #[test]
+    fn entries_past_the_default_limit() {
+        case("ls/entries-past-the-default-limit.toml");
+    }
+
+    #[test]
+    fn entry_with_space_quoted_in_row() {
+        case("ls/entry-with-space-quoted-in-row.toml");
+    }
+
+    #[test]
+    fn error_beneath_tree_entries_hides_server_text() {
+        case("ls/error-beneath-tree-entries-hides-server-text.toml");
+    }
+
+    #[test]
+    fn file_at_path_with_control_characters() {
+        case("ls/file-at-path-with-control-characters.toml");
+    }
+
+    #[test]
+    fn file_path_is_an_answer_error() {
+        case("ls/file-path-is-an-answer-error.toml");
+    }
+
+    #[test]
+    fn file_path_of_binary_file() {
+        case("ls/file-path-of-binary-file.toml");
+    }
+
+    #[test]
+    fn file_path_of_empty_file() {
+        case("ls/file-path-of-empty-file.toml");
+    }
+
+    #[test]
+    fn file_path_of_one_line() {
+        case("ls/file-path-of-one-line.toml");
+    }
+
+    #[test]
+    fn listing_error_hides_server_text() {
+        case("ls/listing-error-hides-server-text.toml");
+    }
+
+    #[test]
+    fn missing_path_with_control_characters() {
+        case("ls/missing-path-with-control-characters.toml");
+    }
+
+    #[test]
+    fn missing_path() {
+        case("ls/missing-path.toml");
+    }
+
+    #[test]
+    fn path_under_a_file() {
+        case("ls/path-under-a-file.toml");
+    }
+
+    #[test]
+    fn path_with_control_characters_json() {
+        case("ls/path-with-control-characters-json.toml");
+    }
+
+    #[test]
+    fn path_with_control_characters() {
+        case("ls/path-with-control-characters.toml");
+    }
+
+    #[test]
+    fn path_with_space_quoted_in_header_and_rows() {
+        case("ls/path-with-space-quoted-in-header-and-rows.toml");
+    }
+
+    #[test]
+    fn recursive_listing_sorted_by_segment() {
+        case("ls/recursive-listing-sorted-by-segment.toml");
+    }
+
+    #[test]
+    fn rejected_request_with_control_characters() {
+        case("ls/rejected-request-with-control-characters.toml");
+    }
+
+    #[test]
+    fn repository_name_with_control_characters() {
+        case("ls/repository-name-with-control-characters.toml");
+    }
+
+    #[test]
+    fn revision_written_as_commit_json() {
+        case("ls/revision-written-as-commit-json.toml");
+    }
+
+    #[test]
+    fn root_at_tag_json() {
+        case("ls/root-at-tag-json.toml");
+    }
+
+    #[test]
+    fn root_at_tag() {
+        case("ls/root-at-tag.toml");
+    }
+
+    #[test]
+    fn root_with_control_characters_json() {
+        case("ls/root-with-control-characters-json.toml");
+    }
+
+    #[test]
+    fn root_with_control_characters() {
+        case("ls/root-with-control-characters.toml");
+    }
+
+    #[test]
+    fn root_with_submodules_json() {
+        case("ls/root-with-submodules-json.toml");
+    }
+
+    #[test]
+    fn root_with_submodules() {
+        case("ls/root-with-submodules.toml");
+    }
+
+    #[test]
+    fn root_written_as_dot_json() {
+        case("ls/root-written-as-dot-json.toml");
+    }
+
+    #[test]
+    fn subdirectory_paths_from_repository_root() {
+        case("ls/subdirectory-paths-from-repository-root.toml");
+    }
+
+    #[test]
+    fn submodule_path_answers_with_its_row() {
+        case("ls/submodule-path-answers-with-its-row.toml");
+    }
+
+    #[test]
+    fn submodule_path_json() {
+        case("ls/submodule-path-json.toml");
+    }
+
+    #[test]
+    fn submodule_urls_relative_ssh_and_empty() {
+        case("ls/submodule-urls-relative-ssh-and-empty.toml");
+    }
+
+    #[test]
+    fn submodule_with_file_url() {
+        case("ls/submodule-with-file-url.toml");
+    }
+
+    #[test]
+    fn submodule_without_commit() {
+        case("ls/submodule-without-commit.toml");
+    }
+
+    #[test]
+    fn tree_url_at_the_root() {
+        case("ls/tree-url-at-the-root.toml");
+    }
+
+    #[test]
+    fn tree_url_with_path() {
+        case("ls/tree-url-with-path.toml");
+    }
+}
+
+mod refs {
+    use crate::support::case;
+
+    #[test]
+    fn branch_and_tag_matching_text() {
+        case("refs/branch-and-tag-matching-text.toml");
+    }
+
+    #[test]
+    fn branch_list_error_hides_server_text() {
+        case("refs/branch-list-error-hides-server-text.toml");
+    }
+
+    #[test]
+    fn branches_and_tags_at_default_limit() {
+        case("refs/branches-and-tags-at-default-limit.toml");
+    }
+
+    #[test]
+    fn branches_and_tags_json() {
+        case("refs/branches-and-tags-json.toml");
+    }
+
+    #[test]
+    fn branches_and_tags_matching_text_json() {
+        case("refs/branches-and-tags-matching-text-json.toml");
+    }
+
+    #[test]
+    fn branches_and_tags_past_default_limit() {
+        case("refs/branches-and-tags-past-default-limit.toml");
+    }
+
+    #[test]
+    fn branches_and_tags() {
+        case("refs/branches-and-tags.toml");
+    }
+
+    #[test]
+    fn branches_matching_text_past_default_limit() {
+        case("refs/branches-matching-text-past-default-limit.toml");
+    }
+
+    #[test]
+    fn default_branch_not_listed_first_json() {
+        case("refs/default-branch-not-listed-first-json.toml");
+    }
+
+    #[test]
+    fn default_branch_not_listed_first() {
+        case("refs/default-branch-not-listed-first.toml");
+    }
+
+    #[test]
+    fn github_url() {
+        case("refs/github-url.toml");
+    }
+
+    #[test]
+    fn names_with_control_characters_json() {
+        case("refs/names-with-control-characters-json.toml");
+    }
+
+    #[test]
+    fn names_with_control_characters() {
+        case("refs/names-with-control-characters.toml");
+    }
+
+    #[test]
+    fn owner_name_on_both_hosts() {
+        case("refs/owner-name-on-both-hosts.toml");
+    }
+
+    #[test]
+    fn owner_name_on_github_json() {
+        case("refs/owner-name-on-github-json.toml");
+    }
+
+    #[test]
+    fn owner_name_on_github() {
+        case("refs/owner-name-on-github.toml");
+    }
+
+    #[test]
+    fn owner_name_on_gitlab() {
+        case("refs/owner-name-on-gitlab.toml");
+    }
+
+    #[test]
+    fn rejected_request_with_control_characters() {
+        case("refs/rejected-request-with-control-characters.toml");
+    }
+
+    #[test]
+    fn repository_name_with_control_characters() {
+        case("refs/repository-name-with-control-characters.toml");
+    }
+
+    #[test]
+    fn repository_not_on_sourcegraph() {
+        case("refs/repository-not-on-sourcegraph.toml");
+    }
+
+    #[test]
+    fn repository_without_refs_json() {
+        case("refs/repository-without-refs-json.toml");
+    }
+
+    #[test]
+    fn repository_without_refs() {
+        case("refs/repository-without-refs.toml");
+    }
+
+    #[test]
+    fn tag_list_error_hides_server_text() {
+        case("refs/tag-list-error-hides-server-text.toml");
+    }
+
+    #[test]
+    fn tag_without_commit_json() {
+        case("refs/tag-without-commit-json.toml");
+    }
+
+    #[test]
+    fn tag_without_commit() {
+        case("refs/tag-without-commit.toml");
+    }
+
+    #[test]
+    fn tag_without_committer_date_json() {
+        case("refs/tag-without-committer-date-json.toml");
+    }
+
+    #[test]
+    fn tag_without_committer_date() {
+        case("refs/tag-without-committer-date.toml");
+    }
+
+    #[test]
+    fn tags_matching_text_past_default_limit() {
+        case("refs/tags-matching-text-past-default-limit.toml");
+    }
+
+    #[test]
+    fn tags_matching_text() {
+        case("refs/tags-matching-text.toml");
+    }
+
+    #[test]
+    fn text_with_control_characters_json() {
+        case("refs/text-with-control-characters-json.toml");
+    }
+
+    #[test]
+    fn text_with_control_characters() {
+        case("refs/text-with-control-characters.toml");
+    }
+
+    #[test]
+    fn text_with_glob_characters() {
+        case("refs/text-with-glob-characters.toml");
+    }
+
+    #[test]
+    fn totals_past_the_listed_refs_json() {
+        case("refs/totals-past-the-listed-refs-json.toml");
+    }
+}
+
+mod search {
+    use crate::support::case;
+
+    #[test]
+    fn alert_and_results_with_control_characters_json() {
+        case("search/alert-and-results-with-control-characters-json.toml");
+    }
+
+    #[test]
+    fn alert_and_results_with_control_characters() {
+        case("search/alert-and-results-with-control-characters.toml");
+    }
+
+    #[test]
+    fn alert_with_results_passes_on_proposed_queries() {
+        case("search/alert-with-results-passes-on-proposed-queries.toml");
+    }
+
+    #[test]
+    fn alert_without_description() {
+        case("search/alert-without-description.toml");
+    }
+
+    #[test]
+    fn answer_at_its_deadline_is_stopped() {
+        case("search/answer-at-its-deadline-is-stopped.toml");
+    }
+
+    #[test]
+    fn at_least_answer_has_no_unindexed_files_note() {
+        case("search/at-least-answer-has-no-unindexed-files-note.toml");
+    }
+
+    #[test]
+    fn binary_file_json() {
+        case("search/binary-file-json.toml");
+    }
+
+    #[test]
+    fn binary_file_with_symbols() {
+        case("search/binary-file-with-symbols.toml");
+    }
+
+    #[test]
+    fn binary_file() {
+        case("search/binary-file.toml");
+    }
+
+    #[test]
+    fn blank_line_follows_a_result_with_lines() {
+        case("search/blank-line-follows-a-result-with-lines.toml");
+    }
+
+    #[test]
+    fn capped_zero_has_no_flag_or_unindexed_files_note() {
+        case("search/capped-zero-has-no-flag-or-unindexed-files-note.toml");
+    }
+
+    #[test]
+    fn clean_answer_near_deadline() {
+        case("search/clean-answer-near-deadline.toml");
+    }
+
+    #[test]
+    fn clean_zero_past_a_short_deadline_is_stopped() {
+        case("search/clean-zero-past-a-short-deadline-is-stopped.toml");
+    }
+
+    #[test]
+    fn cloning_and_missing_repositories_have_no_note() {
+        case("search/cloning-and-missing-repositories-have-no-note.toml");
+    }
+
+    #[test]
+    fn closed_stdout_is_not_an_error() {
+        case("search/closed-stdout-is-not-an-error.toml");
+    }
+
+    #[test]
+    fn commit_answer_past_the_default_limit_prints_3_of_4_commits() {
+        case("search/commit-answer-past-the-default-limit-prints-3-of-4-commits.toml");
+    }
+
+    #[test]
+    fn commit_crlf_blank_line_json() {
+        case("search/commit-crlf-blank-line-json.toml");
+    }
+
+    #[test]
+    fn commit_highlights_json() {
+        case("search/commit-highlights-json.toml");
+    }
+
+    #[test]
+    fn commit_result_prints_the_highlights_of_each_of_its_matches() {
+        case("search/commit-result-prints-the-highlights-of-each-of-its-matches.toml");
+    }
+
+    #[test]
+    fn commit_result_separates_context_that_is_not_contiguous() {
+        case("search/commit-result-separates-context-that-is-not-contiguous.toml");
+    }
+
+    #[test]
+    fn commit_result() {
+        case("search/commit-result.toml");
+    }
+
+    #[test]
+    fn commits_exact() {
+        case("search/commits-exact.toml");
+    }
+
+    #[test]
+    fn content_search_json() {
+        case("search/content-search-json.toml");
+    }
+
+    #[test]
+    fn content_search_over_a_tag() {
+        case("search/content-search-over-a-tag.toml");
+    }
+
+    #[test]
+    fn count_all_stopped() {
+        case("search/count-all-stopped.toml");
+    }
+
+    #[test]
+    fn crlf_lines() {
+        case("search/crlf-lines.toml");
+    }
+
+    #[test]
+    fn default_limit_cuts_a_stopped_answer_of_directories() {
+        case("search/default-limit-cuts-a-stopped-answer-of-directories.toml");
+    }
+
+    #[test]
+    fn default_limit_cuts_an_answer_of_101_files_to_100() {
+        case("search/default-limit-cuts-an-answer-of-101-files-to-100.toml");
+    }
+
+    #[test]
+    fn default_limit_cuts_at_100_matches() {
+        case("search/default-limit-cuts-at-100-matches.toml");
+    }
+
+    #[test]
+    fn default_limit_keeps_an_answer_of_100_files_whole() {
+        case("search/default-limit-keeps-an-answer-of-100-files-whole.toml");
+    }
+
+    #[test]
+    fn diff_commits_at_cap() {
+        case("search/diff-commits-at-cap.toml");
+    }
+
+    #[test]
+    fn diff_commits_exact() {
+        case("search/diff-commits-exact.toml");
+    }
+
+    #[test]
+    fn diff_commits_stopped() {
+        case("search/diff-commits-stopped.toml");
+    }
+
+    #[test]
+    fn diff_or_answer_at_least() {
+        case("search/diff-or-answer-at-least.toml");
+    }
+
+    #[test]
+    fn diff_or_answer_zero() {
+        case("search/diff-or-answer-zero.toml");
+    }
+
+    #[test]
+    fn diff_search_over_a_range() {
+        case("search/diff-search-over-a-range.toml");
+    }
+
+    #[test]
+    fn diff_select_repo_exact() {
+        case("search/diff-select-repo-exact.toml");
+    }
+
+    #[test]
+    fn directory_answer_below_cap() {
+        case("search/directory-answer-below-cap.toml");
+    }
+
+    #[test]
+    fn directory_answer_counts_four_directories() {
+        case("search/directory-answer-counts-four-directories.toml");
+    }
+
+    #[test]
+    fn directory_answer_counts_one_directory() {
+        case("search/directory-answer-counts-one-directory.toml");
+    }
+
+    #[test]
+    fn directory_zero_below_cap() {
+        case("search/directory-zero-below-cap.toml");
+    }
+
+    #[test]
+    fn error_at_the_search_with_no_data() {
+        case("search/error-at-the-search-with-no-data.toml");
+    }
+
+    #[test]
+    fn error_in_a_search_result_with_data() {
+        case("search/error-in-a-search-result-with-data.toml");
+    }
+
+    #[test]
+    fn every_result_kind_json() {
+        case("search/every-result-kind-json.toml");
+    }
+
+    #[test]
+    fn given_count_is_sent_as_written() {
+        case("search/given-count-is-sent-as-written.toml");
+    }
+
+    #[test]
+    fn head_search_lists_unindexed_files() {
+        case("search/head-search-lists-unindexed-files.toml");
+    }
+
+    #[test]
+    fn head_select_has_no_select_note() {
+        case("search/head-select-has-no-select-note.toml");
+    }
+
+    #[test]
+    fn head_zero_with_a_cut_side_query_notes_the_default_branch() {
+        case("search/head-zero-with-a-cut-side-query-notes-the-default-branch.toml");
+    }
+
+    #[test]
+    fn index_no_lists_only_files_over_1_mib() {
+        case("search/index-no-lists-only-files-over-1-mib.toml");
+    }
+
+    #[test]
+    fn index_no_search_names_only_files_over_1_mib_as_skipped() {
+        case("search/index-no-search-names-only-files-over-1-mib-as-skipped.toml");
+    }
+
+    #[test]
+    fn index_no_with_no_file_over_1_mib_has_no_note() {
+        case("search/index-no-with-no-file-over-1-mib-has-no-note.toml");
+    }
+
+    #[test]
+    fn lines_and_symbols_by_line_json() {
+        case("search/lines-and-symbols-by-line-json.toml");
+    }
+
+    #[test]
+    fn local_check_misspelt_filter() {
+        case("search/local-check-misspelt-filter.toml");
+    }
+
+    #[test]
+    fn local_check_note_precedes_an_unable_to_process_query_error() {
+        case("search/local-check-note-precedes-an-unable-to-process-query-error.toml");
+    }
+
+    #[test]
+    fn local_check_note_precedes_the_alert_note() {
+        case("search/local-check-note-precedes-the-alert-note.toml");
+    }
+
+    #[test]
+    fn local_check_or_filters_bind_to_one_operand() {
+        case("search/local-check-or-filters-bind-to-one-operand.toml");
+    }
+
+    #[test]
+    fn local_check_range_in_a_repository_revision() {
+        case("search/local-check-range-in-a-repository-revision.toml");
+    }
+
+    #[test]
+    fn local_check_regex_syntax_in_keyword_mode() {
+        case("search/local-check-regex-syntax-in-keyword-mode.toml");
+    }
+
+    #[test]
+    fn local_check_structural_search_without_a_language() {
+        case("search/local-check-structural-search-without-a-language.toml");
+    }
+
+    #[test]
+    fn local_check_symbol_select_without_a_pattern() {
+        case("search/local-check-symbol-select-without-a-pattern.toml");
+    }
+
+    #[test]
+    fn local_check_unknown_type() {
+        case("search/local-check-unknown-type.toml");
+    }
+
+    #[test]
+    fn long_commit_message_line_is_cut_around_its_highlight() {
+        case("search/long-commit-message-line-is-cut-around-its-highlight.toml");
+    }
+
+    #[test]
+    fn long_line_is_cut_around_the_leftmost_match() {
+        case("search/long-line-is-cut-around-the-leftmost-match.toml");
+    }
+
+    #[test]
+    fn long_line_is_cut_around_the_match() {
+        case("search/long-line-is-cut-around-the-match.toml");
+    }
+
+    #[test]
+    fn no_repositories_for_query_with_control_characters() {
+        case("search/no-repositories-for-query-with-control-characters.toml");
+    }
+
+    #[test]
+    fn no_repositories_found_beside_results() {
+        case("search/no-repositories-found-beside-results.toml");
+    }
+
+    #[test]
+    fn no_repositories_found_for_a_bare_name_has_no_pointer() {
+        case("search/no-repositories-found-for-a-bare-name-has-no-pointer.toml");
+    }
+
+    #[test]
+    fn no_repositories_found_for_a_go_module_path() {
+        case("search/no-repositories-found-for-a-go-module-path.toml");
+    }
+
+    #[test]
+    fn no_repositories_found_with_one_proposal_then_pointer() {
+        case("search/no-repositories-found-with-one-proposal-then-pointer.toml");
+    }
+
+    #[test]
+    fn no_repositories_found_with_proposals() {
+        case("search/no-repositories-found-with-proposals.toml");
+    }
+
+    #[test]
+    fn no_repositories_found_with_three_proposals_names_two() {
+        case("search/no-repositories-found-with-three-proposals-names-two.toml");
+    }
+
+    #[test]
+    fn no_repositories_found_without_proposals() {
+        case("search/no-repositories-found-without-proposals.toml");
+    }
+
+    #[test]
+    fn no_repositories_found() {
+        case("search/no-repositories-found.toml");
+    }
+
+    #[test]
+    fn not_before_a_file_filter_is_restated_in_the_side_query() {
+        case("search/not-before-a-file-filter-is-restated-in-the-side-query.toml");
+    }
+
+    #[test]
+    fn not_before_a_pinned_repository_negates_it() {
+        case("search/not-before-a-pinned-repository-negates-it.toml");
+    }
+
+    #[test]
+    fn notes_follow_the_alert_then_proposals_then_unshown_kinds() {
+        case("search/notes-follow-the-alert-then-proposals-then-unshown-kinds.toml");
+    }
+
+    #[test]
+    fn or_after_a_group_is_an_operator() {
+        case("search/or-after-a-group-is-an-operator.toml");
+    }
+
+    #[test]
+    fn or_before_a_parenthesis_splits_the_query() {
+        case("search/or-before-a-parenthesis-splits-the-query.toml");
+    }
+
+    #[test]
+    fn or_search_at_least_has_no_note_on_unlisted_files() {
+        case("search/or-search-at-least-has-no-note-on-unlisted-files.toml");
+    }
+
+    #[test]
+    fn or_search_cannot_list_unindexed_files() {
+        case("search/or-search-cannot-list-unindexed-files.toml");
+    }
+
+    #[test]
+    fn or_search_stopped_has_no_note_on_unlisted_files() {
+        case("search/or-search-stopped-has-no-note-on-unlisted-files.toml");
+    }
+
+    #[test]
+    fn overlapping_chunks() {
+        case("search/overlapping-chunks.toml");
+    }
+
+    #[test]
+    fn owners_pinned_exact() {
+        case("search/owners-pinned-exact.toml");
+    }
+
+    #[test]
+    fn owners_zero() {
+        case("search/owners-zero.toml");
+    }
+
+    #[test]
+    fn path_search_prints_headers_alone() {
+        case("search/path-search-prints-headers-alone.toml");
+    }
+
+    #[test]
+    fn pinned_owners_select_has_no_select_note() {
+        case("search/pinned-owners-select-has-no-select-note.toml");
+    }
+
+    #[test]
+    fn pinned_repo_select_has_no_select_note() {
+        case("search/pinned-repo-select-has-no-select-note.toml");
+    }
+
+    #[test]
+    fn pinned_search_zero_lists_no_unindexed_files() {
+        case("search/pinned-search-zero-lists-no-unindexed-files.toml");
+    }
+
+    #[test]
+    fn pinned_select_at_least_notes_the_cap() {
+        case("search/pinned-select-at-least-notes-the-cap.toml");
+    }
+
+    #[test]
+    fn pinned_select_content_zero_notes_the_cap() {
+        case("search/pinned-select-content-zero-notes-the-cap.toml");
+    }
+
+    #[test]
+    fn pinned_select_directory_zero_notes_skipped_files() {
+        case("search/pinned-select-directory-zero-notes-skipped-files.toml");
+    }
+
+    #[test]
+    fn pinned_select_file_zero_notes_skipped_files() {
+        case("search/pinned-select-file-zero-notes-skipped-files.toml");
+    }
+
+    #[test]
+    fn pinned_select_note_follows_the_alert() {
+        case("search/pinned-select-note-follows-the-alert.toml");
+    }
+
+    #[test]
+    fn pinned_select_note_follows_the_unshown_kinds() {
+        case("search/pinned-select-note-follows-the-unshown-kinds.toml");
+    }
+
+    #[test]
+    fn pinned_select_on_a_branch_notes_the_cap() {
+        case("search/pinned-select-on-a-branch-notes-the-cap.toml");
+    }
+
+    #[test]
+    fn pinned_select_stopped_notes_the_cap() {
+        case("search/pinned-select-stopped-notes-the-cap.toml");
+    }
+
+    #[test]
+    fn pinned_select_symbol_zero_notes_the_cap() {
+        case("search/pinned-select-symbol-zero-notes-the-cap.toml");
+    }
+
+    #[test]
+    fn pinned_select_with_count_all_has_no_select_note() {
+        case("search/pinned-select-with-count-all-has-no-select-note.toml");
+    }
+
+    #[test]
+    fn pinned_select_with_count_notes_the_given_cap() {
+        case("search/pinned-select-with-count-notes-the-given-cap.toml");
+    }
+
+    #[test]
+    fn pinned_stopped_answer_has_no_pinned_note() {
+        case("search/pinned-stopped-answer-has-no-pinned-note.toml");
+    }
+
+    #[test]
+    fn placeholder_in_another_repository() {
+        case("search/placeholder-in-another-repository.toml");
+    }
+
+    #[test]
+    fn placeholder_leaves_the_count_json() {
+        case("search/placeholder-leaves-the-count-json.toml");
+    }
+
+    #[test]
+    fn placeholder_leaves_the_count() {
+        case("search/placeholder-leaves-the-count.toml");
+    }
+
+    #[test]
+    fn placeholders_beyond_count() {
+        case("search/placeholders-beyond-count.toml");
+    }
+
+    #[test]
+    fn placeholders_use_cap() {
+        case("search/placeholders-use-cap.toml");
+    }
+
+    #[test]
+    fn preview_limited_json() {
+        case("search/preview-limited-json.toml");
+    }
+
+    #[test]
+    fn range_end_beyond_chunk_json() {
+        case("search/range-end-beyond-chunk-json.toml");
+    }
+
+    #[test]
+    fn ranges_across_lines_json() {
+        case("search/ranges-across-lines-json.toml");
+    }
+
+    #[test]
+    fn ranges_in_code_points_json() {
+        case("search/ranges-in-code-points-json.toml");
+    }
+
+    #[test]
+    fn regex_flag_on_a_stopped_zero_is_an_error_only() {
+        case("search/regex-flag-on-a-stopped-zero-is-an-error-only.toml");
+    }
+
+    #[test]
+    fn regex_flag_on_a_zero_is_a_note() {
+        case("search/regex-flag-on-a-zero-is-a-note.toml");
+    }
+
+    #[test]
+    fn regex_flag_on_an_answer_with_results_has_no_note() {
+        case("search/regex-flag-on-an-answer-with-results-has-no-note.toml");
+    }
+
+    #[test]
+    fn regex_flag_on_an_at_least_answer_has_no_note() {
+        case("search/regex-flag-on-an-at-least-answer-has-no-note.toml");
+    }
+
+    #[test]
+    fn regexp_error_boundary() {
+        case("search/regexp-error-boundary.toml");
+    }
+
+    #[test]
+    fn regexp_error_escape() {
+        case("search/regexp-error-escape.toml");
+    }
+
+    #[test]
+    fn regexp_error_first_line() {
+        case("search/regexp-error-first-line.toml");
+    }
+
+    #[test]
+    fn regexp_error_long() {
+        case("search/regexp-error-long.toml");
+    }
+
+    #[test]
+    fn regexp_error_not_first() {
+        case("search/regexp-error-not-first.toml");
+    }
+
+    #[test]
+    fn regexp_error() {
+        case("search/regexp-error.toml");
+    }
+
+    #[test]
+    fn repo_filter_alone_counts_repositories() {
+        case("search/repo-filter-alone-counts-repositories.toml");
+    }
+
+    #[test]
+    fn repositories_across_results() {
+        case("search/repositories-across-results.toml");
+    }
+
+    #[test]
+    fn repository_answer_counts_three_repositories() {
+        case("search/repository-answer-counts-three-repositories.toml");
+    }
+
+    #[test]
+    fn repository_result() {
+        case("search/repository-result.toml");
+    }
+
+    #[test]
+    fn result_of_an_unknown_kind_is_counted_in_a_note() {
+        case("search/result-of-an-unknown-kind-is-counted-in-a-note.toml");
+    }
+
+    #[test]
+    fn result_of_an_unknown_kind_json() {
+        case("search/result-of-an-unknown-kind-json.toml");
+    }
+
+    #[test]
+    fn result_without_a_typename() {
+        case("search/result-without-a-typename.toml");
+    }
+
+    #[test]
+    fn revision_missing_in_one_repository_is_a_note() {
+        case("search/revision-missing-in-one-repository-is-a-note.toml");
+    }
+
+    #[test]
+    fn revision_missing() {
+        case("search/revision-missing.toml");
+    }
+
+    #[test]
+    fn revision_with_an_at_sign() {
+        case("search/revision-with-an-at-sign.toml");
+    }
+
+    #[test]
+    fn revisions_missing_five() {
+        case("search/revisions-missing-five.toml");
+    }
+
+    #[test]
+    fn revisions_missing_three() {
+        case("search/revisions-missing-three.toml");
+    }
+
+    #[test]
+    fn revisions_missing_without_lines() {
+        case("search/revisions-missing-without-lines.toml");
+    }
+
+    #[test]
+    fn select_directory_of_a_flat_repository_is_the_root() {
+        case("search/select-directory-of-a-flat-repository-is-the-root.toml");
+    }
+
+    #[test]
+    fn select_directory_returns_directories_and_the_root() {
+        case("search/select-directory-returns-directories-and-the-root.toml");
+    }
+
+    #[test]
+    fn select_of_a_negated_revision_has_no_select_note() {
+        case("search/select-of-a-negated-revision-has-no-select-note.toml");
+    }
+
+    #[test]
+    fn stopped_answer_has_no_unindexed_files_note() {
+        case("search/stopped-answer-has-no-unindexed-files-note.toml");
+    }
+
+    #[test]
+    fn stopped_answer_with_a_real_result_among_placeholders() {
+        case("search/stopped-answer-with-a-real-result-among-placeholders.toml");
+    }
+
+    #[test]
+    fn stopped_below_cap() {
+        case("search/stopped-below-cap.toml");
+    }
+
+    #[test]
+    fn stopped_past_a_zero_deadline() {
+        case("search/stopped-past-a-zero-deadline.toml");
+    }
+
+    #[test]
+    fn stopped_within_deadline_with_results() {
+        case("search/stopped-within-deadline-with-results.toml");
+    }
+
+    #[test]
+    fn stopped_zero_when_the_server_cut_the_results() {
+        case("search/stopped-zero-when-the-server-cut-the-results.toml");
+    }
+
+    #[test]
+    fn stopped_zero_with_no_repository_named() {
+        case("search/stopped-zero-with-no-repository-named.toml");
+    }
+
+    #[test]
+    fn stopped_zero_with_repositories_the_server_stopped() {
+        case("search/stopped-zero-with-repositories-the-server-stopped.toml");
+    }
+
+    #[test]
+    fn structural_regex_hole() {
+        case("search/structural-regex-hole.toml");
+    }
+
+    #[test]
+    fn symbol_on_a_matched_line() {
+        case("search/symbol-on-a-matched-line.toml");
+    }
+
+    #[test]
+    fn symbol_result_json() {
+        case("search/symbol-result-json.toml");
+    }
+
+    #[test]
+    fn symbol_result() {
+        case("search/symbol-result.toml");
+    }
+
+    #[test]
+    fn symbols_and_chunks_of_one_path() {
+        case("search/symbols-and-chunks-of-one-path.toml");
+    }
+
+    #[test]
+    fn symbols_sit_between_the_chunk_lines_around_them() {
+        case("search/symbols-sit-between-the-chunk-lines-around-them.toml");
+    }
+
+    #[test]
+    fn symbols_without_line_json() {
+        case("search/symbols-without-line-json.toml");
+    }
+
+    #[test]
+    fn symbols_without_line() {
+        case("search/symbols-without-line.toml");
+    }
+
+    #[test]
+    fn term_starting_with_a_dash() {
+        case("search/term-starting-with-a-dash.toml");
+    }
+
+    #[test]
+    fn timeout_filter_sets_the_deadline() {
+        case("search/timeout-filter-sets-the-deadline.toml");
+    }
+
+    #[test]
+    fn two_revisions_give_a_path_once_per_commit() {
+        case("search/two-revisions-give-a-path-once-per-commit.toml");
+    }
+
+    #[test]
+    fn unable_to_process_query_is_an_error() {
+        case("search/unable-to-process-query-is-an-error.toml");
+    }
+
+    #[test]
+    fn unable_to_process_query_with_blank_description() {
+        case("search/unable-to-process-query-with-blank-description.toml");
+    }
+
+    #[test]
+    fn unable_to_process_query_with_results_is_an_error() {
+        case("search/unable-to-process-query-with-results-is-an-error.toml");
+    }
+
+    #[test]
+    fn unable_to_process_query_without_description() {
+        case("search/unable-to-process-query-without-description.toml");
+    }
+
+    #[test]
+    fn unindexed_file_of_another_repository_is_pinned() {
+        case("search/unindexed-file-of-another-repository-is-pinned.toml");
+    }
+
+    #[test]
+    fn unindexed_file_with_a_space_is_quoted() {
+        case("search/unindexed-file-with-a-space-is-quoted.toml");
+    }
+
+    #[test]
+    fn unindexed_file_with_results_from_two_repositories_is_pinned() {
+        case("search/unindexed-file-with-results-from-two-repositories-is-pinned.toml");
+    }
+
+    #[test]
+    fn unindexed_files_all_with_too_many_trigrams() {
+        case("search/unindexed-files-all-with-too-many-trigrams.toml");
+    }
+
+    #[test]
+    fn unindexed_files_are_unknown_after_an_error_at_the_listing() {
+        case("search/unindexed-files-are-unknown-after-an-error-at-the-listing.toml");
+    }
+
+    #[test]
+    fn unindexed_files_are_unknown_after_an_error_in_a_listed_file() {
+        case("search/unindexed-files-are-unknown-after-an-error-in-a-listed-file.toml");
+    }
+
+    #[test]
+    fn unindexed_files_are_unknown_when_the_listing_arrives_late() {
+        case("search/unindexed-files-are-unknown-when-the-listing-arrives-late.toml");
+    }
+
+    #[test]
+    fn unindexed_files_are_unknown_when_the_listing_has_an_alert() {
+        case("search/unindexed-files-are-unknown-when-the-listing-has-an-alert.toml");
+    }
+
+    #[test]
+    fn unindexed_files_are_unknown_when_the_listing_is_null() {
+        case("search/unindexed-files-are-unknown-when-the-listing-is-null.toml");
+    }
+
+    #[test]
+    fn unindexed_files_are_unknown_when_the_listing_is_stopped() {
+        case("search/unindexed-files-are-unknown-when-the-listing-is-stopped.toml");
+    }
+
+    #[test]
+    fn unindexed_files_follow_the_unshown_kinds() {
+        case("search/unindexed-files-follow-the-unshown-kinds.toml");
+    }
+
+    #[test]
+    fn unindexed_files_four_order_by_reason_then_size() {
+        case("search/unindexed-files-four-order-by-reason-then-size.toml");
+    }
+
+    #[test]
+    fn unindexed_files_three_have_no_tail() {
+        case("search/unindexed-files-three-have-no-tail.toml");
+    }
+
+    #[test]
+    fn unpinned_select_has_no_select_note() {
+        case("search/unpinned-select-has-no-select-note.toml");
+    }
+
+    #[test]
+    fn widen_line_keeps_server_order() {
+        case("search/widen-line-keeps-server-order.toml");
+    }
+
+    #[test]
+    fn widen_line_on_a_repo_scoped_answer_with_results() {
+        case("search/widen-line-on-a-repo-scoped-answer-with-results.toml");
+    }
+
+    #[test]
+    fn widen_line_on_a_repo_scoped_zero() {
+        case("search/widen-line-on-a-repo-scoped-zero.toml");
+    }
+
+    #[test]
+    fn widen_line_on_a_stopped_repo_scoped_answer() {
+        case("search/widen-line-on-a-stopped-repo-scoped-answer.toml");
+    }
+
+    #[test]
+    fn widen_line_on_an_at_least_repo_scoped_answer() {
+        case("search/widen-line-on-an-at-least-repo-scoped-answer.toml");
+    }
+
+    #[test]
+    fn widen_line_on_an_unscoped_answer_with_results_is_absent() {
+        case("search/widen-line-on-an-unscoped-answer-with-results-is-absent.toml");
+    }
+
+    #[test]
+    fn widen_line_on_an_unscoped_zero_lists_utility_filters() {
+        case("search/widen-line-on-an-unscoped-zero-lists-utility-filters.toml");
+    }
+
+    #[test]
+    fn widen_line_waits_for_a_real_zero() {
+        case("search/widen-line-waits-for-a-real-zero.toml");
+    }
+
+    #[test]
+    fn widen_line_waits_for_an_answer_that_is_not_at_least() {
+        case("search/widen-line-waits-for-an-answer-that-is-not-at-least.toml");
+    }
+
+    #[test]
+    fn widen_line_with_control_characters() {
+        case("search/widen-line-with-control-characters.toml");
+    }
+
+    #[test]
+    fn zero_lists_an_unindexed_file() {
+        case("search/zero-lists-an-unindexed-file.toml");
+    }
+
+    #[test]
+    fn zero_lists_unindexed_files_across_repositories() {
+        case("search/zero-lists-unindexed-files-across-repositories.toml");
+    }
+
+    #[test]
+    fn zero_lists_unindexed_files_and_skips_an_entry_without_a_file() {
+        case("search/zero-lists-unindexed-files-and-skips-an-entry-without-a-file.toml");
+    }
+}
+
+mod show {
+    use crate::support::case;
+
+    #[test]
+    fn binary_file_over_content_limit() {
+        case("show/binary-file-over-content-limit.toml");
+    }
+
+    #[test]
+    fn binary_file() {
+        case("show/binary-file.toml");
+    }
+
+    #[test]
+    fn blob_url_pinned_to_a_commit() {
+        case("show/blob-url-pinned-to-a-commit.toml");
+    }
+
+    #[test]
+    fn blob_url_with_line_fragment() {
+        case("show/blob-url-with-line-fragment.toml");
+    }
+
+    #[test]
+    fn closed_stdout_is_not_an_error() {
+        case("show/closed-stdout-is-not-an-error.toml");
+    }
+
+    #[test]
+    fn content_shorter_than_total_lines() {
+        case("show/content-shorter-than-total-lines.toml");
+    }
+
+    #[test]
+    fn crlf_line_endings() {
+        case("show/crlf-line-endings.toml");
+    }
+
+    #[test]
+    fn default_window_covers_whole_file() {
+        case("show/default-window-covers-whole-file.toml");
+    }
+
+    #[test]
+    fn default_window_of_500_lines() {
+        case("show/default-window-of-500-lines.toml");
+    }
+
+    #[test]
+    fn directory_is_an_answer_error() {
+        case("show/directory-is-an-answer-error.toml");
+    }
+
+    #[test]
+    fn directory_with_one_entry() {
+        case("show/directory-with-one-entry.toml");
+    }
+
+    #[test]
+    fn empty_file_with_range_has_past_end_note() {
+        case("show/empty-file-with-range-has-past-end-note.toml");
+    }
+
+    #[test]
+    fn empty_file() {
+        case("show/empty-file.toml");
+    }
+
+    #[test]
+    fn file_content_with_control_characters_json() {
+        case("show/file-content-with-control-characters-json.toml");
+    }
+
+    #[test]
+    fn file_content_with_control_characters() {
+        case("show/file-content-with-control-characters.toml");
+    }
+
+    #[test]
+    fn file_without_final_newline() {
+        case("show/file-without-final-newline.toml");
+    }
+
+    #[test]
+    fn header_uses_canonical_spelling() {
+        case("show/header-uses-canonical-spelling.toml");
+    }
+
+    #[test]
+    fn json_answer() {
+        case("show/json-answer.toml");
+    }
+
+    #[test]
+    fn lfs_pointer() {
+        case("show/lfs-pointer.toml");
+    }
+
+    #[test]
+    fn lines_past_end_are_clamped() {
+        case("show/lines-past-end-are-clamped.toml");
+    }
+
+    #[test]
+    fn lines_start_past_end() {
+        case("show/lines-start-past-end.toml");
+    }
+
+    #[test]
+    fn lines_with_comma() {
+        case("show/lines-with-comma.toml");
+    }
+
+    #[test]
+    fn minified_line_cut_in_text() {
+        case("show/minified-line-cut-in-text.toml");
+    }
+
+    #[test]
+    fn minified_line_in_json() {
+        case("show/minified-line-in-json.toml");
+    }
+
+    #[test]
+    fn missing_path_with_control_characters() {
+        case("show/missing-path-with-control-characters.toml");
+    }
+
+    #[test]
+    fn missing_path() {
+        case("show/missing-path.toml");
+    }
+
+    #[test]
+    fn missing_repository() {
+        case("show/missing-repository.toml");
+    }
+
+    #[test]
+    fn missing_revision() {
+        case("show/missing-revision.toml");
+    }
+
+    #[test]
+    fn non_ascii_path_quoted_in_header() {
+        case("show/non-ascii-path-quoted-in-header.toml");
+    }
+
+    #[test]
+    fn open_lines_range() {
+        case("show/open-lines-range.toml");
+    }
+
+    #[test]
+    fn owner_name_on_both_hosts() {
+        case("show/owner-name-on-both-hosts.toml");
+    }
+
+    #[test]
+    fn owner_name_on_one_host() {
+        case("show/owner-name-on-one-host.toml");
+    }
+
+    #[test]
+    fn parent_listing_error_beside_file_that_read() {
+        case("show/parent-listing-error-beside-file-that-read.toml");
+    }
+
+    #[test]
+    fn path_with_control_characters_json() {
+        case("show/path-with-control-characters-json.toml");
+    }
+
+    #[test]
+    fn path_with_control_characters() {
+        case("show/path-with-control-characters.toml");
+    }
+
+    #[test]
+    fn path_with_space_quoted_in_header() {
+        case("show/path-with-space-quoted-in-header.toml");
+    }
+
+    #[test]
+    fn raw_githubusercontent_url() {
+        case("show/raw-githubusercontent-url.toml");
+    }
+
+    #[test]
+    fn raw_read_challenge() {
+        case("show/raw-read-challenge.toml");
+    }
+
+    #[test]
+    fn raw_read_default_window_has_pointer() {
+        case("show/raw-read-default-window-has-pointer.toml");
+    }
+
+    #[test]
+    fn raw_read_in_json() {
+        case("show/raw-read-in-json.toml");
+    }
+
+    #[test]
+    fn raw_read_not_found() {
+        case("show/raw-read-not-found.toml");
+    }
+
+    #[test]
+    fn raw_read_open_range_in_json() {
+        case("show/raw-read-open-range-in-json.toml");
+    }
+
+    #[test]
+    fn raw_read_over_content_limit() {
+        case("show/raw-read-over-content-limit.toml");
+    }
+
+    #[test]
+    fn raw_read_server_error() {
+        case("show/raw-read-server-error.toml");
+    }
+
+    #[test]
+    fn raw_read_with_control_characters() {
+        case("show/raw-read-with-control-characters.toml");
+    }
+
+    #[test]
+    fn raw_read_with_crlf() {
+        case("show/raw-read-with-crlf.toml");
+    }
+
+    #[test]
+    fn rejected_request_with_control_characters() {
+        case("show/rejected-request-with-control-characters.toml");
+    }
+
+    #[test]
+    fn relative_cache_dir_is_noted() {
+        case("show/relative-cache-dir-is-noted.toml");
+    }
+
+    #[test]
+    fn repository_with_no_commits() {
+        case("show/repository-with-no-commits.toml");
+    }
+
+    #[test]
+    fn single_line() {
+        case("show/single-line.toml");
+    }
+
+    #[test]
+    fn slashed_branch_in_blob_url() {
+        case("show/slashed-branch-in-blob-url.toml");
+    }
+
+    #[test]
+    fn submodule_in_json() {
+        case("show/submodule-in-json.toml");
+    }
+
+    #[test]
+    fn submodule_target_relative_url() {
+        case("show/submodule-target-relative-url.toml");
+    }
+
+    #[test]
+    fn submodule_url_with_control_characters_json() {
+        case("show/submodule-url-with-control-characters-json.toml");
+    }
+
+    #[test]
+    fn submodule_url_with_control_characters() {
+        case("show/submodule-url-with-control-characters.toml");
+    }
+
+    #[test]
+    fn submodule_with_empty_url() {
+        case("show/submodule-with-empty-url.toml");
+    }
+
+    #[test]
+    fn submodule_with_file_url() {
+        case("show/submodule-with-file-url.toml");
+    }
+
+    #[test]
+    fn symlink() {
+        case("show/symlink.toml");
+    }
+
+    #[test]
+    fn tree_url_of_root_is_a_directory() {
+        case("show/tree-url-of-root-is-a-directory.toml");
+    }
+
+    #[test]
+    fn url_invalid_revision() {
+        case("show/url-invalid-revision.toml");
+    }
+}

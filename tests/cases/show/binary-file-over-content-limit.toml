@@ -1,0 +1,102 @@
+# A binary file over the limit is answered from its details, with one request.
+args = ["show", "github.com/golang/go@6885bad7dd86:src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso"]
+status.code = 0
+stdout = '''
+github.com/golang/go@6885bad7dd86:src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso  binary  2555664 bytes
+'''
+
+[[exchange]]
+operation = "ShowFile"
+variables = '{"ambiguous0":false,"end":500,"gitlab":false,"parent0":"src/crypto/internal/boring/syso","path0":"src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso","repo0":"github.com/golang/go","repo1":"","rev0":"6885bad7dd86","split":false,"start":1}'
+query = '''
+query ShowFile($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $start: Int!, $end: Int!
+$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
+  r0: repository(name: $repo0) { ...Guesses }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
+}
+
+fragment Guesses on Repository {
+  name
+  defaultBranch { displayName }
+c0: commit(rev: $rev0) {
+    oid
+    meta: blob(path: $path0) { byteSize totalLines binary rawURL lfs { byteSize } }
+    body: blob(path: $path0) { content(startLine: $start, endLine: $end, textOnly: true) }
+    dir: tree(path: $path0) { entries { path } }
+    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
+    x0: path(path: $path0) @include(if: $split) { __typename }
+  }
+  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "body": null,
+        "dir": null,
+        "meta": {
+          "binary": true,
+          "byteSize": 2555664,
+          "lfs": null,
+          "rawURL": "/r/github.com/golang/go@6885bad7dd86880be6929c02085e5c7a67ff2887/-/raw/src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso",
+          "totalLines": 3790
+        },
+        "oid": "6885bad7dd86880be6929c02085e5c7a67ff2887",
+        "parent": {
+          "entries": [
+            {
+              "path": "src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso",
+              "submodule": null
+            },
+            {
+              "path": "src/crypto/internal/boring/syso/goboringcrypto_linux_arm64.syso",
+              "submodule": null
+            },
+            {
+              "path": "src/crypto/internal/boring/syso/syso.go",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "master"
+      },
+      "name": "github.com/golang/go"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a directory: \"src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso\"",
+      "path": [
+        "r0",
+        "c0",
+        "dir"
+      ]
+    },
+    {
+      "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
+      "path": [
+        "r0",
+        "c0",
+        "body",
+        "content"
+      ]
+    },
+    {
+      "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
+      "path": [
+        "r0",
+        "c0",
+        "meta",
+        "lfs"
+      ]
+    }
+  ]
+}
+'''

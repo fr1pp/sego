@@ -1,0 +1,2713 @@
+# A JSON answer lists every file the server sent.
+args = ["diff", "--json", "example.com/acme/widget@v1...v2"]
+status.code = 0
+stdout = '''
+{"repo":"example.com/acme/widget","rev_a":"v1","rev_b":"v2","commit_a":"0123456789abcdef0123456789abcdef01234567","commit_b":"89abcdef0123456789abcdef0123456789abcdef","base":"0123456789abcdef0123456789abcdef01234567","files_total":201,"added":201,"deleted":0,"files":[{"status":"M","old_path":"f000.go","new_path":"f000.go","added":1,"deleted":0},{"status":"M","old_path":"f001.go","new_path":"f001.go","added":1,"deleted":0},{"status":"M","old_path":"f002.go","new_path":"f002.go","added":1,"deleted":0},{"status":"M","old_path":"f003.go","new_path":"f003.go","added":1,"deleted":0},{"status":"M","old_path":"f004.go","new_path":"f004.go","added":1,"deleted":0},{"status":"M","old_path":"f005.go","new_path":"f005.go","added":1,"deleted":0},{"status":"M","old_path":"f006.go","new_path":"f006.go","added":1,"deleted":0},{"status":"M","old_path":"f007.go","new_path":"f007.go","added":1,"deleted":0},{"status":"M","old_path":"f008.go","new_path":"f008.go","added":1,"deleted":0},{"status":"M","old_path":"f009.go","new_path":"f009.go","added":1,"deleted":0},{"status":"M","old_path":"f010.go","new_path":"f010.go","added":1,"deleted":0},{"status":"M","old_path":"f011.go","new_path":"f011.go","added":1,"deleted":0},{"status":"M","old_path":"f012.go","new_path":"f012.go","added":1,"deleted":0},{"status":"M","old_path":"f013.go","new_path":"f013.go","added":1,"deleted":0},{"status":"M","old_path":"f014.go","new_path":"f014.go","added":1,"deleted":0},{"status":"M","old_path":"f015.go","new_path":"f015.go","added":1,"deleted":0},{"status":"M","old_path":"f016.go","new_path":"f016.go","added":1,"deleted":0},{"status":"M","old_path":"f017.go","new_path":"f017.go","added":1,"deleted":0},{"status":"M","old_path":"f018.go","new_path":"f018.go","added":1,"deleted":0},{"status":"M","old_path":"f019.go","new_path":"f019.go","added":1,"deleted":0},{"status":"M","old_path":"f020.go","new_path":"f020.go","added":1,"deleted":0},{"status":"M","old_path":"f021.go","new_path":"f021.go","added":1,"deleted":0},{"status":"M","old_path":"f022.go","new_path":"f022.go","added":1,"deleted":0},{"status":"M","old_path":"f023.go","new_path":"f023.go","added":1,"deleted":0},{"status":"M","old_path":"f024.go","new_path":"f024.go","added":1,"deleted":0},{"status":"M","old_path":"f025.go","new_path":"f025.go","added":1,"deleted":0},{"status":"M","old_path":"f026.go","new_path":"f026.go","added":1,"deleted":0},{"status":"M","old_path":"f027.go","new_path":"f027.go","added":1,"deleted":0},{"status":"M","old_path":"f028.go","new_path":"f028.go","added":1,"deleted":0},{"status":"M","old_path":"f029.go","new_path":"f029.go","added":1,"deleted":0},{"status":"M","old_path":"f030.go","new_path":"f030.go","added":1,"deleted":0},{"status":"M","old_path":"f031.go","new_path":"f031.go","added":1,"deleted":0},{"status":"M","old_path":"f032.go","new_path":"f032.go","added":1,"deleted":0},{"status":"M","old_path":"f033.go","new_path":"f033.go","added":1,"deleted":0},{"status":"M","old_path":"f034.go","new_path":"f034.go","added":1,"deleted":0},{"status":"M","old_path":"f035.go","new_path":"f035.go","added":1,"deleted":0},{"status":"M","old_path":"f036.go","new_path":"f036.go","added":1,"deleted":0},{"status":"M","old_path":"f037.go","new_path":"f037.go","added":1,"deleted":0},{"status":"M","old_path":"f038.go","new_path":"f038.go","added":1,"deleted":0},{"status":"M","old_path":"f039.go","new_path":"f039.go","added":1,"deleted":0},{"status":"M","old_path":"f040.go","new_path":"f040.go","added":1,"deleted":0},{"status":"M","old_path":"f041.go","new_path":"f041.go","added":1,"deleted":0},{"status":"M","old_path":"f042.go","new_path":"f042.go","added":1,"deleted":0},{"status":"M","old_path":"f043.go","new_path":"f043.go","added":1,"deleted":0},{"status":"M","old_path":"f044.go","new_path":"f044.go","added":1,"deleted":0},{"status":"M","old_path":"f045.go","new_path":"f045.go","added":1,"deleted":0},{"status":"M","old_path":"f046.go","new_path":"f046.go","added":1,"deleted":0},{"status":"M","old_path":"f047.go","new_path":"f047.go","added":1,"deleted":0},{"status":"M","old_path":"f048.go","new_path":"f048.go","added":1,"deleted":0},{"status":"M","old_path":"f049.go","new_path":"f049.go","added":1,"deleted":0},{"status":"M","old_path":"f050.go","new_path":"f050.go","added":1,"deleted":0},{"status":"M","old_path":"f051.go","new_path":"f051.go","added":1,"deleted":0},{"status":"M","old_path":"f052.go","new_path":"f052.go","added":1,"deleted":0},{"status":"M","old_path":"f053.go","new_path":"f053.go","added":1,"deleted":0},{"status":"M","old_path":"f054.go","new_path":"f054.go","added":1,"deleted":0},{"status":"M","old_path":"f055.go","new_path":"f055.go","added":1,"deleted":0},{"status":"M","old_path":"f056.go","new_path":"f056.go","added":1,"deleted":0},{"status":"M","old_path":"f057.go","new_path":"f057.go","added":1,"deleted":0},{"status":"M","old_path":"f058.go","new_path":"f058.go","added":1,"deleted":0},{"status":"M","old_path":"f059.go","new_path":"f059.go","added":1,"deleted":0},{"status":"M","old_path":"f060.go","new_path":"f060.go","added":1,"deleted":0},{"status":"M","old_path":"f061.go","new_path":"f061.go","added":1,"deleted":0},{"status":"M","old_path":"f062.go","new_path":"f062.go","added":1,"deleted":0},{"status":"M","old_path":"f063.go","new_path":"f063.go","added":1,"deleted":0},{"status":"M","old_path":"f064.go","new_path":"f064.go","added":1,"deleted":0},{"status":"M","old_path":"f065.go","new_path":"f065.go","added":1,"deleted":0},{"status":"M","old_path":"f066.go","new_path":"f066.go","added":1,"deleted":0},{"status":"M","old_path":"f067.go","new_path":"f067.go","added":1,"deleted":0},{"status":"M","old_path":"f068.go","new_path":"f068.go","added":1,"deleted":0},{"status":"M","old_path":"f069.go","new_path":"f069.go","added":1,"deleted":0},{"status":"M","old_path":"f070.go","new_path":"f070.go","added":1,"deleted":0},{"status":"M","old_path":"f071.go","new_path":"f071.go","added":1,"deleted":0},{"status":"M","old_path":"f072.go","new_path":"f072.go","added":1,"deleted":0},{"status":"M","old_path":"f073.go","new_path":"f073.go","added":1,"deleted":0},{"status":"M","old_path":"f074.go","new_path":"f074.go","added":1,"deleted":0},{"status":"M","old_path":"f075.go","new_path":"f075.go","added":1,"deleted":0},{"status":"M","old_path":"f076.go","new_path":"f076.go","added":1,"deleted":0},{"status":"M","old_path":"f077.go","new_path":"f077.go","added":1,"deleted":0},{"status":"M","old_path":"f078.go","new_path":"f078.go","added":1,"deleted":0},{"status":"M","old_path":"f079.go","new_path":"f079.go","added":1,"deleted":0},{"status":"M","old_path":"f080.go","new_path":"f080.go","added":1,"deleted":0},{"status":"M","old_path":"f081.go","new_path":"f081.go","added":1,"deleted":0},{"status":"M","old_path":"f082.go","new_path":"f082.go","added":1,"deleted":0},{"status":"M","old_path":"f083.go","new_path":"f083.go","added":1,"deleted":0},{"status":"M","old_path":"f084.go","new_path":"f084.go","added":1,"deleted":0},{"status":"M","old_path":"f085.go","new_path":"f085.go","added":1,"deleted":0},{"status":"M","old_path":"f086.go","new_path":"f086.go","added":1,"deleted":0},{"status":"M","old_path":"f087.go","new_path":"f087.go","added":1,"deleted":0},{"status":"M","old_path":"f088.go","new_path":"f088.go","added":1,"deleted":0},{"status":"M","old_path":"f089.go","new_path":"f089.go","added":1,"deleted":0},{"status":"M","old_path":"f090.go","new_path":"f090.go","added":1,"deleted":0},{"status":"M","old_path":"f091.go","new_path":"f091.go","added":1,"deleted":0},{"status":"M","old_path":"f092.go","new_path":"f092.go","added":1,"deleted":0},{"status":"M","old_path":"f093.go","new_path":"f093.go","added":1,"deleted":0},{"status":"M","old_path":"f094.go","new_path":"f094.go","added":1,"deleted":0},{"status":"M","old_path":"f095.go","new_path":"f095.go","added":1,"deleted":0},{"status":"M","old_path":"f096.go","new_path":"f096.go","added":1,"deleted":0},{"status":"M","old_path":"f097.go","new_path":"f097.go","added":1,"deleted":0},{"status":"M","old_path":"f098.go","new_path":"f098.go","added":1,"deleted":0},{"status":"M","old_path":"f099.go","new_path":"f099.go","added":1,"deleted":0},{"status":"M","old_path":"f100.go","new_path":"f100.go","added":1,"deleted":0},{"status":"M","old_path":"f101.go","new_path":"f101.go","added":1,"deleted":0},{"status":"M","old_path":"f102.go","new_path":"f102.go","added":1,"deleted":0},{"status":"M","old_path":"f103.go","new_path":"f103.go","added":1,"deleted":0},{"status":"M","old_path":"f104.go","new_path":"f104.go","added":1,"deleted":0},{"status":"M","old_path":"f105.go","new_path":"f105.go","added":1,"deleted":0},{"status":"M","old_path":"f106.go","new_path":"f106.go","added":1,"deleted":0},{"status":"M","old_path":"f107.go","new_path":"f107.go","added":1,"deleted":0},{"status":"M","old_path":"f108.go","new_path":"f108.go","added":1,"deleted":0},{"status":"M","old_path":"f109.go","new_path":"f109.go","added":1,"deleted":0},{"status":"M","old_path":"f110.go","new_path":"f110.go","added":1,"deleted":0},{"status":"M","old_path":"f111.go","new_path":"f111.go","added":1,"deleted":0},{"status":"M","old_path":"f112.go","new_path":"f112.go","added":1,"deleted":0},{"status":"M","old_path":"f113.go","new_path":"f113.go","added":1,"deleted":0},{"status":"M","old_path":"f114.go","new_path":"f114.go","added":1,"deleted":0},{"status":"M","old_path":"f115.go","new_path":"f115.go","added":1,"deleted":0},{"status":"M","old_path":"f116.go","new_path":"f116.go","added":1,"deleted":0},{"status":"M","old_path":"f117.go","new_path":"f117.go","added":1,"deleted":0},{"status":"M","old_path":"f118.go","new_path":"f118.go","added":1,"deleted":0},{"status":"M","old_path":"f119.go","new_path":"f119.go","added":1,"deleted":0},{"status":"M","old_path":"f120.go","new_path":"f120.go","added":1,"deleted":0},{"status":"M","old_path":"f121.go","new_path":"f121.go","added":1,"deleted":0},{"status":"M","old_path":"f122.go","new_path":"f122.go","added":1,"deleted":0},{"status":"M","old_path":"f123.go","new_path":"f123.go","added":1,"deleted":0},{"status":"M","old_path":"f124.go","new_path":"f124.go","added":1,"deleted":0},{"status":"M","old_path":"f125.go","new_path":"f125.go","added":1,"deleted":0},{"status":"M","old_path":"f126.go","new_path":"f126.go","added":1,"deleted":0},{"status":"M","old_path":"f127.go","new_path":"f127.go","added":1,"deleted":0},{"status":"M","old_path":"f128.go","new_path":"f128.go","added":1,"deleted":0},{"status":"M","old_path":"f129.go","new_path":"f129.go","added":1,"deleted":0},{"status":"M","old_path":"f130.go","new_path":"f130.go","added":1,"deleted":0},{"status":"M","old_path":"f131.go","new_path":"f131.go","added":1,"deleted":0},{"status":"M","old_path":"f132.go","new_path":"f132.go","added":1,"deleted":0},{"status":"M","old_path":"f133.go","new_path":"f133.go","added":1,"deleted":0},{"status":"M","old_path":"f134.go","new_path":"f134.go","added":1,"deleted":0},{"status":"M","old_path":"f135.go","new_path":"f135.go","added":1,"deleted":0},{"status":"M","old_path":"f136.go","new_path":"f136.go","added":1,"deleted":0},{"status":"M","old_path":"f137.go","new_path":"f137.go","added":1,"deleted":0},{"status":"M","old_path":"f138.go","new_path":"f138.go","added":1,"deleted":0},{"status":"M","old_path":"f139.go","new_path":"f139.go","added":1,"deleted":0},{"status":"M","old_path":"f140.go","new_path":"f140.go","added":1,"deleted":0},{"status":"M","old_path":"f141.go","new_path":"f141.go","added":1,"deleted":0},{"status":"M","old_path":"f142.go","new_path":"f142.go","added":1,"deleted":0},{"status":"M","old_path":"f143.go","new_path":"f143.go","added":1,"deleted":0},{"status":"M","old_path":"f144.go","new_path":"f144.go","added":1,"deleted":0},{"status":"M","old_path":"f145.go","new_path":"f145.go","added":1,"deleted":0},{"status":"M","old_path":"f146.go","new_path":"f146.go","added":1,"deleted":0},{"status":"M","old_path":"f147.go","new_path":"f147.go","added":1,"deleted":0},{"status":"M","old_path":"f148.go","new_path":"f148.go","added":1,"deleted":0},{"status":"M","old_path":"f149.go","new_path":"f149.go","added":1,"deleted":0},{"status":"M","old_path":"f150.go","new_path":"f150.go","added":1,"deleted":0},{"status":"M","old_path":"f151.go","new_path":"f151.go","added":1,"deleted":0},{"status":"M","old_path":"f152.go","new_path":"f152.go","added":1,"deleted":0},{"status":"M","old_path":"f153.go","new_path":"f153.go","added":1,"deleted":0},{"status":"M","old_path":"f154.go","new_path":"f154.go","added":1,"deleted":0},{"status":"M","old_path":"f155.go","new_path":"f155.go","added":1,"deleted":0},{"status":"M","old_path":"f156.go","new_path":"f156.go","added":1,"deleted":0},{"status":"M","old_path":"f157.go","new_path":"f157.go","added":1,"deleted":0},{"status":"M","old_path":"f158.go","new_path":"f158.go","added":1,"deleted":0},{"status":"M","old_path":"f159.go","new_path":"f159.go","added":1,"deleted":0},{"status":"M","old_path":"f160.go","new_path":"f160.go","added":1,"deleted":0},{"status":"M","old_path":"f161.go","new_path":"f161.go","added":1,"deleted":0},{"status":"M","old_path":"f162.go","new_path":"f162.go","added":1,"deleted":0},{"status":"M","old_path":"f163.go","new_path":"f163.go","added":1,"deleted":0},{"status":"M","old_path":"f164.go","new_path":"f164.go","added":1,"deleted":0},{"status":"M","old_path":"f165.go","new_path":"f165.go","added":1,"deleted":0},{"status":"M","old_path":"f166.go","new_path":"f166.go","added":1,"deleted":0},{"status":"M","old_path":"f167.go","new_path":"f167.go","added":1,"deleted":0},{"status":"M","old_path":"f168.go","new_path":"f168.go","added":1,"deleted":0},{"status":"M","old_path":"f169.go","new_path":"f169.go","added":1,"deleted":0},{"status":"M","old_path":"f170.go","new_path":"f170.go","added":1,"deleted":0},{"status":"M","old_path":"f171.go","new_path":"f171.go","added":1,"deleted":0},{"status":"M","old_path":"f172.go","new_path":"f172.go","added":1,"deleted":0},{"status":"M","old_path":"f173.go","new_path":"f173.go","added":1,"deleted":0},{"status":"M","old_path":"f174.go","new_path":"f174.go","added":1,"deleted":0},{"status":"M","old_path":"f175.go","new_path":"f175.go","added":1,"deleted":0},{"status":"M","old_path":"f176.go","new_path":"f176.go","added":1,"deleted":0},{"status":"M","old_path":"f177.go","new_path":"f177.go","added":1,"deleted":0},{"status":"M","old_path":"f178.go","new_path":"f178.go","added":1,"deleted":0},{"status":"M","old_path":"f179.go","new_path":"f179.go","added":1,"deleted":0},{"status":"M","old_path":"f180.go","new_path":"f180.go","added":1,"deleted":0},{"status":"M","old_path":"f181.go","new_path":"f181.go","added":1,"deleted":0},{"status":"M","old_path":"f182.go","new_path":"f182.go","added":1,"deleted":0},{"status":"M","old_path":"f183.go","new_path":"f183.go","added":1,"deleted":0},{"status":"M","old_path":"f184.go","new_path":"f184.go","added":1,"deleted":0},{"status":"M","old_path":"f185.go","new_path":"f185.go","added":1,"deleted":0},{"status":"M","old_path":"f186.go","new_path":"f186.go","added":1,"deleted":0},{"status":"M","old_path":"f187.go","new_path":"f187.go","added":1,"deleted":0},{"status":"M","old_path":"f188.go","new_path":"f188.go","added":1,"deleted":0},{"status":"M","old_path":"f189.go","new_path":"f189.go","added":1,"deleted":0},{"status":"M","old_path":"f190.go","new_path":"f190.go","added":1,"deleted":0},{"status":"M","old_path":"f191.go","new_path":"f191.go","added":1,"deleted":0},{"status":"M","old_path":"f192.go","new_path":"f192.go","added":1,"deleted":0},{"status":"M","old_path":"f193.go","new_path":"f193.go","added":1,"deleted":0},{"status":"M","old_path":"f194.go","new_path":"f194.go","added":1,"deleted":0},{"status":"M","old_path":"f195.go","new_path":"f195.go","added":1,"deleted":0},{"status":"M","old_path":"f196.go","new_path":"f196.go","added":1,"deleted":0},{"status":"M","old_path":"f197.go","new_path":"f197.go","added":1,"deleted":0},{"status":"M","old_path":"f198.go","new_path":"f198.go","added":1,"deleted":0},{"status":"M","old_path":"f199.go","new_path":"f199.go","added":1,"deleted":0},{"status":"M","old_path":"f200.go","new_path":"f200.go","added":1,"deleted":0}],"patch":null}
+'''
+
+[[exchange]]
+operation = "Diff"
+variables = '{"a":"v1","b":"v2","first":null,"gitlab":false,"patch":false,"paths":null,"repo0":"example.com/acme/widget","repo1":""}'
+query = '''
+query Diff($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!) {
+  a0: repository(name: $repo0) { ...Base }
+  b0: repository(name: $repo0) { ...Head }
+  c0: repository(name: $repo0) { ...Comparison }
+  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
+  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
+  c1: repository(name: $repo1) @include(if: $gitlab) { ...Comparison }
+}
+
+fragment Base on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $a) {
+    oid
+
+  }
+}
+
+fragment Head on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $b) {
+    oid parents { oid }
+
+  }
+}
+
+fragment Comparison on Repository {
+  name
+  defaultBranch { displayName }
+  comparison(base: $a, head: $b) {
+    all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: $first, paths: $paths) {
+      nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }
+    }
+    patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "a0": {
+      "commit": {
+        "oid": "0123456789abcdef0123456789abcdef01234567"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "b0": {
+      "commit": {
+        "oid": "89abcdef0123456789abcdef0123456789abcdef",
+        "parents": [
+          {
+            "oid": "0123456789abcdef0123456789abcdef01234567"
+          }
+        ]
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "c0": {
+      "comparison": {
+        "all": {
+          "diffStat": {
+            "added": 201,
+            "deleted": 0
+          },
+          "totalCount": 201
+        },
+        "page": {
+          "nodes": [
+            {
+              "newPath": "f000.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f000.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f001.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f001.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f002.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f002.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f003.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f003.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f004.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f004.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f005.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f005.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f006.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f006.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f007.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f007.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f008.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f008.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f009.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f009.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f010.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f010.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f011.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f011.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f012.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f012.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f013.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f013.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f014.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f014.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f015.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f015.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f016.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f016.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f017.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f017.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f018.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f018.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f019.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f019.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f020.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f020.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f021.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f021.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f022.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f022.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f023.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f023.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f024.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f024.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f025.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f025.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f026.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f026.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f027.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f027.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f028.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f028.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f029.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f029.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f030.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f030.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f031.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f031.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f032.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f032.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f033.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f033.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f034.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f034.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f035.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f035.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f036.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f036.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f037.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f037.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f038.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f038.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f039.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f039.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f040.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f040.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f041.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f041.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f042.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f042.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f043.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f043.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f044.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f044.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f045.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f045.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f046.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f046.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f047.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f047.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f048.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f048.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f049.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f049.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f050.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f050.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f051.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f051.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f052.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f052.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f053.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f053.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f054.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f054.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f055.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f055.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f056.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f056.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f057.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f057.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f058.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f058.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f059.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f059.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f060.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f060.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f061.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f061.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f062.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f062.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f063.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f063.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f064.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f064.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f065.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f065.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f066.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f066.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f067.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f067.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f068.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f068.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f069.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f069.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f070.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f070.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f071.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f071.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f072.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f072.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f073.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f073.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f074.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f074.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f075.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f075.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f076.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f076.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f077.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f077.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f078.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f078.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f079.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f079.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f080.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f080.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f081.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f081.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f082.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f082.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f083.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f083.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f084.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f084.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f085.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f085.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f086.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f086.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f087.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f087.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f088.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f088.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f089.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f089.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f090.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f090.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f091.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f091.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f092.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f092.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f093.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f093.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f094.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f094.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f095.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f095.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f096.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f096.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f097.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f097.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f098.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f098.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f099.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f099.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f100.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f100.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f101.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f101.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f102.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f102.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f103.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f103.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f104.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f104.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f105.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f105.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f106.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f106.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f107.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f107.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f108.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f108.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f109.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f109.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f110.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f110.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f111.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f111.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f112.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f112.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f113.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f113.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f114.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f114.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f115.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f115.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f116.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f116.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f117.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f117.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f118.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f118.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f119.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f119.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f120.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f120.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f121.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f121.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f122.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f122.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f123.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f123.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f124.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f124.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f125.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f125.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f126.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f126.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f127.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f127.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f128.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f128.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f129.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f129.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f130.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f130.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f131.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f131.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f132.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f132.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f133.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f133.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f134.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f134.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f135.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f135.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f136.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f136.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f137.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f137.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f138.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f138.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f139.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f139.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f140.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f140.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f141.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f141.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f142.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f142.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f143.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f143.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f144.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f144.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f145.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f145.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f146.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f146.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f147.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f147.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f148.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f148.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f149.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f149.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f150.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f150.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f151.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f151.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f152.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f152.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f153.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f153.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f154.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f154.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f155.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f155.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f156.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f156.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f157.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f157.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f158.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f158.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f159.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f159.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f160.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f160.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f161.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f161.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f162.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f162.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f163.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f163.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f164.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f164.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f165.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f165.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f166.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f166.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f167.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f167.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f168.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f168.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f169.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f169.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f170.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f170.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f171.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f171.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f172.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f172.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f173.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f173.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f174.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f174.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f175.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f175.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f176.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f176.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f177.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f177.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f178.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f178.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f179.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f179.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f180.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f180.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f181.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f181.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f182.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f182.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f183.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f183.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f184.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f184.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f185.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f185.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f186.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f186.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f187.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f187.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f188.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f188.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f189.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f189.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f190.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f190.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f191.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f191.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f192.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f192.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f193.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f193.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f194.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f194.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f195.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f195.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f196.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f196.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f197.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f197.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f198.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f198.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f199.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f199.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            },
+            {
+              "newPath": "f200.go",
+              "oldFile": {
+                "commit": {
+                  "oid": "0123456789abcdef0123456789abcdef01234567"
+                }
+              },
+              "oldPath": "f200.go",
+              "stat": {
+                "added": 1,
+                "deleted": 0
+              }
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}
+'''

@@ -1,0 +1,4 @@
+# A closed stdout is not an error and nothing more is written.
+args = ["--help"]
+status.code = 0
+stdout.closed = true

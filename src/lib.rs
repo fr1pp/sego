@@ -1,5 +1,5 @@
-//! sego reads public source code at any revision through Sourcegraph's public
-//! API, for coding agents, and the `sego` binary is this library's [`run`].
+//! sego, a code search CLI for agents built on Sourcegraph. The `sego` binary
+//! is this library's [`run`].
 //!
 //! [`run`] takes the arguments, the [`Env`] and a `connect` function that
 //! makes the [`Transport`] for an [`Endpoint`], so a test can answer every
@@ -8,81 +8,79 @@
 mod address;
 mod cache;
 mod cli;
-mod commit;
-mod diff;
+mod commands;
 mod error;
 mod escape;
-mod log;
-mod ls;
 mod output;
-mod quote;
-mod refs;
-mod search;
-mod show;
-mod submodule;
-mod upstream;
+mod sourcegraph;
 
-use std::ffi::OsString;
+use std::ffi::{OsStr, OsString};
 use std::io::{self, Write};
-use std::process::ExitCode;
-use std::time::{Instant, SystemTime};
 
 use cache::Cache;
-use cli::Command;
+use cli::{Invocation, SYNOPSIS};
 use error::Error;
-use output::{Answer, Notes};
-use upstream::DEADLINE;
+use output::Notes;
+use sourcegraph::Client;
 
-pub use upstream::{Endpoint, Reply, Transport, TransportError};
+pub use sourcegraph::{Endpoint, Response, Transport, TransportError};
 
 /// The transport that reads from `endpoint` over HTTP, for `run`'s `connect`.
 #[must_use]
 pub fn connect(endpoint: Endpoint) -> Box<dyn Transport> {
-    Box::new(upstream::Ureq::new(endpoint))
+    Box::new(sourcegraph::Ureq::new(endpoint))
 }
 
 /// The process environment that `run` reads.
 pub struct Env {
     /// `SEGO_ENDPOINT`, the server to read from; `None` for sourcegraph.com.
     pub endpoint: Option<OsString>,
-    /// `SEGO_CACHE_DIR`, the root of the raw-file cache; `None` for the
+    /// `SEGO_CACHE_DIR`, the root of the cache; `None` for the
     /// default location.
     pub cache_dir: Option<OsString>,
 }
 
 /// Runs one sego invocation, writes its answer to `out` and its notes and
-/// errors to `err`, and returns the process exit code.
+/// errors to `err`, and returns the process exit code (ADR 0005).
 ///
 /// `connect` is handed the endpoint once the command needs the server and
 /// returns the transport that carries every request.
-#[expect(
-    clippy::needless_pass_by_value,
-    reason = "main hands over the arguments it collected"
-)]
+#[expect(clippy::needless_pass_by_value, reason = "main hands over the arguments it collected")]
 pub fn run(
     args: Vec<OsString>,
     env: &Env,
     connect: &dyn Fn(Endpoint) -> Box<dyn Transport>,
     out: &mut dyn Write,
     err: &mut dyn Write,
-) -> ExitCode {
+) -> u8 {
     let mut notes = Notes::new();
     let result = attempt(&args, env, connect, &mut notes, out, err);
     let failure = match result {
-        Ok(()) => return ExitCode::SUCCESS,
+        Ok(()) => return 0,
         Err(Failure::Answer(error)) => {
-            match notes.write(err).and_then(|()| error::report(&error, err)) {
-                Ok(()) => return ExitCode::from(error.exit_code()),
+            match notes.write(err).and_then(|()| err.write_all(error::report(&error).as_bytes())) {
+                Ok(()) => return error.exit_code(),
                 Err(e) => e,
             }
         }
         Err(Failure::Write(e)) => e,
     };
-    if failure.kind() == io::ErrorKind::BrokenPipe {
-        ExitCode::SUCCESS
-    } else {
-        ExitCode::from(1)
+    match failure.kind() {
+        io::ErrorKind::BrokenPipe => 0,
+        _ => 1,
     }
+}
+
+/// The endpoint `SEGO_ENDPOINT` names: sourcegraph.com when it is unset or
+/// empty.
+fn endpoint(value: Option<&OsStr>) -> Result<Endpoint, Error> {
+    let Some(value) = value.filter(|value| !value.is_empty()) else {
+        return Ok(Endpoint::default());
+    };
+    let Some(text) = value.to_str() else {
+        return Err(Error::usage("SEGO_ENDPOINT is not valid UTF-8", SYNOPSIS));
+    };
+    text.parse().map_err(|reason| Error::usage(format!("SEGO_ENDPOINT {reason}: {text}"), SYNOPSIS))
 }
 
 enum Failure {
@@ -110,112 +108,44 @@ fn attempt(
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> Result<(), Failure> {
-    dispatch(args, env, connect, notes, out, err)?;
+    let command = match cli::parse(args)? {
+        Invocation::Help(topic) => return Ok(out.write_all(cli::help::text(topic).as_bytes())?),
+        Invocation::Version => return Ok(writeln!(out, "sego {}", env!("CARGO_PKG_VERSION"))?),
+        Invocation::Command(command) => command,
+    };
+    let endpoint = endpoint(env.endpoint.as_deref())?;
+    let cache = Cache::new(env.cache_dir.as_deref(), &endpoint);
+    let client = Client::new(connect(endpoint));
+    commands::run(command, &client, &cache, notes, out, err)?;
     out.flush()?;
+    cache.trim();
     Ok(())
 }
 
-fn dispatch(
-    args: &[OsString],
-    env: &Env,
-    connect: &dyn Fn(Endpoint) -> Box<dyn Transport>,
-    notes: &mut Notes,
-    out: &mut dyn Write,
-    err: &mut dyn Write,
-) -> Result<(), Failure> {
-    let endpoint = || Endpoint::parse(env.endpoint.as_deref());
-    let open =
-        |endpoint: Endpoint| (connect(endpoint), Instant::now() + DEADLINE);
-    let mut cache = None;
-    let (answer, json): (Box<dyn Answer>, bool) = match cli::parse(args)? {
-        Command::Help(topic) => {
-            out.write_all(cli::help(topic).as_bytes())?;
-            return Ok(());
-        }
-        Command::Version => {
-            writeln!(out, "sego {}", env!("CARGO_PKG_VERSION"))?;
-            return Ok(());
-        }
-        Command::Search { query, json } => {
-            let (transport, deadline) = open(endpoint()?);
-            let searched = search::run(&query, &*transport, deadline, notes)?;
-            (Box::new(searched), json)
-        }
-        Command::Show { address, lines, json } => {
-            let endpoint = endpoint()?;
-            let cache = cache.insert(Cache::new(
-                env.cache_dir.as_deref(),
-                endpoint.cache_key(),
-            ));
-            let (transport, deadline) = open(endpoint);
-            let shown = show::run(
-                &address,
-                lines.as_ref(),
-                &*transport,
-                deadline,
-                cache,
-                notes,
-            )?;
-            (Box::new(shown), json)
-        }
-        Command::Ls { address, recursive, json } => {
-            let (transport, deadline) = open(endpoint()?);
-            let listed =
-                ls::run(&address, recursive, &*transport, deadline, notes)?;
-            (Box::new(listed), json)
-        }
-        Command::Refs { repo, text, json } => {
-            let (transport, deadline) = open(endpoint()?);
-            let listed = refs::run(
-                &repo,
-                text.as_deref(),
-                json,
-                &*transport,
-                deadline,
-                notes,
-            )?;
-            (Box::new(listed), json)
-        }
-        Command::ShowCommit { address, json } => {
-            let (transport, deadline) = open(endpoint()?);
-            let committed =
-                commit::run(&address, &*transport, deadline, notes)?;
-            (Box::new(committed), json)
-        }
-        Command::Log { address, path, json } => {
-            let (transport, deadline) = open(endpoint()?);
-            let logged = log::run(
-                &address,
-                path.as_deref(),
-                json,
-                &*transport,
-                deadline,
-                notes,
-            )?;
-            (Box::new(logged), json)
-        }
-        Command::Diff { address, paths, json } => {
-            let (transport, deadline) = open(endpoint()?);
-            let diffed = diff::run(
-                &address,
-                &paths,
-                json,
-                &*transport,
-                deadline,
-                notes,
-            )?;
-            (Box::new(diffed), json)
-        }
-    };
-    notes.write(err)?;
-    if json {
-        answer.write_json(out)?;
-    } else {
-        out.write_all(answer.text().as_bytes())?;
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn usage(value: &OsStr) -> String {
+        let Err(error) = endpoint(Some(value)) else { panic!("{value:?} was accepted") };
+        error::report(&error)
     }
-    if let Some(cache) = &cache {
-        out.flush()?;
-        cache.trim_if_used(SystemTime::now());
+
+    #[test]
+    fn an_unset_or_empty_sego_endpoint_is_sourcegraph_com() {
+        for value in [None, Some(OsStr::new(""))] {
+            let endpoint = endpoint(value).unwrap_or_else(|e| panic!("{e}"));
+            assert_eq!(endpoint.url(""), "https://sourcegraph.com");
+        }
     }
-    Ok(())
+
+    #[cfg(unix)]
+    #[test]
+    fn a_sego_endpoint_that_isnt_utf8_is_a_usage_error() {
+        use std::os::unix::ffi::OsStrExt;
+        assert_eq!(
+            usage(OsStr::from_bytes(b"http://\xff")),
+            "sego: error: SEGO_ENDPOINT is not valid UTF-8\nusage: sego COMMAND [--json] ...\n"
+        );
+    }
 }

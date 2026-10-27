@@ -1,0 +1,8 @@
+# --recursive belongs to ls; show names it and prints its own synopsis.
+args = ["show", "--recursive", "example.com/acme/widget:a.go"]
+status.code = 2
+stderr = '''
+sego: error: show takes no --recursive
+usage: sego show [--json] REPO[@REV]:PATH [LINES]
+       sego show [--json] REPO@REV
+'''

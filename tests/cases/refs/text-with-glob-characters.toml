@@ -1,0 +1,58 @@
+# TEXT is a substring, so glob characters match themselves.
+args = ["refs", "example.com/acme/widget", "v1.*"]
+status.code = 0
+stdout = '''
+example.com/acme/widget  0 of 4 branches match "v1.*"  0 of 15 tags match "v1.*"
+'''
+
+[[exchange]]
+operation = "Refs"
+variables = '{"first":101,"gitlab":false,"query":"v1.*","repo0":"example.com/acme/widget","repo1":"","unfiltered":true}'
+query = '''
+query Refs($repo0: String!, $repo1: String!, $gitlab: Boolean!, $first: Int, $query: String, $unfiltered: Boolean!) {
+  r0: repository(name: $repo0) { ...Refs }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...Refs }
+}
+
+fragment Refs on Repository {
+  name
+  defaultBranch { displayName }
+  branches(first: $first, query: $query) { ...Listing }
+  tags(first: $first, query: $query) { ...Listing }
+  all_branches: branches(first: 1) @include(if: $unfiltered) { totalCount }
+  all_tags: tags(first: 1) @include(if: $unfiltered) { totalCount }
+}
+
+fragment Listing on GitRefConnection {
+  totalCount
+  nodes { displayName target { oid commit { committer { date } } } }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "r0": {
+      "all_branches": {
+        "totalCount": 4
+      },
+      "all_tags": {
+        "totalCount": 15
+      },
+      "branches": {
+        "nodes": [],
+        "totalCount": 0
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget",
+      "tags": {
+        "nodes": [],
+        "totalCount": 0
+      }
+    }
+  }
+}
+'''

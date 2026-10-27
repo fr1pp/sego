@@ -1,7 +1,6 @@
 # sego
 
-sego is a command-line tool that lets coding agents read public source code at any revision without
-cloning it, answering through Sourcegraph's public API.
+sego is a code search CLI for agents, built on Sourcegraph's API.
 
 ## Naming code
 
@@ -29,9 +28,12 @@ The `LINES` operand of `show`, the 1-based, inclusive lines of a file to print.
 
 ## Answers
 
+**Output**:
+Everything sego prints: the answer on stdout, and notes and errors on stderr.
+
 **Answer**:
 What a command prints on stdout when it succeeds, which may be empty.
-_Avoid_: output, response
+_Avoid_: response
 
 **Response**:
 What Sourcegraph sends back to sego's request.
@@ -143,5 +145,7 @@ The size, 1,572,864 bytes, above which Sourcegraph's API returns no content for 
 A read of a file over the content limit through Sourcegraph's raw route, which serves the whole
 file.
 
-**Raw-file cache**:
-The files sego keeps from raw reads, so a large file is downloaded once.
+**Cache**:
+The files sego keeps from raw reads, so a large file is downloaded once. It is sego's only state
+between runs.
+_Avoid_: raw-file cache

@@ -1,5 +1,4 @@
-use std::fmt;
-use std::io::{self, Write};
+use std::fmt::{self, Write as _};
 
 use crate::escape::one_line;
 
@@ -26,12 +25,7 @@ pub struct Error {
 
 impl Error {
     fn new(kind: Kind, message: impl Into<String>) -> Error {
-        Error {
-            kind,
-            message: message.into(),
-            facts: Vec::new(),
-            synopsis: None,
-        }
+        Error { kind, message: message.into(), facts: Vec::new(), synopsis: None }
     }
 
     pub fn usage(message: impl Into<String>, synopsis: &'static str) -> Error {
@@ -59,10 +53,7 @@ impl Error {
     }
 
     pub fn deadline(host: &str) -> Error {
-        Error::new(
-            Kind::Deadline,
-            format!("no answer from {host} within 90 s"),
-        )
+        Error::new(Kind::Deadline, format!("no answer from {host} within 90 s"))
     }
 
     #[must_use]
@@ -99,24 +90,36 @@ pub fn usage_block(synopsis: &str) -> String {
     format!("{USAGE_PREFIX}{}", lines.join(&format!("\n{indent}")))
 }
 
-pub fn report(error: &Error, out: &mut dyn Write) -> io::Result<()> {
-    writeln!(out, "sego: error: {}", one_line(&error.message))?;
+/// What sego writes to stderr for `error`: the message, its facts indented,
+/// then the synopsis of a usage error.
+pub fn report(error: &Error) -> String {
+    let mut text = format!("sego: error: {}\n", one_line(&error.message));
     for fact in &error.facts {
-        writeln!(out, "  {}", one_line(fact))?;
+        let _ = writeln!(text, "  {}", one_line(fact));
     }
     if let Some(synopsis) = error.synopsis {
-        writeln!(out, "{}", usage_block(synopsis))?;
+        let _ = writeln!(text, "{}", usage_block(synopsis));
     }
-    Ok(())
-}
-
-/// What `report` writes for `error`.
-#[cfg(test)]
-pub fn reported(error: &Error) -> String {
-    let mut written = Vec::new();
-    report(error, &mut written).expect("a vector takes a write");
-    String::from_utf8_lossy(&written).into_owned()
+    text
 }
 
 #[cfg(test)]
-mod tests;
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_usage_error_exits_2_and_every_other_error_exits_1() {
+        assert_eq!(Error::usage("x", "sego show").exit_code(), 2);
+        assert_eq!(Error::missing("x").exit_code(), 1);
+        assert_eq!(Error::upstream("x").exit_code(), 1);
+        assert_eq!(Error::edge("x").exit_code(), 1);
+        assert_eq!(Error::network("x").exit_code(), 1);
+        assert_eq!(Error::deadline("sourcegraph.com").exit_code(), 1);
+    }
+
+    #[test]
+    fn an_error_keeps_two_facts_and_drops_the_rest() {
+        let error = Error::missing("gone").fact("one").fact("two").fact("three");
+        assert_eq!(report(&error), "sego: error: gone\n  one\n  two\n");
+    }
+}

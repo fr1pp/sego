@@ -1,7 +1,0 @@
-# log takes one path; :PATH together with a PATH operand is a usage error.
-args: log example.com/acme/widget:src lib
-exit: 2
---- stderr
-sego: error: log takes one path
-usage: sego log [--json] REPO[@REV][:PATH] [PATH]
-       sego log [--json] REPO@A..B[:PATH] [PATH]

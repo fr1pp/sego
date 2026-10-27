@@ -1,0 +1,787 @@
+# A term starting with - arrives as its own argument and needs no -- before it.
+args = ["search", 'repo:^github\.com/gorilla/mux$@v1.8.0', '-file:_test\.go', "NewRouter"]
+status.code = 0
+stdout = '''
+30+ matches  1 repo  6.7 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0 -file:_test\.go NewRouter
+
+github.com/gorilla/mux@98cb6bf42e08:README.md
+52-func main() {
+53:    r := mux.NewRouter()
+54-    r.HandleFunc("/", HomeHandler)
+--
+65-```go
+66:r := mux.NewRouter()
+67-r.HandleFunc("/products/{key}", ProductHandler)
+--
+88-```go
+89:r := mux.NewRouter()
+90-// Only matches if domain is "www.example.com".
+--
+145-```go
+146:r := mux.NewRouter()
+147-r.HandleFunc("/specific", specificHandler)
+--
+155-```go
+156:r := mux.NewRouter()
+157-s := r.Host("www.example.com").Subrouter()
+--
+174-```go
+175:r := mux.NewRouter()
+176-s := r.PathPrefix("/products").Subrouter()
+--
+197-    flag.Parse()
+198:    r := mux.NewRouter()
+199-
+--
+279-func main() {
+280:	router := mux.NewRouter()
+281-
+--
+308-```go
+309:r := mux.NewRouter()
+310-r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
+--
+328-```go
+329:r := mux.NewRouter()
+330-r.Host("{subdomain}.example.com").
+--
+365-```go
+366:r := mux.NewRouter()
+367-s := r.Host("{subdomain}.example.com").Subrouter()
+--
+398-func main() {
+399:	r := mux.NewRouter()
+400-	r.HandleFunc("/", handler)
+--
+461-
+462:    r := mux.NewRouter()
+463-    // Add your routes as needed
+--
+531-```go
+532:r := mux.NewRouter()
+533-r.HandleFunc("/", handler)
+--
+571-```go
+572:r := mux.NewRouter()
+573-r.HandleFunc("/", handler)
+--
+602-func main() {
+603:    r := mux.NewRouter()
+604-
+--
+670-func main() {
+671:    r := mux.NewRouter()
+672-    r.HandleFunc("/health", HealthCheckHandler)
+--
+727-func main() {
+728:    r := mux.NewRouter()
+729-    // A route with a route variable:
+--
+761-	// Need to create a router that we can pass the request through so that the vars will be added to the context
+762:	router := mux.NewRouter()
+763-        router.HandleFunc("/metrics/{type}", MetricsHandler)
+--
+793-func main() {
+794:    r := mux.NewRouter()
+795-    // Routes consist of a path and a handler function.
+
+github.com/gorilla/mux@98cb6bf42e08:doc.go
+28-	func main() {
+29:		r := mux.NewRouter()
+30-		r.HandleFunc("/", HomeHandler)
+--
+44-
+45:	r := mux.NewRouter()
+46-	r.HandleFunc("/products/{key}", ProductHandler)
+--
+70-
+71:	r := mux.NewRouter()
+72-	// Only matches if domain is "www.example.com".
+--
+117-
+118:	r := mux.NewRouter()
+119-	s := r.Host("www.example.com").Subrouter()
+--
+138-
+139:	r := mux.NewRouter()
+140-	s := r.PathPrefix("/products").Subrouter()
+--
+156-		flag.Parse()
+157:		r := mux.NewRouter()
+158-
+--
+177-
+178:	r := mux.NewRouter()
+179-	r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
+--
+192-
+193:	r := mux.NewRouter()
+194-	r.Host("{subdomain}.domain.com").
+--
+230-
+231:	r := mux.NewRouter()
+232-	s := r.Host("{subdomain}.domain.com").Subrouter()
+--
+260-
+261:	r := mux.NewRouter()
+262-	r.HandleFunc("/", handler)
+'''
+
+[[exchange]]
+operation = "Search"
+variables = '{"listed":false,"query":"repo:^github\\.com/gorilla/mux$@v1.8.0 -file:_test\\.go NewRouter","unindexed":""}'
+query = '''
+query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
+    results {
+      limitHit elapsedMilliseconds timedout { name } alert { title }
+      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
+    }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "30+",
+        "dynamicFilters": [
+          {
+            "count": 30,
+            "kind": "type",
+            "value": "type:file"
+          },
+          {
+            "count": 30,
+            "kind": "repo",
+            "value": "repo:^github\\.com/gorilla/mux$@v1.8.0"
+          },
+          {
+            "count": 20,
+            "kind": "lang",
+            "value": "lang:markdown"
+          },
+          {
+            "count": 10,
+            "kind": "lang",
+            "value": "lang:go"
+          }
+        ],
+        "elapsedMilliseconds": 6667,
+        "limitHit": true,
+        "matchCount": 30,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "func main() {\n    r := mux.NewRouter()\n    r.HandleFunc(\"/\", HomeHandler)\n",
+                "contentStart": {
+                  "line": 51
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 52
+                    },
+                    "start": {
+                      "character": 13,
+                      "line": 52
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\nr.HandleFunc(\"/products/{key}\", ProductHandler)\n",
+                "contentStart": {
+                  "line": 64
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 65
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 65
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\n// Only matches if domain is \"www.example.com\".\n",
+                "contentStart": {
+                  "line": 87
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 88
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 88
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\nr.HandleFunc(\"/specific\", specificHandler)\n",
+                "contentStart": {
+                  "line": 144
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 145
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 145
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\ns := r.Host(\"www.example.com\").Subrouter()\n",
+                "contentStart": {
+                  "line": 154
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 155
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 155
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\ns := r.PathPrefix(\"/products\").Subrouter()\n",
+                "contentStart": {
+                  "line": 173
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 174
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 174
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "    flag.Parse()\n    r := mux.NewRouter()\n\n",
+                "contentStart": {
+                  "line": 196
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 197
+                    },
+                    "start": {
+                      "character": 13,
+                      "line": 197
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "func main() {\n\trouter := mux.NewRouter()\n\n",
+                "contentStart": {
+                  "line": 278
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 24,
+                      "line": 279
+                    },
+                    "start": {
+                      "character": 15,
+                      "line": 279
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\nr.HandleFunc(\"/articles/{category}/{id:[0-9]+}\", ArticleHandler).\n",
+                "contentStart": {
+                  "line": 307
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 308
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 308
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\nr.Host(\"{subdomain}.example.com\").\n",
+                "contentStart": {
+                  "line": 327
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 328
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 328
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\ns := r.Host(\"{subdomain}.example.com\").Subrouter()\n",
+                "contentStart": {
+                  "line": 364
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 365
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 365
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "func main() {\n\tr := mux.NewRouter()\n\tr.HandleFunc(\"/\", handler)\n",
+                "contentStart": {
+                  "line": 397
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 398
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 398
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n    r := mux.NewRouter()\n    // Add your routes as needed\n",
+                "contentStart": {
+                  "line": 460
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 461
+                    },
+                    "start": {
+                      "character": 13,
+                      "line": 461
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\nr.HandleFunc(\"/\", handler)\n",
+                "contentStart": {
+                  "line": 530
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 531
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 531
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\nr.HandleFunc(\"/\", handler)\n",
+                "contentStart": {
+                  "line": 570
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 571
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 571
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "func main() {\n    r := mux.NewRouter()\n\n",
+                "contentStart": {
+                  "line": 601
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 602
+                    },
+                    "start": {
+                      "character": 13,
+                      "line": 602
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "func main() {\n    r := mux.NewRouter()\n    r.HandleFunc(\"/health\", HealthCheckHandler)\n",
+                "contentStart": {
+                  "line": 669
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 670
+                    },
+                    "start": {
+                      "character": 13,
+                      "line": 670
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "func main() {\n    r := mux.NewRouter()\n    // A route with a route variable:\n",
+                "contentStart": {
+                  "line": 726
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 727
+                    },
+                    "start": {
+                      "character": 13,
+                      "line": 727
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\t// Need to create a router that we can pass the request through so that the vars will be added to the context\n\trouter := mux.NewRouter()\n        router.HandleFunc(\"/metrics/{type}\", MetricsHandler)\n",
+                "contentStart": {
+                  "line": 760
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 24,
+                      "line": 761
+                    },
+                    "start": {
+                      "character": 15,
+                      "line": 761
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "func main() {\n    r := mux.NewRouter()\n    // Routes consist of a path and a handler function.\n",
+                "contentStart": {
+                  "line": 792
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 793
+                    },
+                    "start": {
+                      "character": 13,
+                      "line": 793
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "README.md"
+            },
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "\tfunc main() {\n\t\tr := mux.NewRouter()\n\t\tr.HandleFunc(\"/\", HomeHandler)\n",
+                "contentStart": {
+                  "line": 27
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 28
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 28
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\tr.HandleFunc(\"/products/{key}\", ProductHandler)\n",
+                "contentStart": {
+                  "line": 43
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 44
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 44
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\t// Only matches if domain is \"www.example.com\".\n",
+                "contentStart": {
+                  "line": 69
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 70
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 70
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\ts := r.Host(\"www.example.com\").Subrouter()\n",
+                "contentStart": {
+                  "line": 116
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 117
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 117
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\ts := r.PathPrefix(\"/products\").Subrouter()\n",
+                "contentStart": {
+                  "line": 137
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 138
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 138
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\t\tflag.Parse()\n\t\tr := mux.NewRouter()\n\n",
+                "contentStart": {
+                  "line": 155
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 156
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 156
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\tr.HandleFunc(\"/articles/{category}/{id:[0-9]+}\", ArticleHandler).\n",
+                "contentStart": {
+                  "line": 176
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 177
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 177
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\tr.Host(\"{subdomain}.domain.com\").\n",
+                "contentStart": {
+                  "line": 191
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 192
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 192
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\ts := r.Host(\"{subdomain}.domain.com\").Subrouter()\n",
+                "contentStart": {
+                  "line": 229
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 230
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 230
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\tr.HandleFunc(\"/\", handler)\n",
+                "contentStart": {
+                  "line": 259
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 260
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 260
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "doc.go"
+            },
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}
+'''

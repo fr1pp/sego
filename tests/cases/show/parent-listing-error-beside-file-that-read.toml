@@ -1,0 +1,81 @@
+# A failed parent listing does not fail a file that was read.
+args = ["show", "example.com/acme/gadget@main:a.go"]
+status.code = 0
+stdout = '''
+example.com/acme/gadget@d81fd54f1a2b:a.go  lines 1-3 of 3  rev main
+1:a
+2:b
+3:c
+'''
+
+[[exchange]]
+operation = "ShowFile"
+variables = '{"ambiguous0":false,"end":500,"gitlab":false,"parent0":"","path0":"a.go","repo0":"example.com/acme/gadget","repo1":"","rev0":"main","split":false,"start":1}'
+query = '''
+query ShowFile($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $start: Int!, $end: Int!
+$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
+  r0: repository(name: $repo0) { ...Guesses }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
+}
+
+fragment Guesses on Repository {
+  name
+  defaultBranch { displayName }
+c0: commit(rev: $rev0) {
+    oid
+    meta: blob(path: $path0) { byteSize totalLines binary rawURL lfs { byteSize } }
+    body: blob(path: $path0) { content(startLine: $start, endLine: $end, textOnly: true) }
+    dir: tree(path: $path0) { entries { path } }
+    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
+    x0: path(path: $path0) @include(if: $split) { __typename }
+  }
+  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "body": {
+          "content": "a\nb\nc\n"
+        },
+        "dir": null,
+        "meta": {
+          "binary": false,
+          "byteSize": 6,
+          "lfs": null,
+          "rawURL": "/r/example.com/acme/gadget@d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809/-/raw/a.go",
+          "totalLines": 3
+        },
+        "oid": "d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809",
+        "parent": null
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/gadget"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a directory: \"a.go\"",
+      "path": [
+        "r0",
+        "c0",
+        "dir"
+      ]
+    },
+    {
+      "message": "listing failed",
+      "path": [
+        "r0",
+        "c0",
+        "parent"
+      ]
+    }
+  ]
+}
+'''

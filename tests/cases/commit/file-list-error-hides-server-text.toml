@@ -1,0 +1,101 @@
+# A failed file list fails the commit, and the server's text is not printed.
+args = ["show", "example.com/acme/widget@v2.0.0"]
+status.code = 1
+stderr = '''
+sego: error: Sourcegraph failed to answer the file list
+'''
+
+[[exchange]]
+operation = "ShowCommit"
+variables = '{"base":"v2.0.0^1","gitlab":false,"repo0":"example.com/acme/widget","repo1":"","rev":"v2.0.0"}'
+query = '''
+query ShowCommit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $base: String!) {
+  m0: repository(name: $repo0) { ...Commit }
+  d0: repository(name: $repo0) { ...Changes }
+  m1: repository(name: $repo1) @include(if: $gitlab) { ...Commit }
+  d1: repository(name: $repo1) @include(if: $gitlab) { ...Changes }
+}
+
+fragment Commit on Repository {
+  name
+  defaultBranch { displayName }
+  commit(rev: $rev) {
+    oid subject message
+    author { date person { displayName } }
+    committer { date person { displayName } }
+    parents { oid }
+  }
+}
+
+fragment Changes on Repository {
+  name
+  defaultBranch { displayName }
+  comparison(base: $base, head: $rev) {
+    all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
+    page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "d0": {
+      "comparison": {
+        "all": {
+          "diffStat": {
+            "added": 30,
+            "deleted": 4
+          },
+          "totalCount": 2
+        },
+        "page": null
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    },
+    "m0": {
+      "commit": {
+        "author": {
+          "date": "2021-02-03T04:05:06Z",
+          "person": {
+            "displayName": "Grace Hopper"
+          }
+        },
+        "committer": {
+          "date": "2021-02-03T04:05:06Z",
+          "person": {
+            "displayName": "Grace Hopper"
+          }
+        },
+        "message": "Add the parser",
+        "oid": "1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f708192a3",
+        "parents": [
+          {
+            "oid": "0f1e2d3c4b5a69788796a5b4c3d2e1f001122334"
+          }
+        ],
+        "subject": "Add the parser"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    }
+  },
+  "errors": [
+    {
+      "message": "git command [git diff --raw -z --secret] failed",
+      "path": [
+        "d0",
+        "comparison",
+        "page",
+        "nodes"
+      ]
+    }
+  ]
+}
+'''

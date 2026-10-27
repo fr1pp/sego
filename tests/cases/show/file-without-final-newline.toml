@@ -1,0 +1,225 @@
+# A file without a final newline has no line past its last.
+args = ["show", "github.com/evilmartians/lefthook@cc9969c2e2198aafff8accc63ee1aee30e9a2aa4:.typos.toml", "5-6"]
+status.code = 0
+stdout = '''
+github.com/evilmartians/lefthook@cc9969c2e219:.typos.toml  no lines 5-6; the file has 4
+'''
+stderr = '''
+sego: note: no lines 5-6; the file has 4
+'''
+
+[[exchange]]
+operation = "ShowFile"
+variables = '{"ambiguous0":false,"end":6,"gitlab":false,"parent0":"","path0":".typos.toml","repo0":"github.com/evilmartians/lefthook","repo1":"","rev0":"cc9969c2e2198aafff8accc63ee1aee30e9a2aa4","split":false,"start":5}'
+query = '''
+query ShowFile($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $start: Int!, $end: Int!
+$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
+  r0: repository(name: $repo0) { ...Guesses }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
+}
+
+fragment Guesses on Repository {
+  name
+  defaultBranch { displayName }
+c0: commit(rev: $rev0) {
+    oid
+    meta: blob(path: $path0) { byteSize totalLines binary rawURL lfs { byteSize } }
+    body: blob(path: $path0) { content(startLine: $start, endLine: $end, textOnly: true) }
+    dir: tree(path: $path0) { entries { path } }
+    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
+    x0: path(path: $path0) @include(if: $split) { __typename }
+  }
+  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "body": {
+          "content": "[default.extend-identifiers]\n\"PnP\" = \"PnP\"\n[default.extend-words]\nslq = \"slq\""
+        },
+        "dir": null,
+        "meta": {
+          "binary": false,
+          "byteSize": 77,
+          "lfs": null,
+          "rawURL": "/r/github.com/evilmartians/lefthook@cc9969c2e2198aafff8accc63ee1aee30e9a2aa4/-/raw/.typos.toml",
+          "totalLines": 4
+        },
+        "oid": "cc9969c2e2198aafff8accc63ee1aee30e9a2aa4",
+        "parent": {
+          "entries": [
+            {
+              "path": ".agents",
+              "submodule": null
+            },
+            {
+              "path": ".claude",
+              "submodule": null
+            },
+            {
+              "path": ".github",
+              "submodule": null
+            },
+            {
+              "path": "assets",
+              "submodule": null
+            },
+            {
+              "path": "cmd",
+              "submodule": null
+            },
+            {
+              "path": "docs",
+              "submodule": null
+            },
+            {
+              "path": "examples",
+              "submodule": null
+            },
+            {
+              "path": "gen",
+              "submodule": null
+            },
+            {
+              "path": "internal",
+              "submodule": null
+            },
+            {
+              "path": "packaging",
+              "submodule": null
+            },
+            {
+              "path": "tests",
+              "submodule": null
+            },
+            {
+              "path": ".gitignore",
+              "submodule": null
+            },
+            {
+              "path": ".golangci.yml",
+              "submodule": null
+            },
+            {
+              "path": ".goreleaser.yml",
+              "submodule": null
+            },
+            {
+              "path": ".lefthook.yml",
+              "submodule": null
+            },
+            {
+              "path": ".tool-versions",
+              "submodule": null
+            },
+            {
+              "path": ".typos.toml",
+              "submodule": null
+            },
+            {
+              "path": "AGENTS.md",
+              "submodule": null
+            },
+            {
+              "path": "CHANGELOG.md",
+              "submodule": null
+            },
+            {
+              "path": "CLAUDE.md",
+              "submodule": null
+            },
+            {
+              "path": "CONTRIBUTING.md",
+              "submodule": null
+            },
+            {
+              "path": "LICENSE",
+              "submodule": null
+            },
+            {
+              "path": "Makefile",
+              "submodule": null
+            },
+            {
+              "path": "README.md",
+              "submodule": null
+            },
+            {
+              "path": "SECURITY.md",
+              "submodule": null
+            },
+            {
+              "path": "book.toml",
+              "submodule": null
+            },
+            {
+              "path": "cliff.toml",
+              "submodule": null
+            },
+            {
+              "path": "codecov.yml",
+              "submodule": null
+            },
+            {
+              "path": "docmd.config.js",
+              "submodule": null
+            },
+            {
+              "path": "go.mod",
+              "submodule": null
+            },
+            {
+              "path": "go.sum",
+              "submodule": null
+            },
+            {
+              "path": "integration_test.go",
+              "submodule": null
+            },
+            {
+              "path": "logo.svg",
+              "submodule": null
+            },
+            {
+              "path": "logo_sign.svg",
+              "submodule": null
+            },
+            {
+              "path": "main.go",
+              "submodule": null
+            },
+            {
+              "path": "schema.json",
+              "submodule": null
+            },
+            {
+              "path": "tea.yaml",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "master"
+      },
+      "name": "github.com/evilmartians/lefthook"
+    }
+  },
+  "errors": [
+    {
+      "message": "not a directory: \".typos.toml\"",
+      "path": [
+        "r0",
+        "c0",
+        "dir"
+      ]
+    }
+  ]
+}
+'''

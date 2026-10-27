@@ -1,0 +1,149 @@
+# A CR before a line break is not part of the line, in file chunks and in
+# commit messages.
+args = ["search", "repo:example.com/app foo"]
+status.code = 0
+stdout = '''
+2 matches  1 repo  0.1 s
+query  repo:example.com/app foo
+
+example.com/app@0123456789ab:a.go
+1:a
+2-b
+
+example.com/app@0123456789ab  2024-05-06  Ann  fix
+    x
+    +y
+'''
+
+[[exchange]]
+operation = "Search"
+variables = '{"listed":true,"query":"repo:example.com/app foo","unindexed":"repo:example.com/app type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}'
+query = '''
+query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
+    results {
+      limitHit elapsedMilliseconds timedout { name } alert { title }
+      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
+    }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "2",
+        "dynamicFilters": [],
+        "elapsedMilliseconds": 100,
+        "limitHit": false,
+        "matchCount": 2,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "a\r\nb\r\n",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 1,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "0123456789abcdef0123456789abcdef01234567"
+              },
+              "path": "a.go"
+            },
+            "repository": {
+              "name": "example.com/app"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "CommitSearchResult",
+            "commit": {
+              "author": {
+                "date": "2024-05-06T07:08:09Z",
+                "person": {
+                  "displayName": "Ann"
+                }
+              },
+              "oid": "0123456789abcdef0123456789abcdef01234567",
+              "repository": {
+                "name": "example.com/app"
+              },
+              "subject": "fix"
+            },
+            "matches": [
+              {
+                "body": {
+                  "text": "```\r\nx\r\n+y\r\n```"
+                },
+                "highlights": [
+                  {
+                    "character": 0,
+                    "length": 1,
+                    "line": 1
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "timedout": []
+      }
+    },
+    "unindexed": {
+      "results": {
+        "alert": null,
+        "elapsedMilliseconds": 10,
+        "limitHit": false,
+        "results": [],
+        "timedout": []
+      }
+    }
+  }
+}
+'''

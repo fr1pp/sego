@@ -1,0 +1,63 @@
+# An error at the search itself, with no data, fails the search.
+args = ["search", 'repo:^github\.com/gorilla/mux$@v1.8.0:^v1.7.4 NewRouter']
+status.code = 1
+stderr = '''
+sego: error: Sourcegraph failed to answer the search
+'''
+
+[[exchange]]
+operation = "Search"
+variables = '{"listed":false,"query":"repo:^github\\.com/gorilla/mux$@v1.8.0:^v1.7.4 NewRouter","unindexed":""}'
+query = '''
+query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
+    results {
+      limitHit elapsedMilliseconds timedout { name } alert { title }
+      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
+    }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "search": null
+  },
+  "errors": [
+    {
+      "message": "rpc error: code = Unknown desc = ResolveRevision: got bad commit \"^75dcda0896e109a2a22c9315bca3bb21b87b2ba5\" for repo ID 1700 at revision \"^v1.7.4^0\"",
+      "path": [
+        "search",
+        "results"
+      ]
+    }
+  ]
+}
+'''

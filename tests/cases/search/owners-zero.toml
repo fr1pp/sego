@@ -1,0 +1,76 @@
+# select:file.owners answers a zero at once with an alert.
+args = ["search", 'repo:^github\.com/gorilla/mux$@v1.8.0 select:file.owners NewRouter']
+status.code = 0
+stdout = '''
+0 files  8.0 s
+query  repo:^github\.com/gorilla/mux$@v1.8.0 select:file.owners NewRouter
+'''
+stderr = '''
+sego: note: Some results have no owners: For some results, no ownership data was found, or no rule applied to the result. [Learn more about configuring code ownership](/help/own).
+sego: note: at a pinned revision the search can't tell which files it skipped; files over 1 MiB are never searched
+'''
+
+[[exchange]]
+operation = "Search"
+variables = '{"listed":false,"query":"repo:^github\\.com/gorilla/mux$@v1.8.0 select:file.owners NewRouter","unindexed":""}'
+query = '''
+query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
+  search(query: $query, version: V3, patternType: keyword) {
+    results {
+      matchCount approximateResultCount limitHit
+      timedout { name }
+      alert { title description kind proposedQueries { description query } }
+      elapsedMilliseconds
+      dynamicFilters { value count kind }
+      results {
+        __typename
+        ... on FileMatch {
+          repository { name }
+          file { path commit { oid } }
+          revSpec { ... on GitRevSpecExpr { expr } }
+          chunkMatches { content contentStart { line }
+            ranges { start { line character } end { line character } } }
+          symbols { name kind containerName location { range { start { line } } } }
+        }
+        ... on CommitSearchResult {
+          commit { oid subject author { date person { displayName } } repository { name } }
+          matches { body { text } highlights { line character length } }
+        }
+        ... on Repository { name }
+      }
+    }
+  }
+  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
+    results {
+      limitHit elapsedMilliseconds timedout { name } alert { title }
+      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
+    }
+  }
+}
+'''
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": {
+          "description": "For some results, no ownership data was found, or no rule applied to the result. [Learn more about configuring code ownership](/help/own).",
+          "kind": "unowned-results",
+          "proposedQueries": null,
+          "title": "Some results have no owners"
+        },
+        "approximateResultCount": "0+",
+        "dynamicFilters": [],
+        "elapsedMilliseconds": 8035,
+        "limitHit": true,
+        "matchCount": 0,
+        "results": [],
+        "timedout": []
+      }
+    }
+  }
+}
+'''

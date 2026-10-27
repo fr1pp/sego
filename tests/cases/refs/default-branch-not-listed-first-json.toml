@@ -1,0 +1,86 @@
+# In JSON default_branch is the name, wherever the branch is listed.
+args = ["refs", "--json", "example.com/acme/widget"]
+status.code = 0
+stdout = '''
+{"repo":"example.com/acme/widget","query":null,"default_branch":"b0","branches_total":3,"tags_total":0,"branches_all":null,"tags_all":null,"branches_more":false,"tags_more":false,"refs":[{"kind":"branch","name":"b1","commit":"0000000000000000000000000000000000000001","date":"2026-01-02"},{"kind":"branch","name":"b0","commit":"0000000000000000000000000000000000000002","date":"2026-01-02"},{"kind":"branch","name":"b2","commit":"0000000000000000000000000000000000000003","date":"2026-01-02"}]}
+'''
+
+[[exchange]]
+operation = "Refs"
+variables = '{"first":null,"gitlab":false,"query":null,"repo0":"example.com/acme/widget","repo1":"","unfiltered":false}'
+query = '''
+query Refs($repo0: String!, $repo1: String!, $gitlab: Boolean!, $first: Int, $query: String, $unfiltered: Boolean!) {
+  r0: repository(name: $repo0) { ...Refs }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...Refs }
+}
+
+fragment Refs on Repository {
+  name
+  defaultBranch { displayName }
+  branches(first: $first, query: $query) { ...Listing }
+  tags(first: $first, query: $query) { ...Listing }
+  all_branches: branches(first: 1) @include(if: $unfiltered) { totalCount }
+  all_tags: tags(first: 1) @include(if: $unfiltered) { totalCount }
+}
+
+fragment Listing on GitRefConnection {
+  totalCount
+  nodes { displayName target { oid commit { committer { date } } } }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "r0": {
+      "branches": {
+        "nodes": [
+          {
+            "displayName": "b1",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-01-02T03:04:05Z"
+                }
+              },
+              "oid": "0000000000000000000000000000000000000001"
+            }
+          },
+          {
+            "displayName": "b0",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-01-02T03:04:05Z"
+                }
+              },
+              "oid": "0000000000000000000000000000000000000002"
+            }
+          },
+          {
+            "displayName": "b2",
+            "target": {
+              "commit": {
+                "committer": {
+                  "date": "2026-01-02T03:04:05Z"
+                }
+              },
+              "oid": "0000000000000000000000000000000000000003"
+            }
+          }
+        ],
+        "totalCount": 3
+      },
+      "defaultBranch": {
+        "displayName": "b0"
+      },
+      "name": "example.com/acme/widget",
+      "tags": {
+        "nodes": [],
+        "totalCount": 0
+      }
+    }
+  }
+}
+'''

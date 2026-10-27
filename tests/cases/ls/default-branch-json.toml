@@ -1,0 +1,63 @@
+# With no revision the JSON rev is null.
+args = ["ls", "--json", "example.com/acme/widget"]
+status.code = 0
+stdout = '''
+{"repo":"example.com/acme/widget","rev":null,"commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","path":null,"recursive":false,"entries":[{"path":"docs","kind":"dir","submodule_url":null,"submodule_target":null,"submodule_commit":null},{"path":"mux.go","kind":"file","submodule_url":null,"submodule_target":null,"submodule_commit":null}]}
+'''
+
+[[exchange]]
+operation = "ListTree"
+variables = '{"ambiguous0":false,"gitlab":false,"parent0":"","path0":"","recursive":false,"repo0":"example.com/acme/widget","repo1":"","rev0":"HEAD","split":false}'
+query = '''
+query ListTree($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $recursive: Boolean!
+$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
+  r0: repository(name: $repo0) { ...Guesses }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
+}
+
+fragment Guesses on Repository {
+  name
+  defaultBranch { displayName }
+c0: commit(rev: $rev0) {
+    oid
+    tree: tree(path: $path0) { entries(recursive: $recursive) { path isDirectory submodule { url commit } } }
+    file: blob(path: $path0) { totalLines byteSize binary }
+    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
+    x0: path(path: $path0) @include(if: $split) { __typename }
+  }
+  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
+}
+'''
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "r0": {
+      "c0": {
+        "file": null,
+        "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+        "parent": null,
+        "tree": {
+          "entries": [
+            {
+              "isDirectory": true,
+              "path": "docs",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "mux.go",
+              "submodule": null
+            }
+          ]
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/widget"
+    }
+  }
+}
+'''
