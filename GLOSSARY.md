@@ -2,6 +2,9 @@
 
 sego is a code search CLI for agents, built on Sourcegraph's API.
 
+A term takes Sourcegraph's name where it means what Sourcegraph means. Where Sourcegraph's word
+would say something untrue, the term is sego's own, and its _Avoid_ names Sourcegraph's word.
+
 ## Naming code
 
 **Address**:
@@ -87,11 +90,16 @@ given to `diff`), so no default limit cuts what is fetched.
 The text an agent passes to `sego search`, sent to the server exactly as written.
 
 **Plan**:
-The searches the server runs for a query, each with its filters, as Sourcegraph reads the query.
+The basic queries the server runs for a query, as Sourcegraph reads the query.
+
+**Basic query**:
+One of the queries in a query's plan: one set of filters, with a pattern that may hold `and` or
+`or`. An `or` with a filter beside an operand splits a query into several.
+_Avoid_: search, subquery
 
 **Search**:
-One of the searches in a query's plan. An `or` with a filter beside an operand splits a query into
-several.
+The server's run of a query, and what it answers.
+_Avoid_: request (one request can carry more than one search)
 
 **Pattern type**:
 How the server reads a query's patterns: `keyword`, `standard`, `regexp`, `literal`, `structural`

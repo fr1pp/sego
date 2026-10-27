@@ -286,28 +286,28 @@ fn content_search(written: &[Written]) -> bool {
     has_pattern(written) && chosen(written, "type").all(|v| v == "file" || v == "symbol")
 }
 
-/// Whether every search of the query's plan has `index:no`, which searches
+/// Whether every basic query of the query's plan has `index:no`, which searches
 /// the files the index skipped for too many trigrams but still not those
-/// over 1 MiB. The server rejects a second `index:` in a search. A query
-/// whose searches aren't read (`Plan::each`) has it when any non-negated
+/// over 1 MiB. The server rejects a second `index:` in a basic query. A query
+/// whose basic queries aren't read (`Plan::each`) has it when any non-negated
 /// `index:` is No.
 fn index_no(written: &[Written], plan: &Plan) -> bool {
     let no = |negated: bool, field: &str, value: &str| {
         !negated && field.eq_ignore_ascii_case("index") && INDEX_NO.contains(&value)
     };
     match plan.each() {
-        Some(searches) if !searches.is_empty() => {
-            searches.iter().all(|search| search.iter().any(|f| no(f.negated, &f.field, &f.value)))
-        }
+        Some(basic_queries) if !basic_queries.is_empty() => basic_queries
+            .iter()
+            .all(|basic| basic.iter().any(|f| no(f.negated, &f.field, &f.value))),
         _ => filters(written).any(|f| no(f.negated, &f.field, &f.value)),
     }
 }
 
-/// Whether every search of the query's plan has a non-negated `repo:`
-/// filter. A search narrowed only by other filters covers the whole corpus.
+/// Whether every basic query of the query's plan has a non-negated `repo:`
+/// filter. A basic query narrowed only by other filters covers the whole corpus.
 fn repo_scoped(plan: &Plan) -> bool {
-    let Plan::Read(searches) = plan else { return false };
-    let ends = searches.reach(false, |scoped, f| scoped || (f.field == "repo" && !f.negated));
+    let Plan::Read(basic_queries) = plan else { return false };
+    let ends = basic_queries.reach(false, |scoped, f| scoped || (f.field == "repo" && !f.negated));
     !ends.is_empty() && ends.iter().all(|&scoped| scoped)
 }
 
@@ -420,7 +420,7 @@ fn plain_scope(written: &[Written]) -> Option<Vec<String>> {
 /// rejects while reading it, the last `patterntype:` value as written.
 fn search_type(written: &[Written], plan: &Plan) -> PatternType {
     match plan {
-        Plan::Read(searches) => searches.pattern_type,
+        Plan::Read(basic_queries) => basic_queries.pattern_type,
         _ => written_type(written).and_then(PatternType::named).unwrap_or(PatternType::Keyword),
     }
 }
@@ -520,16 +520,16 @@ fn digits(text: &str) -> (&str, &str) {
     text.split_at(end)
 }
 
-/// Whether the query can search only one repository: each search of its
+/// Whether the query can search only one repository: each basic query of its
 /// plan has a non-negated `repo:` whose value is one exact name, the same in
-/// every search. Two `repo:` filters in a search intersect, so one exact
-/// name among them is enough. A plan of 64 or more searches isn't read.
+/// every one. Two `repo:` filters in a basic query intersect, so one exact
+/// name among them is enough. A plan of 64 or more basic queries isn't read.
 fn one_repository(plan: &Plan) -> bool {
-    let Some(searches) = plan.each() else {
+    let Some(basic_queries) = plan.each() else {
         return false;
     };
-    let mut names = searches.iter().map(|search| {
-        search
+    let mut names = basic_queries.iter().map(|basic| {
+        basic
             .iter()
             .filter(|f| f.field == "repo" && !f.negated)
             .find_map(|f| exact_repository(&f.value))

@@ -15,18 +15,18 @@ const PATTERN_FIELDS: &[&str] = &["file", "f", "path", "lang", "l", "language", 
 pub fn check(written: &[Written], plan: &Plan, ty: PatternType) -> Vec<String> {
     let mut notes = Vec::new();
     unknown_filters(written, &mut notes);
-    if let Plan::Read(searches) = plan {
-        different_languages(searches, &mut notes);
+    if let Plan::Read(basic_queries) = plan {
+        different_languages(basic_queries, &mut notes);
     }
     regex_in_keyword_mode(written, ty, &mut notes);
-    if let Plan::Read(searches) = plan {
-        escaped_or(searches, &mut notes);
+    if let Plan::Read(basic_queries) = plan {
+        escaped_or(basic_queries, &mut notes);
     }
     unknown_types(written, &mut notes);
     path_without_pattern(written, &mut notes);
     revision_ranges(written, &mut notes);
-    if let Plan::Read(searches) = plan {
-        structural_scope(searches, &mut notes);
+    if let Plan::Read(basic_queries) = plan {
+        structural_scope(basic_queries, &mut notes);
     }
     symbol_select_without_pattern(written, ty, &mut notes);
     symbols_of_content(written, &mut notes);
@@ -101,10 +101,10 @@ fn drops_one(long: &[char], short: &[char]) -> bool {
     (0..long.len()).any(|i| long[..i].iter().chain(&long[i + 1..]).eq(short.iter()))
 }
 
-/// Check 2: a search of the plan with two different `lang:` filters, which
+/// Check 2: a basic query of the plan with two different `lang:` filters, which
 /// a file must both match.
-fn different_languages(searches: &plan::Searches, notes: &mut Vec<String>) {
-    let ends = searches.reach((None, false), |(first, differ): (Option<String>, bool), f| {
+fn different_languages(basic_queries: &plan::BasicQueries, notes: &mut Vec<String>) {
+    let ends = basic_queries.reach((None, false), |(first, differ): (Option<String>, bool), f| {
         if f.field != "lang" || f.negated {
             return (first, differ);
         }
@@ -190,11 +190,11 @@ fn class_of_ranges(rest: &[char]) -> bool {
     ranges >= 2 || (ranges == 1 && matches!(rest.get(end + 1), Some('+' | '*' | '?' | '{')))
 }
 
-/// Check 4: some search is scoped by a positive `repo:` filter and another
+/// Check 4: some basic query is scoped by a positive `repo:` filter and another
 /// has no `repo:` filter at all, as when a filter sits beside one operand
 /// of OR.
-fn escaped_or(searches: &plan::Searches, notes: &mut Vec<String>) {
-    let ends = searches.reach((false, false), |(positive, any), f| {
+fn escaped_or(basic_queries: &plan::BasicQueries, notes: &mut Vec<String>) {
+    let ends = basic_queries.reach((false, false), |(positive, any), f| {
         let repo = f.field == "repo";
         (positive || (repo && !f.negated), any || repo)
     });
@@ -257,18 +257,19 @@ lang: names the language";
 /// literals select, up to a cap, and reports no cut; it picks the matcher
 /// from the first `lang:`, or with no `lang:` from the first `file:`
 /// path's extension, and a generic one when Comby has none for either.
-/// Each search of the plan is checked with its own filters. The server
+/// Each basic query of the plan is checked with its own filters. The server
 /// rejects a structural search with `type:`, so that query gets neither
 /// note.
-fn structural_scope(searches: &plan::Searches, notes: &mut Vec<String>) {
-    if searches.pattern_type != PatternType::Structural
-        || searches.reach(false, |t, f| t || f.field == "type").contains(&true)
+fn structural_scope(basic_queries: &plan::BasicQueries, notes: &mut Vec<String>) {
+    if basic_queries.pattern_type != PatternType::Structural
+        || basic_queries.reach(false, |t, f| t || f.field == "type").contains(&true)
     {
         return;
     }
     let path = |f: &Planned| f.field == "file" && !f.negated && !f.predicate;
-    let one_file = searches.reach(false, |one, f| one || (path(f) && one_literal_path(&f.value)));
-    let language = searches.reach((false, None), |(lang, ext), f| {
+    let one_file =
+        basic_queries.reach(false, |one, f| one || (path(f) && one_literal_path(&f.value)));
+    let language = basic_queries.reach((false, None), |(lang, ext), f| {
         let named = lang || (f.field == "lang" && !f.negated);
         (named, ext.or_else(|| path(f).then(|| ends_in_extension(&f.value))))
     });
@@ -715,7 +716,7 @@ lang: names the language";
     fn each_search_of_a_structural_plan_is_noted_with_its_own_filters() {
         let both = || vec![STRUCTURAL_SCOPE.to_owned(), STRUCTURAL_LANGUAGE.to_owned()];
         run(vec![
-            // each search of the plan, with its own filters
+            // each basic query of the plan, with its own filters
             ("patterntype:structural file:^a\\.go$", vec![]),
             // parentheses as the server parses them, per mode and around the query
             ("file:^a\\.go$ patterntype:structural (:[x]) or bar(...)", vec![]),

@@ -1,4 +1,4 @@
-//! The searches Sourcegraph plans for a query sent with `patternType:
+//! The basic queries Sourcegraph plans for a query sent with `patternType:
 //! keyword`, each with its filters. `plan/examples.jsonl` holds the plans a
 //! Sourcegraph server gives a corpus of queries, and this must match each.
 
@@ -48,8 +48,8 @@ pub const KNOWN: &[&str] = &[
     "rule",
 ];
 
-/// The most searches the rules that read each search's filters take; a plan
-/// of 64 or more is unread to them.
+/// The most basic queries the rules that read each one's filters take; a
+/// plan of 64 or more is unread to them.
 const MAX_LISTED: usize = 63;
 const TYPES: [(&str, PatternType); 8] = [
     ("keyword", PatternType::Keyword),
@@ -92,7 +92,7 @@ impl PatternType {
     }
 }
 
-/// A filter of a planned search: the field lower-cased with its aliases
+/// A filter of a basic query: the field lower-cased with its aliases
 /// resolved, and the value as the server reads it.
 #[derive(Clone, Debug)]
 pub struct Filter {
@@ -158,14 +158,14 @@ pub fn unquoted(value: &str) -> &str {
 }
 
 pub enum Plan {
-    Read(Searches),
+    Read(BasicQueries),
     Rejected,
     /// A query of 4 Gi characters or more, past the narrower indices that
     /// keep a reading small.
     Unread,
 }
 
-pub struct Searches {
+pub struct BasicQueries {
     pub pattern_type: PatternType,
     root: Option<Node>,
     written: Vec<Written>,
@@ -214,7 +214,7 @@ enum Kind {
 pub fn plan(query: &str) -> Plan {
     let mut ty = PatternType::Keyword;
     if query.chars().all(char::is_whitespace) {
-        return Plan::Read(Searches { pattern_type: ty, root: None, written: Vec::new() });
+        return Plan::Read(BasicQueries { pattern_type: ty, root: None, written: Vec::new() });
     }
     // Narrower indices keep the reading small; no command line comes near
     // 4 Gi characters.
@@ -240,36 +240,36 @@ pub fn plan(query: &str) -> Plan {
         root = share_filters(root);
     }
     let root = resolve(root, ty);
-    Plan::Read(Searches { pattern_type: ty, root: Some(root), written: reading.written })
+    Plan::Read(BasicQueries { pattern_type: ty, root: Some(root), written: reading.written })
 }
 
 impl Plan {
     /// What the query writes, when the plan is read; nothing otherwise.
     pub fn written(&self) -> &[Written] {
         match self {
-            Plan::Read(searches) => &searches.written,
+            Plan::Read(basic_queries) => &basic_queries.written,
             _ => &[],
         }
     }
 
-    /// Each search's filters, unless the plan isn't read or holds 64
-    /// searches or more.
+    /// Each basic query's filters, unless the plan isn't read or holds 64
+    /// basic queries or more.
     pub fn each(&self) -> Option<Vec<Vec<&Filter>>> {
         match self {
-            Plan::Read(searches) => searches.list(MAX_LISTED),
+            Plan::Read(basic_queries) => basic_queries.list(MAX_LISTED),
             _ => None,
         }
     }
 }
 
-impl Searches {
-    /// How many searches the plan holds, saturating at `u64::MAX`.
+impl BasicQueries {
+    /// How many basic queries the plan holds, saturating at `u64::MAX`.
     pub fn count(&self) -> u64 {
         self.root.as_ref().map_or(0, Node::count)
     }
 
-    /// Each search's filters, in the server's order, when there are at most
-    /// `limit` searches.
+    /// Each basic query's filters, in the server's order, when there are at
+    /// most `limit` basic queries.
     pub fn list<'a>(&'a self, limit: usize) -> Option<Vec<Vec<&'a Filter>>> {
         if self.count() > u64::try_from(limit).unwrap_or(u64::MAX) {
             return None;
@@ -282,8 +282,8 @@ impl Searches {
         Some(root.map_or_else(Vec::new, |r| r.walk(vec![vec![]], &step, &|ends| ends)))
     }
 
-    /// The states that folding `step` over each search's filters, from
-    /// `start`, ends in, for every search however many there are.
+    /// The states that folding `step` over each basic query's filters, from
+    /// `start`, ends in, for every basic query however many there are.
     pub fn reach<S: Clone + PartialEq>(&self, start: S, step: impl Fn(S, &Filter) -> S) -> Vec<S> {
         self.root.as_ref().map_or_else(Vec::new, |root| root.walk(vec![start], &step, &distinct))
     }
@@ -435,7 +435,7 @@ impl Node {
         self.leaves().0 > 0
     }
 
-    /// The searches, saturating at `u64::MAX`: an `or` with a filter
+    /// The basic queries, saturating at `u64::MAX`: an `or` with a filter
     /// inside sums its items', any other operator with one multiplies them.
     fn count(&self) -> u64 {
         let mut counting: Vec<(&Op, usize, u64)> = Vec::new();
@@ -499,8 +499,8 @@ impl Node {
         out
     }
 
-    /// The states folding `step` over each search's filters ends in, in
-    /// the order of the searches, `settle` applied to the states each item
+    /// The states folding `step` over each basic query's filters ends in, in
+    /// the order of the basic queries, `settle` applied to the states each item
     /// ends in.
     fn walk<'a, S: Clone>(
         &'a self,
@@ -811,33 +811,33 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
     }
 
     /// A plan as one line: `rejected`, `unread`, or the pattern type, the number
-    /// of searches, and each listed search's filters in the fixture's notation.
-    /// With `revisions`, a search's `rev:` is moved onto its `repo:` values, as
-    /// the server does once its checks on the search pass.
+    /// of basic queries, and each listed one's filters in the fixture's notation.
+    /// With `revisions`, a basic query's `rev:` is moved onto its `repo:` values,
+    /// as the server does once its checks on the basic query pass.
     fn render(query: &str, revisions: bool) -> String {
-        let searches = match plan(query) {
+        let basic_queries = match plan(query) {
             Plan::Rejected => return "rejected".to_owned(),
             Plan::Unread => return "unread".to_owned(),
-            Plan::Read(searches) => searches,
+            Plan::Read(basic_queries) => basic_queries,
         };
-        let count = searches.count();
-        if let Some(list) = searches.list(4096) {
+        let count = basic_queries.count();
+        if let Some(list) = basic_queries.list(4096) {
             let mut each: Vec<Vec<String>> = Vec::new();
-            for search in list {
-                let search: Vec<String> = search.into_iter().map(notation).collect();
-                if !each.contains(&search) {
-                    each.push(search);
+            for basic in list {
+                let basic: Vec<String> = basic.into_iter().map(notation).collect();
+                if !each.contains(&basic) {
+                    each.push(basic);
                 }
             }
-            let reached = searches.reach(Vec::new(), |mut sofar: Vec<String>, f| {
+            let reached = basic_queries.reach(Vec::new(), |mut sofar: Vec<String>, f| {
                 sofar.push(notation(f));
                 sofar
             });
             let same =
-                reached.len() == each.len() && reached.iter().all(|search| each.contains(search));
+                reached.len() == each.len() && reached.iter().all(|basic| each.contains(basic));
             assert!(same, "{query:?}: reach and list differ");
         }
-        let listed = searches.list(4096).map(|list| {
+        let listed = basic_queries.list(4096).map(|list| {
             let list: Vec<String> = list
                 .into_iter()
                 .map(|filters| {
@@ -851,7 +851,7 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
                 .collect();
             list.join("  ||  ")
         });
-        let ty = searches.pattern_type.name();
+        let ty = basic_queries.pattern_type.name();
         format!("{ty} {count} | {}", listed.unwrap_or_default())
     }
 
@@ -897,8 +897,8 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
             return (text(1), true);
         }
         let listed = row[3].as_array().map(|list| {
-            let list = list.iter().map(|search| {
-                let filters = search.as_array().into_iter().flatten();
+            let list = list.iter().map(|basic| {
+                let filters = basic.as_array().into_iter().flatten();
                 let filters: Vec<&str> = filters.filter_map(Value::as_str).collect();
                 encoded(&filters.join(" "))
             });
@@ -1035,10 +1035,10 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
     #[test]
     fn an_empty_query_plans_no_searches() {
         for query in ["", "  \t"] {
-            let Plan::Read(searches) = plan(query) else { panic!("{query:?}") };
-            assert_eq!(searches.count(), 0);
-            assert_eq!(searches.list(1).map(|list| list.len()), Some(0));
-            assert_eq!(searches.reach(0, |n, _| n + 1), Vec::<i32>::new());
+            let Plan::Read(basic_queries) = plan(query) else { panic!("{query:?}") };
+            assert_eq!(basic_queries.count(), 0);
+            assert_eq!(basic_queries.list(1).map(|list| list.len()), Some(0));
+            assert_eq!(basic_queries.reach(0, |n, _| n + 1), Vec::<i32>::new());
         }
     }
 
@@ -1049,20 +1049,20 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
 
     #[test]
     fn a_plan_lists_its_searches_only_when_they_fit_the_size_asked() {
-        let Plan::Read(searches) = plan(&pairs(6)) else { panic!() };
-        assert_eq!(searches.count(), 64);
-        assert_eq!(searches.list(64).map(|list| list.len()), Some(64));
-        assert!(searches.list(63).is_none());
+        let Plan::Read(basic_queries) = plan(&pairs(6)) else { panic!() };
+        assert_eq!(basic_queries.count(), 64);
+        assert_eq!(basic_queries.list(64).map(|list| list.len()), Some(64));
+        assert!(basic_queries.list(63).is_none());
         assert_eq!(plan(&pairs(5)).each().map(|each| each.len()), Some(32));
         assert!(plan(&pairs(6)).each().is_none());
     }
 
     #[test]
     fn reach_covers_every_search_however_many() {
-        let Plan::Read(searches) = plan(&pairs(70)) else { panic!() };
-        assert_eq!(searches.count(), u64::MAX);
-        assert!(searches.list(4096).is_none());
-        let ends = searches.reach(0, |n, f| n + usize::from(f.value.starts_with('b')));
+        let Plan::Read(basic_queries) = plan(&pairs(70)) else { panic!() };
+        assert_eq!(basic_queries.count(), u64::MAX);
+        assert!(basic_queries.list(4096).is_none());
+        let ends = basic_queries.reach(0, |n, f| n + usize::from(f.value.starts_with('b')));
         assert_eq!(ends.len(), 71);
     }
 
@@ -1101,8 +1101,8 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
         let run = move || {
             let within = format!("{}{}", "(".repeat(63), chain(20_000));
             for query in [chain(601), chain(1_000), mebibyte, within] {
-                let Plan::Read(searches) = plan(&query) else { panic!() };
-                assert_eq!(searches.list(1).map(|list| list.len()), Some(1));
+                let Plan::Read(basic_queries) = plan(&query) else { panic!() };
+                assert_eq!(basic_queries.list(1).map(|list| list.len()), Some(1));
             }
         };
         let thread = std::thread::Builder::new().stack_size(256 << 10).spawn(run);
@@ -1123,9 +1123,9 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
         ];
         let run = move || {
             for query in &queries {
-                let Plan::Read(searches) = plan(query) else { panic!("{query}") };
-                searches.list(4096);
-                searches.reach(0, |n, _| n + 1);
+                let Plan::Read(basic_queries) = plan(query) else { panic!("{query}") };
+                basic_queries.list(4096);
+                basic_queries.reach(0, |n, _| n + 1);
             }
         };
         let thread = std::thread::Builder::new().stack_size(256 << 10).spawn(run);
@@ -1159,13 +1159,13 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
         }
     }
 
-    /// One search can hold a filter for every few bytes; listing it, as
+    /// One basic query can hold a filter for every few bytes; listing it, as
     /// `Query::new` does for `index:no`, gives each of them once.
     #[test]
     fn one_search_lists_every_filter_of_a_mebibyte_query() {
         let query = "f:a ".repeat((1 << 20) / 4);
-        let searches = plan(&query).each().map(|each| each[0].len());
-        assert_eq!(searches, Some(1 << 18));
+        let filters = plan(&query).each().map(|each| each[0].len());
+        assert_eq!(filters, Some(1 << 18));
     }
 
     /// Every recorded plan of the server agrees, and there is at least one.
@@ -1208,10 +1208,10 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
         r#"patterntype:regexp repo:"a\nb\rc" foo"#,
     ];
 
-    /// The searches a parse tree from `parseSearchQuery` implies, each filter
+    /// The basic queries a parse tree from `parseSearchQuery` implies, each filter
     /// written `-field:value`, with ` [p]` after a predicate: an `or` with a
-    /// filter inside splits, and an `and` multiplies its items' searches.
-    fn tree_searches(node: &Value) -> Vec<Vec<String>> {
+    /// filter inside splits, and an `and` multiplies its items' basic queries.
+    fn tree_basic_queries(node: &Value) -> Vec<Vec<String>> {
         fn holds_filter(node: &Value) -> bool {
             match node {
                 Value::Array(items) => items.iter().any(holds_filter),
@@ -1221,17 +1221,17 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
             }
         }
         let and = |items: &[Value]| {
-            let mut searches = vec![Vec::new()];
+            let mut basic_queries = vec![Vec::new()];
             for item in items {
                 let mut next = Vec::new();
-                for own in tree_searches(item) {
-                    for sofar in &searches {
+                for own in tree_basic_queries(item) {
+                    for sofar in &basic_queries {
                         next.push([sofar.clone(), own.clone()].concat());
                     }
                 }
-                searches = next;
+                basic_queries = next;
             }
-            searches
+            basic_queries
         };
         match node {
             Value::Array(items) => and(items),
@@ -1240,7 +1240,7 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
                     and(items)
                 } else if let Some(Value::Array(items)) = map.get("or") {
                     if holds_filter(node) {
-                        items.iter().flat_map(tree_searches).collect()
+                        items.iter().flat_map(tree_basic_queries).collect()
                     } else {
                         vec![Vec::new()]
                     }
@@ -1260,16 +1260,16 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
     }
 
     /// sourcegraph.com's parse tree for each query of `PLANNED`, asked for one
-    /// at a time in the query's mode, implies the searches and filters the plan
+    /// at a time in the query's mode, implies the basic queries and filters the plan
     /// module gives it.
     #[test]
     #[ignore = "sends requests to sourcegraph.com"]
     fn plans_match_the_live_server() {
         let mut failures = Vec::new();
         for query in PLANNED {
-            let Plan::Read(searches) = plan(query) else { panic!("{query}") };
-            let mode = searches.pattern_type.name();
-            let mine: Vec<Vec<String>> = searches
+            let Plan::Read(basic_queries) = plan(query) else { panic!("{query}") };
+            let mode = basic_queries.pattern_type.name();
+            let mine: Vec<Vec<String>> = basic_queries
                 .list(4096)
                 .unwrap_or_default()
                 .into_iter()
@@ -1284,7 +1284,7 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
                         .collect()
                 })
                 .collect();
-            let theirs = tree_searches(&parse_tree(query, mode));
+            let theirs = tree_basic_queries(&parse_tree(query, mode));
             if mine != theirs {
                 failures.push(format!("{query}\n  sego:   {mine:?}\n  server: {theirs:?}"));
             }
