@@ -1,33 +1,14 @@
-# Totals past the refs the server listed set branches_more and tags_more.
+# JSON lists every ref, so branches_more and tags_more are false.
 args = ["refs", "--json", "example.com/acme/widget"]
 status.code = 0
 stdout = '''
-{"repo":"example.com/acme/widget","query":null,"default_branch":"b0","branches_total":17001,"tags_total":17002,"branches_all":null,"tags_all":null,"branches_more":true,"tags_more":true,"refs":[{"kind":"branch","name":"b0","commit":"0000000000000000000000000000000000000001","date":"2026-01-01"},{"kind":"branch","name":"b1","commit":"0000000000000000000000000000000000000002","date":"2026-01-02"},{"kind":"branch","name":"b2","commit":"0000000000000000000000000000000000000003","date":"2026-01-03"},{"kind":"tag","name":"t0","commit":"0000000000000000000000000000000000000001","date":"2026-01-01"},{"kind":"tag","name":"t1","commit":"0000000000000000000000000000000000000002","date":"2026-01-02"}]}
+{"repo":"example.com/acme/widget","query":null,"default_branch":"b0","branches_total":3,"tags_total":2,"branches_all":null,"tags_all":null,"branches_more":false,"tags_more":false,"refs":[{"kind":"branch","name":"b0","target":"0000000000000000000000000000000000000001"},{"kind":"branch","name":"b1","target":"0000000000000000000000000000000000000002"},{"kind":"branch","name":"b2","target":"0000000000000000000000000000000000000003"},{"kind":"tag","name":"t0","target":"0000000000000000000000000000000000000001"},{"kind":"tag","name":"t1","target":"0000000000000000000000000000000000000002"}],"mirrored_at":null,"notes":[]}
 '''
 
 [[exchange]]
 operation = "Refs"
 variables = '{"first":null,"gitlab":false,"query":null,"repo0":"example.com/acme/widget","repo1":"","unfiltered":false}'
-query = '''
-query Refs($repo0: String!, $repo1: String!, $gitlab: Boolean!, $first: Int, $query: String, $unfiltered: Boolean!) {
-  r0: repository(name: $repo0) { ...Refs }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Refs }
-}
-
-fragment Refs on Repository {
-  name
-  defaultBranch { displayName }
-  branches(first: $first, query: $query) { ...Listing }
-  tags(first: $first, query: $query) { ...Listing }
-  all_branches: branches(first: 1) @include(if: $unfiltered) { totalCount }
-  all_tags: tags(first: 1) @include(if: $unfiltered) { totalCount }
-}
-
-fragment Listing on GitRefConnection {
-  totalCount
-  nodes { displayName target { oid commit { committer { date } } } }
-}
-'''
+document = "Refs-fed5d5bc"
 status = 200
 content-type = "application/json"
 response = '''
@@ -39,69 +20,45 @@ response = '''
           {
             "displayName": "b0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-01-01T03:04:05Z"
-                }
-              },
               "oid": "0000000000000000000000000000000000000001"
             }
           },
           {
             "displayName": "b1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-01-02T03:04:05Z"
-                }
-              },
               "oid": "0000000000000000000000000000000000000002"
             }
           },
           {
             "displayName": "b2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-01-03T03:04:05Z"
-                }
-              },
               "oid": "0000000000000000000000000000000000000003"
             }
           }
         ],
-        "totalCount": 17001
+        "totalCount": 3
       },
       "defaultBranch": {
         "displayName": "b0"
       },
+      "mirrorInfo": null,
       "name": "example.com/acme/widget",
       "tags": {
         "nodes": [
           {
             "displayName": "t0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-01-01T03:04:05Z"
-                }
-              },
               "oid": "0000000000000000000000000000000000000001"
             }
           },
           {
             "displayName": "t1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-01-02T03:04:05Z"
-                }
-              },
               "oid": "0000000000000000000000000000000000000002"
             }
           }
         ],
-        "totalCount": 17002
+        "totalCount": 2
       }
     }
   }

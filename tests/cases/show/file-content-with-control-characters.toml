@@ -1,8 +1,8 @@
-# Control characters in a file's lines are escaped, and a carriage return before a line feed is not one.
+# Control characters in a file's lines are escaped, and so is a CR, unless every line shown ends in CRLF.
 args = ["show", "example.com/acme/widget@0123456789abcdef0123456789abcdef01234567:f.txt"]
 status.code = 0
 stdout = '''
-example.com/acme/widget@0123456789ab:f.txt  lines 1-9 of 9  CRLF
+example.com/acme/widget@0123456789ab:f.txt  lines 1-9 of 9
 1:a\u{1b}b
 2:c\u{202e}d
 3:e\u{200b}f
@@ -11,60 +11,36 @@ example.com/acme/widget@0123456789ab:f.txt  lines 1-9 of 9  CRLF
 6:k\u{7f}l
 7:mid\u{d}cr
 8:tab	ok
-9:crlf
+9:crlf\u{d}
 '''
 
 [[exchange]]
-operation = "ShowFile"
-variables = '{"ambiguous0":false,"end":500,"gitlab":false,"parent0":"","path0":"f.txt","repo0":"example.com/acme/widget","repo1":"","rev0":"0123456789abcdef0123456789abcdef01234567","split":false,"start":1}'
-query = '''
-query ShowFile($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $start: Int!, $end: Int!
-$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
-  r0: repository(name: $repo0) { ...Guesses }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
-}
-
-fragment Guesses on Repository {
-  name
-  defaultBranch { displayName }
-c0: commit(rev: $rev0) {
-    oid
-    meta: blob(path: $path0) { byteSize totalLines binary rawURL lfs { byteSize } }
-    body: blob(path: $path0) { content(startLine: $start, endLine: $end, textOnly: true) }
-    dir: tree(path: $path0) { entries { path } }
-    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
-    x0: path(path: $path0) @include(if: $split) { __typename }
-  }
-  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
-}
-'''
+operation = "File"
+variables = '{"content":true,"end":500,"gitlab":false,"path":"f.txt","recursive":false,"repo0":"example.com/acme/widget","repo1":"","rev":"0123456789abcdef0123456789abcdef01234567","start":1}'
+document = "File-d6d96d2c"
 status = 200
 content-type = "application/json"
 response = '''
 {
   "data": {
     "r0": {
-      "c0": {
+      "commit": {
         "body": {
+          "__typename": "GitBlob",
           "content": "a\u001bb\nc\u202ed\ne\u200bf\ng\u0000h\ni\u2028j\nk\u007fl\nmid\rcr\ntab\tok\ncrlf\r\n"
         },
-        "dir": null,
+        "gm": null,
         "meta": {
+          "__typename": "GitBlob",
           "binary": false,
           "byteSize": 50,
           "lfs": null,
+          "path": "f.txt",
           "rawURL": "/r/example.com/acme/widget@0123456789abcdef0123456789abcdef01234567/-/raw/f.txt",
+          "submodule": null,
           "totalLines": 9
         },
-        "oid": "0123456789abcdef0123456789abcdef01234567",
-        "parent": {
-          "entries": [
-            {
-              "path": "f.txt",
-              "submodule": null
-            }
-          ]
-        }
+        "oid": "0123456789abcdef0123456789abcdef01234567"
       },
       "defaultBranch": {
         "displayName": "main"

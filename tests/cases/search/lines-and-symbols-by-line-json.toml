@@ -3,47 +3,16 @@
 args = ["search", "--json", "repo:example.com/app foo"]
 status.code = 0
 stdout = '''
-{"query":"repo:example.com/app foo","pattern_type":"keyword","unit":"matches","count":2,"at_least":false,"stopped":false,"elapsed_ms":100,"limit_ms":20000,"widen":[],"unindexed":[],"alert":null,"results":[{"kind":"line","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"a.go","line":1,"text":"a","match":false,"ranges":[],"chunk":1},{"kind":"line","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"a.go","line":2,"text":"b","match":true,"ranges":[[0,1]],"chunk":1},{"kind":"symbol","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"a.go","line":2,"name":"T","symbol_kind":"function","container":null},{"kind":"line","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"a.go","line":3,"text":"c","match":false,"ranges":[],"chunk":1},{"kind":"symbol","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"a.go","line":9,"name":"S","symbol_kind":"function","container":null},{"kind":"line","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"a.go","line":21,"text":"z","match":true,"ranges":[[0,1]],"chunk":2},{"kind":"symbol","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"a.go","line":null,"name":"N","symbol_kind":"function","container":null}],"server":{"match_count":2,"approximate_count":"2","limit_hit":false,"timedout":[]}}
+{"query":"repo:example.com/app foo","pattern_type":"keyword","unit":"matches","count":2,"at_least":false,"stopped":false,"elapsed_ms":100,"limit_ms":20000,"widen":[],"unindexed":null,"alert":null,"results":[{"kind":"line","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"a.go","line":1,"text":"a","match":false,"ranges":[],"chunk":1},{"kind":"line","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"a.go","line":2,"text":"b","match":true,"ranges":[[0,1]],"chunk":1},{"kind":"symbol","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"a.go","line":2,"name":"T","symbol_kind":"function","container":null},{"kind":"line","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"a.go","line":3,"text":"c","match":false,"ranges":[],"chunk":1},{"kind":"symbol","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"a.go","line":9,"name":"S","symbol_kind":"function","container":null},{"kind":"line","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"a.go","line":21,"text":"z","match":true,"ranges":[[0,1]],"chunk":2},{"kind":"symbol","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"a.go","line":null,"name":"N","symbol_kind":"function","container":null}],"server":{"match_count":2,"approximate_count":"2","limit_hit":false,"timedout":[]},"notes":["the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched"]}
+'''
+stderr = '''
+sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
 '''
 
 [[exchange]]
 operation = "Search"
 variables = '{"listed":true,"query":"repo:example.com/app foo","unindexed":"repo:example.com/app type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}'
-query = '''
-query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
-  search(query: $query, version: V3, patternType: keyword) {
-    results {
-      matchCount approximateResultCount limitHit
-      timedout { name }
-      alert { title description kind proposedQueries { description query } }
-      elapsedMilliseconds
-      dynamicFilters { value count kind }
-      results {
-        __typename
-        ... on FileMatch {
-          repository { name }
-          file { path commit { oid } }
-          revSpec { ... on GitRevSpecExpr { expr } }
-          chunkMatches { content contentStart { line }
-            ranges { start { line character } end { line character } } }
-          symbols { name kind containerName location { range { start { line } } } }
-        }
-        ... on CommitSearchResult {
-          commit { oid subject author { date person { displayName } } repository { name } }
-          matches { body { text } highlights { line character length } }
-        }
-        ... on Repository { name }
-      }
-    }
-  }
-  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
-    results {
-      limitHit elapsedMilliseconds timedout { name } alert { title }
-      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
-    }
-  }
-}
-'''
+document = "Search-328cc8ec"
 status = 200
 content-type = "application/json"
 response = '''

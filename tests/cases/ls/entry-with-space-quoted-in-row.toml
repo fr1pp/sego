@@ -206,211 +206,20 @@ dir        test/fixtures/require-empty-main/
 '''
 
 [[exchange]]
-operation = "ListTree"
-variables = '{"ambiguous0":false,"gitlab":false,"parent0":"test","path0":"test/fixtures","recursive":false,"repo0":"github.com/nodejs/node","repo1":"","rev0":"aa1bf2cc37539bfeeef8faf80c9d31a64cb78026","split":false}'
-query = '''
-query ListTree($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $recursive: Boolean!
-$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
-  r0: repository(name: $repo0) { ...Guesses }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
-}
-
-fragment Guesses on Repository {
-  name
-  defaultBranch { displayName }
-c0: commit(rev: $rev0) {
-    oid
-    tree: tree(path: $path0) { entries(recursive: $recursive) { path isDirectory submodule { url commit } } }
-    file: blob(path: $path0) { totalLines byteSize binary }
-    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
-    x0: path(path: $path0) @include(if: $split) { __typename }
-  }
-  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
-}
-'''
+operation = "File"
+variables = '{"content":false,"gitlab":false,"path":"test/fixtures","recursive":false,"repo0":"github.com/nodejs/node","repo1":"","rev":"aa1bf2cc37539bfeeef8faf80c9d31a64cb78026"}'
+document = "File-d6d96d2c"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
     "r0": {
-      "c0": {
-        "file": null,
-        "oid": "aa1bf2cc37539bfeeef8faf80c9d31a64cb78026",
-        "parent": {
-          "entries": [
-            {
-              "path": "test/abort",
-              "submodule": null
-            },
-            {
-              "path": "test/addons",
-              "submodule": null
-            },
-            {
-              "path": "test/async-hooks",
-              "submodule": null
-            },
-            {
-              "path": "test/benchmark",
-              "submodule": null
-            },
-            {
-              "path": "test/cctest",
-              "submodule": null
-            },
-            {
-              "path": "test/client-proxy",
-              "submodule": null
-            },
-            {
-              "path": "test/common",
-              "submodule": null
-            },
-            {
-              "path": "test/doctool",
-              "submodule": null
-            },
-            {
-              "path": "test/embedding",
-              "submodule": null
-            },
-            {
-              "path": "test/es-module",
-              "submodule": null
-            },
-            {
-              "path": "test/ffi",
-              "submodule": null
-            },
-            {
-              "path": "test/fixtures",
-              "submodule": null
-            },
-            {
-              "path": "test/fuzzers",
-              "submodule": null
-            },
-            {
-              "path": "test/internet",
-              "submodule": null
-            },
-            {
-              "path": "test/js-native-api",
-              "submodule": null
-            },
-            {
-              "path": "test/known_issues",
-              "submodule": null
-            },
-            {
-              "path": "test/message",
-              "submodule": null
-            },
-            {
-              "path": "test/module-hooks",
-              "submodule": null
-            },
-            {
-              "path": "test/node-api",
-              "submodule": null
-            },
-            {
-              "path": "test/nop",
-              "submodule": null
-            },
-            {
-              "path": "test/overlapped-checker",
-              "submodule": null
-            },
-            {
-              "path": "test/parallel",
-              "submodule": null
-            },
-            {
-              "path": "test/pseudo-tty",
-              "submodule": null
-            },
-            {
-              "path": "test/pummel",
-              "submodule": null
-            },
-            {
-              "path": "test/report",
-              "submodule": null
-            },
-            {
-              "path": "test/sea",
-              "submodule": null
-            },
-            {
-              "path": "test/sequential",
-              "submodule": null
-            },
-            {
-              "path": "test/sqlite",
-              "submodule": null
-            },
-            {
-              "path": "test/system-ca",
-              "submodule": null
-            },
-            {
-              "path": "test/test-runner",
-              "submodule": null
-            },
-            {
-              "path": "test/test426",
-              "submodule": null
-            },
-            {
-              "path": "test/testpy",
-              "submodule": null
-            },
-            {
-              "path": "test/tick-processor",
-              "submodule": null
-            },
-            {
-              "path": "test/tools",
-              "submodule": null
-            },
-            {
-              "path": "test/trace_events",
-              "submodule": null
-            },
-            {
-              "path": "test/v8-updates",
-              "submodule": null
-            },
-            {
-              "path": "test/wasi",
-              "submodule": null
-            },
-            {
-              "path": "test/wasm-allocation",
-              "submodule": null
-            },
-            {
-              "path": "test/wpt",
-              "submodule": null
-            },
-            {
-              "path": "test/README.md",
-              "submodule": null
-            },
-            {
-              "path": "test/eslint.config_partial.mjs",
-              "submodule": null
-            },
-            {
-              "path": "test/root.status",
-              "submodule": null
-            }
-          ]
-        },
-        "tree": {
+      "commit": {
+        "gm": null,
+        "meta": {
+          "__typename": "GitTree",
           "entries": [
             {
               "isDirectory": true,
@@ -1892,24 +1701,19 @@ response = '''
               "path": "test/fixtures/x1024.txt",
               "submodule": null
             }
-          ]
-        }
+          ],
+          "path": "test/fixtures"
+        },
+        "oid": "aa1bf2cc37539bfeeef8faf80c9d31a64cb78026"
       },
       "defaultBranch": {
         "displayName": "main"
       },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T06:58:04Z"
+      },
       "name": "github.com/nodejs/node"
     }
-  },
-  "errors": [
-    {
-      "message": "not a blob: \"test/fixtures\"",
-      "path": [
-        "r0",
-        "c0",
-        "file"
-      ]
-    }
-  ]
+  }
 }
 '''

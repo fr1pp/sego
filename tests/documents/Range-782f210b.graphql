@@ -1,0 +1,12 @@
+query Range($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!) {
+  r0: repository(name: $repo0) { ...Ends }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...Ends }
+}
+
+fragment Ends on Repository {
+  name
+  defaultBranch { displayName }
+  mirrorInfo { updatedAt }
+  a: commit(rev: $a) { oid }
+  b: commit(rev: $b) { oid }
+}

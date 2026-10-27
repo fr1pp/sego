@@ -3,6 +3,6 @@ args = ["log", "--recursive", "example.com/acme/widget"]
 status.code = 2
 stderr = '''
 sego: error: log takes no --recursive
-usage: sego log [--json] REPO[@REV][:PATH] [PATH]
+usage: sego log [--json] [--follow] REPO[@REV][:PATH] [PATH]
        sego log [--json] REPO@A..B[:PATH] [PATH]
 '''

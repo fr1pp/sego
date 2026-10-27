@@ -28,134 +28,22 @@ dir        test/
 '''
 
 [[exchange]]
-operation = "ListTree"
-variables = '{"ambiguous0":false,"gitlab":false,"parent0":"","path0":"","recursive":false,"repo0":"github.com/akinomyoga/ble.sh","repo1":"","rev0":"d81fd54feb0d996fdff20dca27eaf0201f7015cc","split":false}'
-query = '''
-query ListTree($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $recursive: Boolean!
-$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
-  r0: repository(name: $repo0) { ...Guesses }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
-}
-
-fragment Guesses on Repository {
-  name
-  defaultBranch { displayName }
-c0: commit(rev: $rev0) {
-    oid
-    tree: tree(path: $path0) { entries(recursive: $recursive) { path isDirectory submodule { url commit } } }
-    file: blob(path: $path0) { totalLines byteSize binary }
-    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
-    x0: path(path: $path0) @include(if: $split) { __typename }
-  }
-  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
-}
-'''
+operation = "File"
+variables = '{"content":false,"gitlab":false,"path":"","recursive":false,"repo0":"github.com/akinomyoga/ble.sh","repo1":"","rev":"d81fd54feb0d996fdff20dca27eaf0201f7015cc"}'
+document = "File-d6d96d2c"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
     "r0": {
-      "c0": {
-        "file": null,
-        "oid": "d81fd54feb0d996fdff20dca27eaf0201f7015cc",
-        "parent": {
-          "entries": [
-            {
-              "path": ".github",
-              "submodule": null
-            },
-            {
-              "path": "archive",
-              "submodule": null
-            },
-            {
-              "path": "docs",
-              "submodule": null
-            },
-            {
-              "path": "lib",
-              "submodule": null
-            },
-            {
-              "path": "make",
-              "submodule": null
-            },
-            {
-              "path": "memo",
-              "submodule": null
-            },
-            {
-              "path": "src",
-              "submodule": null
-            },
-            {
-              "path": "test",
-              "submodule": null
-            },
-            {
-              "path": ".gitattributes",
-              "submodule": null
-            },
-            {
-              "path": ".gitignore",
-              "submodule": null
-            },
-            {
-              "path": ".gitmodules",
-              "submodule": null
-            },
-            {
-              "path": ".srcoption",
-              "submodule": null
-            },
-            {
-              "path": "GNUmakefile",
-              "submodule": null
-            },
-            {
-              "path": "LICENSE.md",
-              "submodule": null
-            },
-            {
-              "path": "Makefile",
-              "submodule": null
-            },
-            {
-              "path": "README-ja_JP.md",
-              "submodule": null
-            },
-            {
-              "path": "README.md",
-              "submodule": null
-            },
-            {
-              "path": "ble.pp",
-              "submodule": null
-            },
-            {
-              "path": "blerc.template",
-              "submodule": null
-            },
-            {
-              "path": "contrib",
-              "submodule": {
-                "commit": "d2109203480a7dfe1dead5f5f8f9f15a9146c90d",
-                "url": "../blesh-contrib"
-              }
-            },
-            {
-              "path": "make_command.sh",
-              "submodule": null
-            },
-            {
-              "path": "note.txt",
-              "submodule": null
-            }
-          ]
+      "commit": {
+        "gm": {
+          "content": "[submodule \"contrib\"]\n\tpath = contrib\n\turl = ../blesh-contrib\n"
         },
-        "tree": {
+        "meta": {
+          "__typename": "GitTree",
           "entries": [
             {
               "isDirectory": true,
@@ -256,8 +144,7 @@ response = '''
               "isDirectory": false,
               "path": "contrib",
               "submodule": {
-                "commit": "d2109203480a7dfe1dead5f5f8f9f15a9146c90d",
-                "url": "../blesh-contrib"
+                "commit": "d2109203480a7dfe1dead5f5f8f9f15a9146c90d"
               }
             },
             {
@@ -270,43 +157,19 @@ response = '''
               "path": "note.txt",
               "submodule": null
             }
-          ]
-        }
+          ],
+          "path": ""
+        },
+        "oid": "d81fd54feb0d996fdff20dca27eaf0201f7015cc"
       },
       "defaultBranch": {
         "displayName": "master"
       },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T00:07:47Z"
+      },
       "name": "github.com/akinomyoga/ble.sh"
     }
-  },
-  "errors": [
-    {
-      "message": "rpc error: code = InvalidArgument desc = path must be specified",
-      "path": [
-        "r0",
-        "c0",
-        "file",
-        "binary"
-      ]
-    },
-    {
-      "message": "rpc error: code = InvalidArgument desc = path must be specified",
-      "path": [
-        "r0",
-        "c0",
-        "file",
-        "totalLines"
-      ]
-    },
-    {
-      "message": "rpc error: code = InvalidArgument desc = path must be specified",
-      "path": [
-        "r0",
-        "c0",
-        "file",
-        "byteSize"
-      ]
-    }
-  ]
+  }
 }
 '''

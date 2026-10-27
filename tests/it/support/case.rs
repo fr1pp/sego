@@ -1,8 +1,11 @@
 use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 
+use ring::digest::{SHA256, digest};
 use serde_json::Value;
+use tempfile::TempDir;
 use toml_edit::{ArrayOfTables, DocumentMut, Item, Table, TableLike};
 
 use super::hostile::is_unsafe;
@@ -20,10 +23,12 @@ pub struct Case {
     pub stderr: Stream,
     pub exchanges: Vec<Exchange>,
     document: DocumentMut,
+    /// Where the documents its exchanges name are stored.
+    documents: PathBuf,
 }
 
 /// What a case expects on stdout or stderr: the text, which is empty when the
-/// key is absent, or a pipe whose reader has gone.
+/// key is missing, or a pipe whose reader has gone.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Stream {
     Text(String),
@@ -39,6 +44,9 @@ pub struct Exchange {
     pub content_type: Option<String>,
     pub recorded: Option<Recorded>,
     pub body: Body,
+    /// Why a hand-written response's located errors are ones the server
+    /// gives.
+    pub evidence: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -96,25 +104,74 @@ fn normalise(query: &str) -> String {
 /// The keys a case's top level and its exchanges hold, in the order they are
 /// written.
 const TOP_KEYS: [&str; 5] = ["args", "env", "status", "stdout", "stderr"];
-const EXCHANGE_KEYS: [&str; 9] = [
+const EXCHANGE_KEYS: [&str; 10] = [
     "operation",
     "variables",
-    "query",
+    "document",
     "get",
     "status",
     "content-type",
     "recorded",
+    "evidence",
     "response",
     "body",
 ];
 
+/// The name a query's text is stored under: its operation, then the first 8
+/// hex digits of the SHA-256 of its text with whitespace normalised.
+pub fn document_name(operation: &str, query: &str) -> String {
+    let hash = digest(&SHA256, normalise(query).as_bytes());
+    let mut name = format!("{operation}-");
+    for byte in &hash.as_ref()[..4] {
+        let _ = write!(name, "{byte:02x}");
+    }
+    name
+}
+
+fn document_path(documents: &Path, name: &str) -> PathBuf {
+    documents.join(format!("{name}.graphql"))
+}
+
+/// The text of the document `name`, which must be named for its text.
+fn read_document(documents: &Path, name: &str, operation: &str) -> Result<String, String> {
+    let path = document_path(documents, name);
+    let query = fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+    let expected = document_name(operation, &query);
+    if expected != name {
+        return Err(format!("{} holds the text of {expected}", path.display()));
+    }
+    Ok(query)
+}
+
+/// The documents directory of the runner's own tests.
+pub static SCRATCH: LazyLock<TempDir> =
+    LazyLock::new(|| TempDir::new().unwrap_or_else(|e| panic!("documents directory: {e}")));
+
+/// Stores `query` in `SCRATCH` and returns its name.
+pub fn scratch(operation: &str, query: &str) -> String {
+    store_document(SCRATCH.path(), operation, query).unwrap_or_else(|e| panic!("{e}"))
+}
+
+/// Stores `query` under its name, replacing the file whole so a reader never
+/// sees part of it, and returns the name.
+pub fn store_document(documents: &Path, operation: &str, query: &str) -> Result<String, String> {
+    let name = document_name(operation, query);
+    let path = document_path(documents, &name);
+    let temp = tempfile::NamedTempFile::new_in(documents)
+        .map_err(|e| format!("{}: {e}", documents.display()))?;
+    fs::write(temp.path(), query).map_err(|e| format!("{}: {e}", temp.path().display()))?;
+    temp.persist(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+    Ok(name)
+}
+
 impl Case {
-    pub fn load(path: &Path) -> Result<Case, String> {
+    pub fn load(path: &Path, documents: &Path) -> Result<Case, String> {
         let text = fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
-        Case::parse(&text, path).map_err(|e| format!("{}: {e}", path.display()))
+        Case::parse(&text, path, documents).map_err(|e| format!("{}: {e}", path.display()))
     }
 
-    pub fn parse(text: &str, path: &Path) -> Result<Case, String> {
+    /// The case `text`, whose exchanges name documents in `documents`.
+    pub fn parse(text: &str, path: &Path, documents: &Path) -> Result<Case, String> {
         let document: DocumentMut = text.parse().map_err(|e| format!("{e}"))?;
         let root = document.as_table();
         for (key, _) in root {
@@ -148,7 +205,9 @@ impl Case {
         if let Some(item) = root.get("exchange") {
             let tables = item.as_array_of_tables().ok_or("exchange must be [[exchange]] tables")?;
             for (i, table) in tables.iter().enumerate() {
-                exchanges.push(exchange(table).map_err(|e| format!("exchange {}: {e}", i + 1))?);
+                exchanges.push(
+                    exchange(table, documents).map_err(|e| format!("exchange {}: {e}", i + 1))?,
+                );
             }
         }
         Ok(Case {
@@ -160,6 +219,7 @@ impl Case {
             stderr: stream(root, "stderr")?,
             exchanges,
             document,
+            documents: documents.to_path_buf(),
         })
     }
 
@@ -220,11 +280,11 @@ impl Case {
         if let Some(tables) = tables {
             for i in changed {
                 if let Some(table) = tables.get_mut(i) {
-                    set_request(table, &sent[i]);
+                    set_request(table, &sent[i], &self.documents)?;
                 }
             }
         }
-        *self = Case::parse(&document.to_string(), &self.path)?;
+        *self = Case::parse(&document.to_string(), &self.path, &self.documents)?;
         Ok(())
     }
 
@@ -241,7 +301,7 @@ impl Case {
             .get_mut("exchange")
             .and_then(Item::as_array_of_tables_mut)
             .ok_or("exchange must be [[exchange]] tables")?;
-        let mut table = exchange_table(exchange);
+        let mut table = exchange_table(exchange, &self.documents)?;
         if let Some(old) = tables.get_mut(at) {
             *table.decor_mut() = old.decor().clone();
             *old = table;
@@ -250,7 +310,7 @@ impl Case {
         } else {
             return Err(format!("exchange {} is not next", at + 1));
         }
-        *self = Case::parse(&document.to_string(), &self.path)?;
+        *self = Case::parse(&document.to_string(), &self.path, &self.documents)?;
         Ok(())
     }
 }
@@ -279,7 +339,7 @@ fn text(table: &Table, key: &str) -> Result<Option<String>, String> {
         .transpose()
 }
 
-fn exchange(table: &Table) -> Result<Exchange, String> {
+fn exchange(table: &Table, documents: &Path) -> Result<Exchange, String> {
     for (key, _) in table {
         if !EXCHANGE_KEYS.contains(&key) {
             return Err(format!("unknown key {key}"));
@@ -295,7 +355,8 @@ fn exchange(table: &Table) -> Result<Exchange, String> {
                     .map_err(|e| format!("variables are not JSON: {e}"))?,
                 None => Value::Null,
             };
-            let query = text(table, "query")?.unwrap_or_default();
+            let name = text(table, "document")?.ok_or("operation needs a document")?;
+            let query = read_document(documents, &name, &operation)?;
             Some(Request::Graphql { operation, variables, query })
         }
         (None, Some(path)) => Some(Request::Raw { path }),
@@ -316,7 +377,14 @@ fn exchange(table: &Table) -> Result<Exchange, String> {
         (None, Some(file)) => Body::File(file),
         (None, None) => Body::Text(String::new()),
     };
-    Ok(Exchange { request, status, content_type: text(table, "content-type")?, recorded, body })
+    Ok(Exchange {
+        request,
+        status,
+        content_type: text(table, "content-type")?,
+        recorded,
+        body,
+        evidence: text(table, "evidence")?,
+    })
 }
 
 fn recorded(table: &dyn TableLike) -> Result<Recorded, String> {
@@ -335,8 +403,8 @@ fn recorded(table: &dyn TableLike) -> Result<Recorded, String> {
     Ok(Recorded { date: date.to_string(), endpoint: endpoint.to_owned(), live_values })
 }
 
-fn set_request(table: &mut Table, request: &Request) {
-    for key in ["operation", "variables", "query", "get"] {
+fn set_request(table: &mut Table, request: &Request, documents: &Path) -> Result<(), String> {
+    for key in ["operation", "variables", "document", "get"] {
         table.remove(key);
     }
     match request {
@@ -345,17 +413,19 @@ fn set_request(table: &mut Table, request: &Request) {
             if !variables.is_null() {
                 table["variables"] = Item::Value(string(&variables.to_string()));
             }
-            table["query"] = Item::Value(string(query));
+            let name = store_document(documents, operation, query)?;
+            table["document"] = Item::Value(string(&name));
         }
         Request::Raw { path } => table["get"] = Item::Value(string(path)),
     }
     order(table, &EXCHANGE_KEYS);
+    Ok(())
 }
 
-fn exchange_table(exchange: &Exchange) -> Table {
+fn exchange_table(exchange: &Exchange, documents: &Path) -> Result<Table, String> {
     let mut table = Table::new();
     if let Some(request) = &exchange.request {
-        set_request(&mut table, request);
+        set_request(&mut table, request, documents)?;
     }
     table["status"] = toml_edit::value(i64::from(exchange.status));
     if let Some(content_type) = &exchange.content_type {
@@ -374,11 +444,14 @@ fn exchange_table(exchange: &Exchange) -> Table {
         }
         table["recorded"] = toml_edit::value(stamp);
     }
+    if let Some(evidence) = &exchange.evidence {
+        table["evidence"] = Item::Value(string(evidence));
+    }
     match &exchange.body {
         Body::Text(text) => table["response"] = Item::Value(string(text)),
         Body::File(file) => table["body"] = Item::Value(string(file)),
     }
-    table
+    Ok(table)
 }
 
 /// Puts the table's keys in the order of `keys`, leaving the rest after them.
@@ -443,19 +516,23 @@ mod tests {
 
     use super::*;
 
+    const QUERY: &str =
+        "query Refs($repo0: String!) {\n  r0: repository(name: $repo0) { name }\n}\n";
+
     fn parse(text: &str) -> Case {
-        Case::parse(text, Path::new("refs/x.toml")).unwrap_or_else(|e| panic!("{e}\n{text}"))
+        Case::parse(text, Path::new("refs/x.toml"), SCRATCH.path())
+            .unwrap_or_else(|e| panic!("{e}\n{text}"))
+    }
+
+    fn exchange_text() -> String {
+        EXCHANGE.replace("DOCUMENT", &scratch("Refs", QUERY))
     }
 
     const EXCHANGE: &str = r#"
 [[exchange]]
 operation = "Refs"
 variables = '{"first":101,"repo0":"example.com/a/b"}'
-query = '''
-query Refs($repo0: String!) {
-  r0: repository(name: $repo0) { name }
-}
-'''
+document = "DOCUMENT"
 status = 200
 content-type = "application/json"
 recorded = { date = 2026-10-07, endpoint = "https://sourcegraph.com", live = "values" }
@@ -488,7 +565,7 @@ response = '''
 
     #[test]
     fn an_exchange_holds_its_request_response_and_recording() {
-        let case = parse(&format!("args = [\"x\"]\nstatus.code = 0\n{EXCHANGE}"));
+        let case = parse(&format!("args = [\"x\"]\nstatus.code = 0\n{}", exchange_text()));
         let [exchange] = &case.exchanges[..] else { panic!("{:?}", case.exchanges) };
         assert!(exchange.request.as_ref().is_some_and(|r| r.same_as(&refs(
             "example.com/a/b",
@@ -519,7 +596,7 @@ response = '''
 
     #[test]
     fn a_case_with_an_unknown_key_or_a_missing_field_is_refused() {
-        let refused = |text: &str| Case::parse(text, Path::new("x.toml")).is_err();
+        let refused = |text: &str| Case::parse(text, Path::new("x.toml"), SCRATCH.path()).is_err();
         assert!(refused("args = [\"x\"]\nstatus.code = 0\nexit = 1\n"));
         assert!(refused("status.code = 0\n"));
         assert!(refused("args = [\"x\"]\n"));
@@ -575,7 +652,7 @@ response = '''
 
     #[test]
     fn bless_refuses_a_recorded_exchange_whose_request_changed() {
-        let text = format!("args = [\"x\"]\nstatus.code = 0\n{EXCHANGE}");
+        let text = format!("args = [\"x\"]\nstatus.code = 0\n{}", exchange_text());
         let mut case = parse(&text);
         let error = case
             .bless(0, "", "", &[refs("example.com/c/d", "query")])
@@ -592,13 +669,15 @@ response = '''
 
     #[test]
     fn an_exchange_is_set_in_place_or_after_the_last() {
-        let mut case = parse(&format!("args = [\"x\"]\nstatus.code = 0\n\n# kept\n{EXCHANGE}"));
+        let mut case =
+            parse(&format!("args = [\"x\"]\nstatus.code = 0\n\n# kept\n{}", exchange_text()));
         let exchange = Exchange {
             request: Some(Request::Raw { path: "/r".to_owned() }),
             status: 200,
             content_type: Some("text/plain".to_owned()),
             recorded: None,
             body: Body::File("x.body".to_owned()),
+            evidence: None,
         };
         case.set_exchange(1, &exchange).unwrap_or_else(|e| panic!("{e}"));
         assert_eq!(case.exchanges.len(), 2);
@@ -610,6 +689,19 @@ response = '''
             case.to_text()
         );
         assert!(case.set_exchange(3, &exchange).is_err());
+    }
+
+    #[test]
+    fn a_document_is_stored_under_its_name_and_must_hold_its_text() {
+        let dir = TempDir::new().unwrap_or_else(|e| panic!("{e}"));
+        let name = store_document(dir.path(), "Refs", QUERY).unwrap_or_else(|e| panic!("{e}"));
+        assert_eq!(name, document_name("Refs", &QUERY.replace('\n', " ")));
+        assert_eq!(read_document(dir.path(), &name, "Refs"), Ok(QUERY.to_owned()));
+        assert!(read_document(dir.path(), &name, "Other").is_err());
+        fs::write(document_path(dir.path(), &name), "query Refs { changed }")
+            .unwrap_or_else(|e| panic!("{e}"));
+        let error = read_document(dir.path(), &name, "Refs").err().unwrap_or_default();
+        assert!(error.contains("holds the text of Refs-"), "{error}");
     }
 
     #[test]

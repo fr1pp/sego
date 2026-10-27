@@ -47,10 +47,6 @@ fn remaining(deadline: Instant) -> Result<Duration, TransportError> {
 }
 
 impl Transport for Ureq {
-    fn host(&self) -> String {
-        self.endpoint.host()
-    }
-
     fn post(&self, path: &str, body: &[u8], deadline: Instant) -> Result<Response, TransportError> {
         let timeout = remaining(deadline)?;
         let request = identify(self.agent.post(self.endpoint.url(path)))
@@ -135,6 +131,7 @@ fn classify_io(error: io::Error) -> TransportError {
 mod tests {
     use super::*;
 
+    use std::ffi::OsStr;
     use std::net::TcpListener;
     use std::time::{Duration, Instant};
 
@@ -142,6 +139,7 @@ mod tests {
 
     use crate::sourcegraph::{Endpoint, GRAPHQL_PATH, Transport, TransportError};
 
+    use crate::cache::Cache;
     use crate::sourcegraph::{Client, Request};
 
     mod server {
@@ -389,10 +387,10 @@ mod tests {
         let requests = server.requests();
         assert_eq!(requests.len(), 2);
         for request in &requests {
-            assert_eq!(request.header("user-agent"), Some("sego/0.2.0"));
-            assert_eq!(request.header("x-requested-with"), Some("sego/0.2.0"));
+            assert_eq!(request.header("user-agent"), Some("sego/0.3.0"));
+            assert_eq!(request.header("x-requested-with"), Some("sego/0.3.0"));
             assert_eq!(request.header("x-sourcegraph-api-client-name"), Some("sego"));
-            assert_eq!(request.header("x-sourcegraph-api-client-version"), Some("0.2.0"));
+            assert_eq!(request.header("x-sourcegraph-api-client-version"), Some("0.3.0"));
             assert!(request.header("accept-encoding").is_some_and(|v| { v.contains("gzip") }));
             for (name, value) in &request.headers {
                 assert!(!name.contains('@') && !value.contains('@'), "{name}");
@@ -509,18 +507,20 @@ mod tests {
     fn errors_name_the_endpoint_a_client_talks_to() {
         let server = Server::start(|_| Response::new(500).body("down"));
         let host = endpoint_host_of(&server.url());
-        assert_eq!(client(&server).host(), host);
+        let endpoint = server.url().parse::<Endpoint>().unwrap_or_else(|e| panic!("{e}"));
+        let cache = Cache::new(Some(OsStr::new("off")), &endpoint);
+        let connect = || Client::new(Box::new(client(&server)), endpoint.clone(), &cache, soon());
 
         let request = Request {
             operation: "Op".to_owned(),
             document: "query Op { x }".to_owned(),
             variables: Map::new(),
         };
-        let Err(error) = Client::new(Box::new(client(&server))).exchange(&request) else {
+        let Err(error) = connect().exchange(&request) else {
             panic!("a 500 was accepted");
         };
         assert_eq!(error.to_string(), format!("{host} answered HTTP 500"));
-        let Err(error) = Client::new(Box::new(client(&server))).raw("/raw") else {
+        let Err(error) = connect().raw("/raw") else {
             panic!("a 500 was read");
         };
         assert_eq!(error.to_string(), format!("{host} answered HTTP 500"));
@@ -533,7 +533,9 @@ mod tests {
         drop(listener);
         let url = format!("http://{address}");
         let endpoint = url.parse::<Endpoint>().unwrap_or_else(|e| panic!("{e}"));
-        let client = Client::new(Box::new(Ureq::without_proxy(endpoint)));
+        let cache = Cache::new(Some(OsStr::new("off")), &endpoint);
+        let client =
+            Client::new(Box::new(Ureq::without_proxy(endpoint.clone())), endpoint, &cache, soon());
         let request = Request {
             operation: "Op".to_owned(),
             document: "query Op { x }".to_owned(),

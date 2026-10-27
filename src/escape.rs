@@ -46,6 +46,22 @@ pub fn one_line(s: &str) -> String {
     escape(&s.replace("\r\n", " ").replace('\n', " ")).into_owned()
 }
 
+/// `bytes` as text, each byte that isn't part of valid UTF-8 written as
+/// `\x{hh}`.
+pub fn utf8_escaped(bytes: &[u8]) -> Cow<'_, str> {
+    if let Ok(text) = std::str::from_utf8(bytes) {
+        return Cow::Borrowed(text);
+    }
+    let mut out = String::with_capacity(bytes.len() + 16);
+    for chunk in bytes.utf8_chunks() {
+        out.push_str(chunk.valid());
+        for byte in chunk.invalid() {
+            let _ = write!(out, "\\x{{{byte:02x}}}");
+        }
+    }
+    Cow::Owned(out)
+}
+
 pub fn strip_cr(line: &str) -> (&str, bool) {
     match line.strip_suffix('\r') {
         Some(rest) => (rest, true),
@@ -218,6 +234,17 @@ mod tests {
     use std::process::Command;
 
     const FAMILY: &str = "👨\u{200d}👩\u{200d}👧";
+
+    #[test]
+    fn bytes_that_arent_utf8_are_written_as_hex_escapes() {
+        assert_eq!(utf8_escaped(b"plain"), "plain");
+        assert_eq!(utf8_escaped("é".as_bytes()), "é");
+        assert_eq!(
+            utf8_escaped(b"\"\xf8\x88\x80\x80\x80\""),
+            "\"\\x{f8}\\x{88}\\x{80}\\x{80}\\x{80}\""
+        );
+        assert_eq!(utf8_escaped(b"\xff\xfeh\x00"), "\\x{ff}\\x{fe}h\u{0}");
+    }
 
     fn tail(hidden: usize) -> String {
         format!("… (+{hidden} more columns; --json has the full line)")

@@ -1,0 +1,23 @@
+query File($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String!, $recursive: Boolean!, $content: Boolean!, $start: Int, $end: Int) {
+  r0: repository(name: $repo0) { ...File }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...File }
+}
+
+fragment File on Repository {
+  name
+  defaultBranch { displayName }
+  mirrorInfo { updatedAt }
+  commit(rev: $rev) {
+oid
+    meta: path(path: $path) {
+      __typename
+      ... on GitBlob { path byteSize totalLines binary rawURL lfs { byteSize } submodule { commit } }
+      ... on GitTree { path entries(recursive: $recursive) { path isDirectory submodule { commit } } }
+    }
+    body: path(path: $path) @include(if: $content) {
+      __typename
+      ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }
+    }
+    gm: blob(path: ".gitmodules") { content }
+  }
+}

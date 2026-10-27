@@ -23,8 +23,17 @@ A branch or a tag, as `sego refs` lists them.
 **Range**:
 Two revisions in one address: `A..B` for `log`, `A...B` for `diff`.
 
+**Plain path**:
+A path with no glob characters (`*`, `?`, `[`) and no pathspec magic (a leading `:`), so it names
+one file or directory.
+
 **Lines**:
 The `LINES` operand of `show`, the 1-based, inclusive lines of a file to print.
+
+**Mirror**:
+The repository as Sourcegraph holds it, updated from the host from time to time, so a branch can lag
+the host.
+_Avoid_: copy
 
 ## Answers
 
@@ -51,11 +60,18 @@ A note or error line naming the sego command, option or filter that gets what an
 _Avoid_: suggestion, hint, advice
 
 **Usage error**:
-A command line sego rejects before sending anything. It exits 2.
+A command line that must change before any answer is possible, such as a revision no mirror can
+hold, LINES on a directory, or a regular expression the server can't compile. It exits 2.
 
-**Answer error**:
-A question sego couldn't answer: something named doesn't exist, the server refused or failed, the
-network failed. It exits 1.
+**Not found**:
+What a command names doesn't exist on Sourcegraph: a repository, a revision, a path, any commit in an
+empty repository, or a root commit's diff. It exits 1.
+_Avoid_: absent, answer error
+
+**Failure**:
+A question Sourcegraph or the network didn't answer: the server failed or refused, the connection
+failed, or the client deadline passed. It exits 3, as does an answer sego couldn't write.
+_Avoid_: unanswered, outage
 
 **Default limit**:
 How much of an open-ended request sego fetches, or how many rows a list prints in text, when the
@@ -103,7 +119,8 @@ the server cut the results without saying so.
 _Avoid_: partial, approximate, limit hit
 
 **Stopped**:
-A search the server's deadline cut short. A stopped search with no results is an answer error.
+A search the server's deadline cut short: it reports a timeout, or it answered at or past its
+deadline. A stopped search with no results is a failure.
 _Avoid_: timed out
 
 **Local check**:
@@ -142,10 +159,10 @@ A commit or diff result whose diff preview the server cut to 5 files or 3 hunks 
 The size, 1,572,864 bytes, above which Sourcegraph's API returns no content for a file.
 
 **Raw read**:
-A read of a file over the content limit through Sourcegraph's raw route, which serves the whole
-file.
+A read of a file's exact bytes through Sourcegraph's raw route, for a file over the content limit or
+a window whose text shows U+FFFD.
 
 **Cache**:
-The files sego keeps from raw reads, so a large file is downloaded once. It is sego's only state
+The files sego keeps from raw reads, so a file is downloaded once. It is sego's only state
 between runs.
 _Avoid_: raw-file cache

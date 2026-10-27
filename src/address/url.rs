@@ -148,7 +148,7 @@ fn finish(
     Ok(Address {
         repo: Repo::Exact(repo),
         rev: web.rev,
-        path: web.path.as_deref().map(parse_path),
+        path: web.path.as_deref().map(parse_path).transpose()?,
         lines: lines?,
         kind: web.kind,
     })
@@ -316,7 +316,7 @@ pub fn parse_web(token: &str) -> Option<Result<Address, AddressError>> {
 }
 
 /// Resolves a submodule's stored URL to `host/owner/name`.
-pub fn submodule_target(url: &str, parent_repo: &str) -> Option<String> {
+pub fn submodule_repository(url: &str, parent_repo: &str) -> Option<String> {
     let url = url.trim();
     if url.is_empty() || strip_prefix_ignore_case(url, "file:").is_some() {
         return None;
@@ -557,7 +557,7 @@ mod tests {
             ("/srv/b", "github.com/x/a", None),
         ];
         for (url, parent, want) in cases {
-            assert_eq!(submodule_target(url, parent).as_deref(), want, "{url} from {parent}");
+            assert_eq!(submodule_repository(url, parent).as_deref(), want, "{url} from {parent}");
         }
     }
 

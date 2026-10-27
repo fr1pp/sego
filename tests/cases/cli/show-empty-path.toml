@@ -1,8 +1,22 @@
 # REPO: names the root, which show cannot print; no request is made.
 args = ["show", "example.com/acme/widget:"]
-status.code = 2
+status.code = 1
 stderr = '''
-sego: error: show needs a file's path, like REPO[@REV]:PATH
-usage: sego show [--json] REPO[@REV]:PATH [LINES]
-       sego show [--json] REPO@REV
+sego: error: example.com/acme/widget is not on sourcegraph.com
+  sourcegraph.com serves indexed repositories from github.com, gitlab.com and a few other hosts; a renamed repository appears only under its new name
+'''
+
+[[exchange]]
+operation = "File"
+variables = '{"content":true,"end":500,"gitlab":false,"path":"","recursive":false,"repo0":"example.com/acme/widget","repo1":"","rev":"HEAD","start":1}'
+document = "File-d6d96d2c"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "r0": null
+  }
+}
 '''

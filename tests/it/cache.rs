@@ -20,21 +20,21 @@ fn over_the_content_limit(byte_size: usize) -> Value {
     json!({"data": {"r0": {
         "name": "example.com/x/y",
         "defaultBranch": {"displayName": "main"},
-        "c0": {
+        "mirrorInfo": null,
+        "commit": {
             "oid": SHA,
             "meta": {
+                "__typename": "GitBlob", "path": "big.c",
                 "byteSize": byte_size, "totalLines": 5, "binary": false,
                 "rawURL": format!("/r/example.com/x/y@{SHA}/-/raw/big.c"),
-                "lfs": null
+                "lfs": null, "submodule": null
             },
             "body": null,
-            "dir": null,
-            "parent": {"entries": [{"path": "big.c", "submodule": null}]}
+            "gm": null
         }
     }}, "errors": [
-        {"message": "not a directory", "path": ["r0", "c0", "dir"]},
-        {"message": "file exceeded size limit", "path": ["r0", "c0", "body", "content"]},
-        {"message": "file exceeded size limit", "path": ["r0", "c0", "meta", "lfs"]}
+        {"message": "file exceeded size limit", "path": ["r0", "commit", "body", "content"]},
+        {"message": "file exceeded size limit", "path": ["r0", "commit", "meta", "lfs"]}
     ]})
 }
 

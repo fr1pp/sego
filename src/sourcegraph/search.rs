@@ -74,7 +74,8 @@ pub fn request(query: &str, unindexed: Option<&str>) -> Request {
 pub fn read(envelope: &Envelope, listed: bool) -> Result<Search, Error> {
     let failed = || Error::failed("the search");
     if let Some(error) = envelope.error_beneath(&["search"]) {
-        return regexp_reason(&error.message)
+        return error
+            .regexp_reason()
             .map(|reason| Search::BadRegexp { reason: reason.to_owned() })
             .ok_or_else(failed);
     }
@@ -86,16 +87,6 @@ pub fn read(envelope: &Envelope, listed: bool) -> Result<Search, Error> {
         envelope.get(&["unindexed", "results"]).and_then(|v| Listing::deserialize(v).ok())
     };
     Ok(Search::Results { results, unindexed })
-}
-
-/// The first line of the reason in a Go regexp error, which may come
-/// wrapped in gRPC errors; `None` for any other message.
-fn regexp_reason(message: &str) -> Option<&str> {
-    let mut rest = message;
-    while let Some(after) = rest.strip_prefix("rpc error: code = ") {
-        rest = after.split_once(" desc = ")?.1;
-    }
-    Some(rest.strip_prefix("error parsing regexp: ")?.lines().next()?.trim())
 }
 
 #[derive(Debug, Deserialize)]
@@ -332,62 +323,4 @@ pub struct Highlight {
     pub line: u32,
     pub character: u32,
     pub length: u32,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn results() -> serde_json::Value {
-        serde_json::json!({
-            "matchCount": 0, "approximateResultCount": "0", "limitHit": false, "timedout": [],
-            "alert": null, "elapsedMilliseconds": 5, "dynamicFilters": [], "results": []
-        })
-    }
-
-    fn listing() -> serde_json::Value {
-        serde_json::json!({
-            "limitHit": false, "elapsedMilliseconds": 5, "timedout": [], "alert": null,
-            "results": []
-        })
-    }
-
-    fn searched(body: &serde_json::Value, listed: bool) -> Result<Search, String> {
-        read(&crate::sourcegraph::parsed(body), listed).map_err(|e| crate::error::report(&e))
-    }
-
-    #[test]
-    fn the_side_listing_is_read_only_when_it_was_sent_and_answered() {
-        let body = serde_json::json!({"data": {
-            "search": {"results": results()},
-            "unindexed": {"results": listing()},
-        }});
-        let listed = |body: &serde_json::Value, sent: bool| match searched(body, sent) {
-            Ok(Search::Results { unindexed, .. }) => unindexed.is_some(),
-            other => panic!("{other:?}"),
-        };
-        assert!(listed(&body, true));
-        assert!(!listed(&body, false));
-        let mut failed = body.clone();
-        failed["errors"] = serde_json::json!([{"message": "x", "path": ["unindexed", "results"]}]);
-        assert!(!listed(&failed, true));
-    }
-
-    #[test]
-    fn a_regexp_the_server_cant_compile_is_its_reason_and_any_other_error_fails_the_search() {
-        let failing = |message: &str| {
-            serde_json::json!({"data": {"search": null},
-                "errors": [{"message": message, "path": ["search"]}]})
-        };
-        let wrapped = "rpc error: code = Unknown desc = error parsing regexp: missing closing ): \
-                       `(a`\nmore";
-        match searched(&failing(wrapped), false) {
-            Ok(Search::BadRegexp { reason }) => assert_eq!(reason, "missing closing ): `(a`"),
-            other => panic!("{other:?}"),
-        }
-        assert_eq!(
-            searched(&failing("something else"), false).err().as_deref(),
-            Some("sego: error: Sourcegraph failed to answer the search\n")
-        );
-    }
 }

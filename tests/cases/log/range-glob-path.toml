@@ -2,87 +2,61 @@
 args = ["log", "github.com/gorilla/mux@v1.7.0..v1.7.1", "*.go"]
 status.code = 0
 stdout = '''
-'github.com/gorilla/mux@a7962380ca08..c5c6c98bc253:*.go'  2 commits  rev v1.7.0..v1.7.1
+'github.com/gorilla/mux@a7962380ca08..c5c6c98bc253:*.go'  2 commits  rev v1.7.0..v1.7.1  mirrored 2026-10-27T07:22Z
 15a353a63672  2019-02-28  Benjamin Boudreau  adding Router.Name to create new Route (#457)
 8559a4f775fc  2019-02-17  Souvik Haldar  [docs] typo (#454)
 '''
 
 [[exchange]]
-operation = "Log"
-variables = '{"a":"v1.7.0","b":"v1.7.1","count":false,"first":151,"gitlab":false,"path":"*.go","probe":false,"repo0":"github.com/gorilla/mux","repo1":""}'
-query = '''
-query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $path: String, $first: Int, $count: Boolean!, $probe: Boolean!) {
-  a0: repository(name: $repo0) { ...Base }
-  b0: repository(name: $repo0) { ...Head }
-  n0: repository(name: $repo0) { ...Ahead }
-  c0: repository(name: $repo0) { ...Commits }
-  t0: repository(name: $repo0) { ...Tags }
-  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
-  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
-  n1: repository(name: $repo1) @include(if: $gitlab) { ...Ahead }
-  c1: repository(name: $repo1) @include(if: $gitlab) { ...Commits }
-  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
-}
-
-fragment Base on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $a) { oid x: path(path: $path) @include(if: $probe) { __typename } }
-}
-
-fragment Head on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $b) { oid x: path(path: $path) @include(if: $probe) { __typename } }
-}
-
-fragment Ahead on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $b) @include(if: $count) { behindAhead(revspec: $a) { ahead } }
-}
-
-fragment Commits on Repository {
-  name
-  defaultBranch { displayName }
-  comparison(base: $a, head: $b) { commits(first: $first, path: $path) { ...Page } }
-}
-fragment Page on GitCommitConnection {
-  nodes { oid subject author { date person { displayName } } parents { oid } }
-  pageInfo { hasNextPage }
-}
-
-fragment Tags on Repository {
-  name
-  defaultBranch { displayName }
-  gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
-}
-'''
+operation = "Range"
+variables = '{"a":"v1.7.0","b":"v1.7.1","gitlab":false,"repo0":"github.com/gorilla/mux","repo1":""}'
+document = "Range-782f210b"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
-    "a0": {
-      "commit": {
+    "r0": {
+      "a": {
         "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
       },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "github.com/gorilla/mux"
-    },
-    "b0": {
-      "commit": {
+      "b": {
         "oid": "c5c6c98bc25355028a63748a498942a6398ccd22"
       },
       "defaultBranch": {
         "displayName": "main"
       },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T07:22:54Z"
+      },
       "name": "github.com/gorilla/mux"
+    }
+  }
+}
+'''
+
+[[exchange]]
+operation = "LogRange"
+variables = '{"a":"a7962380ca08b5a188038c69871b8d3fbdf31e89","b":"c5c6c98bc25355028a63748a498942a6398ccd22","count":false,"first":150,"path":"*.go","probe":false,"repo":"github.com/gorilla/mux"}'
+document = "LogRange-1ae4f20e"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "a": {
+      "commit": {
+        "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+      }
     },
-    "c0": {
+    "b": {
+      "commit": {
+        "oid": "c5c6c98bc25355028a63748a498942a6398ccd22"
+      }
+    },
+    "c": {
       "comparison": {
         "commits": {
           "nodes": [
@@ -121,22 +95,10 @@ response = '''
             "hasNextPage": false
           }
         }
-      },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "github.com/gorilla/mux"
+      }
     },
-    "n0": {
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "github.com/gorilla/mux"
-    },
-    "t0": {
-      "defaultBranch": {
-        "displayName": "main"
-      },
+    "n": {},
+    "t": {
       "gitRefs": {
         "nodes": [
           {
@@ -229,10 +191,8 @@ response = '''
               "oid": "0eeaf8392f5b04950925b8a69fe70f110fa7cbfc"
             }
           }
-        ],
-        "totalCount": 15
-      },
-      "name": "github.com/gorilla/mux"
+        ]
+      }
     }
   }
 }

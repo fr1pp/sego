@@ -598,14 +598,6 @@ pub fn symbol_kind(server: &str) -> String {
     }
 }
 
-/// A search that comes back this close to its deadline may have been cut.
-const MARGIN_MS: u64 = 1000;
-
-/// Whether an answer that took `elapsed_ms` came back clear of the deadline.
-pub fn in_time(elapsed_ms: u64, deadline_ms: u64) -> bool {
-    elapsed_ms + MARGIN_MS < deadline_ms
-}
-
 /// The server's stand-in for a file the index skipped, listed as if it were
 /// a match.
 pub fn is_placeholder(file: &FileMatch) -> bool {
@@ -641,14 +633,16 @@ pub fn counted(
     commits: Option<u64>,
 ) -> Counted {
     let count = commits.unwrap_or_else(|| results.match_count.saturating_sub(placeholder_ranges));
-    let in_time = in_time(results.elapsed_milliseconds, query.deadline_ms);
+
     let capped = results.limit_hit
         && results.match_count > 0
         && query.cap.is_some_and(|cap| results.match_count >= cap);
     // `limitHit` below the cap is not a cut: select:symbol, select:file.owners
     // and select:file.directory set it without one, and a cut by the clock
-    // always lands past the deadline.
-    let stopped = !capped && (!results.timedout.is_empty() || !in_time);
+    // always lands past the deadline. A search stops at its deadline, so one
+    // answered at or past it was cut.
+    let past = results.elapsed_milliseconds >= query.deadline_ms;
+    let stopped = !capped && (!results.timedout.is_empty() || past);
     // A zero has nothing to be a lower bound of, unless the placeholders
     // used up the cap.
     let short = if count > 0 {
@@ -670,7 +664,7 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::*;
-    use crate::output::print;
+    use crate::output::{Notes, print};
     use crate::sourcegraph::Item;
 
     fn searched(items: &Value) -> Answer {
@@ -742,7 +736,7 @@ mod tests {
 
     fn json_of(searched: &Answer) -> String {
         let mut out = Vec::new();
-        assert!(print(searched, true, &mut out).is_ok(), "write failed");
+        assert!(print(searched, true, &Notes::new(), &mut out).is_ok(), "write failed");
         String::from_utf8_lossy(&out).into_owned()
     }
 
@@ -1037,6 +1031,15 @@ mod tests {
     }
 
     #[test]
+    fn an_answer_is_stopped_once_its_deadline_has_passed() {
+        let query = "repo:x foo timeout:2s";
+        assert_eq!(counted_as(17, false, 1999, query, 0), (17, false, false));
+        assert_eq!(counted_as(17, false, 1001, query, 0), (17, false, false));
+        assert_eq!(counted_as(17, false, 2000, query, 0), (17, true, true));
+        assert_eq!(counted_as(17, false, 2200, query, 0), (17, true, true));
+    }
+
+    #[test]
     fn a_capped_answer_of_only_placeholders_is_at_least_even_at_zero() {
         let query = "repo:x binary count:30";
         assert_eq!(counted_as(30, true, 2000, query, 30), (0, true, false));
@@ -1149,7 +1152,7 @@ mod tests {
     fn a_pinned_zero_is_a_lower_bound_only_when_the_select_drops_results() {
         let rows = [
             ("repo:x@v1 type:symbol /./ select:symbol.method", true),
-            ("repo:x@v1 type:symbol /./ select:symbol", true),
+            ("repo:x@v1 type:symbol /./ select:symbol", false),
             ("repo:x@v1 Router select:content", true),
             ("repo:x@v1 Router select:file", false),
             ("repo:x@v1 Router select:file.directory", false),

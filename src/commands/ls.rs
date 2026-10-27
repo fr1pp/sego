@@ -3,13 +3,24 @@ use std::fmt;
 use serde::Serialize;
 
 use crate::address::{Repo, Target, pinned, rev_field};
+use crate::commands::resolved_notes;
 use crate::error::Error;
 use crate::escape::one_line;
 use crate::escape::shell_word;
-use crate::output::{count, header, submodule_target, submodule_text};
-use crate::sourcegraph::{Client, Details, Resolved, Submodule, Tree};
+use crate::output::{Notes, count, header, mirrored, submodule_address, submodule_text};
+use crate::sourcegraph::{Client, File, Resolved, Submodule};
 
 const TEXT_ROWS: usize = 200;
+pub const GITMODULES_NOTE: &str = "submodule URLs unknown";
+
+/// What a path names, as `show` and `ls` say in JSON.
+#[derive(Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Named {
+    File,
+    Directory,
+    Submodule,
+}
 
 #[derive(Clone, Copy, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -34,10 +45,10 @@ pub struct Entry {
     path: String,
     kind: Kind,
     submodule_url: Option<String>,
-    submodule_target: Option<String>,
+    submodule_address: Option<String>,
     submodule_commit: Option<String>,
     #[serde(skip)]
-    target_shown: Option<String>,
+    address_shown: Option<String>,
 }
 
 impl Entry {
@@ -47,11 +58,12 @@ impl Entry {
             (Some(_), false) => Kind::Submodule,
             (None, false) => Kind::File,
         };
-        let (submodule_url, submodule_target, submodule_commit, target_shown) = match module {
+        let (submodule_url, submodule_address, submodule_commit, address_shown) = match module {
             Some(module) => {
-                let target = submodule_target(&module.url, &module.commit, repo);
-                let shown = submodule_text(target.as_deref(), &module.url);
-                (Some(module.url), target, Some(module.commit), Some(shown))
+                let url = module.url.as_deref().unwrap_or_default();
+                let address = submodule_address(url, &module.commit, repo);
+                let shown = submodule_text(address.as_deref(), url);
+                (module.url, address, Some(module.commit), Some(shown))
             }
             None => (None, None, None, None),
         };
@@ -59,9 +71,9 @@ impl Entry {
             path: path.to_owned(),
             kind,
             submodule_url,
-            submodule_target,
+            submodule_address,
             submodule_commit,
-            target_shown,
+            address_shown,
         }
     }
 
@@ -70,9 +82,9 @@ impl Entry {
         if matches!(self.kind, Kind::Dir) {
             row.push('/');
         }
-        if let Some(target) = &self.target_shown {
+        if let Some(address) = &self.address_shown {
             row.push_str("  ");
-            row.push_str(&one_line(target));
+            row.push_str(&one_line(address));
         }
         row.push('\n');
         row
@@ -85,8 +97,12 @@ pub struct Answer {
     rev: Option<String>,
     commit: String,
     path: Option<String>,
+    kind: Named,
     recursive: bool,
     entries: Vec<Entry>,
+    entries_total: Option<u64>,
+    entries_more: bool,
+    mirrored_at: Option<String>,
 }
 
 impl Answer {
@@ -107,7 +123,8 @@ impl Answer {
                 fields.push(count(n, one, many));
             }
         }
-        fields.extend(rev_field(self.rev.as_ref()));
+        fields.extend(rev_field(self.rev.as_ref(), &self.commit));
+        fields.extend(self.mirrored_at.as_deref().map(mirrored));
         fields
     }
 }
@@ -131,41 +148,50 @@ pub struct Args {
     pub json: bool,
 }
 
-pub fn run(args: &Args, client: &Client) -> Result<Answer, Error> {
-    let (at, tree) = client.tree(&args.repo, &args.target, args.recursive)?;
+pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Error> {
+    let (at, file) = client.file(&args.repo, &args.target, None, args.recursive)?;
+    Ok(answer(at, file, args.recursive, notes))
+}
+
+/// The listing of what `file` is at `at`: a directory's entries, or one row
+/// for a file or a submodule.
+pub fn answer(at: Resolved, file: File, recursive: bool, notes: &mut Notes) -> Answer {
+    resolved_notes(&at, notes);
     let path = at.path.clone().filter(|path| !path.is_empty());
-    let entries = match tree {
-        Tree::Entries(listed) => {
-            let mut entries: Vec<Entry> = listed
+    let row_path = path.as_deref().unwrap_or_default();
+    let (kind, entries, gitmodules) = match file {
+        File::Directory(directory) => {
+            let mut entries: Vec<Entry> = directory
+                .entries
+                .items
                 .into_iter()
                 .map(|entry| Entry::new(&entry.path, entry.is_directory, entry.submodule, &at.repo))
                 .collect();
             entries.sort_by(|a, b| a.path.split('/').cmp(b.path.split('/')));
-            entries
+            (Named::Directory, entries, directory.gitmodules)
         }
-        Tree::Submodule(submodule) => {
-            vec![Entry::new(path.as_deref().unwrap_or_default(), false, Some(submodule), &at.repo)]
-        }
-        Tree::File(details) => return Err(a_file(&details, &at)),
+        File::Submodule { submodule, gitmodules } => (
+            Named::Submodule,
+            vec![Entry::new(row_path, false, Some(submodule), &at.repo)],
+            gitmodules,
+        ),
+        File::Blob(_) => (Named::File, vec![Entry::new(row_path, false, None, &at.repo)], Ok(())),
     };
-    Ok(Answer {
+    if let Err(error) = gitmodules
+        && entries.iter().any(|entry| matches!(entry.kind, Kind::Submodule))
+    {
+        notes.push(format!("{GITMODULES_NOTE}: {error}"));
+    }
+    Answer {
+        entries_total: Some(entries.len() as u64),
+        entries_more: false,
         repo: at.repo,
         rev: at.rev,
         commit: at.commit,
         path,
-        recursive: args.recursive,
+        kind,
+        recursive,
         entries,
-    })
-}
-
-/// The error for a path that names a file.
-fn a_file(details: &Details, at: &Resolved) -> Error {
-    let address = pinned(&at.repo, &at.commit, None);
-    let what = if details.binary {
-        format!("binary, {} bytes", details.byte_size)
-    } else {
-        count(details.total_lines, "line", "lines")
-    };
-    let path = at.path.as_deref().unwrap_or_default();
-    Error::missing(format!("{path} is a file at {address} ({what})"))
+        mirrored_at: at.mirrored_at,
+    }
 }

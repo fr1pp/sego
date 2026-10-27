@@ -13,7 +13,8 @@ only by its case; only the help's layout rules are module tests. A module test t
 is deleted.
 
 The library exports `run`, what it takes (`Env`, `Endpoint`, `Transport`, `Response`,
-`TransportError`) and `connect`, the transport `main` hands it, and nothing else. Tests under
+`TransportError`) and `connect`, the transport `main` hands it, and nothing else. `Transport` carries
+HTTP bytes and nothing more; the host that messages name comes from the `Endpoint`. Tests under
 `tests/` go through `run`. Re-exporting private modules for tests once put two thirds of the suite
 past the interface, in one flat file per module, where a refactor broke tests far from the code it
 changed.

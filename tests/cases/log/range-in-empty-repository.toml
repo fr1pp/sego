@@ -6,93 +6,31 @@ sego: error: github.com/ascoders/blog has no commits
 '''
 
 [[exchange]]
-operation = "Log"
-variables = '{"a":"v1","b":"v2","count":true,"first":151,"gitlab":false,"path":null,"probe":false,"repo0":"github.com/ascoders/blog","repo1":""}'
-query = '''
-query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $path: String, $first: Int, $count: Boolean!, $probe: Boolean!) {
-  a0: repository(name: $repo0) { ...Base }
-  b0: repository(name: $repo0) { ...Head }
-  n0: repository(name: $repo0) { ...Ahead }
-  c0: repository(name: $repo0) { ...Commits }
-  t0: repository(name: $repo0) { ...Tags }
-  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
-  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
-  n1: repository(name: $repo1) @include(if: $gitlab) { ...Ahead }
-  c1: repository(name: $repo1) @include(if: $gitlab) { ...Commits }
-  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
-}
-
-fragment Base on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $a) { oid x: path(path: $path) @include(if: $probe) { __typename } }
-}
-
-fragment Head on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $b) { oid x: path(path: $path) @include(if: $probe) { __typename } }
-}
-
-fragment Ahead on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $b) @include(if: $count) { behindAhead(revspec: $a) { ahead } }
-}
-
-fragment Commits on Repository {
-  name
-  defaultBranch { displayName }
-  comparison(base: $a, head: $b) { commits(first: $first, path: $path) { ...Page } }
-}
-fragment Page on GitCommitConnection {
-  nodes { oid subject author { date person { displayName } } parents { oid } }
-  pageInfo { hasNextPage }
-}
-
-fragment Tags on Repository {
-  name
-  defaultBranch { displayName }
-  gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
-}
-'''
+operation = "Range"
+variables = '{"a":"v1","b":"v2","gitlab":false,"repo0":"github.com/ascoders/blog","repo1":""}'
+document = "Range-782f210b"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
-    "a0": {
-      "commit": null,
+    "r0": {
+      "a": null,
+      "b": null,
       "defaultBranch": null,
-      "name": "github.com/ascoders/blog"
-    },
-    "b0": {
-      "commit": null,
-      "defaultBranch": null,
-      "name": "github.com/ascoders/blog"
-    },
-    "c0": null,
-    "n0": {
-      "commit": null,
-      "defaultBranch": null,
-      "name": "github.com/ascoders/blog"
-    },
-    "t0": {
-      "defaultBranch": null,
-      "gitRefs": {
-        "nodes": [],
-        "totalCount": 0
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T07:13:58Z"
       },
       "name": "github.com/ascoders/blog"
     }
   },
   "errors": [
     {
-      "message": "revision not found: repo 714773 @v2^0",
+      "message": "revision not found after waiting for a fetch already in progress: repo 714773",
       "path": [
-        "c0",
-        "comparison"
+        "r0",
+        "a"
       ]
     }
   ]

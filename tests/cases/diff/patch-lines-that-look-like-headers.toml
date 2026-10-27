@@ -18,83 +18,57 @@ M  +2 -1  'dir/a b.go'
 '''
 
 [[exchange]]
-operation = "Diff"
-variables = '{"a":"v1","b":"v2","first":201,"gitlab":false,"patch":true,"path0":"dir/a b.go","paths":["dir/a b.go"],"repo0":"example.com/acme/widget","repo1":""}'
-query = '''
-query Diff($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!, $path0: String!) {
-  a0: repository(name: $repo0) { ...Base }
-  b0: repository(name: $repo0) { ...Head }
-  c0: repository(name: $repo0) { ...Comparison }
-  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
-  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
-  c1: repository(name: $repo1) @include(if: $gitlab) { ...Comparison }
-}
-
-fragment Base on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $a) {
-    oid
-    p0: path(path: $path0) { __typename }
-  }
-}
-
-fragment Head on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $b) {
-    oid parents { oid }
-    p0: path(path: $path0) { __typename }
-  }
-}
-
-fragment Comparison on Repository {
-  name
-  defaultBranch { displayName }
-  comparison(base: $a, head: $b) {
-    all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
-    page: fileDiffs(first: $first, paths: $paths) {
-      nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }
-    }
-    patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }
-  }
-}
-'''
+operation = "Range"
+variables = '{"a":"v1","b":"v2","gitlab":false,"repo0":"example.com/acme/widget","repo1":""}'
+document = "Range-782f210b"
 status = 200
 content-type = "application/json"
 response = '''
 {
   "data": {
-    "a0": {
+    "r0": {
+      "a": {
+        "oid": "0123456789abcdef0123456789abcdef01234567"
+      },
+      "b": {
+        "oid": "89abcdef0123456789abcdef0123456789abcdef"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "mirrorInfo": null,
+      "name": "example.com/acme/widget"
+    }
+  }
+}
+'''
+
+[[exchange]]
+operation = "Comparison"
+variables = '{"a":"0123456789abcdef0123456789abcdef01234567","b":"89abcdef0123456789abcdef0123456789abcdef","first":200,"patch":true,"path0":"dir/a b.go","paths":["dir/a b.go"],"repo":"example.com/acme/widget"}'
+document = "Comparison-c145ac07"
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "a": {
       "commit": {
         "oid": "0123456789abcdef0123456789abcdef01234567",
         "p0": {
           "__typename": "GitBlob"
         }
-      },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "example.com/acme/widget"
+      }
     },
-    "b0": {
+    "b": {
       "commit": {
         "oid": "89abcdef0123456789abcdef0123456789abcdef",
         "p0": {
           "__typename": "GitBlob"
-        },
-        "parents": [
-          {
-            "oid": "0123456789abcdef0123456789abcdef01234567"
-          }
-        ]
-      },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "example.com/acme/widget"
+        }
+      }
     },
-    "c0": {
+    "c": {
       "comparison": {
         "all": {
           "diffStat": {
@@ -118,16 +92,18 @@ response = '''
                 "deleted": 1
               }
             }
-          ]
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
         },
         "patch": {
           "rawDiff": "diff --git dir/a b.go dir/a b.go\nindex 1111111..2222222 100644\n--- dir/a b.go\n+++ dir/a b.go\n@@ -1,2 +1,2 @@\n--- foo\n+-- bar\n ctx\n+red\u001b[31m\n\\ No newline at end of file\n"
+        },
+        "range": {
+          "mergeBase": null
         }
-      },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "example.com/acme/widget"
+      }
     }
   }
 }

@@ -8,14 +8,14 @@ const USAGE_PREFIX: &str = "usage: ";
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Kind {
     Usage,
-    Missing,
+    NotFound,
     Upstream,
     Edge,
     Network,
     Deadline,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Error {
     kind: Kind,
     message: String,
@@ -32,8 +32,23 @@ impl Error {
         Error { synopsis: Some(synopsis), ..Error::new(Kind::Usage, message) }
     }
 
-    pub fn missing(message: impl Into<String>) -> Error {
-        Error::new(Kind::Missing, message)
+    /// A usage error found from the server's response, which the command
+    /// gives its synopsis with `with_synopsis`.
+    pub fn usage_from_response(message: impl Into<String>) -> Error {
+        Error::new(Kind::Usage, message)
+    }
+
+    /// The error with `synopsis` when it is a usage error without one.
+    #[must_use]
+    pub fn with_synopsis(mut self, synopsis: &'static str) -> Error {
+        if self.kind == Kind::Usage && self.synopsis.is_none() {
+            self.synopsis = Some(synopsis);
+        }
+        self
+    }
+
+    pub fn not_found(message: impl Into<String>) -> Error {
+        Error::new(Kind::NotFound, message)
     }
 
     pub fn upstream(message: impl Into<String>) -> Error {
@@ -71,7 +86,8 @@ impl Error {
     pub fn exit_code(&self) -> u8 {
         match self.kind {
             Kind::Usage => 2,
-            _ => 1,
+            Kind::NotFound => 1,
+            Kind::Upstream | Kind::Edge | Kind::Network | Kind::Deadline => 3,
         }
     }
 }
@@ -108,18 +124,32 @@ mod tests {
     use super::*;
 
     #[test]
-    fn a_usage_error_exits_2_and_every_other_error_exits_1() {
+    fn a_usage_error_found_from_a_response_takes_its_commands_synopsis() {
+        let error = Error::usage_from_response("gorilla/mux exists as a and b");
+        assert_eq!(error.exit_code(), 2);
+        assert_eq!(report(&error), "sego: error: gorilla/mux exists as a and b\n");
+        assert_eq!(
+            report(&error.with_synopsis("sego show X")),
+            "sego: error: gorilla/mux exists as a and b\nusage: sego show X\n"
+        );
+        let kept = Error::usage("x", "sego ls Y").with_synopsis("sego show X");
+        assert_eq!(report(&kept), "sego: error: x\nusage: sego ls Y\n");
+        assert_eq!(report(&Error::not_found("x").with_synopsis("sego show X")), "sego: error: x\n");
+    }
+
+    #[test]
+    fn a_usage_error_exits_2_not_found_exits_1_and_a_failure_exits_3() {
         assert_eq!(Error::usage("x", "sego show").exit_code(), 2);
-        assert_eq!(Error::missing("x").exit_code(), 1);
-        assert_eq!(Error::upstream("x").exit_code(), 1);
-        assert_eq!(Error::edge("x").exit_code(), 1);
-        assert_eq!(Error::network("x").exit_code(), 1);
-        assert_eq!(Error::deadline("sourcegraph.com").exit_code(), 1);
+        assert_eq!(Error::not_found("x").exit_code(), 1);
+        assert_eq!(Error::upstream("x").exit_code(), 3);
+        assert_eq!(Error::edge("x").exit_code(), 3);
+        assert_eq!(Error::network("x").exit_code(), 3);
+        assert_eq!(Error::deadline("sourcegraph.com").exit_code(), 3);
     }
 
     #[test]
     fn an_error_keeps_two_facts_and_drops_the_rest() {
-        let error = Error::missing("gone").fact("one").fact("two").fact("three");
+        let error = Error::not_found("gone").fact("one").fact("two").fact("three");
         assert_eq!(report(&error), "sego: error: gone\n  one\n  two\n");
     }
 }

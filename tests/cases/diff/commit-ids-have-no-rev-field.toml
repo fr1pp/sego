@@ -7,77 +7,51 @@ M  +3 -1  widget.go
 '''
 
 [[exchange]]
-operation = "Diff"
-variables = '{"a":"0123456789ab","b":"456789abcdef","first":201,"gitlab":false,"patch":false,"paths":null,"repo0":"example.com/acme/widget","repo1":""}'
-query = '''
-query Diff($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!) {
-  a0: repository(name: $repo0) { ...Base }
-  b0: repository(name: $repo0) { ...Head }
-  c0: repository(name: $repo0) { ...Comparison }
-  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
-  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
-  c1: repository(name: $repo1) @include(if: $gitlab) { ...Comparison }
-}
-
-fragment Base on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $a) {
-    oid
-
-  }
-}
-
-fragment Head on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $b) {
-    oid parents { oid }
-
-  }
-}
-
-fragment Comparison on Repository {
-  name
-  defaultBranch { displayName }
-  comparison(base: $a, head: $b) {
-    all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
-    page: fileDiffs(first: $first, paths: $paths) {
-      nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }
-    }
-    patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }
-  }
-}
-'''
+operation = "Range"
+variables = '{"a":"0123456789ab","b":"456789abcdef","gitlab":false,"repo0":"example.com/acme/widget","repo1":""}'
+document = "Range-782f210b"
 status = 200
 content-type = "application/json"
 response = '''
 {
   "data": {
-    "a0": {
-      "commit": {
+    "r0": {
+      "a": {
         "oid": "0123456789abcdef0123456789abcdef01234567"
       },
+      "b": {
+        "oid": "456789abcdef0123456789abcdef0123456789ab"
+      },
       "defaultBranch": {
         "displayName": "main"
       },
+      "mirrorInfo": null,
       "name": "example.com/acme/widget"
-    },
-    "b0": {
+    }
+  }
+}
+'''
+
+[[exchange]]
+operation = "Comparison"
+variables = '{"a":"0123456789abcdef0123456789abcdef01234567","b":"456789abcdef0123456789abcdef0123456789ab","first":200,"patch":false,"paths":null,"repo":"example.com/acme/widget"}'
+document = "Comparison-e2e713b2"
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "a": {
       "commit": {
-        "oid": "456789abcdef0123456789abcdef0123456789ab",
-        "parents": [
-          {
-            "oid": "0123456789abcdef0123456789abcdef01234567"
-          }
-        ]
-      },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "example.com/acme/widget"
+        "oid": "0123456789abcdef0123456789abcdef01234567"
+      }
     },
-    "c0": {
+    "b": {
+      "commit": {
+        "oid": "456789abcdef0123456789abcdef0123456789ab"
+      }
+    },
+    "c": {
       "comparison": {
         "all": {
           "diffStat": {
@@ -101,13 +75,15 @@ response = '''
                 "deleted": 1
               }
             }
-          ]
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        },
+        "range": {
+          "mergeBase": null
         }
-      },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "example.com/acme/widget"
+      }
     }
   }
 }

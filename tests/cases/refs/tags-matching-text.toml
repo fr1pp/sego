@@ -2,37 +2,18 @@
 args = ["refs", "github.com/BurntSushi/ripgrep", "14.1"]
 status.code = 0
 stdout = '''
-github.com/BurntSushi/ripgrep  0 of 16 branches match "14.1"  2 of 272 tags match "14.1"
-tag     4649aa970061  2024-09-09  14.1.1
-tag     e50df40a1967  2024-01-06  14.1.0
+github.com/BurntSushi/ripgrep  0 of 16 branches match "14.1"  2 of 272 tags match "14.1"  mirrored 2026-10-27T05:26Z
+tag     4649aa970061  14.1.1
+tag     e50df40a1967  14.1.0
 '''
 
 [[exchange]]
 operation = "Refs"
-variables = '{"first":101,"gitlab":false,"query":"14.1","repo0":"github.com/BurntSushi/ripgrep","repo1":"","unfiltered":true}'
-query = '''
-query Refs($repo0: String!, $repo1: String!, $gitlab: Boolean!, $first: Int, $query: String, $unfiltered: Boolean!) {
-  r0: repository(name: $repo0) { ...Refs }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Refs }
-}
-
-fragment Refs on Repository {
-  name
-  defaultBranch { displayName }
-  branches(first: $first, query: $query) { ...Listing }
-  tags(first: $first, query: $query) { ...Listing }
-  all_branches: branches(first: 1) @include(if: $unfiltered) { totalCount }
-  all_tags: tags(first: 1) @include(if: $unfiltered) { totalCount }
-}
-
-fragment Listing on GitRefConnection {
-  totalCount
-  nodes { displayName target { oid commit { committer { date } } } }
-}
-'''
+variables = '{"first":100,"gitlab":false,"query":"14.1","repo0":"github.com/BurntSushi/ripgrep","repo1":"","unfiltered":true}'
+document = "Refs-fed5d5bc"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -50,28 +31,21 @@ response = '''
       "defaultBranch": {
         "displayName": "master"
       },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T05:26:14Z"
+      },
       "name": "github.com/BurntSushi/ripgrep",
       "tags": {
         "nodes": [
           {
             "displayName": "14.1.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2024-09-09T02:15:00Z"
-                }
-              },
               "oid": "4649aa9700619f94cf9c66876e9549d83420e16c"
             }
           },
           {
             "displayName": "14.1.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2024-01-06T19:32:27Z"
-                }
-              },
               "oid": "e50df40a1967708b9781486b1c017e48040bceb0"
             }
           }

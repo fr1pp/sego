@@ -1,59 +1,35 @@
 # A raw read the server fails is an answer error.
 args = ["show", "example.com/acme/widget@main:big.c", "1-2"]
-status.code = 1
+status.code = 3
 stderr = '''
 sego: error: sourcegraph.com answered HTTP 502
 '''
 
 [[exchange]]
-operation = "ShowFile"
-variables = '{"ambiguous0":false,"end":2,"gitlab":false,"parent0":"","path0":"big.c","repo0":"example.com/acme/widget","repo1":"","rev0":"main","split":false,"start":1}'
-query = '''
-query ShowFile($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $start: Int!, $end: Int!
-$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
-  r0: repository(name: $repo0) { ...Guesses }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
-}
-
-fragment Guesses on Repository {
-  name
-  defaultBranch { displayName }
-c0: commit(rev: $rev0) {
-    oid
-    meta: blob(path: $path0) { byteSize totalLines binary rawURL lfs { byteSize } }
-    body: blob(path: $path0) { content(startLine: $start, endLine: $end, textOnly: true) }
-    dir: tree(path: $path0) { entries { path } }
-    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
-    x0: path(path: $path0) @include(if: $split) { __typename }
-  }
-  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
-}
-'''
+operation = "File"
+variables = '{"content":true,"end":2,"gitlab":false,"path":"big.c","recursive":false,"repo0":"example.com/acme/widget","repo1":"","rev":"main","start":1}'
+document = "File-d6d96d2c"
 status = 200
 content-type = "application/json"
+evidence = "show/binary-file-over-content-limit"
 response = '''
 {
   "data": {
     "r0": {
-      "c0": {
+      "commit": {
         "body": null,
-        "dir": null,
+        "gm": null,
         "meta": {
+          "__typename": "GitBlob",
           "binary": false,
           "byteSize": 2000000,
           "lfs": null,
+          "path": "big.c",
           "rawURL": "/r/example.com/acme/widget@d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809/-/raw/big.c",
+          "submodule": null,
           "totalLines": 5
         },
-        "oid": "d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809",
-        "parent": {
-          "entries": [
-            {
-              "path": "big.c",
-              "submodule": null
-            }
-          ]
-        }
+        "oid": "d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809"
       },
       "defaultBranch": {
         "displayName": "main"
@@ -63,18 +39,10 @@ response = '''
   },
   "errors": [
     {
-      "message": "not a directory: \"big.c\"",
-      "path": [
-        "r0",
-        "c0",
-        "dir"
-      ]
-    },
-    {
       "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
       "path": [
         "r0",
-        "c0",
+        "commit",
         "body",
         "content"
       ]
@@ -83,7 +51,7 @@ response = '''
       "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
       "path": [
         "r0",
-        "c0",
+        "commit",
         "meta",
         "lfs"
       ]

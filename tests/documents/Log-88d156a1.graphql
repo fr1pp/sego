@@ -1,0 +1,25 @@
+query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String, $follow: Boolean!, $first: Int) {
+  r0: repository(name: $repo0) { ...History }
+  t0: repository(name: $repo0) { ...Tags }
+  r1: repository(name: $repo1) @include(if: $gitlab) { ...History }
+  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
+}
+
+fragment History on Repository {
+  name
+  defaultBranch { displayName }
+  mirrorInfo { updatedAt }
+  commit(rev: $rev) {
+    oid
+    w: tree(path: "") { commit { ancestors(first: $first, path: $path, follow: $follow) { ...Page } } }
+  }
+}
+
+fragment Page on GitCommitConnection {
+  nodes { oid subject author { date person { displayName } } parents { oid } }
+  pageInfo { hasNextPage }
+}
+
+fragment Tags on Repository {
+  gitRefs(type: GIT_TAG) { nodes { displayName target { oid } } }
+}

@@ -2,32 +2,13 @@
 args = ["refs", "--json", "example.com/acme/widget", "a\u001Bb\u202Ec\u200Bd\ne\rf\u0000g\u2028h\u007Fi"]
 status.code = 0
 stdout = '''
-{"repo":"example.com/acme/widget","query":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","default_branch":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","branches_total":2,"tags_total":3,"branches_all":9,"tags_all":12,"branches_more":false,"tags_more":false,"refs":[{"kind":"branch","name":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","commit":"0123456789abcdef0123456789abcdef01234567","date":"2026-03-01"},{"kind":"branch","name":"b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","commit":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","date":"a\u001bb\u202ec\u200bd\ne\r"},{"kind":"tag","name":"t-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","commit":"0123456789abcdef0123456789abcdef01234567","date":"a\u001bb\u202ec\u200bd\ne\r"},{"kind":"tag","name":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","commit":"0123456789abcdef0123456789abcdef01234567","date":"2026-02-01"},{"kind":"tag","name":"u-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","commit":null,"date":null}]}
+{"repo":"example.com/acme/widget","query":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","default_branch":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","branches_total":2,"tags_total":3,"branches_all":9,"tags_all":12,"branches_more":false,"tags_more":false,"refs":[{"kind":"branch","name":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","target":"0123456789abcdef0123456789abcdef01234567"},{"kind":"branch","name":"b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","target":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"},{"kind":"tag","name":"t-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","target":"0123456789abcdef0123456789abcdef01234567"},{"kind":"tag","name":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","target":"0123456789abcdef0123456789abcdef01234567"},{"kind":"tag","name":"u-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","target":"0123456789abcdef0123456789abcdef01234567"}],"mirrored_at":null,"notes":[]}
 '''
 
 [[exchange]]
 operation = "Refs"
 variables = "{\"first\":null,\"gitlab\":false,\"query\":\"a\\u001bb\u202Ec\u200Bd\\ne\\rf\\u0000g\u2028h\u007Fi\",\"repo0\":\"example.com/acme/widget\",\"repo1\":\"\",\"unfiltered\":true}"
-query = '''
-query Refs($repo0: String!, $repo1: String!, $gitlab: Boolean!, $first: Int, $query: String, $unfiltered: Boolean!) {
-  r0: repository(name: $repo0) { ...Refs }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Refs }
-}
-
-fragment Refs on Repository {
-  name
-  defaultBranch { displayName }
-  branches(first: $first, query: $query) { ...Listing }
-  tags(first: $first, query: $query) { ...Listing }
-  all_branches: branches(first: 1) @include(if: $unfiltered) { totalCount }
-  all_tags: tags(first: 1) @include(if: $unfiltered) { totalCount }
-}
-
-fragment Listing on GitRefConnection {
-  totalCount
-  nodes { displayName target { oid commit { committer { date } } } }
-}
-'''
+document = "Refs-fed5d5bc"
 status = 200
 content-type = "application/json"
 response = '''
@@ -45,22 +26,12 @@ response = '''
           {
             "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-03-01T12:00:00Z"
-                }
-              },
               "oid": "0123456789abcdef0123456789abcdef01234567"
             }
           },
           {
             "displayName": "b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
-                }
-              },
               "oid": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
             }
           }
@@ -70,35 +41,25 @@ response = '''
       "defaultBranch": {
         "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
       },
+      "mirrorInfo": null,
       "name": "example.com/acme/widget",
       "tags": {
         "nodes": [
           {
             "displayName": "t-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
-                }
-              },
               "oid": "0123456789abcdef0123456789abcdef01234567"
             }
           },
           {
             "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-02-01T08:30:00Z"
-                }
-              },
               "oid": "0123456789abcdef0123456789abcdef01234567"
             }
           },
           {
             "displayName": "u-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
             "target": {
-              "commit": null,
               "oid": "0123456789abcdef0123456789abcdef01234567"
             }
           }

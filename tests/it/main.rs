@@ -22,6 +22,16 @@ fn the_case_list_matches_tests_cases() {
 }
 
 #[test]
+fn every_document_is_named_by_a_case() {
+    let unnamed = support::unnamed_documents().unwrap_or_else(|e| panic!("{e}"));
+    assert!(
+        unnamed.is_empty() || support::blessing(),
+        "no case names {}; run with SEGO_BLESS=1",
+        unnamed.join(", ")
+    );
+}
+
+#[test]
 #[ignore = "sends requests to sourcegraph.com; run with `just record`"]
 fn missing_and_stale_responses_are_recorded() {
     let failures = support::record::every_case();
@@ -32,5 +42,17 @@ fn missing_and_stale_responses_are_recorded() {
 #[ignore = "sends requests to sourcegraph.com; run with `just live`"]
 fn recorded_responses_still_match_sourcegraph_com() {
     let failures = support::live::every_case();
+    assert!(failures.is_empty(), "{}", failures.join("\n"));
+}
+
+#[test]
+#[ignore = "runs sego against sourcegraph.com; run with `just live e2e`"]
+fn answers_still_match_sourcegraph_com() {
+    let commands: Vec<String> = std::env::var("SEGO_E2E_COMMANDS")
+        .unwrap_or_default()
+        .split_whitespace()
+        .map(str::to_owned)
+        .collect();
+    let failures = support::live::every_answer(&commands);
     assert!(failures.is_empty(), "{}", failures.join("\n"));
 }

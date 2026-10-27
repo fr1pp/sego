@@ -1,0 +1,203 @@
+# --follow follows a path across a rename, as git log --follow.
+args = ["log", "--follow", "github.com/gorilla/mux@v1.8.0", "context.go"]
+status.code = 0
+stdout = '''
+github.com/gorilla/mux@98cb6bf42e08:context.go  4 commits  follow  rev v1.8.0  mirrored 2026-10-27T07:22Z
+f395758b854c  2019-10-24  Franklin Harding  Remove/cleanup request context helpers (#525)
+6137e193cdcb  2018-12-17  Michael Li  remove redundant code that remove support gorilla/context (#427)
+8771f97498c6  2018-09-02  Franklin Harding  Drop support for Go < 1.7: remove gorilla/context (#391)
+fdfca9f91739  2016-06-04  Eric J. Holmes  Support native context.Context when go1.7 is used.
+'''
+
+[[exchange]]
+operation = "Log"
+variables = '{"first":150,"follow":true,"gitlab":false,"path":"context.go","repo0":"github.com/gorilla/mux","repo1":"","rev":"v1.8.0"}'
+document = "Log-88d156a1"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "r0": {
+      "commit": {
+        "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+        "w": {
+          "commit": {
+            "ancestors": {
+              "nodes": [
+                {
+                  "author": {
+                    "date": "2019-10-24T12:12:56Z",
+                    "person": {
+                      "displayName": "Franklin Harding"
+                    }
+                  },
+                  "oid": "f395758b854c4efa789b8c1e9b73479704c548cb",
+                  "parents": [
+                    {
+                      "oid": "ff4e71f144166b1dfe3017a146f8ed32a82e688b"
+                    }
+                  ],
+                  "subject": "Remove/cleanup request context helpers (#525)"
+                },
+                {
+                  "author": {
+                    "date": "2018-12-17T14:42:43Z",
+                    "person": {
+                      "displayName": "Michael Li"
+                    }
+                  },
+                  "oid": "6137e193cdcba2725f16de84eaf0db2b769d9668",
+                  "parents": [
+                    {
+                      "oid": "d2b5d13b9260193b5a5649e9f47fda645bd2bd1d"
+                    }
+                  ],
+                  "subject": "remove redundant code that remove support gorilla/context (#427)"
+                },
+                {
+                  "author": {
+                    "date": "2018-09-02T22:22:40Z",
+                    "person": {
+                      "displayName": "Franklin Harding"
+                    }
+                  },
+                  "oid": "8771f97498c6be5fe95d2eb5fb882c18bbf7f361",
+                  "parents": [
+                    {
+                      "oid": "962c5bed0721b50f2ba42684e9600dfde174770f"
+                    }
+                  ],
+                  "subject": "Drop support for Go < 1.7: remove gorilla/context (#391)"
+                },
+                {
+                  "author": {
+                    "date": "2016-06-04T08:04:23Z",
+                    "person": {
+                      "displayName": "Eric J. Holmes"
+                    }
+                  },
+                  "oid": "fdfca9f9173962ed22bc63adc02a1589e43c1405",
+                  "parents": [
+                    {
+                      "oid": "5dd56998c22c824ad2e13c50bc3213e85b125134"
+                    }
+                  ],
+                  "subject": "Support native context.Context when go1.7 is used."
+                }
+              ],
+              "pageInfo": {
+                "hasNextPage": false
+              }
+            }
+          }
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T07:22:54Z"
+      },
+      "name": "github.com/gorilla/mux"
+    },
+    "t0": {
+      "gitRefs": {
+        "nodes": [
+          {
+            "displayName": "v1.8.1",
+            "target": {
+              "oid": "b4617d0b9670ad14039b2739167fd35a60f557c5"
+            }
+          },
+          {
+            "displayName": "v1.8.0",
+            "target": {
+              "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+            }
+          },
+          {
+            "displayName": "v1.7.4",
+            "target": {
+              "oid": "75dcda0896e109a2a22c9315bca3bb21b87b2ba5"
+            }
+          },
+          {
+            "displayName": "v1.7.3",
+            "target": {
+              "oid": "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15"
+            }
+          },
+          {
+            "displayName": "v1.7.2",
+            "target": {
+              "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+            }
+          },
+          {
+            "displayName": "v1.7.1",
+            "target": {
+              "oid": "c5c6c98bc25355028a63748a498942a6398ccd22"
+            }
+          },
+          {
+            "displayName": "v1.7.0",
+            "target": {
+              "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+            }
+          },
+          {
+            "displayName": "v1.6.2",
+            "target": {
+              "oid": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+            }
+          },
+          {
+            "displayName": "v1.6.1",
+            "target": {
+              "oid": "53c1911da2b537f792e7cafcb446b05ffe33b996"
+            }
+          },
+          {
+            "displayName": "v1.6.0",
+            "target": {
+              "oid": "7f08801859139f86dfafd1c296e2cba9a80d292e"
+            }
+          },
+          {
+            "displayName": "v1.5.0",
+            "target": {
+              "oid": "24fca303ac6da784b9e8269f724ddeb0b2eea5e7"
+            }
+          },
+          {
+            "displayName": "v1.4.0",
+            "target": {
+              "oid": "bcd8bc72b08df0f70df986b97f95590779502d31"
+            }
+          },
+          {
+            "displayName": "v1.3.0",
+            "target": {
+              "oid": "392c28fe23e1c45ddba891b0320b3b5df220beea"
+            }
+          },
+          {
+            "displayName": "v1.2.0",
+            "target": {
+              "oid": "b12896167c61cb7a17ee5f15c2ba0729d78793db"
+            }
+          },
+          {
+            "displayName": "v1.1",
+            "target": {
+              "oid": "0eeaf8392f5b04950925b8a69fe70f110fa7cbfc"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+'''

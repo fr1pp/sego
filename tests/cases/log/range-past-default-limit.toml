@@ -2,7 +2,7 @@
 args = ["log", "github.com/gorilla/mux@v1.1..v1.8.1"]
 status.code = 0
 stdout = '''
-github.com/gorilla/mux@0eeaf8392f5b..b4617d0b9670  150 of 176 commits shown  rev v1.1..v1.8.1
+github.com/gorilla/mux@0eeaf8392f5b..b4617d0b9670  150 of 176 commits shown  rev v1.1..v1.8.1  mirrored 2026-10-27T07:22Z
 b4617d0b9670  2023-10-18  Corey Daley  (tag: v1.8.1) update GitHub workflows (#734)
 3401478badc7  2023-09-21  Steffen Wentzel  fix SPA handler in README.md (#733)
 4a671cbc5162  2023-08-24  eh-steve  Add GetVarNames() (#676)
@@ -156,81 +156,55 @@ b9ff34f617bc  2017-01-17  ShaneSaww  Adding some extra tests, to hit all the use
 '''
 
 [[exchange]]
-operation = "Log"
-variables = '{"a":"v1.1","b":"v1.8.1","count":true,"first":151,"gitlab":false,"path":null,"probe":false,"repo0":"github.com/gorilla/mux","repo1":""}'
-query = '''
-query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $path: String, $first: Int, $count: Boolean!, $probe: Boolean!) {
-  a0: repository(name: $repo0) { ...Base }
-  b0: repository(name: $repo0) { ...Head }
-  n0: repository(name: $repo0) { ...Ahead }
-  c0: repository(name: $repo0) { ...Commits }
-  t0: repository(name: $repo0) { ...Tags }
-  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
-  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
-  n1: repository(name: $repo1) @include(if: $gitlab) { ...Ahead }
-  c1: repository(name: $repo1) @include(if: $gitlab) { ...Commits }
-  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
-}
-
-fragment Base on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $a) { oid x: path(path: $path) @include(if: $probe) { __typename } }
-}
-
-fragment Head on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $b) { oid x: path(path: $path) @include(if: $probe) { __typename } }
-}
-
-fragment Ahead on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $b) @include(if: $count) { behindAhead(revspec: $a) { ahead } }
-}
-
-fragment Commits on Repository {
-  name
-  defaultBranch { displayName }
-  comparison(base: $a, head: $b) { commits(first: $first, path: $path) { ...Page } }
-}
-fragment Page on GitCommitConnection {
-  nodes { oid subject author { date person { displayName } } parents { oid } }
-  pageInfo { hasNextPage }
-}
-
-fragment Tags on Repository {
-  name
-  defaultBranch { displayName }
-  gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
-}
-'''
+operation = "Range"
+variables = '{"a":"v1.1","b":"v1.8.1","gitlab":false,"repo0":"github.com/gorilla/mux","repo1":""}'
+document = "Range-782f210b"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
-    "a0": {
-      "commit": {
+    "r0": {
+      "a": {
         "oid": "0eeaf8392f5b04950925b8a69fe70f110fa7cbfc"
       },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "github.com/gorilla/mux"
-    },
-    "b0": {
-      "commit": {
+      "b": {
         "oid": "b4617d0b9670ad14039b2739167fd35a60f557c5"
       },
       "defaultBranch": {
         "displayName": "main"
       },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T07:22:54Z"
+      },
       "name": "github.com/gorilla/mux"
+    }
+  }
+}
+'''
+
+[[exchange]]
+operation = "LogRange"
+variables = '{"a":"0eeaf8392f5b04950925b8a69fe70f110fa7cbfc","b":"b4617d0b9670ad14039b2739167fd35a60f557c5","count":true,"first":150,"path":null,"probe":false,"repo":"github.com/gorilla/mux"}'
+document = "LogRange-1ae4f20e"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "a": {
+      "commit": {
+        "oid": "0eeaf8392f5b04950925b8a69fe70f110fa7cbfc"
+      }
     },
-    "c0": {
+    "b": {
+      "commit": {
+        "oid": "b4617d0b9670ad14039b2739167fd35a60f557c5"
+      }
+    },
+    "c": {
       "comparison": {
         "commits": {
           "nodes": [
@@ -2501,48 +2475,23 @@ response = '''
                 }
               ],
               "subject": "Merge pull request #196 from olt/doc-non-capture-groups"
-            },
-            {
-              "author": {
-                "date": "2016-09-20T14:06:56Z",
-                "person": {
-                  "displayName": "Oliver Tonnhofer"
-                }
-              },
-              "oid": "14f5df0128b7c89faab437c00d0ea98fb56e03a0",
-              "parents": [
-                {
-                  "oid": "0a192a193177452756c362c20087ddafcf6829c4"
-                }
-              ],
-              "subject": "document non-capturing groups (closes #143)"
             }
           ],
           "pageInfo": {
             "hasNextPage": true
           }
         }
-      },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "github.com/gorilla/mux"
+      }
     },
-    "n0": {
+    "n": {
       "commit": {
         "behindAhead": {
-          "ahead": 176
+          "ahead": 176,
+          "behind": 0
         }
-      },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "github.com/gorilla/mux"
+      }
     },
-    "t0": {
-      "defaultBranch": {
-        "displayName": "main"
-      },
+    "t": {
       "gitRefs": {
         "nodes": [
           {
@@ -2635,10 +2584,8 @@ response = '''
               "oid": "0eeaf8392f5b04950925b8a69fe70f110fa7cbfc"
             }
           }
-        ],
-        "totalCount": 15
-      },
-      "name": "github.com/gorilla/mux"
+        ]
+      }
     }
   }
 }

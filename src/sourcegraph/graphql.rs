@@ -1,12 +1,10 @@
-use std::time::Instant;
-
 use serde_json::Value;
 
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::Map;
 
-use super::{GRAPHQL_PATH, Response, Transport};
+use super::Response;
 use crate::error::Error;
 
 const COMPLEXITY_CODE: &str = "ErrQueryComplexityLimitExceeded";
@@ -24,6 +22,60 @@ pub enum Segment {
 pub struct GqlError {
     pub message: String,
     pub path: Vec<Segment>,
+    /// `extensions.code`.
+    pub code: Option<String>,
+}
+
+/// What a server error says, whatever its wording; each reader decides what
+/// it means where the error sits.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum GqlErrorKind {
+    /// A revision doesn't resolve, including after waiting for a fetch.
+    RevisionNotFound,
+    /// The file is over the content limit.
+    OverLimit,
+    /// A search's regular expression doesn't compile.
+    Regexp,
+    /// The query is over the server's complexity limit.
+    Complexity,
+    /// Anything else, which includes real server failures: gitserver already
+    /// sorts its own not-found exits into `RevisionNotFound`.
+    Other,
+}
+
+impl GqlError {
+    pub fn kind(&self) -> GqlErrorKind {
+        if self.code.as_deref() == Some(COMPLEXITY_CODE) {
+            GqlErrorKind::Complexity
+        } else if self.message.starts_with("revision not found") {
+            GqlErrorKind::RevisionNotFound
+        } else if self.message.starts_with("file exceeded size limit") {
+            GqlErrorKind::OverLimit
+        } else if self.regexp_reason().is_some() {
+            GqlErrorKind::Regexp
+        } else {
+            GqlErrorKind::Other
+        }
+    }
+
+    /// See `regexp_reason`.
+    pub fn regexp_reason(&self) -> Option<&str> {
+        regexp_reason(&self.message)
+    }
+}
+
+/// The first line of the reason a Go regexp didn't compile, from an error's
+/// message or an alert's description, which may come wrapped in gRPC
+/// errors; `None` for any other text.
+pub fn regexp_reason(text: &str) -> Option<&str> {
+    let mut rest = text;
+    while let Some(after) = rest.strip_prefix("rpc error: code = ") {
+        rest = after.split_once(" desc = ")?.1;
+    }
+    let reason = rest
+        .strip_prefix("error parsing regexp: ")
+        .or_else(|| rest.strip_prefix("Error parsing regexp: "))?;
+    Some(reason.lines().next()?.trim())
 }
 
 #[derive(Debug)]
@@ -65,7 +117,7 @@ impl Envelope {
         self.errors.iter().filter(beneath).collect()
     }
 
-    /// The value at `path`, or `None` when an error covers it, it is absent,
+    /// The value at `path`, or `None` when an error covers it, it is missing,
     /// or it is null.
     pub fn get(&self, path: &[&str]) -> Option<&Value> {
         if self.error_at(path).is_some() {
@@ -116,18 +168,6 @@ pub fn refusal(response: &Response, host: &str) -> Option<Error> {
         });
     }
     None
-}
-
-pub fn exchange(
-    transport: &dyn Transport,
-    request: &Request,
-    deadline: Instant,
-) -> Result<Envelope, Error> {
-    let host = transport.host();
-    let response = transport
-        .post(GRAPHQL_PATH, &request.body(), deadline)
-        .map_err(|error| error.into_error(&host))?;
-    classify(response, &host)
 }
 
 pub fn classify(response: Response, host: &str) -> Result<Envelope, Error> {
@@ -194,11 +234,11 @@ fn is_json(media: &str) -> bool {
     media.eq_ignore_ascii_case("application/json") || media.to_ascii_lowercase().ends_with("+json")
 }
 
-fn complexity_message(body: &Value) -> Option<&str> {
-    body.get("errors")?.as_array()?.iter().find_map(|error| {
-        let code = error.get("extensions")?.get("code")?.as_str()?;
-        (code == COMPLEXITY_CODE).then(|| error.get("message").and_then(Value::as_str)).flatten()
-    })
+fn complexity_message(body: &Value) -> Option<String> {
+    read_errors(body)
+        .into_iter()
+        .find(|error| error.kind() == GqlErrorKind::Complexity)
+        .map(|error| error.message)
 }
 
 fn read_errors(body: &Value) -> Vec<GqlError> {
@@ -213,6 +253,11 @@ fn read_errors(body: &Value) -> Vec<GqlError> {
                 .and_then(Value::as_array)
                 .map(|path| path.iter().map(segment).collect())
                 .unwrap_or_default(),
+            code: error
+                .get("extensions")
+                .and_then(|e| e.get("code"))
+                .and_then(Value::as_str)
+                .map(str::to_owned),
         })
         .collect()
 }
@@ -302,15 +347,6 @@ impl<'a> View<'a> {
         self.envelope.get(&self.path(tail))
     }
 
-    /// See `Envelope::error_at`.
-    pub fn error(&self, tail: &[&str]) -> Option<&GqlError> {
-        self.envelope.error_at(&self.path(tail))
-    }
-
-    pub fn errored(&self, tail: &[&str]) -> bool {
-        self.error(tail).is_some()
-    }
-
     /// Whether an error sits at `tail` or anywhere below it.
     pub fn errored_beneath(&self, tail: &[&str]) -> bool {
         self.envelope.error_beneath(&self.path(tail)).is_some()
@@ -338,6 +374,74 @@ mod tests {
     use crate::sourcegraph::Response;
 
     const NOT_GRAPHQL: &str = "sourcegraph.com's answer isn't a GraphQL response";
+
+    fn error(message: &str) -> GqlError {
+        GqlError {
+            message: message.to_owned(),
+            path: vec![Segment::Key("r0".to_owned())],
+            code: None,
+        }
+    }
+
+    /// Messages from responses recorded from sourcegraph.com, each with the
+    /// kind it is.
+    const KINDS: [(&str, GqlErrorKind); 9] = [
+        ("revision not found: repo 1700 @deadbeefdeadbeef^0", GqlErrorKind::RevisionNotFound),
+        (
+            "revision not found after waiting for a fetch already in progress: repo 1700 @v9.9.9",
+            GqlErrorKind::RevisionNotFound,
+        ),
+        (
+            "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
+            GqlErrorKind::OverLimit,
+        ),
+        (
+            "rpc error: code = Unknown desc = error parsing regexp: invalid or unsupported Perl \
+             syntax: `(?<`",
+            GqlErrorKind::Regexp,
+        ),
+        ("not a blob: \".github\"", GqlErrorKind::Other),
+        ("not a directory: \"mux.go\"", GqlErrorKind::Other),
+        // Recorded 2026-10-27 in show/upstream-revision: git exit 128 at a
+        // revision lookup.
+        (
+            "rpc error: code = Unknown desc = git command [git -c gc.auto=0 -c \
+             maintenance.auto=0 rev-parse @{upstream}^0 --] failed with status code 128",
+            GqlErrorKind::Other,
+        ),
+        // Recorded 2026-10-27 in diff/path-that-leaves-the-root: git exit 128
+        // at a path probe.
+        (
+            "rpc error: code = Unknown desc = git command [git -c gc.auto=0 -c \
+             maintenance.auto=0 ls-tree --long --full-name -z \
+             98cb6bf42e086f6af920b965c38cacc07402d51b -- :(literal)../mux.go] failed with status \
+             code 128",
+            GqlErrorKind::Other,
+        ),
+        ("panic occurred: runtime error: slice bounds out of range [:-1]", GqlErrorKind::Other),
+    ];
+
+    #[test]
+    fn an_error_is_sorted_by_its_message() {
+        for (message, kind) in KINDS {
+            assert_eq!(error(message).kind(), kind, "{message}");
+        }
+    }
+
+    #[test]
+    fn a_query_over_the_complexity_limit_is_known_by_its_code() {
+        let over = GqlError { code: Some(COMPLEXITY_CODE.to_owned()), ..error("too complex") };
+        assert_eq!(over.kind(), GqlErrorKind::Complexity);
+    }
+
+    #[test]
+    fn a_regexp_error_gives_the_first_line_of_its_reason() {
+        let wrapped = error(
+            "rpc error: code = Unknown desc = error parsing regexp: missing closing ): `(a`\nmore",
+        );
+        assert_eq!(wrapped.regexp_reason(), Some("missing closing ): `(a`"));
+        assert_eq!(error("not a blob").regexp_reason(), None);
+    }
 
     const HOST: &str = "sourcegraph.com";
 
@@ -653,7 +757,7 @@ mod tests {
     }
 
     #[test]
-    fn a_repeated_selection_numbers_each_copy() {
+    fn a_repeated_selection_numbers_each_repeat() {
         assert_eq!(
             repeated("p#: path(path: $path#)", 2),
             "p0: path(path: $path0)\np1: path(path: $path1)"

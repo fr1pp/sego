@@ -5,32 +5,3 @@ stderr = '''
 sego: error: no revision and path in -x/f resolve in github.com/acme/widget
 '''
 
-[[exchange]]
-operation = "ShowFile"
-variables = '{"gitlab":false,"repo0":"github.com/acme/widget","repo1":""}'
-query = '''
-query ShowFile($repo0: String!, $repo1: String!, $gitlab: Boolean!) {
-  r0: repository(name: $repo0) { ...Guesses }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
-}
-
-fragment Guesses on Repository {
-  name
-  defaultBranch { displayName }
-
-}
-'''
-status = 200
-content-type = "application/json"
-response = '''
-{
-  "data": {
-    "r0": {
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "github.com/acme/widget"
-    }
-  }
-}
-'''

@@ -9,6 +9,9 @@ sego's main users are agents in Claude Code. Its limits come from that tool:
 - Claude Code times Bash out at 120 s, and the server allows searches up to 60 s. sego's client
   deadline of 90 s sits between the two.
 - A line wider than 500 columns is cut in text, with a pointer to `--json`, which always carries the
-  full line.
+  full line, CRs included.
 
 An explicit request is fetched in full, with no size bound. There is no tool-wide output budget.
+`--json` carries whole lists (files, entries, refs, a range's commits), since a program reading it
+has no screen to fill. The one exception is a revision's history, which is unbounded: it stays cut
+at the default limit, and says whether there is more (ADR 0015).

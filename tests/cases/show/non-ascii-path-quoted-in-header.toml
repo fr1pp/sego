@@ -9,77 +9,42 @@ stdout = '''
 '''
 
 [[exchange]]
-operation = "ShowFile"
-variables = '{"ambiguous0":false,"end":500,"gitlab":false,"parent0":"test/fixtures/copy/utf/新建文件夹","path0":"test/fixtures/copy/utf/新建文件夹/index.js","repo0":"github.com/nodejs/node","repo1":"","rev0":"aa1bf2cc37539bfeeef8faf80c9d31a64cb78026","split":false,"start":1}'
-query = '''
-query ShowFile($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $start: Int!, $end: Int!
-$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
-  r0: repository(name: $repo0) { ...Guesses }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
-}
-
-fragment Guesses on Repository {
-  name
-  defaultBranch { displayName }
-c0: commit(rev: $rev0) {
-    oid
-    meta: blob(path: $path0) { byteSize totalLines binary rawURL lfs { byteSize } }
-    body: blob(path: $path0) { content(startLine: $start, endLine: $end, textOnly: true) }
-    dir: tree(path: $path0) { entries { path } }
-    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
-    x0: path(path: $path0) @include(if: $split) { __typename }
-  }
-  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
-}
-'''
+operation = "File"
+variables = '{"content":true,"end":500,"gitlab":false,"path":"test/fixtures/copy/utf/新建文件夹/index.js","recursive":false,"repo0":"github.com/nodejs/node","repo1":"","rev":"aa1bf2cc37539bfeeef8faf80c9d31a64cb78026","start":1}'
+document = "File-d6d96d2c"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
     "r0": {
-      "c0": {
+      "commit": {
         "body": {
+          "__typename": "GitBlob",
           "content": "module.exports = {\n  purpose: 'testing copy'\n};\n"
         },
-        "dir": null,
+        "gm": null,
         "meta": {
+          "__typename": "GitBlob",
           "binary": false,
           "byteSize": 48,
           "lfs": null,
+          "path": "test/fixtures/copy/utf/新建文件夹/index.js",
           "rawURL": "/r/github.com/nodejs/node@aa1bf2cc37539bfeeef8faf80c9d31a64cb78026/-/raw/test/fixtures/copy/utf/%E6%96%B0%E5%BB%BA%E6%96%87%E4%BB%B6%E5%A4%B9/index.js",
+          "submodule": null,
           "totalLines": 3
         },
-        "oid": "aa1bf2cc37539bfeeef8faf80c9d31a64cb78026",
-        "parent": {
-          "entries": [
-            {
-              "path": "test/fixtures/copy/utf/新建文件夹/experimental.json",
-              "submodule": null
-            },
-            {
-              "path": "test/fixtures/copy/utf/新建文件夹/index.js",
-              "submodule": null
-            }
-          ]
-        }
+        "oid": "aa1bf2cc37539bfeeef8faf80c9d31a64cb78026"
       },
       "defaultBranch": {
         "displayName": "main"
       },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T06:59:20Z"
+      },
       "name": "github.com/nodejs/node"
     }
-  },
-  "errors": [
-    {
-      "message": "not a directory: \"test/fixtures/copy/utf/新建文件夹/index.js\"",
-      "path": [
-        "r0",
-        "c0",
-        "dir"
-      ]
-    }
-  ]
+  }
 }
 '''

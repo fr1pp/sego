@@ -17,14 +17,17 @@ options:
   --version     sego's version
 
 text:
-  REPO@COMMIT[:PATH]  N entries  D dirs  F files  S submodules  rev REV,
-  then a row per entry, "KIND  PATH", with KIND dir, file or submodule.
-  Paths are from the repository root, sorted segment by segment.
-  Text prints 200 entries; --json carries every entry.
+  REPO@COMMIT[:PATH]  N entries  D dirs  F files  S submodules  rev REV
+  mirrored T, then a row per entry, "KIND  PATH", with KIND dir, file or
+  submodule. A file or a submodule is its own one row. Paths are from the
+  repository root, sorted segment by segment. A submodule's URL comes
+  from .gitmodules; "?" when it has none. Text prints 200 entries; --json
+  carries every entry.
 
 json:
-  repo rev commit path recursive
-  entries[{path kind submodule_url submodule_target submodule_commit}]
+  repo rev commit path kind (directory, file or submodule) recursive
+  entries[{path kind submodule_url submodule_address submodule_commit}]
+  entries_total entries_more mirrored_at notes
 
 examples:
   sego ls github.com/gorilla/mux@v1.8.0

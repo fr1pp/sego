@@ -1,0 +1,58 @@
+# A window of LF lines with one CR CR LF line is not CRLF, and that line's CRs show.
+args = ["show", "github.com/libc0607/rtl88x2eu-20230815@12977e40:hal/phydm/phydm_mp.c", "140-150"]
+status.code = 0
+stdout = '''
+github.com/libc0607/rtl88x2eu-20230815@12977e4013ec:hal/phydm/phydm_mp.c  lines 140-150 of 427
+140:			for (i = start; i <= end; i++) {
+141:				if (i < max_rf_path) {
+142:					mp->rf0[i] = odm_get_rf_reg(dm, i, RF_0x0, RFREG_MASK);
+143:					/*Tx mode: RF0x00[19:16]=4'b0010 */
+144:					odm_set_rf_reg(dm, i, RF_0x0, 0xF0000, 0x2);
+145:					/*Lowest RF gain index: RF_0x0[4:0] = 0*/
+146:					odm_set_rf_reg(dm, i, RF_0x0, 0x1f, 0x0);
+147:					/*RF LO enabled */
+148:					odm_set_rf_reg(dm, i, RF_0x58, BIT(1), 0x1);\u{d}\u{d}
+149:				}
+150:			}
+'''
+
+[[exchange]]
+operation = "File"
+variables = '{"content":true,"end":150,"gitlab":false,"path":"hal/phydm/phydm_mp.c","recursive":false,"repo0":"github.com/libc0607/rtl88x2eu-20230815","repo1":"","rev":"12977e40","start":140}'
+document = "File-d6d96d2c"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "r0": {
+      "commit": {
+        "body": {
+          "__typename": "GitBlob",
+          "content": "\t\t\tfor (i = start; i <= end; i++) {\n\t\t\t\tif (i < max_rf_path) {\n\t\t\t\t\tmp->rf0[i] = odm_get_rf_reg(dm, i, RF_0x0, RFREG_MASK);\n\t\t\t\t\t/*Tx mode: RF0x00[19:16]=4'b0010 */\n\t\t\t\t\todm_set_rf_reg(dm, i, RF_0x0, 0xF0000, 0x2);\n\t\t\t\t\t/*Lowest RF gain index: RF_0x0[4:0] = 0*/\n\t\t\t\t\todm_set_rf_reg(dm, i, RF_0x0, 0x1f, 0x0);\n\t\t\t\t\t/*RF LO enabled */\n\t\t\t\t\todm_set_rf_reg(dm, i, RF_0x58, BIT(1), 0x1);\r\r\n\t\t\t\t}\n\t\t\t}\n"
+        },
+        "gm": null,
+        "meta": {
+          "__typename": "GitBlob",
+          "binary": false,
+          "byteSize": 12848,
+          "lfs": null,
+          "path": "hal/phydm/phydm_mp.c",
+          "rawURL": "/r/github.com/libc0607/rtl88x2eu-20230815@12977e4013ecafbae993b3b08d46bff87d6d7c67/-/raw/hal/phydm/phydm_mp.c",
+          "submodule": null,
+          "totalLines": 427
+        },
+        "oid": "12977e4013ecafbae993b3b08d46bff87d6d7c67"
+      },
+      "defaultBranch": {
+        "displayName": "v5.15.0.1"
+      },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T00:13:14Z"
+      },
+      "name": "github.com/libc0607/rtl88x2eu-20230815"
+    }
+  }
+}
+'''

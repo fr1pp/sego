@@ -16,6 +16,7 @@ mod sourcegraph;
 
 use std::ffi::{OsStr, OsString};
 use std::io::{self, Write};
+use std::time::Instant;
 
 use cache::Cache;
 use cli::{Invocation, SYNOPSIS};
@@ -67,7 +68,7 @@ pub fn run(
     };
     match failure.kind() {
         io::ErrorKind::BrokenPipe => 0,
-        _ => 1,
+        _ => 3,
     }
 }
 
@@ -115,8 +116,9 @@ fn attempt(
     };
     let endpoint = endpoint(env.endpoint.as_deref())?;
     let cache = Cache::new(env.cache_dir.as_deref(), &endpoint);
-    let client = Client::new(connect(endpoint));
-    commands::run(command, &client, &cache, notes, out, err)?;
+    let deadline = Instant::now() + sourcegraph::DEADLINE;
+    let client = Client::new(connect(endpoint.clone()), endpoint, &cache, deadline);
+    commands::run(command, client, notes, out, err)?;
     out.flush()?;
     cache.trim();
     Ok(())

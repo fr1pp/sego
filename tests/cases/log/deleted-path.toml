@@ -2,94 +2,75 @@
 args = ["log", "github.com/gorilla/mux@v1.8.0", "context_gorilla.go"]
 status.code = 0
 stdout = '''
-github.com/gorilla/mux@98cb6bf42e08:context_gorilla.go  2 commits  rev v1.8.0
+github.com/gorilla/mux@98cb6bf42e08:context_gorilla.go  2 commits  rev v1.8.0  mirrored 2026-10-27T07:21Z
 8771f97498c6  2018-09-02  Franklin Harding  Drop support for Go < 1.7: remove gorilla/context (#391)
 fdfca9f91739  2016-06-04  Eric J. Holmes  Support native context.Context when go1.7 is used.
 '''
 
 [[exchange]]
 operation = "Log"
-variables = '{"first":151,"gitlab":false,"path":"context_gorilla.go","repo0":"github.com/gorilla/mux","repo1":"","rev":"v1.8.0"}'
-query = '''
-query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String, $first: Int) {
-  r0: repository(name: $repo0) { ...History }
-  t0: repository(name: $repo0) { ...Tags }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...History }
-  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
-}
-
-fragment History on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $rev) { oid ancestors(first: $first, path: $path) { ...Page } }
-}
-fragment Page on GitCommitConnection {
-  nodes { oid subject author { date person { displayName } } parents { oid } }
-  pageInfo { hasNextPage }
-}
-
-fragment Tags on Repository {
-  name
-  defaultBranch { displayName }
-  gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
-}
-'''
+variables = '{"first":150,"follow":false,"gitlab":false,"path":"context_gorilla.go","repo0":"github.com/gorilla/mux","repo1":"","rev":"v1.8.0"}'
+document = "Log-88d156a1"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
     "r0": {
       "commit": {
-        "ancestors": {
-          "nodes": [
-            {
-              "author": {
-                "date": "2018-09-02T22:22:40Z",
-                "person": {
-                  "displayName": "Franklin Harding"
-                }
-              },
-              "oid": "8771f97498c6be5fe95d2eb5fb882c18bbf7f361",
-              "parents": [
+        "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+        "w": {
+          "commit": {
+            "ancestors": {
+              "nodes": [
                 {
-                  "oid": "962c5bed0721b50f2ba42684e9600dfde174770f"
+                  "author": {
+                    "date": "2018-09-02T22:22:40Z",
+                    "person": {
+                      "displayName": "Franklin Harding"
+                    }
+                  },
+                  "oid": "8771f97498c6be5fe95d2eb5fb882c18bbf7f361",
+                  "parents": [
+                    {
+                      "oid": "962c5bed0721b50f2ba42684e9600dfde174770f"
+                    }
+                  ],
+                  "subject": "Drop support for Go < 1.7: remove gorilla/context (#391)"
+                },
+                {
+                  "author": {
+                    "date": "2016-06-04T08:04:23Z",
+                    "person": {
+                      "displayName": "Eric J. Holmes"
+                    }
+                  },
+                  "oid": "fdfca9f9173962ed22bc63adc02a1589e43c1405",
+                  "parents": [
+                    {
+                      "oid": "5dd56998c22c824ad2e13c50bc3213e85b125134"
+                    }
+                  ],
+                  "subject": "Support native context.Context when go1.7 is used."
                 }
               ],
-              "subject": "Drop support for Go < 1.7: remove gorilla/context (#391)"
-            },
-            {
-              "author": {
-                "date": "2016-06-04T08:04:23Z",
-                "person": {
-                  "displayName": "Eric J. Holmes"
-                }
-              },
-              "oid": "fdfca9f9173962ed22bc63adc02a1589e43c1405",
-              "parents": [
-                {
-                  "oid": "5dd56998c22c824ad2e13c50bc3213e85b125134"
-                }
-              ],
-              "subject": "Support native context.Context when go1.7 is used."
+              "pageInfo": {
+                "hasNextPage": false
+              }
             }
-          ],
-          "pageInfo": {
-            "hasNextPage": false
           }
-        },
-        "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+        }
       },
       "defaultBranch": {
         "displayName": "main"
+      },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T07:21:55Z"
       },
       "name": "github.com/gorilla/mux"
     },
     "t0": {
-      "defaultBranch": {
-        "displayName": "main"
-      },
       "gitRefs": {
         "nodes": [
           {
@@ -182,10 +163,8 @@ response = '''
               "oid": "0eeaf8392f5b04950925b8a69fe70f110fa7cbfc"
             }
           }
-        ],
-        "totalCount": 15
-      },
-      "name": "github.com/gorilla/mux"
+        ]
+      }
     }
   }
 }

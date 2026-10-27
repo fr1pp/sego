@@ -35,7 +35,7 @@ The rules every change to sego follows. Where an ADR holds the reason, the rule 
 
 ## Errors
 
-- A failure is an `Error`, and its kind decides the exit code
+- Every error is an `Error`, and its kind decides the exit code
   ([ADR 0005](docs/adr/0005-streams-and-exit-codes.md)).
 
 ## Visibility

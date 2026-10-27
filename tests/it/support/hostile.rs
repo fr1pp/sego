@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use serde_json::Value;
 
-use super::case::{Body, Case, Exchange, Request};
+use super::case::{self, Body, Case, Exchange, Request};
 use super::replay::Replay;
 use super::{Outcome, run};
 
@@ -385,26 +385,29 @@ mod tests {
 
     const FAILED_LIST: &str = r#"
     args = ["refs", "example.com/a/b"]
-    status.code = 1
+    status.code = 3
 
     [[exchange]]
     operation = "Refs"
     variables = '{"first":101,"query":null,"repo0":"example.com/a/b"}'
-    query = "query Refs($repo0: String!) { r0: repository(name: $repo0) { name } }"
+    document = "DOCUMENT"
     status = 200
     content-type = "application/json"
     response = '{"data": {"r0": null}, "errors": [{"message": "boom", "path": ["r0", "tags"]}]}'
     "#;
 
     fn failed_list() -> Case {
-        Case::parse(FAILED_LIST, Path::new("refs/x.toml")).unwrap_or_else(|e| panic!("{e}"))
+        let query = "query Refs($repo0: String!) { r0: repository(name: $repo0) { name } }";
+        let text = FAILED_LIST.replace("DOCUMENT", &case::scratch("Refs", query));
+        Case::parse(&text, Path::new("refs/x.toml"), case::SCRATCH.path())
+            .unwrap_or_else(|e| panic!("{e}"))
     }
 
     #[test]
     fn a_case_served_a_response_is_run_again_and_passes() {
         let case = failed_list();
         let normal = run(&case, &Replay::new(&case)).unwrap_or_else(|e| panic!("{e}"));
-        assert_eq!(normal.code, 1);
+        assert_eq!(normal.code, 3);
         assert_eq!(check(&case, &normal), Vec::<String>::new());
     }
 
@@ -416,7 +419,7 @@ mod tests {
         let failures = check(&case, &normal);
         assert_eq!(failures.len(), 1, "{failures:?}");
         assert!(
-            failures[0].ends_with("hostile run: exit 1 with the corpus injected, 0 without"),
+            failures[0].ends_with("hostile run: exit 3 with the corpus injected, 0 without"),
             "{failures:?}"
         );
     }

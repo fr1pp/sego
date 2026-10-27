@@ -11,7 +11,7 @@ use sego::{Endpoint, Response, Transport, TransportError};
 
 use super::case::{Body, Case, Exchange, Recorded, Request};
 use super::replay::{Sent, graphql, response};
-use super::{Logged, Paced, case_paths, run};
+use super::{Logged, Paced, case_paths, documents_dir, run};
 
 /// Records every case against sourcegraph.com, one request a second, and
 /// stops at the first refusal. Returns why each case that failed to record
@@ -31,7 +31,7 @@ pub fn every_case() -> Vec<String> {
             failures.push("recording stopped after sourcegraph.com refused a request".to_owned());
             break;
         }
-        if let Err(e) = record_case(&path, upstream.clone(), &stamp) {
+        if let Err(e) = record_case(&path, &documents_dir(), upstream.clone(), &stamp) {
             failures.push(e);
         }
     }
@@ -42,8 +42,13 @@ pub fn every_case() -> Vec<String> {
 /// or whose recorded exchange answered a different request, and writes what
 /// was recorded into the case file, with a raw read's body beside it. Nothing
 /// is written if any request was refused.
-fn record_case(path: &Path, upstream: Rc<dyn Transport>, stamp: &Recorded) -> Result<(), String> {
-    let mut case = Case::load(path)?;
+fn record_case(
+    path: &Path,
+    documents: &Path,
+    upstream: Rc<dyn Transport>,
+    stamp: &Recorded,
+) -> Result<(), String> {
+    let mut case = Case::load(path, documents)?;
     let recording = Recording::new(&case, upstream, stamp.clone());
     run(&case, &recording)?;
     let state = recording.state.borrow();
@@ -161,6 +166,7 @@ impl Recording {
             content_type: answer.content_type.clone(),
             recorded: Some(Recorded { live_values, ..state.stamp.clone() }),
             body,
+            evidence: None,
         };
         state.recorded.push((at, exchange, raw));
         Ok(answer)
@@ -282,7 +288,7 @@ mod tests {
     const RECORDED_JSON: &str = "{\n  \"data\": {\n    \"list\": [\n      {\n        \"k\": 2\n      }\n    ],\n    \"r0\": null\n  }\n}\n";
 
     struct Written {
-        _dir: TempDir,
+        dir: TempDir,
         path: PathBuf,
     }
 
@@ -291,7 +297,7 @@ mod tests {
             let dir = TempDir::new().unwrap_or_else(|e| panic!("{e}"));
             let path = dir.path().join("x.toml");
             fs::write(&path, text).unwrap_or_else(|e| panic!("{e}"));
-            Written { _dir: dir, path }
+            Written { dir, path }
         }
 
         fn text(&self) -> String {
@@ -299,7 +305,7 @@ mod tests {
         }
 
         fn case(&self) -> Case {
-            Case::load(&self.path).unwrap_or_else(|e| panic!("{e}"))
+            Case::load(&self.path, self.dir.path()).unwrap_or_else(|e| panic!("{e}"))
         }
 
         fn record(&self, responses: Vec<Response>) -> (Result<(), String>, Answers) {
@@ -309,7 +315,7 @@ mod tests {
                 endpoint: "https://sourcegraph.com".to_owned(),
                 live_values: false,
             };
-            (record_case(&self.path, Rc::new(upstream.clone()), &stamp), upstream)
+            (record_case(&self.path, self.dir.path(), Rc::new(upstream.clone()), &stamp), upstream)
         }
     }
 
@@ -368,9 +374,13 @@ mod tests {
 
     #[test]
     fn an_exchange_that_isnt_recorded_is_never_forwarded() {
-        let written = Written::new(&format!(
-            "{NEW_CASE}\n[[exchange]]\noperation = \"Refs\"\nquery = \"stale\"\nstatus = 200\nresponse = '{{\"data\": null}}'\n"
-        ));
+        let written = Written::new(NEW_CASE);
+        let name = crate::support::case::store_document(written.dir.path(), "Refs", "stale")
+            .unwrap_or_else(|e| panic!("{e}"));
+        let text = format!(
+            "{NEW_CASE}\n[[exchange]]\noperation = \"Refs\"\ndocument = \"{name}\"\nstatus = 200\nresponse = '{{\"data\": null}}'\n"
+        );
+        fs::write(&written.path, text).unwrap_or_else(|e| panic!("{e}"));
         let before = written.text();
         let (result, upstream) = written.record(vec![response_of(200, JSON, "{}")]);
         result.unwrap_or_else(|e| panic!("{e}"));

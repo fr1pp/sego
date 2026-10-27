@@ -11,115 +11,85 @@ M  +0 -0  coloured_output_example.png
 '''
 
 [[exchange]]
-operation = "Diff"
-variables = '{"a":"cf84e27337f5c671f622330ed2ee1e36584d5c2e^1","b":"cf84e27337f5c671f622330ed2ee1e36584d5c2e","first":201,"gitlab":false,"patch":true,"path0":"coloured_output_example.png","paths":["coloured_output_example.png"],"repo0":"github.com/BurntSushi/cargo-benchcmp","repo1":""}'
-query = '''
-query Diff($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!, $path0: String!) {
-  a0: repository(name: $repo0) { ...Base }
-  b0: repository(name: $repo0) { ...Head }
-  c0: repository(name: $repo0) { ...Comparison }
-  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
-  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
-  c1: repository(name: $repo1) @include(if: $gitlab) { ...Comparison }
-}
-
-fragment Base on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $a) {
-    oid
-    p0: path(path: $path0) { __typename }
-  }
-}
-
-fragment Head on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $b) {
-    oid parents { oid }
-    p0: path(path: $path0) { __typename }
-  }
-}
-
-fragment Comparison on Repository {
-  name
-  defaultBranch { displayName }
-  comparison(base: $a, head: $b) {
-    all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
-    page: fileDiffs(first: $first, paths: $paths) {
-      nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }
-    }
-    patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }
-  }
-}
-'''
+operation = "Commit"
+variables = '{"first":200,"gitlab":false,"patch":true,"path0":"coloured_output_example.png","paths":["coloured_output_example.png"],"repo0":"github.com/BurntSushi/cargo-benchcmp","repo1":"","rev":"cf84e27337f5c671f622330ed2ee1e36584d5c2e"}'
+document = "Commit-fb139301"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
-    "a0": {
+    "r0": {
       "commit": {
-        "oid": "23d04701228d6b4aed46bf8d48e58dfecc338e25",
-        "p0": {
-          "__typename": "GitBlob"
-        }
-      },
-      "defaultBranch": {
-        "displayName": "master"
-      },
-      "name": "github.com/BurntSushi/cargo-benchcmp"
-    },
-    "b0": {
-      "commit": {
+        "author": {
+          "date": "2017-05-17T12:08:25Z",
+          "person": {
+            "displayName": "Guillaume Fraux"
+          }
+        },
+        "committer": {
+          "date": "2017-05-17T12:39:43Z",
+          "person": {
+            "displayName": "Andrew Gallant"
+          }
+        },
+        "message": "Update README examples",
         "oid": "cf84e27337f5c671f622330ed2ee1e36584d5c2e",
         "p0": {
           "__typename": "GitBlob"
         },
         "parents": [
           {
-            "oid": "23d04701228d6b4aed46bf8d48e58dfecc338e25"
+            "oid": "23d04701228d6b4aed46bf8d48e58dfecc338e25",
+            "p0": {
+              "__typename": "GitBlob"
+            }
           }
-        ]
-      },
-      "defaultBranch": {
-        "displayName": "master"
-      },
-      "name": "github.com/BurntSushi/cargo-benchcmp"
-    },
-    "c0": {
-      "comparison": {
-        "all": {
-          "diffStat": {
-            "added": 0,
-            "deleted": 0
-          },
-          "totalCount": 1
-        },
-        "page": {
-          "nodes": [
-            {
-              "newPath": "coloured_output_example.png",
-              "oldFile": {
-                "commit": {
-                  "oid": "23d04701228d6b4aed46bf8d48e58dfecc338e25"
+        ],
+        "subject": "Update README examples",
+        "w": {
+          "commit": {
+            "diff": {
+              "all": {
+                "diffStat": {
+                  "added": 0,
+                  "deleted": 0
+                },
+                "totalCount": 1
+              },
+              "page": {
+                "nodes": [
+                  {
+                    "newPath": "coloured_output_example.png",
+                    "oldFile": {
+                      "commit": {
+                        "oid": "23d04701228d6b4aed46bf8d48e58dfecc338e25"
+                      }
+                    },
+                    "oldPath": "coloured_output_example.png",
+                    "stat": {
+                      "added": 0,
+                      "deleted": 0
+                    }
+                  }
+                ],
+                "pageInfo": {
+                  "hasNextPage": false
                 }
               },
-              "oldPath": "coloured_output_example.png",
-              "stat": {
-                "added": 0,
-                "deleted": 0
+              "patch": {
+                "rawDiff": "diff --git coloured_output_example.png coloured_output_example.png\nindex a224ed001017471d230d80849a38941277c192a3..600d1940bcf9ff652b8a5615f9deba46c57170ad 100644\nBinary files coloured_output_example.png and coloured_output_example.png differ\n"
               }
             }
-          ]
-        },
-        "patch": {
-          "rawDiff": "diff --git coloured_output_example.png coloured_output_example.png\nindex a224ed001017471d230d80849a38941277c192a3..600d1940bcf9ff652b8a5615f9deba46c57170ad 100644\nBinary files coloured_output_example.png and coloured_output_example.png differ\n"
+          }
         }
       },
       "defaultBranch": {
         "displayName": "master"
+      },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T01:05:32Z"
       },
       "name": "github.com/BurntSushi/cargo-benchcmp"
     }

@@ -2,65 +2,41 @@
 args = ["show", "example.com/acme/widget@0123456789abcdef0123456789abcdef01234567:big.txt", "1-7"]
 status.code = 0
 stdout = '''
-example.com/acme/widget@0123456789ab:big.txt  lines 1-7 of 8  CRLF
+example.com/acme/widget@0123456789ab:big.txt  lines 1-7 of 8
 1:a\u{1b}b
 2:c\u{202e}d
 3:e\u{200b}f
 4:g\u{0}h
 5:i\u{2028}j
-6:k\u{7f}l
+6:k\u{7f}l\u{d}
 7:mid\u{d}cr
 '''
 
 [[exchange]]
-operation = "ShowFile"
-variables = '{"ambiguous0":false,"end":7,"gitlab":false,"parent0":"","path0":"big.txt","repo0":"example.com/acme/widget","repo1":"","rev0":"0123456789abcdef0123456789abcdef01234567","split":false,"start":1}'
-query = '''
-query ShowFile($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $start: Int!, $end: Int!
-$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
-  r0: repository(name: $repo0) { ...Guesses }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
-}
-
-fragment Guesses on Repository {
-  name
-  defaultBranch { displayName }
-c0: commit(rev: $rev0) {
-    oid
-    meta: blob(path: $path0) { byteSize totalLines binary rawURL lfs { byteSize } }
-    body: blob(path: $path0) { content(startLine: $start, endLine: $end, textOnly: true) }
-    dir: tree(path: $path0) { entries { path } }
-    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
-    x0: path(path: $path0) @include(if: $split) { __typename }
-  }
-  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
-}
-'''
+operation = "File"
+variables = '{"content":true,"end":7,"gitlab":false,"path":"big.txt","recursive":false,"repo0":"example.com/acme/widget","repo1":"","rev":"0123456789abcdef0123456789abcdef01234567","start":1}'
+document = "File-d6d96d2c"
 status = 200
 content-type = "application/json"
+evidence = "show/binary-file-over-content-limit"
 response = '''
 {
   "data": {
     "r0": {
-      "c0": {
+      "commit": {
         "body": null,
-        "dir": null,
+        "gm": null,
         "meta": {
+          "__typename": "GitBlob",
           "binary": false,
           "byteSize": 2000000,
           "lfs": null,
+          "path": "big.txt",
           "rawURL": "/r/example.com/acme/widget@0123456789abcdef0123456789abcdef01234567/-/raw/big.txt",
+          "submodule": null,
           "totalLines": 8
         },
-        "oid": "0123456789abcdef0123456789abcdef01234567",
-        "parent": {
-          "entries": [
-            {
-              "path": "big.txt",
-              "submodule": null
-            }
-          ]
-        }
+        "oid": "0123456789abcdef0123456789abcdef01234567"
       },
       "defaultBranch": {
         "displayName": "main"
@@ -70,18 +46,10 @@ response = '''
   },
   "errors": [
     {
-      "message": "not a directory: \"big.txt\"",
-      "path": [
-        "r0",
-        "c0",
-        "dir"
-      ]
-    },
-    {
       "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
       "path": [
         "r0",
-        "c0",
+        "commit",
         "body",
         "content"
       ]
@@ -90,7 +58,7 @@ response = '''
       "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
       "path": [
         "r0",
-        "c0",
+        "commit",
         "meta",
         "lfs"
       ]

@@ -1,33 +1,15 @@
 # owner/name on both hosts is ambiguous and names both.
 args = ["refs", "acme/widget"]
-status.code = 1
+status.code = 2
 stderr = '''
 sego: error: acme/widget exists as github.com/acme/widget and gitlab.com/acme/widget
+usage: sego refs [--json] REPO [TEXT]
 '''
 
 [[exchange]]
 operation = "Refs"
-variables = '{"first":101,"gitlab":true,"query":null,"repo0":"github.com/acme/widget","repo1":"gitlab.com/acme/widget","unfiltered":false}'
-query = '''
-query Refs($repo0: String!, $repo1: String!, $gitlab: Boolean!, $first: Int, $query: String, $unfiltered: Boolean!) {
-  r0: repository(name: $repo0) { ...Refs }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Refs }
-}
-
-fragment Refs on Repository {
-  name
-  defaultBranch { displayName }
-  branches(first: $first, query: $query) { ...Listing }
-  tags(first: $first, query: $query) { ...Listing }
-  all_branches: branches(first: 1) @include(if: $unfiltered) { totalCount }
-  all_tags: tags(first: 1) @include(if: $unfiltered) { totalCount }
-}
-
-fragment Listing on GitRefConnection {
-  totalCount
-  nodes { displayName target { oid commit { committer { date } } } }
-}
-'''
+variables = '{"first":100,"gitlab":true,"query":null,"repo0":"github.com/acme/widget","repo1":"gitlab.com/acme/widget","unfiltered":false}'
+document = "Refs-fed5d5bc"
 status = 200
 content-type = "application/json"
 response = '''
@@ -41,6 +23,7 @@ response = '''
       "defaultBranch": {
         "displayName": "main"
       },
+      "mirrorInfo": null,
       "name": "github.com/acme/widget",
       "tags": {
         "nodes": [],
@@ -55,6 +38,7 @@ response = '''
       "defaultBranch": {
         "displayName": "main"
       },
+      "mirrorInfo": null,
       "name": "gitlab.com/acme/widget",
       "tags": {
         "nodes": [],

@@ -19,93 +19,15 @@ D  +0 -4  $'a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i-dele
 '''
 
 [[exchange]]
-operation = "ShowCommit"
-variables = '{"base":"v2.0.0^1","gitlab":false,"repo0":"example.com/acme/widget","repo1":"","rev":"v2.0.0"}'
-query = '''
-query ShowCommit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $base: String!) {
-  m0: repository(name: $repo0) { ...Commit }
-  d0: repository(name: $repo0) { ...Changes }
-  m1: repository(name: $repo1) @include(if: $gitlab) { ...Commit }
-  d1: repository(name: $repo1) @include(if: $gitlab) { ...Changes }
-}
-
-fragment Commit on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $rev) {
-    oid subject message
-    author { date person { displayName } }
-    committer { date person { displayName } }
-    parents { oid }
-  }
-}
-
-fragment Changes on Repository {
-  name
-  defaultBranch { displayName }
-  comparison(base: $base, head: $rev) {
-    all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
-    page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
-  }
-}
-'''
+operation = "Commit"
+variables = '{"first":200,"gitlab":false,"patch":false,"paths":null,"repo0":"example.com/acme/widget","repo1":"","rev":"v2.0.0"}'
+document = "Commit-50a06158"
 status = 200
 content-type = "application/json"
 response = '''
 {
   "data": {
-    "d0": {
-      "comparison": {
-        "all": {
-          "diffStat": {
-            "added": 7,
-            "deleted": 7
-          },
-          "totalCount": 4
-        },
-        "page": {
-          "nodes": [
-            {
-              "newPath": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
-              "oldPath": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
-              "stat": {
-                "added": 1,
-                "deleted": 1
-              }
-            },
-            {
-              "newPath": "n-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
-              "oldPath": "o-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
-              "stat": {
-                "added": 2,
-                "deleted": 2
-              }
-            },
-            {
-              "newPath": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi-added",
-              "oldPath": null,
-              "stat": {
-                "added": 4,
-                "deleted": 0
-              }
-            },
-            {
-              "newPath": null,
-              "oldPath": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi-deleted",
-              "stat": {
-                "added": 0,
-                "deleted": 4
-              }
-            }
-          ]
-        }
-      },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "example.com/acme/widget"
-    },
-    "m0": {
+    "r0": {
       "commit": {
         "author": {
           "date": "a\u001bb\u202ec\u200bd\ne\rT00:00:00Z",
@@ -126,11 +48,64 @@ response = '''
             "oid": "fedcba9876543210fedcba9876543210fedcba98"
           }
         ],
-        "subject": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+        "subject": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+        "w": {
+          "commit": {
+            "diff": {
+              "all": {
+                "diffStat": {
+                  "added": 7,
+                  "deleted": 7
+                },
+                "totalCount": 4
+              },
+              "page": {
+                "nodes": [
+                  {
+                    "newPath": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+                    "oldPath": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+                    "stat": {
+                      "added": 1,
+                      "deleted": 1
+                    }
+                  },
+                  {
+                    "newPath": "n-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+                    "oldPath": "o-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+                    "stat": {
+                      "added": 2,
+                      "deleted": 2
+                    }
+                  },
+                  {
+                    "newPath": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi-added",
+                    "oldPath": null,
+                    "stat": {
+                      "added": 4,
+                      "deleted": 0
+                    }
+                  },
+                  {
+                    "newPath": null,
+                    "oldPath": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi-deleted",
+                    "stat": {
+                      "added": 0,
+                      "deleted": 4
+                    }
+                  }
+                ],
+                "pageInfo": {
+                  "hasNextPage": false
+                }
+              }
+            }
+          }
+        }
       },
       "defaultBranch": {
         "displayName": "main"
       },
+      "mirrorInfo": null,
       "name": "example.com/acme/widget"
     }
   }

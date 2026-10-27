@@ -2,73 +2,19 @@
 args = ["show", "--json", "example.com/acme/widget@v1"]
 status.code = 0
 stdout = '''
-{"repo":"example.com/acme/widget","rev":"v1","commit":"affe2b9b7c608f4e354d7e83d0583ed35e845650","author":"Jonathan Davies","author_date":"2026-09-09","committer":"GitHub","committer_date":"2026-09-10","parents":["6b668aa526afdc623c1a9ed1d6ae920e04a717ad"],"subject":"Subject","message":"Subject\n\nfirst body line\n  \t\n\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nlast\n","files":[{"status":"M","old_path":"a.go","new_path":"a.go","added":1,"deleted":0}],"files_total":1,"added":1,"deleted":0}
+{"repo":"example.com/acme/widget","rev":"v1","commit":"affe2b9b7c608f4e354d7e83d0583ed35e845650","kind":"commit","author":"Jonathan Davies","author_date":"2026-09-09","committer":"GitHub","committer_date":"2026-09-10","parents":["6b668aa526afdc623c1a9ed1d6ae920e04a717ad"],"subject":"Subject","message":"Subject\n\nfirst body line\n  \t\n\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nlast\n","files":[{"status":"M","old_path":"a.go","new_path":"a.go","added":1,"deleted":0}],"files_total":1,"files_more":false,"added":1,"deleted":0,"mirrored_at":null,"notes":[]}
 '''
 
 [[exchange]]
-operation = "ShowCommit"
-variables = '{"base":"v1^1","gitlab":false,"repo0":"example.com/acme/widget","repo1":"","rev":"v1"}'
-query = '''
-query ShowCommit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $base: String!) {
-  m0: repository(name: $repo0) { ...Commit }
-  d0: repository(name: $repo0) { ...Changes }
-  m1: repository(name: $repo1) @include(if: $gitlab) { ...Commit }
-  d1: repository(name: $repo1) @include(if: $gitlab) { ...Changes }
-}
-
-fragment Commit on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $rev) {
-    oid subject message
-    author { date person { displayName } }
-    committer { date person { displayName } }
-    parents { oid }
-  }
-}
-
-fragment Changes on Repository {
-  name
-  defaultBranch { displayName }
-  comparison(base: $base, head: $rev) {
-    all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
-    page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
-  }
-}
-'''
+operation = "Commit"
+variables = '{"first":null,"gitlab":false,"patch":false,"paths":null,"repo0":"example.com/acme/widget","repo1":"","rev":"v1"}'
+document = "Commit-50a06158"
 status = 200
 content-type = "application/json"
 response = '''
 {
   "data": {
-    "d0": {
-      "comparison": {
-        "all": {
-          "diffStat": {
-            "added": 1,
-            "deleted": 0
-          },
-          "totalCount": 1
-        },
-        "page": {
-          "nodes": [
-            {
-              "newPath": "a.go",
-              "oldPath": "a.go",
-              "stat": {
-                "added": 1,
-                "deleted": 0
-              }
-            }
-          ]
-        }
-      },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "example.com/acme/widget"
-    },
-    "m0": {
+    "r0": {
       "commit": {
         "author": {
           "date": "2026-09-09T20:14:26Z",
@@ -89,11 +35,40 @@ response = '''
             "oid": "6b668aa526afdc623c1a9ed1d6ae920e04a717ad"
           }
         ],
-        "subject": "Subject"
+        "subject": "Subject",
+        "w": {
+          "commit": {
+            "diff": {
+              "all": {
+                "diffStat": {
+                  "added": 1,
+                  "deleted": 0
+                },
+                "totalCount": 1
+              },
+              "page": {
+                "nodes": [
+                  {
+                    "newPath": "a.go",
+                    "oldPath": "a.go",
+                    "stat": {
+                      "added": 1,
+                      "deleted": 0
+                    }
+                  }
+                ],
+                "pageInfo": {
+                  "hasNextPage": false
+                }
+              }
+            }
+          }
+        }
       },
       "defaultBranch": {
         "displayName": "main"
       },
+      "mirrorInfo": null,
       "name": "example.com/acme/widget"
     }
   }

@@ -2,5 +2,5 @@
 args = ["--version"]
 status.code = 0
 stdout = '''
-sego 0.2.0
+sego 0.3.0
 '''

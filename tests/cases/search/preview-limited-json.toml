@@ -2,47 +2,13 @@
 args = ["search", "--json", "repo:example.com/app type:diff foo"]
 status.code = 0
 stdout = '''
-{"query":"repo:example.com/app type:diff foo","pattern_type":"keyword","unit":"commits","count":3,"at_least":false,"stopped":false,"elapsed_ms":100,"limit_ms":20000,"widen":[],"unindexed":null,"alert":null,"results":[{"kind":"commit","repo":"example.com/app","commit":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","date":"2024-05-06","author":"Ann","subject":"three hunks","lines":["f0.go f0.go","@@ -1,2 +1,2 @@ x"," ctx","-old","+new","@@ -1,2 +1,2 @@ x"," ctx","-old","+new","@@ -1,2 +1,2 @@ x"," ctx","-old","+new"],"highlights":[],"preview_limited":true},{"kind":"commit","repo":"example.com/app","commit":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","date":"2024-05-06","author":"Ann","subject":"one hunk","lines":["f0.go f0.go","@@ -1,2 +1,2 @@ x"," ctx","-old","+new"],"highlights":[],"preview_limited":false},{"kind":"commit","repo":"example.com/app","commit":"cccccccccccccccccccccccccccccccccccccccc","date":"2024-05-06","author":"Ann","subject":"a message","lines":["fix"],"highlights":[],"preview_limited":false}],"server":{"match_count":3,"approximate_count":"3","limit_hit":false,"timedout":[]}}
+{"query":"repo:example.com/app type:diff foo","pattern_type":"keyword","unit":"commits","count":3,"at_least":false,"stopped":false,"elapsed_ms":100,"limit_ms":20000,"widen":[],"unindexed":null,"alert":null,"results":[{"kind":"commit","repo":"example.com/app","commit":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","date":"2024-05-06","author":"Ann","subject":"three hunks","lines":["f0.go f0.go","@@ -1,2 +1,2 @@ x"," ctx","-old","+new","@@ -1,2 +1,2 @@ x"," ctx","-old","+new","@@ -1,2 +1,2 @@ x"," ctx","-old","+new"],"highlights":[],"preview_limited":true},{"kind":"commit","repo":"example.com/app","commit":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","date":"2024-05-06","author":"Ann","subject":"one hunk","lines":["f0.go f0.go","@@ -1,2 +1,2 @@ x"," ctx","-old","+new"],"highlights":[],"preview_limited":false},{"kind":"commit","repo":"example.com/app","commit":"cccccccccccccccccccccccccccccccccccccccc","date":"2024-05-06","author":"Ann","subject":"a message","lines":["fix"],"highlights":[],"preview_limited":false}],"server":{"match_count":3,"approximate_count":"3","limit_hit":false,"timedout":[]},"notes":[]}
 '''
 
 [[exchange]]
 operation = "Search"
 variables = '{"listed":false,"query":"repo:example.com/app type:diff foo","unindexed":""}'
-query = '''
-query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
-  search(query: $query, version: V3, patternType: keyword) {
-    results {
-      matchCount approximateResultCount limitHit
-      timedout { name }
-      alert { title description kind proposedQueries { description query } }
-      elapsedMilliseconds
-      dynamicFilters { value count kind }
-      results {
-        __typename
-        ... on FileMatch {
-          repository { name }
-          file { path commit { oid } }
-          revSpec { ... on GitRevSpecExpr { expr } }
-          chunkMatches { content contentStart { line }
-            ranges { start { line character } end { line character } } }
-          symbols { name kind containerName location { range { start { line } } } }
-        }
-        ... on CommitSearchResult {
-          commit { oid subject author { date person { displayName } } repository { name } }
-          matches { body { text } highlights { line character length } }
-        }
-        ... on Repository { name }
-      }
-    }
-  }
-  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
-    results {
-      limitHit elapsedMilliseconds timedout { name } alert { title }
-      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
-    }
-  }
-}
-'''
+document = "Search-328cc8ec"
 status = 200
 content-type = "application/json"
 response = '''

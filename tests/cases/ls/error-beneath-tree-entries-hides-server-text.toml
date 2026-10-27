@@ -1,59 +1,35 @@
 # A listing with an error beneath the tree is not used.
 args = ["ls", "example.com/acme/partial@v3.0.0:docs"]
-status.code = 1
+status.code = 3
 stderr = '''
 sego: error: Sourcegraph failed to answer the directory listing
 '''
 
 [[exchange]]
-operation = "ListTree"
-variables = '{"ambiguous0":false,"gitlab":false,"parent0":"","path0":"docs","recursive":false,"repo0":"example.com/acme/partial","repo1":"","rev0":"v3.0.0","split":false}'
-query = '''
-query ListTree($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $recursive: Boolean!
-$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
-  r0: repository(name: $repo0) { ...Guesses }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
-}
-
-fragment Guesses on Repository {
-  name
-  defaultBranch { displayName }
-c0: commit(rev: $rev0) {
-    oid
-    tree: tree(path: $path0) { entries(recursive: $recursive) { path isDirectory submodule { url commit } } }
-    file: blob(path: $path0) { totalLines byteSize binary }
-    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
-    x0: path(path: $path0) @include(if: $split) { __typename }
-  }
-  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
-}
-'''
+operation = "File"
+variables = '{"content":false,"gitlab":false,"path":"docs","recursive":false,"repo0":"example.com/acme/partial","repo1":"","rev":"v3.0.0"}'
+document = "File-d6d96d2c"
 status = 200
 content-type = "application/json"
+evidence = "GqlError::kind table: git exit 128"
 response = '''
 {
   "data": {
     "r0": {
-      "c0": {
-        "file": null,
-        "oid": "1a2b3c4d5e6f708192a3b4c5d6e7f80910111213",
-        "parent": {
-          "entries": [
-            {
-              "path": "docs",
-              "submodule": null
-            }
-          ]
-        },
-        "tree": {
+      "commit": {
+        "gm": null,
+        "meta": {
+          "__typename": "GitTree",
           "entries": [
             {
               "isDirectory": false,
               "path": "docs/guide.md",
               "submodule": null
             }
-          ]
-        }
+          ],
+          "path": "docs"
+        },
+        "oid": "1a2b3c4d5e6f708192a3b4c5d6e7f80910111213"
       },
       "defaultBranch": {
         "displayName": "main"
@@ -66,8 +42,8 @@ response = '''
       "message": "rpc error: code = Internal desc = git command failed on host gitserver-5.internal",
       "path": [
         "r0",
-        "c0",
-        "tree",
+        "commit",
+        "meta",
         "entries",
         0,
         "submodule"

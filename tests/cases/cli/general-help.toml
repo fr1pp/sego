@@ -13,7 +13,7 @@ commands:
   show REPO@REV                  a commit: its message and changed files
   ls REPO[@REV][:PATH]           entries of a directory
   refs REPO [TEXT]               branches and tags
-  log REPO[@REV][:PATH] [PATH]   commits, newest first
+  log REPO[@REV][:PATH] [PATH]   commits, in git log order
   log REPO@A..B [PATH]           commits in B and not in A
   diff REPO@A...B [PATH...]      changed files, and the patch of named paths
   diff REPO@REV [PATH...]        the change one commit made
@@ -29,8 +29,8 @@ addresses:
 output:
   A header line comes first: what was read, such as REPO@COMMIT:PATH,
   with its counts. Lines of a file are numbered "N:". Notes go to stderr
-  as "sego: note: ...". --json prints one JSON document instead;
-  "sego COMMAND --help" lists its fields.
+  as "sego: note: ...". --json prints one JSON document instead, notes
+  in "notes"; "sego COMMAND --help" lists its fields.
 
 examples:
   sego search 'repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter'
@@ -52,5 +52,5 @@ environment:
   SEGO_CACHE_DIR   where sego caches large files, or off (default
                    $XDG_CACHE_HOME/sego or ~/.cache/sego)
 
-exit codes: 0 answered, 1 not answered, 2 the command line is wrong
+exit codes: 0 answered, 1 not found, 2 usage error, 3 failure
 '''

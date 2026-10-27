@@ -13,6 +13,6 @@ again, and one rule had changed: an unknown escape in a quoted value is kept as 
 rejected. `just live` also checks a sample
 against sourcegraph.com's `parseSearchQuery`.
 
-The plan is computed locally because sego sends one request per invocation (ADR 0002). Even as a
+The plan is computed locally because a search sends one request (ADR 0002). Even as a
 check, `parseSearchQuery` can't give keyword mode's plan: it reads a query sent as keyword as
 literal. Keyword is the mode sego sends in.

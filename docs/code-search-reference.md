@@ -351,7 +351,7 @@ Any other kind returns an alert. `UNKNOWN` symbols cannot be selected.
 
 - **Default scope.** With no `repo:` filter, a query searches every repo on sourcegraph.com and stops at 30 matches.
 - **Unanchored repo regexes.** `repo:gorilla/mux` also matches `gorilla/muxy` and any `.../gorilla-mux`. Anchor with `^...$` and escape the dots.
-- **Unanchored file regexes.** `file:route\.go` matches vendored copies too. Use `^` to start at the repo root.
+- **Unanchored file regexes.** `file:route\.go` matches vendored files too. Use `^` to start at the repo root.
 - **The limit counts matches, not files.** `limitHit: true` with two files means more matches exist; raise `count:`.
 - **Pattern negation.** `-term` is a literal search for `-term`. Use `not term`.
 - **Anchors and wildcards need a regex.** In keyword mode, `^NewRouter$` and `foo.*bar` are literal text, in symbol search too. Wrap them in `/.../`.

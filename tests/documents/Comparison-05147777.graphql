@@ -1,0 +1,19 @@
+query Comparison($repo: String!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!, $path0: String!, $path1: String!) {
+  c: repository(name: $repo) {
+    comparison(base: $a, head: $b, fetchMissing: false) {
+      range { mergeBase { oid } }
+      ...Changes
+    }
+  }
+  a: repository(name: $repo) { commit(rev: $a) { oid p0: path(path: $path0) { __typename } p1: path(path: $path1) { __typename } } }
+  b: repository(name: $repo) { commit(rev: $b) { oid p0: path(path: $path0) { __typename } p1: path(path: $path1) { __typename } } }
+}
+
+fragment Changes on RepositoryComparison {
+  all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
+  page: fileDiffs(first: $first, paths: $paths) {
+    nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }
+    pageInfo { hasNextPage }
+  }
+  patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }
+}

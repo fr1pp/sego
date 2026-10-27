@@ -3,11 +3,14 @@ use std::fmt;
 use serde::Serialize;
 
 use crate::address::{Repo, range_rev_field, rev_field, short};
+use crate::commands::resolved_notes;
 use crate::error::Error;
 use crate::escape::render_line;
 use crate::escape::shell_word;
-use crate::output::{count, header_line};
-use crate::sourcegraph::{Change, Client};
+use crate::output::{
+    FileRow, Notes, file_row, files_field, header_line, mirrored, row_text, rows_asked,
+};
+use crate::sourcegraph::Client;
 
 const PATCH_INDENT: &str = "    ";
 
@@ -19,20 +22,21 @@ pub struct Answer {
     commit_a: String,
     commit_b: String,
     base: Option<String>,
-    files_total: u64,
+    files_total: Option<u64>,
+    files_more: bool,
     added: u64,
     deleted: u64,
     files: Vec<FileRow>,
-    patch: Option<String>,
-    #[serde(skip)]
     paths: Vec<String>,
+    patch: Option<String>,
+    mirrored_at: Option<String>,
 }
 
 impl Answer {
     fn rev_field(&self) -> Option<String> {
         match &self.rev_a {
-            Some(a) => range_rev_field(a, "...", &self.rev_b),
-            None => rev_field(Some(&self.rev_b)),
+            Some(a) => range_rev_field((a, &self.commit_a), "...", (&self.rev_b, &self.commit_b)),
+            None => rev_field(Some(&self.rev_b), &self.commit_b),
         }
     }
 }
@@ -48,7 +52,7 @@ impl fmt::Display for Answer {
         let lead = shell_word(&address).into_owned();
         let printed = self.files.len().min(TEXT_ROWS);
         let mut fields = vec![
-            files_field(printed, self.files_total),
+            files_field(printed, self.files_total.unwrap_or(self.files.len() as u64)),
             format!("+{} -{}", self.added, self.deleted),
         ];
         if self.paths.len() > 1 {
@@ -57,6 +61,7 @@ impl fmt::Display for Answer {
         }
         fields.extend(self.base.as_deref().map(|b| format!("base {}", short(b))));
         fields.extend(self.rev_field());
+        fields.extend(self.mirrored_at.as_deref().map(mirrored));
         f.write_str(&header_line(&lead, &fields))?;
         for row in self.files.iter().take(TEXT_ROWS) {
             writeln!(f, "{}", row_text(row))?;
@@ -87,78 +92,37 @@ pub struct Args {
     pub json: bool,
 }
 
-pub fn run(args: &Args, client: &Client) -> Result<Answer, Error> {
+pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Error> {
     let (base, head) = match &args.revs {
         Revs::One(rev) => (None, rev),
         Revs::Range { base, head } => (Some(base.as_str()), head),
     };
-    let first = (!args.json).then_some(TEXT_FIRST);
+    let first = rows_asked(args.json, TEXT_ROWS);
     let comparison = client.comparison(&args.repo, base, head, &args.paths, first)?;
+    resolved_notes(&comparison.head, notes);
+    let (Some(changes), Some(from)) = (comparison.changes, comparison.from.clone()) else {
+        return Err(Error::not_found(format!(
+            "{head} is a root commit: Sourcegraph has no diff for it"
+        )));
+    };
+    let mirrored_at = comparison.head.mirrored_with(comparison.base.as_ref());
+    let commit_a = comparison.base.map_or(from, |base| base.commit);
     Ok(Answer {
-        repo: comparison.repo,
+        repo: comparison.head.repo,
         rev_a: base.map(str::to_owned),
         rev_b: head.clone(),
-        commit_a: comparison.base,
-        commit_b: comparison.head,
-        base: comparison.merge_base,
-        files_total: comparison.changes.total,
-        added: comparison.changes.added,
-        deleted: comparison.changes.deleted,
-        files: comparison.changes.files.into_iter().map(file_row).collect(),
-        patch: comparison.patch,
+        commit_a,
+        commit_b: comparison.head.commit,
+        base: comparison.from,
+        files_total: changes.files.total,
+        files_more: changes.files.more,
+        added: changes.added,
+        deleted: changes.deleted,
+        files: changes.files.items.into_iter().map(file_row).collect(),
         paths: args.paths.clone(),
+        patch: comparison.patch,
+        mirrored_at,
     })
 }
 
-pub const TEXT_ROWS: usize = 200;
-/// One more than `TEXT_ROWS`, so the totals show whether rows were cut.
-#[expect(clippy::cast_possible_truncation, reason = "the row limit is a few hundred")]
-const TEXT_FIRST: u32 = TEXT_ROWS as u32 + 1;
-
-#[derive(Serialize)]
-pub struct FileRow {
-    /// `A`, `D`, `R` or `M`. A type, mode or submodule change is an `M`.
-    pub status: char,
-    pub old_path: Option<String>,
-    pub new_path: Option<String>,
-    pub added: u64,
-    pub deleted: u64,
-}
-
-fn status(old: Option<&String>, new: Option<&String>) -> char {
-    match (old, new) {
-        (None, _) => 'A',
-        (_, None) => 'D',
-        (Some(old), Some(new)) if old != new => 'R',
-        _ => 'M',
-    }
-}
-
-pub fn file_row(change: Change) -> FileRow {
-    FileRow {
-        status: status(change.old_path.as_ref(), change.new_path.as_ref()),
-        old_path: change.old_path,
-        new_path: change.new_path,
-        added: change.added,
-        deleted: change.deleted,
-    }
-}
-
-/// `M  +2 -2  path`, or `R  +1 -1  old -> new`, without a line break.
-pub fn row_text(row: &FileRow) -> String {
-    let word = |path: &Option<String>| shell_word(path.as_deref().unwrap_or_default()).into_owned();
-    let path = match row.status {
-        'R' => format!("{} -> {}", word(&row.old_path), word(&row.new_path)),
-        'D' => word(&row.old_path),
-        _ => word(&row.new_path),
-    };
-    format!("{}  +{} -{}  {path}", row.status, row.added, row.deleted)
-}
-
-/// `shown` rows are printed out of `total` files.
-pub fn files_field(shown: usize, total: u64) -> String {
-    if (shown as u64) < total {
-        return format!("{shown} of {total} files shown");
-    }
-    count(total, "file", "files")
-}
+const TEXT_ROWS: usize = 200;

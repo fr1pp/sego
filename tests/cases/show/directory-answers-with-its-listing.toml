@@ -1,0 +1,54 @@
+# A path that names a directory prints its listing (#25).
+args = ["show", "github.com/gorilla/mux@v1.8.0:.github"]
+status.code = 0
+stdout = '''
+github.com/gorilla/mux@98cb6bf42e08:.github  2 entries  2 files  rev v1.8.0  mirrored 2026-10-27T06:58Z
+file       .github/release-drafter.yml
+file       .github/stale.yml
+'''
+
+[[exchange]]
+operation = "File"
+variables = '{"content":true,"end":500,"gitlab":false,"path":".github","recursive":false,"repo0":"github.com/gorilla/mux","repo1":"","rev":"v1.8.0","start":1}'
+document = "File-d6d96d2c"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "r0": {
+      "commit": {
+        "body": {
+          "__typename": "GitTree"
+        },
+        "gm": null,
+        "meta": {
+          "__typename": "GitTree",
+          "entries": [
+            {
+              "isDirectory": false,
+              "path": ".github/release-drafter.yml",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": ".github/stale.yml",
+              "submodule": null
+            }
+          ],
+          "path": ".github"
+        },
+        "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T06:58:09Z"
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  }
+}
+'''

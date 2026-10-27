@@ -5,13 +5,10 @@ use serde::Serialize;
 use crate::address::{Repo, short};
 use crate::error::Error;
 use crate::escape::one_line;
-use crate::output::{count, date, header_line};
+use crate::output::{count, header_line, mirrored, rows_asked};
 use crate::sourcegraph::{Client, RefList, Refs};
 
 const TEXT_ROWS: usize = 100;
-/// One more than `TEXT_ROWS`, so the totals show whether rows were cut.
-#[expect(clippy::cast_possible_truncation, reason = "the row limit is a few hundred")]
-const TEXT_FIRST: u32 = TEXT_ROWS as u32 + 1;
 
 #[derive(Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -40,20 +37,18 @@ impl Kind {
 struct Row {
     kind: Kind,
     name: String,
-    commit: Option<String>,
-    date: Option<String>,
+    target: Option<String>,
     #[serde(skip)]
     default: bool,
 }
 
 impl Row {
     fn row(&self) -> String {
-        let commit = self.commit.as_deref().map(short);
+        let target = self.target.as_deref().map(short);
         let mut row = format!(
-            "{:<6}  {:<12}  {:<10}  {}",
+            "{:<6}  {:<12}  {}",
             self.kind.word(),
-            one_line(commit.as_deref().unwrap_or("-")),
-            one_line(self.date.as_deref().unwrap_or("-")),
+            one_line(target.as_deref().unwrap_or("-")),
             one_line(&self.name)
         );
         if self.default {
@@ -77,6 +72,7 @@ pub struct Answer {
     tags_more: bool,
     #[serde(rename = "refs")]
     rows: Vec<Row>,
+    mirrored_at: Option<String>,
 }
 
 impl Answer {
@@ -101,6 +97,7 @@ impl Answer {
                 _ => fields.push(count(total, kind.word(), kind.plural())),
             }
         }
+        fields.extend(self.mirrored_at.as_deref().map(mirrored));
         fields
     }
 
@@ -128,8 +125,8 @@ pub struct Args {
     pub json: bool,
 }
 
-pub fn run(args: &Args, client: &Client) -> Result<Answer, Error> {
-    let first = (!args.json).then_some(TEXT_FIRST);
+pub fn run(args: &Args, client: Client) -> Result<Answer, Error> {
+    let first = rows_asked(args.json, TEXT_ROWS);
     let refs = client.refs(&args.repo, args.text.as_deref(), first)?;
     Ok(answer(refs, args.text.clone()))
 }
@@ -137,30 +134,30 @@ pub fn run(args: &Args, client: &Client) -> Result<Answer, Error> {
 fn answer(refs: Refs, query: Option<String>) -> Answer {
     let default = refs.default_branch.as_deref();
     let rows = |kind: Kind, list: &RefList| -> Vec<Row> {
-        list.refs
+        list.page
+            .items
             .iter()
             .map(|r| Row {
                 kind,
                 name: r.name.clone(),
-                commit: r.commit.clone(),
-                date: r.committed.as_deref().map(date),
+                target: r.target.clone(),
                 default: kind == Kind::Branch && default == Some(r.name.as_str()),
             })
             .collect()
     };
-    let more = |list: &RefList| list.total > list.refs.len() as u64;
     let mut all = rows(Kind::Branch, &refs.branches);
     all.extend(rows(Kind::Tag, &refs.tags));
     Answer {
         query,
         default_branch: refs.default_branch.clone(),
-        branches_total: refs.branches.total,
-        tags_total: refs.tags.total,
+        branches_total: refs.branches.page.total.unwrap_or_default(),
+        tags_total: refs.tags.page.total.unwrap_or_default(),
         branches_all: refs.branches.unfiltered,
         tags_all: refs.tags.unfiltered,
-        branches_more: more(&refs.branches),
-        tags_more: more(&refs.tags),
+        branches_more: refs.branches.page.more,
+        tags_more: refs.tags.page.more,
         rows: all,
+        mirrored_at: refs.mirrored_at,
         repo: refs.repo,
     }
 }

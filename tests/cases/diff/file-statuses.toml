@@ -2,7 +2,7 @@
 args = ["diff", "github.com/gorilla/mux@v1.7.2...v1.7.3"]
 status.code = 0
 stdout = '''
-github.com/gorilla/mux@ed099d423848...00bdffe0f3c7  9 files  +518 -257  base ed099d423848  rev v1.7.2...v1.7.3
+github.com/gorilla/mux@ed099d423848...00bdffe0f3c7  9 files  +518 -257  base ed099d423848  rev v1.7.2...v1.7.3  mirrored 2026-10-27T07:13Z
 A  +75 -0  .circleci/config.yml
 M  +5 -5  .github/stale.yml
 D  +0 -24  .travis.yml
@@ -15,78 +15,55 @@ M  +297 -189  middleware_test.go
 '''
 
 [[exchange]]
-operation = "Diff"
-variables = '{"a":"v1.7.2","b":"v1.7.3","first":201,"gitlab":false,"patch":false,"paths":null,"repo0":"github.com/gorilla/mux","repo1":""}'
-query = '''
-query Diff($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!) {
-  a0: repository(name: $repo0) { ...Base }
-  b0: repository(name: $repo0) { ...Head }
-  c0: repository(name: $repo0) { ...Comparison }
-  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
-  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
-  c1: repository(name: $repo1) @include(if: $gitlab) { ...Comparison }
-}
-
-fragment Base on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $a) {
-    oid
-
-  }
-}
-
-fragment Head on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $b) {
-    oid parents { oid }
-
-  }
-}
-
-fragment Comparison on Repository {
-  name
-  defaultBranch { displayName }
-  comparison(base: $a, head: $b) {
-    all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
-    page: fileDiffs(first: $first, paths: $paths) {
-      nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }
-    }
-    patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }
-  }
-}
-'''
+operation = "Range"
+variables = '{"a":"v1.7.2","b":"v1.7.3","gitlab":false,"repo0":"github.com/gorilla/mux","repo1":""}'
+document = "Range-782f210b"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
-    "a0": {
-      "commit": {
+    "r0": {
+      "a": {
         "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
       },
+      "b": {
+        "oid": "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15"
+      },
       "defaultBranch": {
         "displayName": "main"
       },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T07:13:56Z"
+      },
       "name": "github.com/gorilla/mux"
-    },
-    "b0": {
+    }
+  }
+}
+'''
+
+[[exchange]]
+operation = "Comparison"
+variables = '{"a":"ed099d42384823742bba0bf9a72b53b55c9e2e38","b":"00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15","first":200,"patch":false,"paths":null,"repo":"github.com/gorilla/mux"}'
+document = "Comparison-e2e713b2"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "a": {
       "commit": {
-        "oid": "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15",
-        "parents": [
-          {
-            "oid": "05347690167e152b85ece29fdfa9cc12a7b8c385"
-          }
-        ]
-      },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "github.com/gorilla/mux"
+        "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+      }
     },
-    "c0": {
+    "b": {
+      "commit": {
+        "oid": "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15"
+      }
+    },
+    "c": {
       "comparison": {
         "all": {
           "diffStat": {
@@ -206,13 +183,17 @@ response = '''
                 "deleted": 189
               }
             }
-          ]
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        },
+        "range": {
+          "mergeBase": {
+            "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+          }
         }
-      },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "github.com/gorilla/mux"
+      }
     }
   }
 }

@@ -16,16 +16,19 @@ options:
   --version    sego's version
 
 text:
-  REPO  N branches  M tags, or with TEXT, "X of Y branches match" and
-  "X of Y tags match", then a row per ref, "KIND  COMMIT  DATE  NAME",
-  the default branch marked.
-  Branches come default first, then newest first; tags newest first.
-  Text prints 100 branches and 100 tags; --json carries up to 17000 of
-  each.
+  REPO  N branches  M tags  mirrored T, or with TEXT, "X of Y branches
+  match" and "X of Y tags match", then a row per ref, "KIND  TARGET
+  NAME", the default branch marked. TARGET is the object the ref names,
+  a tree for some tags.
+  Refs come in Sourcegraph's order: the default branch, then newest
+  created first (an annotated tag's tagger date, else its commit's date),
+  then by name. Text prints 100 branches and 100 tags; --json carries
+  every ref.
 
 json:
   repo query default_branch branches_total tags_total branches_all
-  tags_all branches_more tags_more refs[{kind name commit date}]
+  tags_all branches_more tags_more refs[{kind name target}] mirrored_at
+  notes
 
 examples:
   sego refs github.com/gorilla/mux 1.8

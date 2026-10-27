@@ -6,41 +6,19 @@ sego: error: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i-gone not f
 '''
 
 [[exchange]]
-operation = "ListTree"
-variables = "{\"ambiguous0\":false,\"gitlab\":false,\"parent0\":\"\",\"path0\":\"a\\u001bb\u202Ec\u200Bd\\ne\\rf\\u0000g\u2028h\u007Fi-gone\",\"recursive\":false,\"repo0\":\"example.com/acme/widget\",\"repo1\":\"\",\"rev0\":\"HEAD\",\"split\":false}"
-query = '''
-query ListTree($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $recursive: Boolean!
-$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
-  r0: repository(name: $repo0) { ...Guesses }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
-}
-
-fragment Guesses on Repository {
-  name
-  defaultBranch { displayName }
-c0: commit(rev: $rev0) {
-    oid
-    tree: tree(path: $path0) { entries(recursive: $recursive) { path isDirectory submodule { url commit } } }
-    file: blob(path: $path0) { totalLines byteSize binary }
-    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
-    x0: path(path: $path0) @include(if: $split) { __typename }
-  }
-  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
-}
-'''
+operation = "File"
+variables = "{\"content\":false,\"gitlab\":false,\"path\":\"a\\u001bb\u202Ec\u200Bd\\ne\\rf\\u0000g\u2028h\u007Fi-gone\",\"recursive\":false,\"repo0\":\"example.com/acme/widget\",\"repo1\":\"\",\"rev\":\"HEAD\"}"
+document = "File-d6d96d2c"
 status = 200
 content-type = "application/json"
 response = '''
 {
   "data": {
     "r0": {
-      "c0": {
-        "file": null,
-        "oid": "0123456789abcdef0123456789abcdef01234567",
-        "parent": {
-          "entries": []
-        },
-        "tree": null
+      "commit": {
+        "gm": null,
+        "meta": null,
+        "oid": "0123456789abcdef0123456789abcdef01234567"
       },
       "defaultBranch": {
         "displayName": "main"

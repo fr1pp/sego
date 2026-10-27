@@ -2,36 +2,13 @@
 args = ["log", "--json", "example.com/acme/widget@v2"]
 status.code = 0
 stdout = '''
-{"repo":"example.com/acme/widget","rev":"v2","commit":"0001000100010001000100010001000100010001","rev_a":null,"rev_b":null,"commit_a":null,"commit_b":null,"path":null,"total":null,"more":false,"commits":[{"commit":"0001000100010001000100010001000100010001","date":"2026-08-01","author":"Ada Lovelace","subject":"sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss","parents":["0002000200020002000200020002000200020002"],"tags":[]}]}
+{"repo":"example.com/acme/widget","rev":"v2","commit":"0001000100010001000100010001000100010001","rev_a":null,"rev_b":null,"commit_a":null,"commit_b":null,"path":null,"follow":false,"behind":null,"commits_total":null,"commits_more":false,"commits":[{"commit":"0001000100010001000100010001000100010001","date":"2026-08-01","author":"Ada Lovelace","subject":"sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss","parents":["0002000200020002000200020002000200020002"],"tags":[]}],"mirrored_at":null,"notes":[]}
 '''
 
 [[exchange]]
 operation = "Log"
-variables = '{"first":151,"gitlab":false,"path":null,"repo0":"example.com/acme/widget","repo1":"","rev":"v2"}'
-query = '''
-query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String, $first: Int) {
-  r0: repository(name: $repo0) { ...History }
-  t0: repository(name: $repo0) { ...Tags }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...History }
-  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
-}
-
-fragment History on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $rev) { oid ancestors(first: $first, path: $path) { ...Page } }
-}
-fragment Page on GitCommitConnection {
-  nodes { oid subject author { date person { displayName } } parents { oid } }
-  pageInfo { hasNextPage }
-}
-
-fragment Tags on Repository {
-  name
-  defaultBranch { displayName }
-  gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
-}
-'''
+variables = '{"first":150,"follow":false,"gitlab":false,"path":null,"repo0":"example.com/acme/widget","repo1":"","rev":"v2"}'
+document = "Log-88d156a1"
 status = 200
 content-type = "application/json"
 response = '''
@@ -39,44 +16,44 @@ response = '''
   "data": {
     "r0": {
       "commit": {
-        "ancestors": {
-          "nodes": [
-            {
-              "author": {
-                "date": "2026-08-01T09:00:00Z",
-                "person": {
-                  "displayName": "Ada Lovelace"
-                }
-              },
-              "oid": "0001000100010001000100010001000100010001",
-              "parents": [
+        "oid": "0001000100010001000100010001000100010001",
+        "w": {
+          "commit": {
+            "ancestors": {
+              "nodes": [
                 {
-                  "oid": "0002000200020002000200020002000200020002"
+                  "author": {
+                    "date": "2026-08-01T09:00:00Z",
+                    "person": {
+                      "displayName": "Ada Lovelace"
+                    }
+                  },
+                  "oid": "0001000100010001000100010001000100010001",
+                  "parents": [
+                    {
+                      "oid": "0002000200020002000200020002000200020002"
+                    }
+                  ],
+                  "subject": "sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
                 }
               ],
-              "subject": "sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+              "pageInfo": {
+                "hasNextPage": false
+              }
             }
-          ],
-          "pageInfo": {
-            "hasNextPage": false
           }
-        },
-        "oid": "0001000100010001000100010001000100010001"
+        }
       },
       "defaultBranch": {
         "displayName": "main"
       },
+      "mirrorInfo": null,
       "name": "example.com/acme/widget"
     },
     "t0": {
-      "defaultBranch": {
-        "displayName": "main"
-      },
       "gitRefs": {
-        "nodes": [],
-        "totalCount": 0
-      },
-      "name": "example.com/acme/widget"
+        "nodes": []
+      }
     }
   }
 }

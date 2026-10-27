@@ -269,11 +269,15 @@ fn select_cut(written: &[Written]) -> Option<u64> {
 }
 
 /// Whether the `select:` that `select_cut` bounds can drop every result
-/// the cap kept, so that a zero is a lower bound too: `symbol…` and
-/// `content` drop the results they can't convert.
+/// the cap kept, so that a zero is a lower bound too: `content` drops the
+/// results it can't convert, and a symbol search's `select:symbol.KIND` the
+/// symbols of other kinds. A content search's `select:symbol` returns
+/// nothing at all, which a local check notes.
 fn select_drops(written: &[Written]) -> bool {
+    let symbols = chosen(written, "type").any(|v| v == "symbol");
     select_cut(written).is_some()
-        && chosen(written, "select").any(|v| v.starts_with("symbol") || v == "content")
+        && chosen(written, "select")
+            .any(|v| v == "content" || (symbols && v.starts_with("symbol.")))
 }
 
 /// Whether the query has a pattern searched for in file contents or the
@@ -889,10 +893,12 @@ mod tests {
     }
 
     #[test]
-    fn a_pinned_select_of_symbols_or_content_drops_results() {
+    fn a_pinned_select_of_content_or_of_a_symbol_kind_drops_results() {
         let rows = [
-            ("repo:x@v1 type:symbol foo select:symbol", true),
+            ("repo:x@v1 type:symbol foo select:symbol", false),
             ("repo:x@v1 type:symbol foo select:symbol.method", true),
+            ("repo:x@v1 foo select:symbol", false),
+            ("repo:x@v1 foo select:symbol.method", false),
             ("repo:x@v1 foo select:content", true),
             ("repo:x@v1 foo select:file", false),
             ("repo:x@v1 foo select:file.directory", false),

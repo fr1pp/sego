@@ -1,0 +1,971 @@
+# A submodule whose name differs from its path gets its URL from .gitmodules.
+args = ["ls", "github.com/sharkdp/bat@a9aa73d2:assets/syntaxes/02_Extra"]
+status.code = 0
+stdout = '''
+github.com/sharkdp/bat@a9aa73d21545:assets/syntaxes/02_Extra  129 entries  1 dir  50 files  78 submodules
+submodule  assets/syntaxes/02_Extra/AWK  github.com/JohnNilsson/awk-sublime@e23926eca1b6
+submodule  assets/syntaxes/02_Extra/Ada  github.com/AldanTanneo/ada-sublime-syntax@3f17c2363e10
+submodule  assets/syntaxes/02_Extra/Apache  github.com/colinta/ApacheConf.tmLanguage@c438c352db7d
+file       assets/syntaxes/02_Extra/Apache.sublime-syntax
+submodule  assets/syntaxes/02_Extra/AsciiDoc  github.com/asciidoctor/sublimetext-asciidoc@e316a0a85c67
+file       assets/syntaxes/02_Extra/AsciiDoc.sublime-syntax
+file       'assets/syntaxes/02_Extra/Assembly (ARM).sublime-syntax'
+file       'assets/syntaxes/02_Extra/Assembly (x86_64).sublime-syntax'
+submodule  'assets/syntaxes/02_Extra/Assembly_(ARM)'  github.com/tvi/Sublime-ARM-Assembly@08f33d80ded1
+submodule  assets/syntaxes/02_Extra/CFML  github.com/jcberquist/sublimetext-cfml@b91c44a32e25
+submodule  assets/syntaxes/02_Extra/CMake  github.com/zyxar/Sublime-CMakeLists@2560a080b3b7
+submodule  assets/syntaxes/02_Extra/COBOL  github.com/adukhan99/sublime_cobol@27825ee0220f
+dir        assets/syntaxes/02_Extra/CSV/
+file       assets/syntaxes/02_Extra/Cabal.sublime-syntax
+submodule  assets/syntaxes/02_Extra/Caddy  github.com/caddyserver/sublimetext@cd7d132da382
+submodule  assets/syntaxes/02_Extra/CoffeeScript  github.com/sustained/CoffeeScript-Sublime-Plugin@e08f9b8cdfc8
+file       assets/syntaxes/02_Extra/CoffeeScript.sublime-syntax
+file       assets/syntaxes/02_Extra/CpuInfo.sublime-syntax
+submodule  assets/syntaxes/02_Extra/Crontab  github.com/michaelblyons/SublimeSyntax-Crontab@54f1fa7ff0c9
+submodule  assets/syntaxes/02_Extra/Crystal  github.com/crystal-lang-tools/sublime-crystal@eb63666f35c2
+file       assets/syntaxes/02_Extra/Crystal.sublime-syntax
+submodule  assets/syntaxes/02_Extra/Dart  github.com/elMuso/Dartlight@2734901b0141
+file       assets/syntaxes/02_Extra/Dart.sublime-syntax
+submodule  assets/syntaxes/02_Extra/Docker  github.com/asbjornenge/Docker.tmbundle@0f6b7bc87acf
+submodule  assets/syntaxes/02_Extra/DotENV  github.com/zaynali53/DotENV@58201ba2abbb
+file       assets/syntaxes/02_Extra/DotENV.sublime-syntax
+submodule  assets/syntaxes/02_Extra/Elixir  github.com/princemaple/elixir-sublime-syntax@4fb01891dd17
+submodule  assets/syntaxes/02_Extra/Elm  github.com/elm-community/SublimeElmLanguageSupport@e266d279c807
+submodule  assets/syntaxes/02_Extra/Email  github.com/mariozaizar/email.sublime-syntax@e89d09d440f3
+submodule  assets/syntaxes/02_Extra/FSharp  github.com/hoest/sublimetext-fsharp@9e4645c60858
+submodule  assets/syntaxes/02_Extra/Fish  github.com/Phidica/sublime-fish@ef510fd75921
+submodule  assets/syntaxes/02_Extra/Fortran  github.com/315234/SublimeFortran@dcf4f24f1cec
+file       assets/syntaxes/02_Extra/Fstab.sublime-syntax
+submodule  assets/syntaxes/02_Extra/GDScript-sublime  github.com/beefsack/GDScript-sublime@96f5dcf29728
+submodule  assets/syntaxes/02_Extra/GLSL  github.com/euler0/sublime-glsl@59a5f8a31203
+submodule  assets/syntaxes/02_Extra/Gomod  github.com/mitranim/sublime-gomod@e0200f024a39
+submodule  assets/syntaxes/02_Extra/GraphQL  github.com/dncrews/GraphQL-SublimeText3@9b6f6d0a86d7
+submodule  assets/syntaxes/02_Extra/Groff  github.com/carsonoid/sublime_man_page_support@651091c7e266
+file       assets/syntaxes/02_Extra/Group.sublime-syntax
+file       'assets/syntaxes/02_Extra/HTML (Twig).sublime-syntax'
+submodule  'assets/syntaxes/02_Extra/HTML_(Twig)'  github.com/Anomareh/PHP-Twig.tmbundle@aedf955eba97
+submodule  assets/syntaxes/02_Extra/INI  github.com/clintberry/sublime-text-2-ini@8dd3e316ada5
+file       assets/syntaxes/02_Extra/INI.sublime-syntax
+submodule  assets/syntaxes/02_Extra/Idris2  github.com/buzden/sublime-syntax-idris2@4d8eb35a3825
+file       'assets/syntaxes/02_Extra/JavaScript (Babel).sublime-syntax'
+submodule  'assets/syntaxes/02_Extra/JavaScript_(Babel)'  github.com/babel/babel-sublime@f4579f910799
+submodule  assets/syntaxes/02_Extra/Jinja2  github.com/ltrzesniewski/sublime-jinja2@e572427f6ac5
+submodule  assets/syntaxes/02_Extra/Jsonnet  github.com/gburiola/sublime-jsonnet-syntax@56ac0e6854ad
+submodule  assets/syntaxes/02_Extra/Julia  github.com/JuliaEditorSupport/Julia-sublime@3366b10be91a
+submodule  assets/syntaxes/02_Extra/Kotlin  github.com/guille/sublime-kotlin@c353694169c0
+submodule  assets/syntaxes/02_Extra/LESS  github.com/danro/LESS-sublime@d076a4dd416b
+submodule  assets/syntaxes/02_Extra/LLVM  github.com/ioncodes/LLVM.tmBundle@274126faa9fe
+submodule  assets/syntaxes/02_Extra/Lean  github.com/leanprover/vscode-lean4@514362b5c7fd
+file       assets/syntaxes/02_Extra/Lean.sublime-syntax
+file       assets/syntaxes/02_Extra/LiveScript.sublime-syntax
+file       assets/syntaxes/02_Extra/Manpage.sublime-syntax
+submodule  assets/syntaxes/02_Extra/MediaWiki  github.com/tosher/Mediawiker@5dceaa9dd9af
+file       assets/syntaxes/02_Extra/MemInfo.sublime-syntax
+submodule  assets/syntaxes/02_Extra/NSIS  github.com/SublimeText/NSIS@619a65a04efb
+submodule  assets/syntaxes/02_Extra/Nginx  github.com/SublimeText/nginx@65f5a63c0d17
+file       assets/syntaxes/02_Extra/Nim.sublime-syntax
+submodule  assets/syntaxes/02_Extra/Ninja  github.com/pope/SublimeNinja@25830aaec931
+file       assets/syntaxes/02_Extra/Ninja.sublime-syntax
+submodule  assets/syntaxes/02_Extra/Nix  github.com/wmertens/sublime-nix@48c497c709c6
+file       assets/syntaxes/02_Extra/Nix.sublime-syntax
+file       'assets/syntaxes/02_Extra/Org mode.sublime-syntax'
+submodule  assets/syntaxes/02_Extra/Org_mode  github.com/jezcope/Org.tmbundle@bb6e5d848151
+file       assets/syntaxes/02_Extra/Passwd.sublime-syntax
+submodule  assets/syntaxes/02_Extra/PowerShell  github.com/PowerShell/EditorSyntax@a08b55bf1146
+file       assets/syntaxes/02_Extra/PowerShell.sublime-syntax
+submodule  assets/syntaxes/02_Extra/Protobuf  github.com/VcamX/protobuf-syntax-highlighting@1365331580b0
+submodule  assets/syntaxes/02_Extra/Puppet  github.com/russCloak/SublimePuppet@2a224343d215
+submodule  assets/syntaxes/02_Extra/PureScript  github.com/tellnobody1/sublime-purescript-syntax@1773f4fddb08
+submodule  assets/syntaxes/02_Extra/QML  github.com/skozlovf/Sublime-QML@e3e058a21f3c
+file       assets/syntaxes/02_Extra/QML.sublime-syntax
+submodule  assets/syntaxes/02_Extra/Racket  github.com/follesoe/sublime-racket@7df4479c0797
+file       assets/syntaxes/02_Extra/Racket.sublime-syntax
+file       assets/syntaxes/02_Extra/Rego.sublime-syntax
+file       assets/syntaxes/02_Extra/Requirementstxt.sublime-syntax
+file       assets/syntaxes/02_Extra/Resolv.sublime-syntax
+submodule  assets/syntaxes/02_Extra/Robot  github.com/andriyko/sublime-robot-framework-assistant@fcd3323b5631
+file       assets/syntaxes/02_Extra/Robot.sublime-syntax
+submodule  assets/syntaxes/02_Extra/SCSS_Sass  github.com/braver/SublimeSass@d3d94046409d
+submodule  assets/syntaxes/02_Extra/SLS  github.com/saltstack/sublime-text@f8a8cf90b118
+file       assets/syntaxes/02_Extra/SML.sublime-syntax
+submodule  assets/syntaxes/02_Extra/Slim  github.com/slim-template/ruby-slim.tmbundle@cad02689b6c6
+file       assets/syntaxes/02_Extra/Slim.sublime-syntax
+submodule  assets/syntaxes/02_Extra/SmartVHDL  github.com/TheClams/SmartVHDL@b45507ddc8a4
+submodule  assets/syntaxes/02_Extra/Strace  github.com/djuretic/SublimeStrace@3ec51e0bca39
+submodule  assets/syntaxes/02_Extra/Stylus  github.com/billymoon/Stylus@30908e3b5757
+file       assets/syntaxes/02_Extra/Stylus.sublime-syntax
+submodule  assets/syntaxes/02_Extra/SublimeEthereum  github.com/davidhq/SublimeEthereum@b60e0a3e00e6
+submodule  assets/syntaxes/02_Extra/SublimeJQ  github.com/zogwarg/SublimeJQ@84770c52bd0d
+submodule  assets/syntaxes/02_Extra/Svelte  github.com/corneliusio/svelte-sublime@c71f1290b061
+submodule  assets/syntaxes/02_Extra/Swift  github.com/quiqueg/Swift-Sublime-Package@fef17119ceef
+file       assets/syntaxes/02_Extra/Swift.sublime-syntax
+submodule  assets/syntaxes/02_Extra/SystemVerilog  github.com/TheClams/SystemVerilog@b340f1c7f6a3
+submodule  assets/syntaxes/02_Extra/TOML  github.com/jasonwilliams/sublime_toml_highlighting@f5a57e8bff69
+submodule  assets/syntaxes/02_Extra/Terraform  github.com/alexlouden/Terraform.tmLanguage@54d8350c3c59
+submodule  assets/syntaxes/02_Extra/TodoTxt  github.com/dertuxmalwieder/SublimeTodoTxt@071a004217f9
+submodule  assets/syntaxes/02_Extra/TypeScript  github.com/Microsoft/TypeScript-Sublime-Plugin@ba45efd058df
+file       assets/syntaxes/02_Extra/TypeScript.sublime-syntax
+file       assets/syntaxes/02_Extra/TypsecriptReact.sublime-syntax
+submodule  assets/syntaxes/02_Extra/Verilog  github.com/pro711/sublime-verilog@532e87c1b401
+file       assets/syntaxes/02_Extra/Verilog.sublime-syntax
+file       assets/syntaxes/02_Extra/VimHelp.sublime-syntax
+submodule  assets/syntaxes/02_Extra/VimL  github.com/SalGnt/Sublime-VimL@fe5bf5ea7055
+submodule  assets/syntaxes/02_Extra/Vue  github.com/vuejs/vue-syntax-highlight@6eb71bc6bba5
+submodule  assets/syntaxes/02_Extra/Zig  codeberg.org/ziglang/sublime-zig-language@c16d871ccccb
+file       assets/syntaxes/02_Extra/apt-source-list.sublime-syntax
+submodule  assets/syntaxes/02_Extra/cmd-help  github.com/victor-gp/cmd-help-sublime-syntax@2757ac168123
+submodule  assets/syntaxes/02_Extra/gnuplot  github.com/hesstobi/sublime_gnuplot@04743470ff90
+file       assets/syntaxes/02_Extra/gnuplot.sublime-syntax
+submodule  assets/syntaxes/02_Extra/hosts  github.com/tijn/hosts.tmLanguage@60ed92c472dc
+submodule  assets/syntaxes/02_Extra/http-request-response  github.com/keith-hall/http-request-response-syntax@93b93261bcd8
+file       assets/syntaxes/02_Extra/log.sublime-syntax
+file       assets/syntaxes/02_Extra/show-nonprintable.sublime-syntax
+submodule  assets/syntaxes/02_Extra/ssh-config  github.com/robballou/sublimetext-sshconfig@bf49e9181c6b
+submodule  assets/syntaxes/02_Extra/sublime-odin  github.com/odin-lang/sublime-odin@5d6a0ed41e41
+file       assets/syntaxes/02_Extra/syntax_test_csv.csv
+file       assets/syntaxes/02_Extra/syntax_test_helphelp.txt
+file       assets/syntaxes/02_Extra/syntax_test_man.man
+file       assets/syntaxes/02_Extra/syntax_test_requirements.txt
+file       assets/syntaxes/02_Extra/syntax_test_tsv.tsv
+file       assets/syntaxes/02_Extra/syslog.sublime-syntax
+submodule  assets/syntaxes/02_Extra/typst-syntax-highlight  github.com/hyrious/typst-syntax-highlight@5f71d12fa129
+submodule  assets/syntaxes/02_Extra/varlink  github.com/varlink/syntax-highlight-varlink@04f30d4b8312
+submodule  assets/syntaxes/02_Extra/vscode-wgsl  github.com/PolyMeilex/vscode-wgsl@a285c38f74eb
+file       assets/syntaxes/02_Extra/wgsl.sublime-syntax
+'''
+
+[[exchange]]
+operation = "File"
+variables = '{"content":false,"gitlab":false,"path":"assets/syntaxes/02_Extra","recursive":false,"repo0":"github.com/sharkdp/bat","repo1":"","rev":"a9aa73d2"}'
+document = "File-d6d96d2c"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+response = '''
+{
+  "data": {
+    "r0": {
+      "commit": {
+        "gm": {
+          "content": "[submodule \"assets/syntaxes/Elixir\"]\n\tpath = assets/syntaxes/02_Extra/Elixir\n\turl = https://github.com/princemaple/elixir-sublime-syntax/\n[submodule \"assets/syntaxes/Packages\"]\n\tpath = assets/syntaxes/01_Packages\n\turl = https://github.com/sublimehq/Packages/\n[submodule \"assets/syntaxes/TOML\"]\n\tpath = assets/syntaxes/02_Extra/TOML\n\turl = https://github.com/jasonwilliams/sublime_toml_highlighting\n[submodule \"assets/syntaxes/Julia\"]\n\tpath = assets/syntaxes/02_Extra/Julia\n\turl = https://github.com/JuliaEditorSupport/Julia-sublime\n[submodule \"assets/themes/sublime-monokai-extended\"]\n\tpath = assets/themes/sublime-monokai-extended\n\turl = https://github.com/jonschlinkert/sublime-monokai-extended\n[submodule \"assets/syntaxes/Docker\"]\n\tpath = assets/syntaxes/02_Extra/Docker\n\turl = https://github.com/asbjornenge/Docker.tmbundle\n[submodule \"assets/syntaxes/VimL\"]\n\tpath = assets/syntaxes/02_Extra/VimL\n\turl = https://github.com/SalGnt/Sublime-VimL\n[submodule \"assets/syntaxes/INI\"]\n\tpath = assets/syntaxes/02_Extra/INI\n\turl = https://github.com/clintberry/sublime-text-2-ini\n[submodule \"assets/syntaxes/CMake\"]\n\tpath = assets/syntaxes/02_Extra/CMake\n\turl = https://github.com/zyxar/Sublime-CMakeLists\n[submodule \"assets/syntaxes/LESS\"]\n\tpath = assets/syntaxes/02_Extra/LESS\n\turl = https://github.com/danro/LESS-sublime\n[submodule \"assets/themes/DarkNeon\"]\n\tpath = assets/themes/DarkNeon\n\turl = https://github.com/RainyDayMedia/DarkNeon\n[submodule \"assets/themes/github-sublime-theme\"]\n\tpath = assets/themes/github-sublime-theme\n\turl = https://github.com/AlexanderEkdahl/github-sublime-theme\n[submodule \"assets/themes/1337-Scheme\"]\n\tpath = assets/themes/1337-Scheme\n\turl = https://github.com/MarkMichos/1337-Scheme\n[submodule \"assets/themes/TwoDark\"]\n\tpath = assets/themes/TwoDark\n\turl = https://github.com/erremauro/TwoDark\n[submodule \"assets/syntaxes/AWK\"]\n\tpath = assets/syntaxes/02_Extra/AWK\n\turl = https://github.com/JohnNilsson/awk-sublime\n[submodule \"assets/syntaxes/Nix\"]\n\tpath = assets/syntaxes/02_Extra/Nix\n\turl = https://github.com/wmertens/sublime-nix\n[submodule \"assets/themes/zenburn\"]\n\tpath = assets/themes/zenburn\n\turl = https://github.com/colinta/zenburn.git\n[submodule \"assets/syntaxes/Elm\"]\n\tpath = assets/syntaxes/02_Extra/Elm\n\turl = https://github.com/elm-community/SublimeElmLanguageSupport\n[submodule \"assets/syntaxes/TypeScript\"]\n\tpath = assets/syntaxes/02_Extra/TypeScript\n\turl = https://github.com/Microsoft/TypeScript-Sublime-Plugin\n[submodule \"assets/syntaxes/Puppet\"]\n\tpath = assets/syntaxes/02_Extra/Puppet\n\turl = https://github.com/russCloak/SublimePuppet\n[submodule \"assets/themes/onehalf\"]\n\tpath = assets/themes/onehalf\n\turl = https://github.com/sonph/onehalf\n[submodule \"assets/syntaxes/JavaScript (Babel)\"]\n\tpath = assets/syntaxes/02_Extra/JavaScript_(Babel)\n\turl = https://github.com/babel/babel-sublime\n[submodule \"assets/syntaxes/FSharp\"]\n\tpath = assets/syntaxes/02_Extra/FSharp\n\turl = https://github.com/hoest/sublimetext-fsharp\n[submodule \"assets/syntaxes/PureScript\"]\n\tpath = assets/syntaxes/02_Extra/PureScript\n\turl = https://github.com/tellnobody1/sublime-purescript-syntax\n[submodule \"assets/syntaxes/Swift\"]\n\tpath = assets/syntaxes/02_Extra/Swift\n\turl = https://github.com/quiqueg/Swift-Sublime-Package\n[submodule \"assets/syntaxes/Crystal\"]\n\tpath = assets/syntaxes/02_Extra/Crystal\n\turl = https://github.com/crystal-lang-tools/sublime-crystal.git\n[submodule \"assets/syntaxes/PowerShell\"]\n\tpath = assets/syntaxes/02_Extra/PowerShell\n\turl = https://github.com/PowerShell/EditorSyntax\n[submodule \"assets/syntaxes/Robot\"]\n\tpath = assets/syntaxes/02_Extra/Robot\n\turl = https://github.com/andriyko/sublime-robot-framework-assistant.git\n[submodule \"assets/themes/sublime-snazzy\"]\n\tpath = assets/themes/sublime-snazzy\n\turl = https://github.com/greggb/sublime-snazzy\n[submodule \"assets/syntaxes/Assembly (ARM)\"]\n\tpath = assets/syntaxes/02_Extra/Assembly_(ARM)\n\turl = https://github.com/tvi/Sublime-ARM-Assembly\n[submodule \"assets/syntaxes/protobuf-syntax-highlighting\"]\n\tpath = assets/syntaxes/02_Extra/Protobuf\n\turl = https://github.com/VcamX/protobuf-syntax-highlighting.git\n\tbranch = master\n[submodule \"assets/syntaxes/Terraform\"]\n\tpath = assets/syntaxes/02_Extra/Terraform\n\turl = https://github.com/alexlouden/Terraform.tmLanguage.git\n[submodule \"assets/syntaxes/Jsonnet\"]\n\tpath = assets/syntaxes/02_Extra/Jsonnet\n\turl = https://github.com/gburiola/sublime-jsonnet-syntax.git\n[submodule \"assets/syntaxes/varlink\"]\n\tpath = assets/syntaxes/02_Extra/varlink\n\turl = https://github.com/varlink/syntax-highlight-varlink.git\n[submodule \"assets/syntaxes/sublime-fish\"]\n\tpath = assets/syntaxes/02_Extra/Fish\n\turl = https://github.com/Phidica/sublime-fish.git\n[submodule \"assets/syntaxes/Org mode\"]\n\tpath = assets/syntaxes/02_Extra/Org_mode\n\turl = https://github.com/jezcope/Org.tmbundle.git\n[submodule \"assets/syntaxes/DotENV\"]\n\tpath = assets/syntaxes/02_Extra/DotENV\n\turl = https://github.com/zaynali53/DotENV\n[submodule \"assets/syntaxes/ssh-config\"]\n\tpath = assets/syntaxes/02_Extra/ssh-config\n\turl = https://github.com/robballou/sublimetext-sshconfig.git\n[submodule \"assets/syntaxes/GraphQL\"]\n\tpath = assets/syntaxes/02_Extra/GraphQL\n\turl = https://github.com/dncrews/GraphQL-SublimeText3.git\n[submodule \"assets/syntaxes/Verilog\"]\n\tpath = assets/syntaxes/02_Extra/Verilog\n\turl = https://github.com/pro711/sublime-verilog\n[submodule \"assets/syntaxes/SCSS_Sass\"]\n\tpath = assets/syntaxes/02_Extra/SCSS_Sass\n\turl = https://github.com/braver/SublimeSass\n[submodule \"assets/syntaxes/Strace\"]\n\tpath = assets/syntaxes/02_Extra/Strace\n\turl = https://github.com/djuretic/SublimeStrace\n[submodule \"assets/syntaxes/Jinja2\"]\n\tpath = assets/syntaxes/02_Extra/Jinja2\n\turl = https://github.com/ltrzesniewski/sublime-jinja2.git\n[submodule \"assets/syntaxes/SLS\"]\n\tpath = assets/syntaxes/02_Extra/SLS\n\turl = https://github.com/saltstack/sublime-text\n\tbranch = master\n[submodule \"assets/themes/dracula-sublime\"]\n\tpath = assets/themes/dracula-sublime\n\turl = https://github.com/dracula/sublime.git\n[submodule \"assets/syntaxes/HTML (Twig)\"]\n\tpath = assets/syntaxes/02_Extra/HTML_(Twig)\n\turl = https://github.com/Anomareh/PHP-Twig.tmbundle.git\n[submodule \"assets/themes/Nord-sublime\"]\n\tpath = assets/themes/Nord-sublime\n\turl = https://github.com/crabique/Nord-plist.git\n[submodule \"assets/syntaxes/Vue\"]\n\tpath = assets/syntaxes/02_Extra/Vue\n\turl = https://github.com/vuejs/vue-syntax-highlight.git\n\tbranch = new\n[submodule \"assets/syntaxes/CoffeeScript\"]\n\tpath = assets/syntaxes/02_Extra/CoffeeScript\n\turl = https://github.com/sustained/CoffeeScript-Sublime-Plugin\n[submodule \"assets/syntaxes/02_Extra/Stylus\"]\n\tpath = assets/syntaxes/02_Extra/Stylus\n\turl = https://github.com/billymoon/Stylus\n[submodule \"assets/themes/Solarized\"]\n\tpath = assets/themes/Solarized\n\turl = https://github.com/braver/Solarized\n[submodule \"assets/syntaxes/02_Extra/Fortran\"]\n\tpath = assets/syntaxes/02_Extra/Fortran\n\turl = https://github.com/315234/SublimeFortran\n[submodule \"assets/syntaxes/02_Extra/Email\"]\n\tpath = assets/syntaxes/02_Extra/Email\n\turl = https://github.com/mariozaizar/email.sublime-syntax.git\n[submodule \"assets/syntaxes/02_Extra/QML\"]\n\tpath = assets/syntaxes/02_Extra/QML\n\turl = https://github.com/skozlovf/Sublime-QML\n[submodule \"assets/syntaxes/02_Extra/AsciiDoc\"]\n\tpath = assets/syntaxes/02_Extra/AsciiDoc\n\turl = https://github.com/asciidoctor/sublimetext-asciidoc.git\n[submodule \"assets/syntaxes/02_Extra/GLSL\"]\n\tpath = assets/syntaxes/02_Extra/GLSL\n\turl = https://github.com/euler0/sublime-glsl\n[submodule \"assets/syntaxes/02_Extra/Nginx\"]\n\tpath = assets/syntaxes/02_Extra/Nginx\n\turl = https://github.com/SublimeText/nginx\n[submodule \"assets/syntaxes/02_Extra/Apache\"]\n\tpath = assets/syntaxes/02_Extra/Apache\n\turl = https://github.com/colinta/ApacheConf.tmLanguage\n[submodule \"assets/syntaxes/02_Extra/Ninja\"]\n\tpath = assets/syntaxes/02_Extra/Ninja\n\turl = https://github.com/pope/SublimeNinja.git\n[submodule \"assets/syntaxes/02_Extra/Svelte\"]\n\tpath = assets/syntaxes/02_Extra/Svelte\n\turl = https://github.com/corneliusio/svelte-sublime\n[submodule \"assets/themes/Coldark\"]\n\tpath = assets/themes/Coldark\n\turl = https://github.com/ArmandPhilippot/coldark-bat.git\n[submodule \"assets/themes/gruvbox\"]\n\tpath = assets/themes/gruvbox\n\turl = https://github.com/subnut/gruvbox-tmTheme.git\n\tbranch = bat-source\n[submodule \"assets/syntaxes/02_Extra/Lean\"]\n\tpath = assets/syntaxes/02_Extra/Lean\n\turl = https://github.com/leanprover/vscode-lean4.git\n[submodule \"assets/syntaxes/02_Extra/Zig\"]\n\tpath = assets/syntaxes/02_Extra/Zig\n\turl = https://codeberg.org/ziglang/sublime-zig-language.git\n[submodule \"assets/syntaxes/02_Extra/gnuplot\"]\n\tpath = assets/syntaxes/02_Extra/gnuplot\n\turl = https://github.com/hesstobi/sublime_gnuplot\n[submodule \"assets/syntaxes/02_Extra/SystemVerilog\"]\n\tpath = assets/syntaxes/02_Extra/SystemVerilog\n\turl = https://github.com/TheClams/SystemVerilog.git\n[submodule \"assets/syntaxes/02_Extra/SublimeEthereum\"]\n\tpath = assets/syntaxes/02_Extra/SublimeEthereum\n\turl = https://github.com/davidhq/SublimeEthereum.git\n[submodule \"assets/syntaxes/02_Extra/Groff\"]\n\tpath = assets/syntaxes/02_Extra/Groff\n\turl = https://github.com/carsonoid/sublime_man_page_support\n[submodule \"assets/syntaxes/02_Extra/http-request-response\"]\n\tpath = assets/syntaxes/02_Extra/http-request-response\n\turl = https://github.com/keith-hall/http-request-response-syntax.git\n[submodule \"assets/syntaxes/02_Extra/LLVM\"]\n\tpath = assets/syntaxes/02_Extra/LLVM\n\turl = https://github.com/ioncodes/LLVM.tmBundle\n[submodule \"assets/syntaxes/02_Extra/Slim\"]\n\tpath = assets/syntaxes/02_Extra/Slim\n\turl = https://github.com/slim-template/ruby-slim.tmbundle.git\n[submodule \"assets/syntaxes/02_Extra/Racket\"]\n\tpath = assets/syntaxes/02_Extra/Racket\n\turl = https://github.com/follesoe/sublime-racket.git\n[submodule \"assets/syntaxes/02_Extra/MediaWiki\"]\n\tpath = assets/syntaxes/02_Extra/MediaWiki\n\turl = https://github.com/tosher/Mediawiker.git\n[submodule \"assets/syntaxes/02_Extra/Dart\"]\n\tpath = assets/syntaxes/02_Extra/Dart\n\turl = https://github.com/elMuso/Dartlight.git\n[submodule \"assets/syntaxes/02_Extra/SublimeJQ\"]\n\tpath = assets/syntaxes/02_Extra/SublimeJQ\n\turl = https://github.com/zogwarg/SublimeJQ.git\n[submodule \"assets/syntaxes/02_Extra/cmd-help\"]\n\tpath = assets/syntaxes/02_Extra/cmd-help\n\turl = https://github.com/victor-gp/cmd-help-sublime-syntax.git\n\tbranch = main\n\tshallow = true\n[submodule \"assets/syntaxes/02_Extra/TodoTxt\"]\n\tpath = assets/syntaxes/02_Extra/TodoTxt\n\turl = https://github.com/dertuxmalwieder/SublimeTodoTxt\n[submodule \"assets/syntaxes/02_Extra/Ada\"]\n\tpath = assets/syntaxes/02_Extra/Ada\n\turl = https://github.com/AldanTanneo/ada-sublime-syntax\n  \n[submodule \"assets/syntaxes/02_Extra/Crontab\"]\n\tpath = assets/syntaxes/02_Extra/Crontab\n\turl = https://github.com/michaelblyons/SublimeSyntax-Crontab\n[submodule \"assets/syntaxes/02_Extra/NSIS\"]\n\tpath = assets/syntaxes/02_Extra/NSIS\n\turl = https://github.com/SublimeText/NSIS\n[submodule \"assets/syntaxes/02_Extra/vscode-wgsl\"]\n\tpath = assets/syntaxes/02_Extra/vscode-wgsl\n\turl = https://github.com/PolyMeilex/vscode-wgsl.git\n[submodule \"assets/syntaxes/02_Extra/CFML\"]\n\tpath = assets/syntaxes/02_Extra/CFML\n\turl = https://github.com/jcberquist/sublimetext-cfml.git\n[submodule \"assets/syntaxes/02_Extra/Idris2\"]\n\tpath = assets/syntaxes/02_Extra/Idris2\n\turl = https://github.com/buzden/sublime-syntax-idris2\n[submodule \"assets/syntaxes/02_Extra/GDScript-sublime\"]\n\tpath = assets/syntaxes/02_Extra/GDScript-sublime\n\turl = https://github.com/beefsack/GDScript-sublime\n[submodule \"assets/syntaxes/02_Extra/sublime-odin\"]\n\tpath = assets/syntaxes/02_Extra/sublime-odin\n\turl = https://github.com/odin-lang/sublime-odin\n[submodule \"assets/syntaxes/02_Extra/typst-syntax-highlight\"]\n\tpath = assets/syntaxes/02_Extra/typst-syntax-highlight\n\turl = https://github.com/hyrious/typst-syntax-highlight\n[submodule \"assets/themes/Catppuccin\"]\n\tpath = assets/themes/Catppuccin\n\turl = https://github.com/SchweGELBin/catppuccin-bat-sub.git\n[submodule \"assets/syntaxes/02_Extra/SmartVHDL\"]\n\tpath = assets/syntaxes/02_Extra/SmartVHDL\n\turl = https://github.com/TheClams/SmartVHDL\n[submodule \"assets/syntaxes/02_Extra/hosts\"]\n\tpath = assets/syntaxes/02_Extra/hosts\n\turl = https://github.com/tijn/hosts.tmLanguage\n[submodule \"assets/syntaxes/02_Extra/Gomod\"]\n\tpath = assets/syntaxes/02_Extra/Gomod\n\turl = https://github.com/mitranim/sublime-gomod\n[submodule \"assets/syntaxes/02_Extra/COBOL\"]\n\tpath = assets/syntaxes/02_Extra/COBOL\n\turl = https://github.com/adukhan99/sublime_cobol.git\n[submodule \"assets/syntaxes/02_Extra/Kotlin\"]\n\tpath = assets/syntaxes/02_Extra/Kotlin\n\turl = https://github.com/guille/sublime-kotlin\n[submodule \"assets/syntaxes/02_Extra/Caddy\"]\n\tpath = assets/syntaxes/02_Extra/Caddy\n\turl = https://github.com/caddyserver/sublimetext.git\n"
+        },
+        "meta": {
+          "__typename": "GitTree",
+          "entries": [
+            {
+              "isDirectory": true,
+              "path": "assets/syntaxes/02_Extra/CSV",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/AWK",
+              "submodule": {
+                "commit": "e23926eca1b6a0bd0b572b7191aead9f77c748d1"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Ada",
+              "submodule": {
+                "commit": "3f17c2363e10cbfe9c66c4c56953c5aaf48d4448"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Apache",
+              "submodule": {
+                "commit": "c438c352db7dd59c7bc0849134b1bab9b338a36e"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Apache.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/AsciiDoc",
+              "submodule": {
+                "commit": "e316a0a85c67c3edb73a46fc3a3ec4a9dfbbba40"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/AsciiDoc.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Assembly (ARM).sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Assembly (x86_64).sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Assembly_(ARM)",
+              "submodule": {
+                "commit": "08f33d80ded128a708d83017148dba52ebdfb04a"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/CFML",
+              "submodule": {
+                "commit": "b91c44a32e251c20c6359a8d9232287e1b408e6c"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/CMake",
+              "submodule": {
+                "commit": "2560a080b3b7dcdb05e17ee85b2171776e84b8c1"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/COBOL",
+              "submodule": {
+                "commit": "27825ee0220fb7fee73617f7404d4d214dc71b8f"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Cabal.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Caddy",
+              "submodule": {
+                "commit": "cd7d132da38291b632995f84ae1e920458943b18"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/CoffeeScript",
+              "submodule": {
+                "commit": "e08f9b8cdfc84e0456ae63dca7aaefb94bf06e24"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/CoffeeScript.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/CpuInfo.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Crontab",
+              "submodule": {
+                "commit": "54f1fa7ff0c9d18aea3790555dba6e533ce3749b"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Crystal",
+              "submodule": {
+                "commit": "eb63666f35c259733d4c7fcec9adbd82e5a91dda"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Crystal.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Dart",
+              "submodule": {
+                "commit": "2734901b014191f5a7f71c3f48678adf31239098"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Dart.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Docker",
+              "submodule": {
+                "commit": "0f6b7bc87acf684f7b0790fd480731ffb4615b87"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/DotENV",
+              "submodule": {
+                "commit": "58201ba2abbbe6a12b2f6d0595efea3b388c1e38"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/DotENV.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Elixir",
+              "submodule": {
+                "commit": "4fb01891dd17434dde42887bc821917a30f4e010"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Elm",
+              "submodule": {
+                "commit": "e266d279c8074aa342f106554cfa87ebe839a782"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Email",
+              "submodule": {
+                "commit": "e89d09d440f342b753a490918f2c9777c64836b3"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/FSharp",
+              "submodule": {
+                "commit": "9e4645c6085871d6fe4ae8dbcbafe93cb155b074"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Fish",
+              "submodule": {
+                "commit": "ef510fd7592186d3c7f6aa066986c047ec29fe81"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Fortran",
+              "submodule": {
+                "commit": "dcf4f24f1cecd9eebf6b1eb388e4f5db671a7b08"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Fstab.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/GDScript-sublime",
+              "submodule": {
+                "commit": "96f5dcf29728aa987123321e2544330eed991a3e"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/GLSL",
+              "submodule": {
+                "commit": "59a5f8a3120358657cefdc4b830b4a883ebfbf77"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Gomod",
+              "submodule": {
+                "commit": "e0200f024a394d6e7d6b7b37a070bb8ef324b19b"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/GraphQL",
+              "submodule": {
+                "commit": "9b6f6d0a86d7e7ef1d44490b107472af7fb4ffaf"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Groff",
+              "submodule": {
+                "commit": "651091c7e266e05c0a529b137b6efd43d717894c"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Group.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/HTML (Twig).sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/HTML_(Twig)",
+              "submodule": {
+                "commit": "aedf955eba9753554815b2cbef5e072415e42068"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/INI",
+              "submodule": {
+                "commit": "8dd3e316ada5cc8bffd3982bc2a9384345729f34"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/INI.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Idris2",
+              "submodule": {
+                "commit": "4d8eb35a38254d422030e77b4933530008dd3c6e"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/JavaScript (Babel).sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/JavaScript_(Babel)",
+              "submodule": {
+                "commit": "f4579f9107996c16208466248a85dc2296083a5f"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Jinja2",
+              "submodule": {
+                "commit": "e572427f6ac5f71fa2b9cf93e976a99bff4a3e94"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Jsonnet",
+              "submodule": {
+                "commit": "56ac0e6854ad75b26961bee82896af7a61c6a40e"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Julia",
+              "submodule": {
+                "commit": "3366b10be91aaab7a61ae0bc0a5af5cc375e58d1"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Kotlin",
+              "submodule": {
+                "commit": "c353694169c047bd746c93c214289fc52d152cae"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/LESS",
+              "submodule": {
+                "commit": "d076a4dd416bcdb155bacf90cda72f7bf1c8abbb"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/LLVM",
+              "submodule": {
+                "commit": "274126faa9febfb649981cc97ecd499fcd7f5b90"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Lean",
+              "submodule": {
+                "commit": "514362b5c7fdcd7c43562d833fb94ff973d1da29"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Lean.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/LiveScript.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Manpage.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/MediaWiki",
+              "submodule": {
+                "commit": "5dceaa9dd9af0d2266f1c9e45966d8a610226213"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/MemInfo.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/NSIS",
+              "submodule": {
+                "commit": "619a65a04efbf343bdfcde875700675b9b273368"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Nginx",
+              "submodule": {
+                "commit": "65f5a63c0d1760c5db2264e50e3b14a7a4567cc0"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Nim.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Ninja",
+              "submodule": {
+                "commit": "25830aaec9316b7fca6600000535214164525d7a"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Ninja.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Nix",
+              "submodule": {
+                "commit": "48c497c709c66a2fb118c534a8de8e4e1c4c401d"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Nix.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Org mode.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Org_mode",
+              "submodule": {
+                "commit": "bb6e5d848151135ab8f87bdcb997437b2308718a"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Passwd.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/PowerShell",
+              "submodule": {
+                "commit": "a08b55bf1146c210f58e844be53c2aa78fd5e610"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/PowerShell.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Protobuf",
+              "submodule": {
+                "commit": "1365331580b0e4bb86f74d0c599dccc87e7bdacb"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Puppet",
+              "submodule": {
+                "commit": "2a224343d2151b2896b6d9c48343919c06d1e695"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/PureScript",
+              "submodule": {
+                "commit": "1773f4fddb08560d6bcb354901088e61e9ea0908"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/QML",
+              "submodule": {
+                "commit": "e3e058a21f3c44d64ef5eda93925ee84169b62ec"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/QML.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Racket",
+              "submodule": {
+                "commit": "7df4479c079768edd994b20052761152e277af21"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Racket.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Rego.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Requirementstxt.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Resolv.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Robot",
+              "submodule": {
+                "commit": "fcd3323b5631d4abe61e8e8c728d0f4329640a64"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Robot.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/SCSS_Sass",
+              "submodule": {
+                "commit": "d3d94046409db6fbbc9d51dea52b589ecc9d3d48"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/SLS",
+              "submodule": {
+                "commit": "f8a8cf90b1185acb63127dfdfe53379a6a16c0fd"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/SML.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Slim",
+              "submodule": {
+                "commit": "cad02689b6c6e03d67dab8eaadb22cf0fd3b436b"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Slim.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/SmartVHDL",
+              "submodule": {
+                "commit": "b45507ddc8a417b84872a1f28388f9650851fca5"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Strace",
+              "submodule": {
+                "commit": "3ec51e0bca39bf60cab7f96cecfc5d003c3ea59b"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Stylus",
+              "submodule": {
+                "commit": "30908e3b5757d6cab4bf2ce660ef89b0c614cf62"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Stylus.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/SublimeEthereum",
+              "submodule": {
+                "commit": "b60e0a3e00e68263fcf35ba1a2e0bd0f6e3544f9"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/SublimeJQ",
+              "submodule": {
+                "commit": "84770c52bd0d6cea73bd41299a2770ee931320bc"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Svelte",
+              "submodule": {
+                "commit": "c71f1290b061c79c027b5eb002ed06aa6d874ffe"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Swift",
+              "submodule": {
+                "commit": "fef17119ceef28a3c4b8cf72268d6192b595365d"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Swift.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/SystemVerilog",
+              "submodule": {
+                "commit": "b340f1c7f6a38d4da9f77be5abd6d455e5da7641"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/TOML",
+              "submodule": {
+                "commit": "f5a57e8bff694a4e6c52a491dae579aabc7427cf"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Terraform",
+              "submodule": {
+                "commit": "54d8350c3c5929c921ea7561c932aa15e7d96c48"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/TodoTxt",
+              "submodule": {
+                "commit": "071a004217f981152c78dc7a530536374a753d98"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/TypeScript",
+              "submodule": {
+                "commit": "ba45efd058df5111837e30fb9598cfc8cbd51095"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/TypeScript.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/TypsecriptReact.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Verilog",
+              "submodule": {
+                "commit": "532e87c1b40114be14ccfe382a141247daa54be4"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Verilog.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/VimHelp.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/VimL",
+              "submodule": {
+                "commit": "fe5bf5ea7055b35035438c64d822aae1f1dfdb41"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Vue",
+              "submodule": {
+                "commit": "6eb71bc6bba5e6a284b6d1d3154484da6f366e21"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/Zig",
+              "submodule": {
+                "commit": "c16d871ccccb3749f5a4b824f3fd44b143114565"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/apt-source-list.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/cmd-help",
+              "submodule": {
+                "commit": "2757ac168123de230cd4374d6a44e0db9cd10f4c"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/gnuplot",
+              "submodule": {
+                "commit": "04743470ff90237ba3fb34ccf77c2d256d611262"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/gnuplot.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/hosts",
+              "submodule": {
+                "commit": "60ed92c472dc6038a13a38d033bba6bc64fd6913"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/http-request-response",
+              "submodule": {
+                "commit": "93b93261bcd8b4fbb38d7e92d3cf3734f0814e31"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/log.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/show-nonprintable.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/ssh-config",
+              "submodule": {
+                "commit": "bf49e9181c6bf992a86beb133144d2651e826ddc"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/sublime-odin",
+              "submodule": {
+                "commit": "5d6a0ed41e41ec3709ec74f40686dc3761d6596e"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/syntax_test_csv.csv",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/syntax_test_helphelp.txt",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/syntax_test_man.man",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/syntax_test_requirements.txt",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/syntax_test_tsv.tsv",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/syslog.sublime-syntax",
+              "submodule": null
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/typst-syntax-highlight",
+              "submodule": {
+                "commit": "5f71d12fa129165bbe51aa867292555cdff6eb75"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/varlink",
+              "submodule": {
+                "commit": "04f30d4b831232ea23ffceb5b2da61e12dae5db6"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/vscode-wgsl",
+              "submodule": {
+                "commit": "a285c38f74eba2eb5c5a06be8d95b9f581338509"
+              }
+            },
+            {
+              "isDirectory": false,
+              "path": "assets/syntaxes/02_Extra/wgsl.sublime-syntax",
+              "submodule": null
+            }
+          ],
+          "path": "assets/syntaxes/02_Extra"
+        },
+        "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+      },
+      "defaultBranch": {
+        "displayName": "master"
+      },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T04:50:20Z"
+      },
+      "name": "github.com/sharkdp/bat"
+    }
+  }
+}
+'''

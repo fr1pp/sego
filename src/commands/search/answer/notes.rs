@@ -7,7 +7,7 @@ use crate::output::{Notes, count};
 
 use super::text::tenths;
 use super::{Alert, Answer};
-use crate::sourcegraph::UnindexedFile;
+use crate::sourcegraph::{UnindexedFile, regexp_reason};
 
 const FACTS: usize = 2;
 const MIB: u64 = 1 << 20;
@@ -18,6 +18,8 @@ const REVISIONS: &str = "Some revisions could not be searched";
 const NO_REPOSITORIES: &str = "No repositories found";
 const PINNED: &str = "at a pinned revision the search can't tell which files it skipped; files over 1 MiB are never searched";
 const UNLISTED: &str = "the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched";
+const ZERO: &str =
+    "Sourcegraph doesn't report a search backend that fails to answer, and a 0 can come from one";
 const UNLISTED_INDEX_NO: &str =
     "the search can't tell which files it skipped; files over 1 MiB are never searched";
 
@@ -26,6 +28,9 @@ impl Answer {
     /// the search failed, or a stopped search with nothing in it.
     pub fn judge(&self, notes: &mut Notes) -> Result<(), Error> {
         if let Some(alert) = &self.alert {
+            if let Some(reason) = description(alert).and_then(regexp_reason) {
+                return Err(super::super::regexp_error(reason, &self.query));
+            }
             if alert.title == PROCESS_FAILURE {
                 return Err(Error::upstream(description(alert).unwrap_or(&alert.title)));
             }
@@ -34,7 +39,7 @@ impl Answer {
                     return Err(revisions(alert));
                 }
                 if alert.title == NO_REPOSITORIES {
-                    let error = proposals(alert, Error::missing(&alert.title));
+                    let error = proposals(alert, Error::not_found(&alert.title));
                     return Err(match &self.query.repo_names {
                         Some(names) => error.fact(format!(
                             "sego search {} lists the matching repositories",
@@ -46,7 +51,7 @@ impl Answer {
             }
         }
         if self.is_zero() && self.stopped {
-            return Err(Error::missing(format!(
+            return Err(Error::upstream(format!(
                 "the search stopped at {} s with no results",
                 tenths(self.elapsed_ms)
             )));
@@ -62,7 +67,7 @@ fn description(alert: &Alert) -> Option<&str> {
 
 fn revisions(alert: &Alert) -> Error {
     let Some(text) = description(alert) else {
-        return Error::missing(&alert.title);
+        return Error::not_found(&alert.title);
     };
     let lines: Vec<String> = text
         .lines()
@@ -71,9 +76,9 @@ fn revisions(alert: &Alert) -> Error {
         .map(|(repo, rev)| format!("revision {rev} not found in {repo}"))
         .collect();
     let Some((first, rest)) = lines.split_first() else {
-        return Error::missing(text);
+        return Error::not_found(text);
     };
-    let error = Error::missing(first);
+    let error = Error::not_found(first);
     match rest {
         [] => error,
         [one] => error.fact(one),
@@ -132,6 +137,9 @@ fn push_notes(searched: &Answer, notes: &mut Notes) {
     }
     if let Some(note) = unlisted_note(searched) {
         notes.push(note);
+    }
+    if searched.is_zero() {
+        notes.push(ZERO);
     }
 }
 
@@ -280,14 +288,30 @@ mod tests {
     }
 
     /// The notes `judge` writes for the response to `query`, given the files
-    /// the side query listed, which is `None` when it wasn't sent.
+    /// the side query listed, which is `None` when it wasn't sent, without
+    /// the note every zero carries.
     fn notes_for(query: &str, overrides: &Value, unindexed: Option<Vec<UnindexedFile>>) -> String {
+        every_note_for(query, overrides, unindexed).replace(&format!("sego: note: {ZERO}\n"), "")
+    }
+
+    fn every_note_for(
+        query: &str,
+        overrides: &Value,
+        unindexed: Option<Vec<UnindexedFile>>,
+    ) -> String {
         let answer = Answer::new(Query::new(query), results(overrides), unindexed);
         let mut notes = Notes::new();
         assert!(answer.judge(&mut notes).is_ok(), "{query}");
         let mut printed = Vec::new();
         assert!(notes.write(&mut printed).is_ok());
         String::from_utf8_lossy(&printed).into_owned()
+    }
+
+    #[test]
+    fn a_zero_says_a_backend_that_failed_could_have_given_it() {
+        let zero = format!("sego: note: {ZERO}\n");
+        assert!(every_note_for("repo:x type:repo foo", &json!({}), None).ends_with(&zero));
+        assert!(!every_note_for("repo:x type:repo foo", &one_result(), None).contains(ZERO));
     }
 
     #[test]

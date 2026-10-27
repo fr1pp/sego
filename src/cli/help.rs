@@ -29,8 +29,8 @@ options:
 const GENERAL_OUTPUT_AND_EXAMPLES: &str = r#"output:
   A header line comes first: what was read, such as REPO@COMMIT:PATH,
   with its counts. Lines of a file are numbered "N:". Notes go to stderr
-  as "sego: note: ...". --json prints one JSON document instead;
-  "sego COMMAND --help" lists its fields.
+  as "sego: note: ...". --json prints one JSON document instead, notes
+  in "notes"; "sego COMMAND --help" lists its fields.
 
 examples:
   sego search 'repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter'
@@ -60,7 +60,8 @@ query:
 
 const SEARCH_FACTS: &str = r#"defaults:
   A search covers each repository's default branch, and stops after 30
-  results or 20 s; count:N and timeout:60s raise those limits. By default,
+  results or at its 20 s deadline, though the answer can arrive later;
+  count:N and timeout:60s raise them. By default,
   Sourcegraph excludes archived repositories and forks; add archived:yes or
   fork:yes to include them. Files too large to search are skipped, and
   sego show reads any file; index:no reads files skipped for too many
@@ -70,7 +71,7 @@ text:
   N UNIT  R repos  T s      UNIT is matches, commits, files,
                             directories, symbols or repos; N+ when
                             more may exist; "stopped at T s" when the
-                            search ran out of time
+                            deadline cut the search
   query  QUERY              the query as sent
   widen  FILTER (N repos)   repositories in scope left out by default
   REPO@COMMIT:PATH          a file with results, then "N:text" for a
@@ -79,16 +80,20 @@ text:
   A diff result previews at most 5 files and 3 hunks a file.
   Text prints the first 100 matches; --json carries every result fetched.
   Notes on stderr name skipped files; at a pin, a 0 says it can't list them.
+  Sourcegraph doesn't report a search backend that fails to answer, so a 0
+  can come from one, and a search over several repositories can miss a
+  backend's share; every 0 carries a note saying so.
 
 json:
   query pattern_type unit count at_least stopped elapsed_ms limit_ms
-  widen[{filter repos}] unindexed[{repo commit path bytes}] alert
+  widen[{filter repos}] unindexed[{repo commit path bytes}], null when
+  the files skipped are unknown; alert
   results[]: kind (line, path, binary, symbol, commit or repo) and repo;
     file kinds add commit rev path; line adds line text match ranges
     chunk, with match false on a context line; symbol adds line name
     symbol_kind container; commit adds commit date author subject lines
     highlights preview_limited; date is the UTC day of the author date
-  server
+  server notes
 
 examples:
   sego search 'repo:^github\.com/gorilla/mux$ "func NewRouter"'
@@ -96,18 +101,30 @@ examples:
 "#;
 
 const SHOW_FACTS: &str = r#"text:
-  A file: REPO@COMMIT:PATH  lines A-B of N  rev REV, then a row per line,
-  "N:text". Text shows lines 1-500 when LINES is not given, and 1- shows
-  the whole file; --json carries the same lines.
+  A file: REPO@COMMIT:PATH  lines A-B of N  rev REV  mirrored T, then a
+  row per line, "N:text". Text shows lines 1-500 when LINES is not given,
+  and 1- shows the whole file; --json carries the same lines.
+  rev REV shows when REV was a name, and mirrored T when Sourcegraph last
+  updated its mirror from the host, as read with this answer.
+  CRLF: every line shown ends in CRLF, and those CRs are left out; any
+  other CR prints as \u{d}. not UTF-8: bytes that aren't print as \x{hh}.
+  binary N bytes: Sourcegraph's classification, not git's. A symlink is a
+  file that shows its target; file modes aren't available.
+  A directory or the root prints the ls answer; LINES for one is an error.
   A commit: REPO@COMMIT  DATE  AUTHOR  parents P  N files  +A -D, then
-  the message, indented, and a row per file, "STATUS  +A -D  PATH".
+  the message, indented, and a row per file, "STATUS  +A -D  PATH". A
+  root commit has no file list: Sourcegraph has no diff for it.
 
 json:
-  A file: repo rev commit path total_lines byte_size binary crlf
-  lfs_size submodule start end lines[{line text}] via_raw
-  A commit: repo rev commit author author_date committer committer_date
-  parents subject message files[{status old_path new_path added deleted}]
-  files_total added deleted
+  A file: repo rev commit path kind (file or submodule) total_lines
+  byte_size binary crlf utf8 (null when unknown) lfs_size
+  submodule{url address commit} start
+  end lines[{line text bytes}], bytes the line in base64 when not UTF-8
+  A commit: repo rev commit kind author author_date committer
+  committer_date parents subject message
+  files[{status old_path new_path added deleted}] files_total files_more
+  added deleted
+  Each adds mirrored_at notes.
 
 examples:
   sego show github.com/gorilla/mux@v1.8.0:mux.go 120-180
@@ -123,14 +140,17 @@ options:
 ";
 
 const LS_FACTS: &str = r#"text:
-  REPO@COMMIT[:PATH]  N entries  D dirs  F files  S submodules  rev REV,
-  then a row per entry, "KIND  PATH", with KIND dir, file or submodule.
-  Paths are from the repository root, sorted segment by segment.
-  Text prints 200 entries; --json carries every entry.
+  REPO@COMMIT[:PATH]  N entries  D dirs  F files  S submodules  rev REV
+  mirrored T, then a row per entry, "KIND  PATH", with KIND dir, file or
+  submodule. A file or a submodule is its own one row. Paths are from the
+  repository root, sorted segment by segment. A submodule's URL comes
+  from .gitmodules; "?" when it has none. Text prints 200 entries; --json
+  carries every entry.
 
 json:
-  repo rev commit path recursive
-  entries[{path kind submodule_url submodule_target submodule_commit}]
+  repo rev commit path kind (directory, file or submodule) recursive
+  entries[{path kind submodule_url submodule_address submodule_commit}]
+  entries_total entries_more mirrored_at notes
 
 examples:
   sego ls github.com/gorilla/mux@v1.8.0
@@ -143,16 +163,19 @@ const REFS_TEXT: &str = concat!(
 );
 
 const REFS_FACTS: &str = r#"text:
-  REPO  N branches  M tags, or with TEXT, "X of Y branches match" and
-  "X of Y tags match", then a row per ref, "KIND  COMMIT  DATE  NAME",
-  the default branch marked.
-  Branches come default first, then newest first; tags newest first.
-  Text prints 100 branches and 100 tags; --json carries up to 17000 of
-  each.
+  REPO  N branches  M tags  mirrored T, or with TEXT, "X of Y branches
+  match" and "X of Y tags match", then a row per ref, "KIND  TARGET
+  NAME", the default branch marked. TARGET is the object the ref names,
+  a tree for some tags.
+  Refs come in Sourcegraph's order: the default branch, then newest
+  created first (an annotated tag's tagger date, else its commit's date),
+  then by name. Text prints 100 branches and 100 tags; --json carries
+  every ref.
 
 json:
   repo query default_branch branches_total tags_total branches_all
-  tags_all branches_more tags_more refs[{kind name commit date}]
+  tags_all branches_more tags_more refs[{kind name target}] mirrored_at
+  notes
 
 examples:
   sego refs github.com/gorilla/mux 1.8
@@ -163,23 +186,34 @@ const LOG_OPERANDS: &str = "\
 operands:
   REPO       host/owner/name, owner/name, or a GitHub, GitLab or
              Sourcegraph URL
-  REPO@REV   commits reachable from REV, newest first; the default
+  REPO@REV   commits reachable from REV, in git log order; the default
              branch without @REV
   REPO@A..B  commits reachable from B and not from A, as git log A..B
-  PATH       only commits that changed PATH (one path)
+  PATH       one path, as git log REV -- PATH, which simplifies history
+";
+
+const LOG_OPTIONS: &str = "\
+options:
+  --json       one JSON document on stdout
+  --follow     follow PATH back through renames, as git log --follow; one
+               revision and one plain path; merges aren't listed
+  -h, --help   this help, or a command's help after its name
+  --version    sego's version
 ";
 
 const LOG_FACTS: &str = r#"text:
-  REPO@COMMIT[:PATH]  N commits  rev REV, then a row per commit,
-  "COMMIT  DATE  AUTHOR  SUBJECT", with "(tag: NAME)" before the subject
-  of a tagged commit.
-  Text and JSON list the newest 150 commits of a REV; a range lists them
+  REPO@COMMIT[:PATH]  N commits  behind B  follow  rev REV  mirrored T,
+  then a row per commit, "COMMIT  DATE  AUTHOR  SUBJECT", with
+  "(tag: NAME)" before the subject of a tagged commit. behind B: commits
+  in A and not in B, for a range with no PATH.
+  Text and JSON list the first 150 commits of a REV; a range lists them
   all in JSON.
 
 json:
-  repo rev commit rev_a rev_b commit_a commit_b path total more
-  commits[{commit date author subject parents tags}]; date is the UTC day
-  of the author date
+  repo rev commit rev_a rev_b commit_a commit_b path follow behind
+  commits_total commits_more commits[{commit date author subject parents
+  tags}]; date is the UTC day of the author date; tags is null when the
+  tag list couldn't be read; mirrored_at notes
 
 examples:
   sego log github.com/gorilla/mux:mux.go
@@ -192,7 +226,8 @@ operands:
               Sourcegraph URL
   REPO@A...B  changes from the merge base of A and B to B, as git
               diff A...B
-  REPO@REV    the change REV made, against its first parent
+  REPO@REV    the change REV made, against its first parent; a root
+              commit has none on Sourcegraph
   PATH...     paths or directory prefixes; the file list, counts and patch
               cover only these
 ";
@@ -202,14 +237,16 @@ const DIFF_FACTS: &str = r#"text:
   file, "STATUS  +A -D  PATH", with STATUS A, D, M or R (OLD -> NEW),
   then the patch of named paths, indented four spaces. One path joins
   the header as REPO@A...B:PATH; two or more add "paths P...".
+  base is A...B's merge base, or REV's first parent; mirrored T as in
+  sego show --help.
   Text prints 200 file rows; --json carries every file.
   With PATH operands, a rename shows as R only when both its paths are
   named.
 
 json:
-  repo rev_a rev_b commit_a commit_b base files_total added deleted
-  files[{status old_path new_path added deleted}]
-  patch, unindented, or null without PATH
+  repo rev_a rev_b commit_a commit_b base files_total files_more added
+  deleted files[{status old_path new_path added deleted}] paths
+  patch, unindented, or null without PATH; mirrored_at notes
 
 examples:
   sego diff github.com/gorilla/mux@v1.7.4...v1.8.0
@@ -248,7 +285,7 @@ pub fn refs() -> String {
 }
 
 pub fn log() -> String {
-    command_help(LOG_SYNOPSIS, LOG_OPERANDS, OPTIONS, LOG_FACTS)
+    command_help(LOG_SYNOPSIS, LOG_OPERANDS, LOG_OPTIONS, LOG_FACTS)
 }
 
 pub fn diff() -> String {
@@ -272,7 +309,7 @@ commands:
   show REPO@REV                  a commit: its message and changed files
   ls REPO[@REV][:PATH]           entries of a directory
   refs REPO [TEXT]               branches and tags
-  log REPO[@REV][:PATH] [PATH]   commits, newest first
+  log REPO[@REV][:PATH] [PATH]   commits, in git log order
   log REPO@A..B [PATH]           commits in B and not in A
   diff REPO@A...B [PATH...]      changed files, and the patch of named paths
   diff REPO@REV [PATH...]        the change one commit made
@@ -287,7 +324,7 @@ environment:
   SEGO_CACHE_DIR   where sego caches large files, or off (default
                    $XDG_CACHE_HOME/sego or ~/.cache/sego)
 
-exit codes: 0 answered, 1 not answered, 2 the command line is wrong
+exit codes: 0 answered, 1 not found, 2 usage error, 3 failure
 "
     )
 }

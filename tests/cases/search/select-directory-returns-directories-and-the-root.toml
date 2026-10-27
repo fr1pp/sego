@@ -2,7 +2,7 @@
 args = ["search", 'repo:^github\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade']
 status.code = 0
 stdout = '''
-4+ directories  1 repo  0.7 s
+4+ directories  1 repo  4.4 s
 query  repo:^github\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade
 
 github.com/gorilla/websocket@ce903f6d1d96:examples/chat/
@@ -17,44 +17,10 @@ sego: note: at a pinned revision, select: keeps only what each repository's firs
 [[exchange]]
 operation = "Search"
 variables = '{"listed":false,"query":"repo:^github\\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade","unindexed":""}'
-query = '''
-query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
-  search(query: $query, version: V3, patternType: keyword) {
-    results {
-      matchCount approximateResultCount limitHit
-      timedout { name }
-      alert { title description kind proposedQueries { description query } }
-      elapsedMilliseconds
-      dynamicFilters { value count kind }
-      results {
-        __typename
-        ... on FileMatch {
-          repository { name }
-          file { path commit { oid } }
-          revSpec { ... on GitRevSpecExpr { expr } }
-          chunkMatches { content contentStart { line }
-            ranges { start { line character } end { line character } } }
-          symbols { name kind containerName location { range { start { line } } } }
-        }
-        ... on CommitSearchResult {
-          commit { oid subject author { date person { displayName } } repository { name } }
-          matches { body { text } highlights { line character length } }
-        }
-        ... on Repository { name }
-      }
-    }
-  }
-  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
-    results {
-      limitHit elapsedMilliseconds timedout { name } alert { title }
-      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
-    }
-  }
-}
-'''
+document = "Search-328cc8ec"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -79,7 +45,7 @@ response = '''
             "value": "repo:^github\\.com/gorilla/websocket$@v1.5.3"
           }
         ],
-        "elapsedMilliseconds": 745,
+        "elapsedMilliseconds": 4352,
         "limitHit": false,
         "matchCount": 4,
         "results": [

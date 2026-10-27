@@ -6,78 +6,46 @@ sego: error: v0.1.0 is a root commit: Sourcegraph has no diff for it
 '''
 
 [[exchange]]
-operation = "Diff"
-variables = '{"a":"v0.1.0^1","b":"v0.1.0","first":201,"gitlab":false,"patch":false,"paths":null,"repo0":"example.com/acme/widget","repo1":""}'
-query = '''
-query Diff($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!) {
-  a0: repository(name: $repo0) { ...Base }
-  b0: repository(name: $repo0) { ...Head }
-  c0: repository(name: $repo0) { ...Comparison }
-  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
-  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
-  c1: repository(name: $repo1) @include(if: $gitlab) { ...Comparison }
-}
-
-fragment Base on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $a) {
-    oid
-
-  }
-}
-
-fragment Head on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $b) {
-    oid parents { oid }
-
-  }
-}
-
-fragment Comparison on Repository {
-  name
-  defaultBranch { displayName }
-  comparison(base: $a, head: $b) {
-    all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
-    page: fileDiffs(first: $first, paths: $paths) {
-      nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }
-    }
-    patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }
-  }
-}
-'''
+operation = "Commit"
+variables = '{"first":200,"gitlab":false,"patch":false,"paths":null,"repo0":"example.com/acme/widget","repo1":"","rev":"v0.1.0"}'
+document = "Commit-50a06158"
 status = 200
 content-type = "application/json"
+evidence = "commit/root-commit"
 response = '''
 {
   "data": {
-    "a0": {
-      "commit": null,
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "example.com/acme/widget"
-    },
-    "b0": {
+    "r0": {
       "commit": {
+        "author": {
+          "date": "2020-01-01T00:00:00Z",
+          "person": {
+            "displayName": ""
+          }
+        },
+        "committer": null,
+        "message": "",
         "oid": "4e8d10dc715feb79b43f1d607b45148537546a0a",
-        "parents": []
+        "parents": [],
+        "subject": "",
+        "w": null
       },
       "defaultBranch": {
         "displayName": "main"
       },
+      "mirrorInfo": null,
       "name": "example.com/acme/widget"
-    },
-    "c0": null
+    }
   },
   "errors": [
     {
-      "message": "revision not found: repo 1700 @v0.1.0^1^0",
+      "message": "revision not found: repo 1 @4e8d10dc715feb79b43f1d607b45148537546a0a~^0",
       "path": [
-        "c0",
-        "comparison"
+        "r0",
+        "commit",
+        "w",
+        "commit",
+        "diff"
       ]
     }
   ]

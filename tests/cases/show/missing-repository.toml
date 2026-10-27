@@ -7,32 +7,12 @@ sego: error: github.com/facebook/react is not on sourcegraph.com
 '''
 
 [[exchange]]
-operation = "ShowFile"
-variables = '{"ambiguous0":false,"end":500,"gitlab":false,"parent0":"","path0":"README.md","repo0":"github.com/facebook/react","repo1":"","rev0":"HEAD","split":false,"start":1}'
-query = '''
-query ShowFile($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $start: Int!, $end: Int!
-$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!) {
-  r0: repository(name: $repo0) { ...Guesses }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
-}
-
-fragment Guesses on Repository {
-  name
-  defaultBranch { displayName }
-c0: commit(rev: $rev0) {
-    oid
-    meta: blob(path: $path0) { byteSize totalLines binary rawURL lfs { byteSize } }
-    body: blob(path: $path0) { content(startLine: $start, endLine: $end, textOnly: true) }
-    dir: tree(path: $path0) { entries { path } }
-    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
-    x0: path(path: $path0) @include(if: $split) { __typename }
-  }
-  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
-}
-'''
+operation = "File"
+variables = '{"content":true,"end":500,"gitlab":false,"path":"README.md","recursive":false,"repo0":"github.com/facebook/react","repo1":"","rev":"HEAD","start":1}'
+document = "File-d6d96d2c"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {

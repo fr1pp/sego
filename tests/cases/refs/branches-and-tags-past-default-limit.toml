@@ -2,235 +2,216 @@
 args = ["refs", "github.com/microsoft/vscode"]
 status.code = 0
 stdout = '''
-github.com/microsoft/vscode  100 of 5785 branches shown  100 of 400 tags shown
-branch  d369043d9e43  2026-10-26  main  (default)
-branch  60db3c46b238  2026-10-26  agents/fix-issue-343968-investigation
-branch  f43380e77060  2026-10-26  roblou/agents/adopt-universe-release-sdk
-branch  37b54c6e1f75  2026-10-26  automation/copilot-sdk-main-evaluation
-branch  d7d2fd6929d6  2026-10-26  agents/the-tool-count-is-wrong-in-the-sidebar
-branch  7f33bff9616d  2026-10-26  agents/release-fix-cloud-model-pricing
-branch  2ae8266ec2cb  2026-10-26  agents/release-fix-cloud-input-label
-branch  06ca4d827234  2026-10-25  agents/settings-ui-error-handling
-branch  d8f3328e7f8b  2026-10-25  agents/vscode-insiders-session-unread-issue
-branch  b83c338cce1e  2026-10-25  lramos15/codex-snapshot-wait-test-speed
-branch  7443260399b0  2026-10-25  lramos15/split-remote-and-smoke-tests
-branch  37e5948ba541  2026-10-25  lramos15/split-electron-integration-tests
-branch  64452564f608  2026-10-25  lramos15/split-electron-unit-tests
-branch  0d8bd3e20ae0  2026-10-25  lramos15/windows-large-runners
-branch  394b5305dbdf  2026-10-25  alexd/response-selection-menu-default
-branch  54b7f513e040  2026-10-25  agents/electron-stealth-update-implementation
-branch  ae8a6dd979f3  2026-10-25  agents/pr-checks-optimization-flaky-tests
-branch  e0883ebb5e20  2026-10-25  chrmarti/agent-host-client-certificates
-branch  672f94a1ed59  2026-10-25  hediet/diff-wasm-bridge-lines
-branch  f802d3433d84  2026-10-25  dependabot/github_actions/actions/download-artifact-8.0.2
-branch  a5bc16d48633  2026-10-25  dependabot/github_actions/actions/upload-artifact-7.0.2
-branch  21401507eedc  2026-10-25  agents/implement-it
-branch  5a852a810fb0  2026-10-25  alexdima/skills-demo-video-guidance
-branch  5959768d29be  2026-10-25  agents/bug-investigation-keep-undo-issues
-branch  3ca93507c6a2  2026-10-25  hediet/workspace-remote-agent-hosts
-branch  4b91a687b5db  2026-10-25  lramos15/split-browser-unit-and-agent-host-e2e
-branch  308d3ac4c414  2026-10-25  alexr00/voluminous-ocelot
-branch  a7a0a5f74987  2026-10-25  validate-gate/planner-fails-open
-branch  043983ac5da1  2026-10-25  validate-gate/cli-rerun-cancel
-branch  7501a728fa25  2026-10-25  intact-quail
-branch  0ea8f179ac05  2026-10-25  willowy-beaver
-branch  14fea53f4f27  2026-10-25  imaginative-parrotfish
-branch  7fbb2b590c85  2026-10-25  profitable-mink
-branch  2aa76bd5e615  2026-10-25  ripple/recall-warning
-branch  3b53cbd91be6  2026-10-25  agents/release-fix-cloud-new-session
-branch  76f6c7dd7e90  2026-10-24  lszomoru/puzzled-perch
-branch  2791a54ff209  2026-10-24  agents/unsent-nested-not-movable
-branch  e5361d77618a  2026-10-24  automation/bump-copilot-sdk-1.0.27-preview.3
-branch  be0c12b215f6  2026-10-24  jruales-canvas-marketplace-filter-40b
-branch  925f930cc1b9  2026-10-24  connor/remote-attachment-uri-followup
-branch  9f6ea4720024  2026-10-24  dependabot/npm_and_yarn/test/monaco/fast-uri-3.1.9
-branch  33ddba4b2d65  2026-10-24  dependabot/npm_and_yarn/remote/undici-7.30.1
-branch  94c738c3f10a  2026-10-24  dependabot/npm_and_yarn/test/sanity/multi-0a3c4c2672
-branch  5227b3069390  2026-10-24  automation/bump-copilot-sdk-1.0.27-preview.2
-branch  994587f4d1a5  2026-10-23  agents/fix-copilot-plugin-enablement-issue
-branch  c55bd7020f9f  2026-10-23  automation/bump-copilot-sdk-1.0.27-preview.1
-branch  53292b0e49ca  2026-10-23  agents/customizations-modal-sidebar-updates
-branch  b8195efea66b  2026-10-23  dependabot/npm_and_yarn/extensions/copilot/electron-42.11.16
-branch  b14943cf0f4b  2026-10-23  dependabot/npm_and_yarn/build/agent-sdk/agents/claude/body-parser-2.4.0
-branch  8edfa06b8338  2026-10-23  chrmarti/remotes-left-aligned-actions
-branch  e400096f0cc8  2026-10-23  automation/bump-copilot-sdk-1.0.27-preview.0
-branch  8c4f949dd293  2026-10-23  lramos15/agent-host-watch-gitignore
-branch  4a25d04cf982  2026-10-23  agents/remove-automation-prioritized-notifications
-branch  64e9e2b645dc  2026-10-23  lramos15/watcher-exclude-gitignore
-branch  38b288dd9c49  2026-10-23  aeschli/agents/fix-vscode-issue-343342
-branch  d686989dbd13  2026-10-23  dependabot/npm_and_yarn/extensions/copilot/zod-4.6.6
-branch  a4f7b809a1f7  2026-10-23  karthiknadig/sensitive-edit-locations-pingpong
-branch  0beada13b057  2026-10-23  copilot/vscode/cdp-roundtrip-flake
-branch  fd56a39e0eea  2026-10-23  copilot/vscode/ci-windows-trim-test-setup
-branch  27630768dadc  2026-10-23  copilot/vscode/copilot-setup-retry
-branch  493d97920ae8  2026-10-23  jolly-bug
-branch  6131a7a751cc  2026-10-23  agents/agent-merge-failure-analysis
-branch  287a65065812  2026-10-23  bv/reimplement-337757-on-main
-branch  c719e52eb1c2  2026-10-23  sandy081/agents/show-pr-issue-actions-in-activity-bar
-branch  63fcf1ace5fc  2026-10-23  agents/no-timeout-polling-chat-pet-landing
-branch  5a852a00486e  2026-10-23  agents/no-timeout-polling-sessions-layout
-branch  eb2af8204738  2026-10-23  agents/no-timeout-polling-rule-v2
-branch  ad2e21cafc41  2026-10-23  ulugbekna/agents/canvas-production-readiness-priorities
-branch  8e08724c0084  2026-10-23  benibenj/notification-message-attribution
-branch  87dc3ad9052c  2026-10-23  hediet/external-uri-opener-cleanup
-branch  7ade10e04499  2026-10-23  agents/optimize-gh-run-speed-multithreading
-branch  7522e5f9f2fe  2026-10-23  lszomoru/related-tuna
-branch  580403247a3a  2026-10-23  jruales-canvas-marketplace-filter
-branch  92fbf3fed9dd  2026-10-23  claude/nice-ramanujan-93fe88
-branch  b04b50a28f70  2026-10-23  users/GitHubPolicyService/db9c1731-13e7-4923-9ec2-3477745918a5
-branch  0974f7c8f6c8  2026-10-23  aeschli/fix-connector-launch-deadlock
-branch  dac7eeabf04b  2026-10-23  copilot/vscode/connector-reconcile-test-deadlock
-branch  f46309704892  2026-10-23  agents/canvas-picture-in-picture-implementation
-branch  adaaca24f8b1  2026-10-23  agents/fix-cloud-env-picker-chat-bug
-branch  0f971d1a8b45  2026-10-23  agents/blobby-jump-game
-branch  954d723b3994  2026-10-23  copilot/vscode/agent-host-db-test-durability
-branch  347156a63ad1  2026-10-23  connor/agent-host-mcp-auth-adopt-tool-calls
-branch  c01417d48b2c  2026-10-23  digitarald/agents/hook-validation-local-schema-fix
-branch  fedd92e89f54  2026-10-23  DileepY/sandbox-resume-fix
-branch  7c316d05fb6c  2026-10-22  copilot/vscode/macos-cache-large-chunks
-branch  ee3cc05d0178  2026-10-22  alexdima/agent-host-missing-session-backing
-branch  12892153b889  2026-10-22  bhavyau/automate-from-chat
-branch  90c7615d9b3c  2026-10-22  copilot/vscode/ado-playwright-cache
-branch  6654d6607b9e  2026-10-22  jukasper-musical-waffle
-branch  5344ff7b99e1  2026-10-22  roblou/agents/cloud-sandbox-session-issue
-branch  3379101ed55c  2026-10-22  copilot/vscode/unit-step-timeout
-branch  db7f919da415  2026-10-22  bhavyaus/agent-host-tool-deferral-demo
-branch  ea1622242560  2026-10-22  agents/codex-harness-service-tier-issue
-branch  9e3a02906ebd  2026-10-22  cherry-pick/342839
-branch  0eb8d26f13a7  2026-10-22  automation/bump-copilot-sdk-1.0.26-preview.0
-branch  c3121665dbff  2026-10-22  copilot/vscode/codex-local-turn-flake
-branch  60ca9381276b  2026-10-22  copilot/deterministic-test-instructions
-branch  139a5c475a37  2026-10-22  ulugbekna-refactor-canvas-lifecycle
-branch  6abfd44ed1a3  2026-10-22  ulugbekna-fix-duplicate-canvas-applies
-branch  98961175d576  2026-10-22  kycutler/browser-agents-window-proxy
-tag     e646868227c3  2026-10-22  1.143.1
-tag     2d0b7506a36c  2026-10-20  1.143.0
-tag     16507d91be0d  2026-10-14  1.141.2
-tag     d956e8a6ac5d  2026-10-14  1.142.0
-tag     7baac39ec3ca  2026-10-12  1.141.1
-tag     2a59476c9bfc  2026-10-06  1.141.0
-tag     07f806f99922  2026-09-30  1.140.0
-tag     04c0d99f4fb0  2026-09-25  1.139.1
-tag     2242ebbb54ef  2026-09-22  1.139.0
-tag     7debcd0e2acd  2026-09-15  1.138.0
-tag     645f29cc3176  2026-09-08  1.137.0
-tag     88e44fa0e00b  2026-09-04  1.136.2
-tag     a44adf7f53e0  2026-09-03  1.136.1
-tag     520fb30b2d3d  2026-09-02  1.136.0
-tag     08d4889f9ec4  2026-08-25  1.135.0
-tag     474a349ad5b7  2026-08-19  1.134.0
-tag     a5b500951314  2026-08-11  1.133.0
-tag     c2d1b13fdc4a  2026-08-07  1.132.1
-tag     df53daabb18c  2026-08-04  1.132.0
-tag     3a03d6f72d62  2026-07-28  1.131.0
-tag     1b6a188127ee  2026-07-22  1.130.0
-tag     8a7abeba6e03  2026-07-17  1.129.1
-tag     125df4672b8a  2026-07-15  1.129.0
-tag     5264f2156cbc  2026-07-14  1.128.1
-tag     fc3def6774c7  2026-07-07  1.128.0
-tag     a22d00300655  2026-06-30  1.127.0
-tag     7e7950df89d0  2026-06-23  1.126.0
-tag     93cfdd489c3b  2026-06-15  1.125.0
-tag     6928394f91b6  2026-06-12  1.124.2
-tag     73b30e61dd53  2026-06-10  1.123.2
-tag     1b50d58d7342  2026-06-10  1.124.0
-tag     8b5bd2a8dd19  2026-06-09  1.123.1
-tag     6a44c352bd24  2026-06-03  1.123.0
-tag     8761a5560cfd  2026-05-29  1.122.1
-tag     6a49527b96e3  2026-05-27  1.122.0
-tag     987c95975162  2026-05-19  1.121.0
-tag     0958016b2af9  2026-05-12  1.120.0
-tag     3fe68d450d49  2026-05-12  1.119.1
-tag     8b640eef5a6c  2026-05-05  1.119.0
-tag     034f571df509  2026-04-29  1.118.1
-tag     9b8ae15a8cf9  2026-04-28  1.118.0
-tag     356d9f0a1f27  2026-04-23  v0.45.1
-tag     10c8e557c8b9  2026-04-21  1.117.0
-tag     8ff9a84c4a9c  2026-04-17  v0.44.2
-tag     f89829d8f4bf  2026-04-16  v0.44.1
-tag     560a9dba96f9  2026-04-15  1.116.0
-tag     41dd792b5e65  2026-04-07  1.115.0
-tag     e7fb5e96c073  2026-04-01  1.114.0
-tag     cfbea10c5ffb  2026-03-24  1.113.0
-tag     07ff9d6178ed  2026-03-17  1.112.0
-tag     ce099c1ed25d  2026-03-06  1.111.0
-tag     61b3d0ab13be  2026-03-06  1.110.1
-tag     0870c2a0c7c0  2026-03-04  1.110
-tag     072586267e68  2026-02-19  1.109.5
-tag     c3a26841a84f  2026-02-16  1.109.4
-tag     591199df409f  2026-02-10  1.109.2
-tag     6534f6ba7604  2026-02-09  1.109.1
-tag     bdd88df00363  2026-02-04  1.109.0
-tag     c9d77990917f  2026-01-21  1.108.2
-tag     585eba7c0c34  2026-01-13  1.108.1
-tag     94e8ae2b28cb  2026-01-08  1.108.0
-tag     994fd12f8d3a  2025-12-17  1.107.1
-tag     618725e67565  2025-12-10  1.107.0
-tag     bf9252a2fb45  2025-11-25  1.106.3
-tag     1e3c50d64110  2025-11-19  1.106.2
-tag     cb1933bbc38d  2025-11-16  1.106.1
-tag     ac4cbdf48759  2025-11-11  1.106.0
-tag     7d842fb85a02  2025-10-14  1.105.1
-tag     03c265b1adee  2025-10-08  1.105.0
-tag     385651c938df  2025-10-02  1.104.3
-tag     e3a5acfb517a  2025-09-23  1.104.2
-tag     0f0d87fa9e96  2025-09-17  1.104.1
-tag     f220831ea2d9  2025-09-09  1.104.0
-tag     6f1763612105  2025-08-20  1.103.2
-tag     e3550cfac4b6  2025-08-06  1.103.1
-tag     e3550cfac4b6  2025-08-06  1.103.0
-tag     488a1f239235  2025-07-29  1.102.3
-tag     c306e94f9812  2025-07-21  1.102.2
-tag     7adae6a56e34  2025-07-15  1.102.1
-tag     cb0c47c0cfaa  2025-07-09  1.102.0
-tag     2901c5ac6db8  2025-06-24  1.101.2
-tag     18e3a1ec544e  2025-06-18  1.101.1
-tag     dfaf44141ea9  2025-06-11  1.101.0
-tag     258e40fedc6c  2025-06-02  1.100.3
-tag     848b80aeb520  2025-05-14  1.100.2
-tag     91fa95bccb02  2025-05-09  1.100.1
-tag     19e0f9e681ec  2025-05-07  1.100.0
-tag     17baf841131a  2025-04-15  1.99.3
-tag     4949701c880d  2025-04-09  1.99.2
-tag     7c6fdfb0b8f2  2025-04-04  1.99.1
-tag     4437686ffeba  2025-04-02  1.99.0
-tag     ddc367ed5c89  2025-03-12  1.98.2
-tag     2fc07b811f76  2025-03-10  1.98.1
-tag     6609ac3d66f4  2025-03-04  1.98.0
-tag     e54c774e0add  2025-02-12  1.97.2
-tag     e249dada235c  2025-02-10  1.97.1
-tag     33fc5a94a3f9  2025-02-04  1.97.0
-tag     cd4ee3b1c348  2025-01-16  1.96.4
-tag     91fbdddc47bc  2025-01-09  1.96.3
-tag     fabdb6a30b49  2024-12-19  1.96.2
+github.com/microsoft/vscode  100 of 5797 branches shown  100 of 400 tags shown  mirrored 2026-10-27T07:25Z
+branch  4bda7217fc83  main  (default)
+branch  9cb2f82b8b2a  anthonykim1/separate-system-steering
+branch  b867e09386a0  automation/copilot-sdk-main-evaluation
+branch  9e2b078773c2  cherry-pick/344444
+branch  abc2b20cb3e7  release/1.144
+branch  581fe13d68ea  copilot/investigate-status-bar-regression
+branch  602fb8a5833a  kycutler/browser-agents-window-proxy
+branch  52bfb6a51415  bhavya/remove-legacy-panel-simulations
+branch  9e60390e99f9  automation/bump-copilot-sdk-1.0.27
+branch  110c279c2dd0  agents/typescript-web-plugin-name-guard
+branch  402bf6df7c01  agents/release-fix-cloud-new-session
+branch  262f95c657fa  hediet/agent-host-session-new-link
+branch  b5545f4adf59  hediet/untitled-breadcrumbs-reopen-with
+branch  954f524fdab2  bhavyau/agent-host-managed-semantic-search
+branch  f2da6a29a301  agents/implement-it
+branch  ee50d3a61f3b  agents/hide-copilot-marketplace-when-github-feed-enable
+branch  86f14ca635fc  copilot/vscode/smoke-exit-kill-tree
+branch  c761ef0ace52  bhavya/remove-workspace-generation
+branch  3a7dd3b21146  copilot/vscode/validate-copilot-npm-retry
+branch  62430bb2e982  copilot/vscode/copilot-setup-npm-retry
+branch  3dd1cd91e597  dependabot/npm_and_yarn/extensions/markdown-language-features/vscode/markdown-editor-0.0.2-144
+branch  2d3af21ddf0c  automation/bump-copilot-sdk-1.0.27-preview.4
+branch  b3a9723a2105  copilot/vscode/ado-playwright-cache
+branch  464999815d03  lramos15/fix-renderer-model-disposal
+branch  17f6350a45d4  copilot/vscode/gh-playwright-cache
+branch  ee8f76b24dfb  dependabot/npm_and_yarn/test/scenario/shell-quote-1.12.0
+branch  5e1102f95ac3  dependabot/npm_and_yarn/test/automation/shell-quote-1.12.0
+branch  ecf83cba9bd4  hediet/external-uri-opener-cleanup
+branch  698f4d1bab49  copilot/fix-output-model-already-exists-322399-bd13b4c1776eed73
+branch  8e01e4209e1e  dependabot/npm_and_yarn/katex-0.18.2
+branch  2ef3e28fd00d  quarrelsome-pike
+branch  f9040ade441f  benibenj/chat-background-telemetry-1.144
+branch  3aa6cacd1113  copilot/add-chat-run-automation-action
+branch  8d4dc950d05a  bhavyaus/ws-snapshot-large-file-markers
+branch  e25d41c8b2c2  bhavyaus/ws-snapshot-read-guidance
+branch  88e320c00061  agents/artifact-integrator-merge-debug
+branch  0be1ab821851  bv/tpi-344187-pending-actions
+branch  53da12fd23b2  DileepY/sandbox-resume-fix
+branch  7ed3dc895db8  cherry-pick/342713
+branch  71e26c882cd6  cherry-pick/344435
+branch  5615df1b80f4  cherry-pick/339903
+branch  b0d97de7d4de  agents/remove-automation-prioritized-notifications
+branch  df2dbe7fcc95  agents/fix-dictation-issue-history-analysis
+branch  b73f61749789  copilot/vscode/sdk-validation-binskim
+branch  acfaf16a9961  agents/apply-feedback-pr-344000
+branch  f6d4809eda81  hediet/mermaid-markdown-editor
+branch  122ec4fe4431  copilot/hello
+branch  aeaf98b88243  copilot/vscode/validate-azure-feed-retry
+branch  f35c06f5bed1  agents/fix-customizations-sidebar-outline-clip
+branch  7f198a905faf  tricky-jellyfish
+branch  ffad4f2f3d2a  copilot/vscode/azure-feed-retry
+branch  e925b13e6607  copilot/vscode/image-reveal-timing-flake
+branch  9b805a96e34f  lramos15/watcher-exclude-gitignore
+branch  e458950e81c9  lramos15/agent-host-watch-gitignore
+branch  87d843f10af3  lramos15/gitignore-parser
+branch  271301cc7d7b  copilot/vscode/validate-clippy-timeout
+branch  7152b7563905  copilot/vscode/clippy-hang-timeout
+branch  e13a88acb731  copilot/fix-ci-windows-clippy-hang
+branch  0d26c5870808  agents/customization-modal-organization-update
+branch  d4bdf4436d68  copilot/fix-mcp-authentication-hint-accessibility
+branch  bbdb30431053  agents/customizations-modal-sidebar-updates
+branch  29ce7783a14b  lramos15/codex-snapshot-wait-test-speed
+branch  691ea0c5ff16  jolly-bug
+branch  2f801b72f46e  agents/settings-ui-error-handling
+branch  a0b5eb8c8226  agents/ripple-flaky-test-detection-20x
+branch  09531972317b  agents/improve-windows-folder-structure
+branch  54b7f513e040  agents/electron-stealth-update-implementation
+branch  ae8a6dd979f3  agents/pr-checks-optimization-flaky-tests
+branch  e0883ebb5e20  chrmarti/agent-host-client-certificates
+branch  f802d3433d84  dependabot/github_actions/actions/download-artifact-8.0.2
+branch  a5bc16d48633  dependabot/github_actions/actions/upload-artifact-7.0.2
+branch  5a852a810fb0  alexdima/skills-demo-video-guidance
+branch  4b91a687b5db  lramos15/split-browser-unit-and-agent-host-e2e
+branch  a7a0a5f74987  validate-gate/planner-fails-open
+branch  043983ac5da1  validate-gate/cli-rerun-cancel
+branch  7501a728fa25  intact-quail
+branch  0ea8f179ac05  willowy-beaver
+branch  14fea53f4f27  imaginative-parrotfish
+branch  7fbb2b590c85  profitable-mink
+branch  2aa76bd5e615  ripple/recall-warning
+branch  e5361d77618a  automation/bump-copilot-sdk-1.0.27-preview.3
+branch  925f930cc1b9  connor/remote-attachment-uri-followup
+branch  9f6ea4720024  dependabot/npm_and_yarn/test/monaco/fast-uri-3.1.9
+branch  33ddba4b2d65  dependabot/npm_and_yarn/remote/undici-7.30.1
+branch  94c738c3f10a  dependabot/npm_and_yarn/test/sanity/multi-0a3c4c2672
+branch  5227b3069390  automation/bump-copilot-sdk-1.0.27-preview.2
+branch  994587f4d1a5  agents/fix-copilot-plugin-enablement-issue
+branch  c55bd7020f9f  automation/bump-copilot-sdk-1.0.27-preview.1
+branch  b8195efea66b  dependabot/npm_and_yarn/extensions/copilot/electron-42.11.16
+branch  b14943cf0f4b  dependabot/npm_and_yarn/build/agent-sdk/agents/claude/body-parser-2.4.0
+branch  8edfa06b8338  chrmarti/remotes-left-aligned-actions
+branch  e400096f0cc8  automation/bump-copilot-sdk-1.0.27-preview.0
+branch  38b288dd9c49  aeschli/agents/fix-vscode-issue-343342
+branch  d686989dbd13  dependabot/npm_and_yarn/extensions/copilot/zod-4.6.6
+branch  a4f7b809a1f7  karthiknadig/sensitive-edit-locations-pingpong
+branch  0beada13b057  copilot/vscode/cdp-roundtrip-flake
+branch  fd56a39e0eea  copilot/vscode/ci-windows-trim-test-setup
+branch  27630768dadc  copilot/vscode/copilot-setup-retry
+branch  287a65065812  bv/reimplement-337757-on-main
+branch  c719e52eb1c2  sandy081/agents/show-pr-issue-actions-in-activity-bar
+tag     e646868227c3  1.143.1
+tag     2d0b7506a36c  1.143.0
+tag     16507d91be0d  1.141.2
+tag     d956e8a6ac5d  1.142.0
+tag     7baac39ec3ca  1.141.1
+tag     2a59476c9bfc  1.141.0
+tag     07f806f99922  1.140.0
+tag     04c0d99f4fb0  1.139.1
+tag     2242ebbb54ef  1.139.0
+tag     7debcd0e2acd  1.138.0
+tag     645f29cc3176  1.137.0
+tag     88e44fa0e00b  1.136.2
+tag     a44adf7f53e0  1.136.1
+tag     520fb30b2d3d  1.136.0
+tag     08d4889f9ec4  1.135.0
+tag     474a349ad5b7  1.134.0
+tag     a5b500951314  1.133.0
+tag     c2d1b13fdc4a  1.132.1
+tag     df53daabb18c  1.132.0
+tag     3a03d6f72d62  1.131.0
+tag     1b6a188127ee  1.130.0
+tag     8a7abeba6e03  1.129.1
+tag     125df4672b8a  1.129.0
+tag     5264f2156cbc  1.128.1
+tag     fc3def6774c7  1.128.0
+tag     a22d00300655  1.127.0
+tag     7e7950df89d0  1.126.0
+tag     93cfdd489c3b  1.125.0
+tag     6928394f91b6  1.124.2
+tag     73b30e61dd53  1.123.2
+tag     1b50d58d7342  1.124.0
+tag     8b5bd2a8dd19  1.123.1
+tag     6a44c352bd24  1.123.0
+tag     8761a5560cfd  1.122.1
+tag     6a49527b96e3  1.122.0
+tag     987c95975162  1.121.0
+tag     0958016b2af9  1.120.0
+tag     3fe68d450d49  1.119.1
+tag     8b640eef5a6c  1.119.0
+tag     034f571df509  1.118.1
+tag     9b8ae15a8cf9  1.118.0
+tag     356d9f0a1f27  v0.45.1
+tag     10c8e557c8b9  1.117.0
+tag     8ff9a84c4a9c  v0.44.2
+tag     f89829d8f4bf  v0.44.1
+tag     560a9dba96f9  1.116.0
+tag     41dd792b5e65  1.115.0
+tag     e7fb5e96c073  1.114.0
+tag     cfbea10c5ffb  1.113.0
+tag     07ff9d6178ed  1.112.0
+tag     ce099c1ed25d  1.111.0
+tag     61b3d0ab13be  1.110.1
+tag     0870c2a0c7c0  1.110
+tag     072586267e68  1.109.5
+tag     c3a26841a84f  1.109.4
+tag     591199df409f  1.109.2
+tag     6534f6ba7604  1.109.1
+tag     bdd88df00363  1.109.0
+tag     c9d77990917f  1.108.2
+tag     585eba7c0c34  1.108.1
+tag     94e8ae2b28cb  1.108.0
+tag     994fd12f8d3a  1.107.1
+tag     618725e67565  1.107.0
+tag     bf9252a2fb45  1.106.3
+tag     1e3c50d64110  1.106.2
+tag     cb1933bbc38d  1.106.1
+tag     ac4cbdf48759  1.106.0
+tag     7d842fb85a02  1.105.1
+tag     03c265b1adee  1.105.0
+tag     385651c938df  1.104.3
+tag     e3a5acfb517a  1.104.2
+tag     0f0d87fa9e96  1.104.1
+tag     f220831ea2d9  1.104.0
+tag     6f1763612105  1.103.2
+tag     e3550cfac4b6  1.103.1
+tag     e3550cfac4b6  1.103.0
+tag     488a1f239235  1.102.3
+tag     c306e94f9812  1.102.2
+tag     7adae6a56e34  1.102.1
+tag     cb0c47c0cfaa  1.102.0
+tag     2901c5ac6db8  1.101.2
+tag     18e3a1ec544e  1.101.1
+tag     dfaf44141ea9  1.101.0
+tag     258e40fedc6c  1.100.3
+tag     848b80aeb520  1.100.2
+tag     91fa95bccb02  1.100.1
+tag     19e0f9e681ec  1.100.0
+tag     17baf841131a  1.99.3
+tag     4949701c880d  1.99.2
+tag     7c6fdfb0b8f2  1.99.1
+tag     4437686ffeba  1.99.0
+tag     ddc367ed5c89  1.98.2
+tag     2fc07b811f76  1.98.1
+tag     6609ac3d66f4  1.98.0
+tag     e54c774e0add  1.97.2
+tag     e249dada235c  1.97.1
+tag     33fc5a94a3f9  1.97.0
+tag     cd4ee3b1c348  1.96.4
+tag     91fbdddc47bc  1.96.3
+tag     fabdb6a30b49  1.96.2
 '''
 
 [[exchange]]
 operation = "Refs"
-variables = '{"first":101,"gitlab":false,"query":null,"repo0":"github.com/microsoft/vscode","repo1":"","unfiltered":false}'
-query = '''
-query Refs($repo0: String!, $repo1: String!, $gitlab: Boolean!, $first: Int, $query: String, $unfiltered: Boolean!) {
-  r0: repository(name: $repo0) { ...Refs }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Refs }
-}
-
-fragment Refs on Repository {
-  name
-  defaultBranch { displayName }
-  branches(first: $first, query: $query) { ...Listing }
-  tags(first: $first, query: $query) { ...Listing }
-  all_branches: branches(first: 1) @include(if: $unfiltered) { totalCount }
-  all_tags: tags(first: 1) @include(if: $unfiltered) { totalCount }
-}
-
-fragment Listing on GitRefConnection {
-  totalCount
-  nodes { displayName target { oid commit { committer { date } } } }
-}
-'''
+variables = '{"first":100,"gitlab":false,"query":null,"repo0":"github.com/microsoft/vscode","repo1":"","unfiltered":false}'
+document = "Refs-fed5d5bc"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -240,1119 +221,611 @@ response = '''
           {
             "displayName": "main",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-26T03:11:55Z"
-                }
-              },
-              "oid": "d369043d9e43783b01cc6d0c78dcab12705eb5e2"
+              "oid": "4bda7217fc83e8e838b1edd9ebaf21bb9b498c7e"
             }
           },
           {
-            "displayName": "agents/fix-issue-343968-investigation",
+            "displayName": "anthonykim1/separate-system-steering",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-26T03:05:39Z"
-                }
-              },
-              "oid": "60db3c46b23814930df00949c96b6e4e54598e2d"
-            }
-          },
-          {
-            "displayName": "roblou/agents/adopt-universe-release-sdk",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-26T02:45:38Z"
-                }
-              },
-              "oid": "f43380e77060e1df675626e93acae3132f453b63"
+              "oid": "9cb2f82b8b2a78d1c780f30b9237a82f8301b82c"
             }
           },
           {
             "displayName": "automation/copilot-sdk-main-evaluation",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-26T02:42:56Z"
-                }
-              },
-              "oid": "37b54c6e1f75cbb1ea5effec4754781bcb098630"
+              "oid": "b867e09386a099c05d68b67c8ac2e58c8c1d7bfd"
             }
           },
           {
-            "displayName": "agents/the-tool-count-is-wrong-in-the-sidebar",
+            "displayName": "cherry-pick/344444",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-26T02:39:16Z"
-                }
-              },
-              "oid": "d7d2fd6929d648076fcccb350abf2a9b507c28eb"
+              "oid": "9e2b078773c2169fef412169239e6dffb0da6613"
             }
           },
           {
-            "displayName": "agents/release-fix-cloud-model-pricing",
+            "displayName": "release/1.144",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-26T02:14:08Z"
-                }
-              },
-              "oid": "7f33bff9616df9ee7b9f62e61d0ccff63acb1f06"
+              "oid": "abc2b20cb3e724689f78f5d2a3c231589b25483c"
             }
           },
           {
-            "displayName": "agents/release-fix-cloud-input-label",
+            "displayName": "copilot/investigate-status-bar-regression",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-26T01:42:44Z"
-                }
-              },
-              "oid": "2ae8266ec2cb3603af487981f204cadf09a07815"
+              "oid": "581fe13d68ead61acf97fcda32ddbb37f4a2e19c"
             }
           },
           {
-            "displayName": "agents/settings-ui-error-handling",
+            "displayName": "kycutler/browser-agents-window-proxy",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T23:12:23Z"
-                }
-              },
-              "oid": "06ca4d827234b947d75ce4b2950f413f8c18ac8b"
+              "oid": "602fb8a5833a465dbc3dbe771d4cd78f947223c7"
             }
           },
           {
-            "displayName": "agents/vscode-insiders-session-unread-issue",
+            "displayName": "bhavya/remove-legacy-panel-simulations",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T23:11:57Z"
-                }
-              },
-              "oid": "d8f3328e7f8b9ae52785e21f5f1b82083ba2a275"
+              "oid": "52bfb6a514151536998c7372a7fc905c5146c46e"
+            }
+          },
+          {
+            "displayName": "automation/bump-copilot-sdk-1.0.27",
+            "target": {
+              "oid": "9e60390e99f9b80590d4be4b9fb0cf5a6d015178"
+            }
+          },
+          {
+            "displayName": "agents/typescript-web-plugin-name-guard",
+            "target": {
+              "oid": "110c279c2dd06335614295231dc9d5d04276ace3"
+            }
+          },
+          {
+            "displayName": "agents/release-fix-cloud-new-session",
+            "target": {
+              "oid": "402bf6df7c0195e141cdb5d152326bf164d94f63"
+            }
+          },
+          {
+            "displayName": "hediet/agent-host-session-new-link",
+            "target": {
+              "oid": "262f95c657faf5d50aece285a64f8e59fd6ee573"
+            }
+          },
+          {
+            "displayName": "hediet/untitled-breadcrumbs-reopen-with",
+            "target": {
+              "oid": "b5545f4adf593ffeab43731c425e8003903185ef"
+            }
+          },
+          {
+            "displayName": "bhavyau/agent-host-managed-semantic-search",
+            "target": {
+              "oid": "954f524fdab22daa5e423303534337561eeed5fc"
+            }
+          },
+          {
+            "displayName": "agents/implement-it",
+            "target": {
+              "oid": "f2da6a29a3011ab99f00b65b28dcc96b8a3e844b"
+            }
+          },
+          {
+            "displayName": "agents/hide-copilot-marketplace-when-github-feed-enable",
+            "target": {
+              "oid": "ee50d3a61f3bdbb8f681c06280a6f57fafa7c48f"
+            }
+          },
+          {
+            "displayName": "copilot/vscode/smoke-exit-kill-tree",
+            "target": {
+              "oid": "86f14ca635fc7b220228716748fe5c22beb50b43"
+            }
+          },
+          {
+            "displayName": "bhavya/remove-workspace-generation",
+            "target": {
+              "oid": "c761ef0ace523a024ffb60ca9f8954044211b6f9"
+            }
+          },
+          {
+            "displayName": "copilot/vscode/validate-copilot-npm-retry",
+            "target": {
+              "oid": "3a7dd3b211468cd76a94cfbcecd01e24a40e10a0"
+            }
+          },
+          {
+            "displayName": "copilot/vscode/copilot-setup-npm-retry",
+            "target": {
+              "oid": "62430bb2e9829286907c66d924aa2f436ceecaa9"
+            }
+          },
+          {
+            "displayName": "dependabot/npm_and_yarn/extensions/markdown-language-features/vscode/markdown-editor-0.0.2-144",
+            "target": {
+              "oid": "3dd1cd91e5972080ecd48fe79f373d829a104ba8"
+            }
+          },
+          {
+            "displayName": "automation/bump-copilot-sdk-1.0.27-preview.4",
+            "target": {
+              "oid": "2d3af21ddf0cda6eca31084a9461a3212d95262b"
+            }
+          },
+          {
+            "displayName": "copilot/vscode/ado-playwright-cache",
+            "target": {
+              "oid": "b3a9723a21056a74d955dce3b93672ceb03e91ce"
+            }
+          },
+          {
+            "displayName": "lramos15/fix-renderer-model-disposal",
+            "target": {
+              "oid": "464999815d038fc58fe1a66b944bc2dea8e3b219"
+            }
+          },
+          {
+            "displayName": "copilot/vscode/gh-playwright-cache",
+            "target": {
+              "oid": "17f6350a45d4f3d28700b6356c85c3b10ca599a5"
+            }
+          },
+          {
+            "displayName": "dependabot/npm_and_yarn/test/scenario/shell-quote-1.12.0",
+            "target": {
+              "oid": "ee8f76b24dfb24d322d62dec5b42d14bbb6cbe23"
+            }
+          },
+          {
+            "displayName": "dependabot/npm_and_yarn/test/automation/shell-quote-1.12.0",
+            "target": {
+              "oid": "5e1102f95ac3a1402fc3a70900d23a2c80770656"
+            }
+          },
+          {
+            "displayName": "hediet/external-uri-opener-cleanup",
+            "target": {
+              "oid": "ecf83cba9bd490f1dc307925860dc37f0d30e4bb"
+            }
+          },
+          {
+            "displayName": "copilot/fix-output-model-already-exists-322399-bd13b4c1776eed73",
+            "target": {
+              "oid": "698f4d1bab49893f30a28a2cecd9b0b3221e7055"
+            }
+          },
+          {
+            "displayName": "dependabot/npm_and_yarn/katex-0.18.2",
+            "target": {
+              "oid": "8e01e4209e1e37f17826bde74c70b0369a526606"
+            }
+          },
+          {
+            "displayName": "quarrelsome-pike",
+            "target": {
+              "oid": "2ef3e28fd00d7c3b3b3402a9bb31ce98d3d2da52"
+            }
+          },
+          {
+            "displayName": "benibenj/chat-background-telemetry-1.144",
+            "target": {
+              "oid": "f9040ade441fba20cbd25d94f68b49a7d5b234bf"
+            }
+          },
+          {
+            "displayName": "copilot/add-chat-run-automation-action",
+            "target": {
+              "oid": "3aa6cacd11133d0f1d028956a50d6d56b7ce03c4"
+            }
+          },
+          {
+            "displayName": "bhavyaus/ws-snapshot-large-file-markers",
+            "target": {
+              "oid": "8d4dc950d05ada3ea6c77756bd2ec474cb762581"
+            }
+          },
+          {
+            "displayName": "bhavyaus/ws-snapshot-read-guidance",
+            "target": {
+              "oid": "e25d41c8b2c2bd35c7311d3d71ee7f63a02af479"
+            }
+          },
+          {
+            "displayName": "agents/artifact-integrator-merge-debug",
+            "target": {
+              "oid": "88e320c000618aa579f2db5aba97dc264325d6b9"
+            }
+          },
+          {
+            "displayName": "bv/tpi-344187-pending-actions",
+            "target": {
+              "oid": "0be1ab8218513a0da1602a7586a261489937db23"
+            }
+          },
+          {
+            "displayName": "DileepY/sandbox-resume-fix",
+            "target": {
+              "oid": "53da12fd23b2170a20d9a608a80e951b65c6033c"
+            }
+          },
+          {
+            "displayName": "cherry-pick/342713",
+            "target": {
+              "oid": "7ed3dc895db8f1899880f95281142013410256b5"
+            }
+          },
+          {
+            "displayName": "cherry-pick/344435",
+            "target": {
+              "oid": "71e26c882cd6f26025941fc8d57c908bc2591db1"
+            }
+          },
+          {
+            "displayName": "cherry-pick/339903",
+            "target": {
+              "oid": "5615df1b80f4b31b152630b4a7620ccbd2ac6455"
+            }
+          },
+          {
+            "displayName": "agents/remove-automation-prioritized-notifications",
+            "target": {
+              "oid": "b0d97de7d4de6772b6ca92367207581b7b19eaa7"
+            }
+          },
+          {
+            "displayName": "agents/fix-dictation-issue-history-analysis",
+            "target": {
+              "oid": "df2dbe7fcc95cd956c30ec01c3ed0b0928d2473b"
+            }
+          },
+          {
+            "displayName": "copilot/vscode/sdk-validation-binskim",
+            "target": {
+              "oid": "b73f617497891eb262e9dabccc8027936e5d5da5"
+            }
+          },
+          {
+            "displayName": "agents/apply-feedback-pr-344000",
+            "target": {
+              "oid": "acfaf16a99610e202afcc8318f710292060fa667"
+            }
+          },
+          {
+            "displayName": "hediet/mermaid-markdown-editor",
+            "target": {
+              "oid": "f6d4809eda8172f8c30f13189df4eecec710130d"
+            }
+          },
+          {
+            "displayName": "copilot/hello",
+            "target": {
+              "oid": "122ec4fe4431e8435c42e9b609e3a43a60877383"
+            }
+          },
+          {
+            "displayName": "copilot/vscode/validate-azure-feed-retry",
+            "target": {
+              "oid": "aeaf98b882431b1fe6c63fc76d32fb8badd73f4b"
+            }
+          },
+          {
+            "displayName": "agents/fix-customizations-sidebar-outline-clip",
+            "target": {
+              "oid": "f35c06f5bed12bf993b72f5582043b86a89b02f6"
+            }
+          },
+          {
+            "displayName": "tricky-jellyfish",
+            "target": {
+              "oid": "7f198a905fafe4c942b8d6f301b3122ae62ad1c5"
+            }
+          },
+          {
+            "displayName": "copilot/vscode/azure-feed-retry",
+            "target": {
+              "oid": "ffad4f2f3d2af215fc129f74ad7c0643f6c42909"
+            }
+          },
+          {
+            "displayName": "copilot/vscode/image-reveal-timing-flake",
+            "target": {
+              "oid": "e925b13e660744d4e79a52a1c95655af5969810f"
+            }
+          },
+          {
+            "displayName": "lramos15/watcher-exclude-gitignore",
+            "target": {
+              "oid": "9b805a96e34f721ccfdb5480a7c9566cdb0b8485"
+            }
+          },
+          {
+            "displayName": "lramos15/agent-host-watch-gitignore",
+            "target": {
+              "oid": "e458950e81c97acf89b7dce3165bf4a4ba76495f"
+            }
+          },
+          {
+            "displayName": "lramos15/gitignore-parser",
+            "target": {
+              "oid": "87d843f10af362b9480e36de86cb78a992181b58"
+            }
+          },
+          {
+            "displayName": "copilot/vscode/validate-clippy-timeout",
+            "target": {
+              "oid": "271301cc7d7bb91cc5a2046b5586934c5c85e634"
+            }
+          },
+          {
+            "displayName": "copilot/vscode/clippy-hang-timeout",
+            "target": {
+              "oid": "7152b7563905ee28c7ed3fa12fd6b4e9e853e8ca"
+            }
+          },
+          {
+            "displayName": "copilot/fix-ci-windows-clippy-hang",
+            "target": {
+              "oid": "e13a88acb731cf7ebe68f18e96f0db75c682e8cc"
+            }
+          },
+          {
+            "displayName": "agents/customization-modal-organization-update",
+            "target": {
+              "oid": "0d26c5870808f18f172c6876cecb9ec46b3984e1"
+            }
+          },
+          {
+            "displayName": "copilot/fix-mcp-authentication-hint-accessibility",
+            "target": {
+              "oid": "d4bdf4436d683a54caea667776e32cdff6230806"
+            }
+          },
+          {
+            "displayName": "agents/customizations-modal-sidebar-updates",
+            "target": {
+              "oid": "bbdb30431053c9aa38f43a95e04c618d4665dbb2"
             }
           },
           {
             "displayName": "lramos15/codex-snapshot-wait-test-speed",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T23:05:30Z"
-                }
-              },
-              "oid": "b83c338cce1e686bab458290589b58514b489ba7"
+              "oid": "29ce7783a14b8ff5f63addacdacbd5ce770da9b2"
             }
           },
           {
-            "displayName": "lramos15/split-remote-and-smoke-tests",
+            "displayName": "jolly-bug",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T23:05:05Z"
-                }
-              },
-              "oid": "7443260399b0e0c7471366aa8bb0840cd1d3792c"
+              "oid": "691ea0c5ff166ca9d64f39c62e1d459b2631ae27"
             }
           },
           {
-            "displayName": "lramos15/split-electron-integration-tests",
+            "displayName": "agents/settings-ui-error-handling",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T23:04:50Z"
-                }
-              },
-              "oid": "37e5948ba54158db40103321775f9569f437a142"
+              "oid": "2f801b72f46ed37b97d0ef1391a0f3b0b5cabcde"
             }
           },
           {
-            "displayName": "lramos15/split-electron-unit-tests",
+            "displayName": "agents/ripple-flaky-test-detection-20x",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T23:04:06Z"
-                }
-              },
-              "oid": "64452564f6089ff7bc729ead3fd1380cff7f97dd"
+              "oid": "a0b5eb8c82264c30fbdea921e61f10b9d4c0fbed"
             }
           },
           {
-            "displayName": "lramos15/windows-large-runners",
+            "displayName": "agents/improve-windows-folder-structure",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T23:03:51Z"
-                }
-              },
-              "oid": "0d8bd3e20ae022200adb1e76cd67cee386d7de6e"
-            }
-          },
-          {
-            "displayName": "alexd/response-selection-menu-default",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T22:43:51Z"
-                }
-              },
-              "oid": "394b5305dbdf8d5bbbf877bac3cd0739c0854b7f"
+              "oid": "09531972317b455a2a92d7457ac0937ea0c8e807"
             }
           },
           {
             "displayName": "agents/electron-stealth-update-implementation",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T21:57:51Z"
-                }
-              },
               "oid": "54b7f513e0408153824a87329c803319545b1937"
             }
           },
           {
             "displayName": "agents/pr-checks-optimization-flaky-tests",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T21:07:55Z"
-                }
-              },
               "oid": "ae8a6dd979f35cae747effb349f61997a58ae284"
             }
           },
           {
             "displayName": "chrmarti/agent-host-client-certificates",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T19:28:52Z"
-                }
-              },
               "oid": "e0883ebb5e20311e1d1cc29bfce92896a1882f2f"
-            }
-          },
-          {
-            "displayName": "hediet/diff-wasm-bridge-lines",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T18:23:45Z"
-                }
-              },
-              "oid": "672f94a1ed599555795425c63fd1ff5f4018d4c6"
             }
           },
           {
             "displayName": "dependabot/github_actions/actions/download-artifact-8.0.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T17:57:31Z"
-                }
-              },
               "oid": "f802d3433d84d3311887f8a4b88f763d1d2ad4db"
             }
           },
           {
             "displayName": "dependabot/github_actions/actions/upload-artifact-7.0.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T17:57:28Z"
-                }
-              },
               "oid": "a5bc16d48633c6ff2bedfa39835502bdf6ba2340"
-            }
-          },
-          {
-            "displayName": "agents/implement-it",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T17:38:03Z"
-                }
-              },
-              "oid": "21401507eedc644bd0e72845212e5b6304389c83"
             }
           },
           {
             "displayName": "alexdima/skills-demo-video-guidance",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T17:15:56Z"
-                }
-              },
               "oid": "5a852a810fb0c058c050df29882d2499e3d4a3ab"
-            }
-          },
-          {
-            "displayName": "agents/bug-investigation-keep-undo-issues",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T16:17:49Z"
-                }
-              },
-              "oid": "5959768d29be203c75f3fb16e52b71e657086f0b"
-            }
-          },
-          {
-            "displayName": "hediet/workspace-remote-agent-hosts",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T14:20:30Z"
-                }
-              },
-              "oid": "3ca93507c6a2b75c241d80efb4f39ebd6d7323fa"
             }
           },
           {
             "displayName": "lramos15/split-browser-unit-and-agent-host-e2e",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T12:58:48Z"
-                }
-              },
               "oid": "4b91a687b5db60023f03a51d82d013daa58a9a88"
-            }
-          },
-          {
-            "displayName": "alexr00/voluminous-ocelot",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T12:41:45Z"
-                }
-              },
-              "oid": "308d3ac4c4145ff253e5e161665fb4ca01c89a54"
             }
           },
           {
             "displayName": "validate-gate/planner-fails-open",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T10:32:30Z"
-                }
-              },
               "oid": "a7a0a5f749877000645a2daeb6ecec580ea8fb3b"
             }
           },
           {
             "displayName": "validate-gate/cli-rerun-cancel",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T10:30:18Z"
-                }
-              },
               "oid": "043983ac5da199e329a0f2675cc54cc06d216536"
             }
           },
           {
             "displayName": "intact-quail",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T10:21:25Z"
-                }
-              },
               "oid": "7501a728fa25e5d84d488507474673427bee2241"
             }
           },
           {
             "displayName": "willowy-beaver",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T10:19:44Z"
-                }
-              },
               "oid": "0ea8f179ac05e96283a06cda17da4b02968eb5a9"
             }
           },
           {
             "displayName": "imaginative-parrotfish",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T10:15:01Z"
-                }
-              },
               "oid": "14fea53f4f270392c7823352468cc11b99cb0c72"
             }
           },
           {
             "displayName": "profitable-mink",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T10:13:52Z"
-                }
-              },
               "oid": "7fbb2b590c857d836456d45324a75f96bf83dcee"
             }
           },
           {
             "displayName": "ripple/recall-warning",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T08:07:37Z"
-                }
-              },
               "oid": "2aa76bd5e615e99f3d30478f482ef8afbf44dae3"
-            }
-          },
-          {
-            "displayName": "agents/release-fix-cloud-new-session",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-25T01:12:17Z"
-                }
-              },
-              "oid": "3b53cbd91be610304f8806d2140d3874a94d1f3c"
-            }
-          },
-          {
-            "displayName": "lszomoru/puzzled-perch",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-24T22:15:09Z"
-                }
-              },
-              "oid": "76f6c7dd7e900134bed6a264904f73d430077459"
-            }
-          },
-          {
-            "displayName": "agents/unsent-nested-not-movable",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-24T16:09:55Z"
-                }
-              },
-              "oid": "2791a54ff2095c0e699d8460a8f36d7c9cf73a8b"
             }
           },
           {
             "displayName": "automation/bump-copilot-sdk-1.0.27-preview.3",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-24T15:51:43Z"
-                }
-              },
               "oid": "e5361d77618ad2334aaabb213aca1f6d38b472e9"
-            }
-          },
-          {
-            "displayName": "jruales-canvas-marketplace-filter-40b",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-24T07:10:56Z"
-                }
-              },
-              "oid": "be0c12b215f65101a8c3afe00dd3a07efb6a4327"
             }
           },
           {
             "displayName": "connor/remote-attachment-uri-followup",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-24T04:35:15Z"
-                }
-              },
               "oid": "925f930cc1b96202dd2526bd1bcdcc3f3a39c53a"
             }
           },
           {
             "displayName": "dependabot/npm_and_yarn/test/monaco/fast-uri-3.1.9",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-24T02:02:38Z"
-                }
-              },
               "oid": "9f6ea4720024d55317e23ff3abfa9431804f49a0"
             }
           },
           {
             "displayName": "dependabot/npm_and_yarn/remote/undici-7.30.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-24T02:02:37Z"
-                }
-              },
               "oid": "33ddba4b2d65426dab4db653534336d0c216ef09"
             }
           },
           {
             "displayName": "dependabot/npm_and_yarn/test/sanity/multi-0a3c4c2672",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-24T02:02:31Z"
-                }
-              },
               "oid": "94c738c3f10aa0ad996823ba3b5749ae33c20e56"
             }
           },
           {
             "displayName": "automation/bump-copilot-sdk-1.0.27-preview.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-24T01:27:44Z"
-                }
-              },
               "oid": "5227b30693903e6045c3bcc9bc76e2681e314a31"
             }
           },
           {
             "displayName": "agents/fix-copilot-plugin-enablement-issue",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T23:18:35Z"
-                }
-              },
               "oid": "994587f4d1a5de56852ad939e092ccbc70246991"
             }
           },
           {
             "displayName": "automation/bump-copilot-sdk-1.0.27-preview.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T21:51:22Z"
-                }
-              },
               "oid": "c55bd7020f9f00d5593eb77f382dec2a159a8e2a"
-            }
-          },
-          {
-            "displayName": "agents/customizations-modal-sidebar-updates",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T21:27:31Z"
-                }
-              },
-              "oid": "53292b0e49ca174cbabd19ca9bbe8991852f8245"
             }
           },
           {
             "displayName": "dependabot/npm_and_yarn/extensions/copilot/electron-42.11.16",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T21:14:14Z"
-                }
-              },
               "oid": "b8195efea66bbdf32f3bf7e987add68b5be03362"
             }
           },
           {
             "displayName": "dependabot/npm_and_yarn/build/agent-sdk/agents/claude/body-parser-2.4.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T21:13:48Z"
-                }
-              },
               "oid": "b14943cf0f4b0032d78032a1ecf546863f53b8f4"
             }
           },
           {
             "displayName": "chrmarti/remotes-left-aligned-actions",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T21:04:04Z"
-                }
-              },
               "oid": "8edfa06b8338d8a85f9f41a0891f936832e44186"
             }
           },
           {
             "displayName": "automation/bump-copilot-sdk-1.0.27-preview.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T19:56:48Z"
-                }
-              },
               "oid": "e400096f0cc86d27f7da6d5752f34622c42486a4"
-            }
-          },
-          {
-            "displayName": "lramos15/agent-host-watch-gitignore",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T19:41:52Z"
-                }
-              },
-              "oid": "8c4f949dd293fb2c6af587170dfbf1cb1ebaa4ef"
-            }
-          },
-          {
-            "displayName": "agents/remove-automation-prioritized-notifications",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T19:37:41Z"
-                }
-              },
-              "oid": "4a25d04cf9823aa21f8d549ab96390d5281f8b68"
-            }
-          },
-          {
-            "displayName": "lramos15/watcher-exclude-gitignore",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T19:31:11Z"
-                }
-              },
-              "oid": "64e9e2b645dcb0d267fdd95f4f86f3126c93b4fa"
             }
           },
           {
             "displayName": "aeschli/agents/fix-vscode-issue-343342",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T18:54:54Z"
-                }
-              },
               "oid": "38b288dd9c49224c6ab33246d4e2e52e8db102db"
             }
           },
           {
             "displayName": "dependabot/npm_and_yarn/extensions/copilot/zod-4.6.6",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T18:37:56Z"
-                }
-              },
               "oid": "d686989dbd13f158db8ee4f2a06398bd6bdf6afc"
             }
           },
           {
             "displayName": "karthiknadig/sensitive-edit-locations-pingpong",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T17:53:53Z"
-                }
-              },
               "oid": "a4f7b809a1f7e69da0d64240272fad9a67e8201b"
             }
           },
           {
             "displayName": "copilot/vscode/cdp-roundtrip-flake",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T17:36:08Z"
-                }
-              },
               "oid": "0beada13b0570e8e21862fc9b110194b07555987"
             }
           },
           {
             "displayName": "copilot/vscode/ci-windows-trim-test-setup",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T17:23:57Z"
-                }
-              },
               "oid": "fd56a39e0eeab5190abac279945d3f81de50b48a"
             }
           },
           {
             "displayName": "copilot/vscode/copilot-setup-retry",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T17:21:49Z"
-                }
-              },
               "oid": "27630768dadcb5e8dcb86be0b76503aed0071f8e"
-            }
-          },
-          {
-            "displayName": "jolly-bug",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T16:36:33Z"
-                }
-              },
-              "oid": "493d97920ae826ba56bbe19edb4285fba24f1ddb"
-            }
-          },
-          {
-            "displayName": "agents/agent-merge-failure-analysis",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T16:28:11Z"
-                }
-              },
-              "oid": "6131a7a751cc27a5ff7c2ba53c3a5ab84743a046"
             }
           },
           {
             "displayName": "bv/reimplement-337757-on-main",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T14:51:04Z"
-                }
-              },
               "oid": "287a65065812947716e097320fa9b980e96c89ec"
             }
           },
           {
             "displayName": "sandy081/agents/show-pr-issue-actions-in-activity-bar",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T13:54:54Z"
-                }
-              },
               "oid": "c719e52eb1c2e6359ee72c1988ba03db1888d6cc"
-            }
-          },
-          {
-            "displayName": "agents/no-timeout-polling-chat-pet-landing",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T13:49:02Z"
-                }
-              },
-              "oid": "63fcf1ace5fca63618432b18c31c78baecc43a15"
-            }
-          },
-          {
-            "displayName": "agents/no-timeout-polling-sessions-layout",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T13:44:08Z"
-                }
-              },
-              "oid": "5a852a00486e69b02bdff07d74f6a47560d84fcc"
-            }
-          },
-          {
-            "displayName": "agents/no-timeout-polling-rule-v2",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T13:41:57Z"
-                }
-              },
-              "oid": "eb2af8204738fc11166c54a0ebacd1d8b65c9601"
-            }
-          },
-          {
-            "displayName": "ulugbekna/agents/canvas-production-readiness-priorities",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T13:29:58Z"
-                }
-              },
-              "oid": "ad2e21cafc4107b47e8144f5587530f9278fc54e"
-            }
-          },
-          {
-            "displayName": "benibenj/notification-message-attribution",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T13:09:01Z"
-                }
-              },
-              "oid": "8e08724c00849a79bb22c181a8e871b20b10c752"
-            }
-          },
-          {
-            "displayName": "hediet/external-uri-opener-cleanup",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T12:32:36Z"
-                }
-              },
-              "oid": "87dc3ad9052c3c6932b6e20e3d6ca16bb0940944"
-            }
-          },
-          {
-            "displayName": "agents/optimize-gh-run-speed-multithreading",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T11:55:51Z"
-                }
-              },
-              "oid": "7ade10e044995260997a8ad0063a6ea80618240f"
-            }
-          },
-          {
-            "displayName": "lszomoru/related-tuna",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T11:55:09Z"
-                }
-              },
-              "oid": "7522e5f9f2fe08591db8432019f5d3d74aa94e74"
-            }
-          },
-          {
-            "displayName": "jruales-canvas-marketplace-filter",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T11:35:31Z"
-                }
-              },
-              "oid": "580403247a3ac412805d8143f168b94fed1b0213"
-            }
-          },
-          {
-            "displayName": "claude/nice-ramanujan-93fe88",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T11:20:47Z"
-                }
-              },
-              "oid": "92fbf3fed9ddc6cec0a9a9fcf08fa5683f1ff4ff"
-            }
-          },
-          {
-            "displayName": "users/GitHubPolicyService/db9c1731-13e7-4923-9ec2-3477745918a5",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T11:00:34Z"
-                }
-              },
-              "oid": "b04b50a28f70d834c4d039deb1d52dd3f9242293"
-            }
-          },
-          {
-            "displayName": "aeschli/fix-connector-launch-deadlock",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T08:38:37Z"
-                }
-              },
-              "oid": "0974f7c8f6c83259676ed12d01e71cb7bfe18d8c"
-            }
-          },
-          {
-            "displayName": "copilot/vscode/connector-reconcile-test-deadlock",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T08:17:57Z"
-                }
-              },
-              "oid": "dac7eeabf04b4402cbe65ba7689495a0b2d6ce74"
-            }
-          },
-          {
-            "displayName": "agents/canvas-picture-in-picture-implementation",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T04:34:38Z"
-                }
-              },
-              "oid": "f463097048928e8d46f32583b95dd0571f295bab"
-            }
-          },
-          {
-            "displayName": "agents/fix-cloud-env-picker-chat-bug",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T02:56:53Z"
-                }
-              },
-              "oid": "adaaca24f8b11a263e8ae70d3267bd9c32a62a0a"
-            }
-          },
-          {
-            "displayName": "agents/blobby-jump-game",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T00:59:02Z"
-                }
-              },
-              "oid": "0f971d1a8b4590768fc282a84b4449b93f42264a"
-            }
-          },
-          {
-            "displayName": "copilot/vscode/agent-host-db-test-durability",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T00:44:57Z"
-                }
-              },
-              "oid": "954d723b3994e4e92447de60bb48525c3c98dc57"
-            }
-          },
-          {
-            "displayName": "connor/agent-host-mcp-auth-adopt-tool-calls",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T00:14:17Z"
-                }
-              },
-              "oid": "347156a63ad1876f9a8949bce5503bf826e0475c"
-            }
-          },
-          {
-            "displayName": "digitarald/agents/hook-validation-local-schema-fix",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T00:11:59Z"
-                }
-              },
-              "oid": "c01417d48b2c7e6cf15098ce3802cc57e77a4664"
-            }
-          },
-          {
-            "displayName": "DileepY/sandbox-resume-fix",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-23T00:07:02Z"
-                }
-              },
-              "oid": "fedd92e89f5477fa71a0c736ed56fcf67baf7146"
-            }
-          },
-          {
-            "displayName": "copilot/vscode/macos-cache-large-chunks",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T23:15:12Z"
-                }
-              },
-              "oid": "7c316d05fb6cba2f88e86cf7a4aafc68d43326f1"
-            }
-          },
-          {
-            "displayName": "alexdima/agent-host-missing-session-backing",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T22:42:42Z"
-                }
-              },
-              "oid": "ee3cc05d0178348d589157d1326c53d4d4c3e8a1"
-            }
-          },
-          {
-            "displayName": "bhavyau/automate-from-chat",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T22:42:40Z"
-                }
-              },
-              "oid": "12892153b88994834aa3743c0194bcd12b1b0f49"
-            }
-          },
-          {
-            "displayName": "copilot/vscode/ado-playwright-cache",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T22:02:28Z"
-                }
-              },
-              "oid": "90c7615d9b3c8d8984fb824681d0e8273a1298f3"
-            }
-          },
-          {
-            "displayName": "jukasper-musical-waffle",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T21:36:24Z"
-                }
-              },
-              "oid": "6654d6607b9e2e64404df0608bf559b453b12e3e"
-            }
-          },
-          {
-            "displayName": "roblou/agents/cloud-sandbox-session-issue",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T21:15:17Z"
-                }
-              },
-              "oid": "5344ff7b99e102458223a41d4275f856d5670261"
-            }
-          },
-          {
-            "displayName": "copilot/vscode/unit-step-timeout",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T21:14:24Z"
-                }
-              },
-              "oid": "3379101ed55c3cfce1bf8eb7dd3375558d9ad1b5"
-            }
-          },
-          {
-            "displayName": "bhavyaus/agent-host-tool-deferral-demo",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T20:57:45Z"
-                }
-              },
-              "oid": "db7f919da4155812ce0c63c4866e3abf4963f270"
-            }
-          },
-          {
-            "displayName": "agents/codex-harness-service-tier-issue",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T20:44:56Z"
-                }
-              },
-              "oid": "ea1622242560e9d521a963200214d3e7d1f72020"
-            }
-          },
-          {
-            "displayName": "cherry-pick/342839",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T20:16:54Z"
-                }
-              },
-              "oid": "9e3a02906ebddca1abd34df9e58a4678b86408c4"
-            }
-          },
-          {
-            "displayName": "automation/bump-copilot-sdk-1.0.26-preview.0",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T20:02:59Z"
-                }
-              },
-              "oid": "0eb8d26f13a787558b53f5bfdcebc9faee19e989"
-            }
-          },
-          {
-            "displayName": "copilot/vscode/codex-local-turn-flake",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T19:37:46Z"
-                }
-              },
-              "oid": "c3121665dbff475909947519aa2ea8c81b274cd2"
-            }
-          },
-          {
-            "displayName": "copilot/deterministic-test-instructions",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T19:07:44Z"
-                }
-              },
-              "oid": "60ca9381276b6156ec4357f6ad1bfbc054a00ca2"
-            }
-          },
-          {
-            "displayName": "ulugbekna-refactor-canvas-lifecycle",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T18:15:45Z"
-                }
-              },
-              "oid": "139a5c475a371c9663781719d15d1d230da3a742"
-            }
-          },
-          {
-            "displayName": "ulugbekna-fix-duplicate-canvas-applies",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T18:13:21Z"
-                }
-              },
-              "oid": "6abfd44ed1a31f9b3d87a2508ef9d4116ca76599"
-            }
-          },
-          {
-            "displayName": "kycutler/browser-agents-window-proxy",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T18:06:54Z"
-                }
-              },
-              "oid": "98961175d576838869cd17997deb6edfbf307688"
-            }
-          },
-          {
-            "displayName": "bhavyaus/agent-host-compaction-telemetry",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T18:03:09Z"
-                }
-              },
-              "oid": "a06f047b02d952921a9ad9654f3853f25a5cf31e"
             }
           }
         ],
-        "totalCount": 5785
+        "totalCount": 5797
       },
       "defaultBranch": {
         "displayName": "main"
+      },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T07:25:29Z"
       },
       "name": "github.com/microsoft/vscode",
       "tags": {
@@ -1360,1112 +833,601 @@ response = '''
           {
             "displayName": "1.143.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-22T17:23:22Z"
-                }
-              },
               "oid": "e646868227c3e3a9e3f24277c8c7220be42c0be7"
             }
           },
           {
             "displayName": "1.143.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-20T21:31:47Z"
-                }
-              },
               "oid": "2d0b7506a36c1d6db9a466440131a8e01eab2289"
             }
           },
           {
             "displayName": "1.141.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-14T11:07:23Z"
-                }
-              },
               "oid": "16507d91be0dc1ce4f94c04d4d0430210b8685d9"
             }
           },
           {
             "displayName": "1.142.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-14T09:52:01Z"
-                }
-              },
               "oid": "d956e8a6ac5d904486557eea07e1d6bd62a4d36f"
             }
           },
           {
             "displayName": "1.141.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-12T19:00:06Z"
-                }
-              },
               "oid": "7baac39ec3ca969dab74ac12c097f6a486e46593"
             }
           },
           {
             "displayName": "1.141.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-10-06T08:15:52Z"
-                }
-              },
               "oid": "2a59476c9bfcb90b3ddc372c36762471b7dfad1c"
             }
           },
           {
             "displayName": "1.140.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-09-30T08:38:38Z"
-                }
-              },
               "oid": "07f806f999227108933c2e30515b26eecc1fda74"
             }
           },
           {
             "displayName": "1.139.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-09-25T03:40:57Z"
-                }
-              },
               "oid": "04c0d99f4fb0d8afe6ce4f0c58e31e183ac3e4b1"
             }
           },
           {
             "displayName": "1.139.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-09-22T15:13:34Z"
-                }
-              },
               "oid": "2242ebbb54efeeb0129e08e919e7e8d43033cd83"
             }
           },
           {
             "displayName": "1.138.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-09-15T07:24:32Z"
-                }
-              },
               "oid": "7debcd0e2acdea1c52de81bf9ee1620444407dda"
             }
           },
           {
             "displayName": "1.137.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-09-08T20:43:59Z"
-                }
-              },
               "oid": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c"
             }
           },
           {
             "displayName": "1.136.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-09-04T21:40:42Z"
-                }
-              },
               "oid": "88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f"
             }
           },
           {
             "displayName": "1.136.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-09-03T05:06:41Z"
-                }
-              },
               "oid": "a44adf7f53e00964ab890f9f8758a334f1fc15bc"
             }
           },
           {
             "displayName": "1.136.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-09-02T09:13:42Z"
-                }
-              },
               "oid": "520fb30b2d3d324b4cb2342f6e88e2cd93751de1"
             }
           },
           {
             "displayName": "1.135.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-08-25T14:26:52Z"
-                }
-              },
               "oid": "08d4889f9ec4a1685d257b9b95de036c8e1ce1e5"
             }
           },
           {
             "displayName": "1.134.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-08-19T08:33:33Z"
-                }
-              },
               "oid": "474a349ad5b745e512ef86b864d1c74f7264dd7a"
             }
           },
           {
             "displayName": "1.133.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-08-11T22:14:08Z"
-                }
-              },
               "oid": "a5b500951314efd502d07465bd138dfbd714a960"
             }
           },
           {
             "displayName": "1.132.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-08-07T17:44:35Z"
-                }
-              },
               "oid": "c2d1b13fdc4a77628e5f3bb70173351c8f2fbad1"
             }
           },
           {
             "displayName": "1.132.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-08-04T15:30:20Z"
-                }
-              },
               "oid": "df53daabb18cd157bdb08c7f01c34df936cf12f4"
             }
           },
           {
             "displayName": "1.131.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-07-28T06:40:51Z"
-                }
-              },
               "oid": "3a03d6f72d628a7741c29f456b4ddbb5ae68502c"
             }
           },
           {
             "displayName": "1.130.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-07-22T14:55:04Z"
-                }
-              },
               "oid": "1b6a188127eeaf9194f945eb6eb89a657e93c54c"
             }
           },
           {
             "displayName": "1.129.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-07-17T15:35:09Z"
-                }
-              },
               "oid": "8a7abeba6e03ea3af87bfbce9a1b7e48fed567b8"
             }
           },
           {
             "displayName": "1.129.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-07-15T00:08:44Z"
-                }
-              },
               "oid": "125df4672b8a6a34975303c6b0baa124e560a4f7"
             }
           },
           {
             "displayName": "1.128.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-07-14T14:19:31Z"
-                }
-              },
               "oid": "5264f2156cbcd7aea5fd004d29eaa10209155d66"
             }
           },
           {
             "displayName": "1.128.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-07-07T22:14:24Z"
-                }
-              },
               "oid": "fc3def6774c76082adf699d366f31a557ce5573f"
             }
           },
           {
             "displayName": "1.127.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-06-30T11:53:00Z"
-                }
-              },
               "oid": "a22d00300655c17490ce63dffc28bcdcedcd82c4"
             }
           },
           {
             "displayName": "1.126.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-06-23T01:46:13Z"
-                }
-              },
               "oid": "7e7950df89d055b5a378379db9ee14290772148a"
             }
           },
           {
             "displayName": "1.125.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-06-15T22:24:03Z"
-                }
-              },
               "oid": "93cfdd489c3b228840d0f86ec77c3636277c93ea"
             }
           },
           {
             "displayName": "1.124.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-06-12T00:12:36Z"
-                }
-              },
               "oid": "6928394f91b684055b873eecb8bc281365131f1c"
             }
           },
           {
             "displayName": "1.123.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-06-10T06:06:17Z"
-                }
-              },
               "oid": "73b30e61dd53c0223a1f112031f2fec0267b4dff"
             }
           },
           {
             "displayName": "1.124.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-06-10T04:29:32Z"
-                }
-              },
               "oid": "1b50d58d73426c9171299ec4037d01365d995b78"
             }
           },
           {
             "displayName": "1.123.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-06-09T18:01:12Z"
-                }
-              },
               "oid": "8b5bd2a8dd195a2bc76e8848f7ce8a3c323c020a"
             }
           },
           {
             "displayName": "1.123.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-06-03T09:29:03Z"
-                }
-              },
               "oid": "6a44c352bd24569c417e530095901b649960f9f8"
             }
           },
           {
             "displayName": "1.122.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-05-29T07:25:37Z"
-                }
-              },
               "oid": "8761a5560cfd65fdd19ce7e2bd18dab5c0a4d84e"
             }
           },
           {
             "displayName": "1.122.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-05-27T21:03:01Z"
-                }
-              },
               "oid": "6a49527b96e326fe62fbdb56f60e16877c9aa724"
             }
           },
           {
             "displayName": "1.121.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-05-19T23:32:58Z"
-                }
-              },
               "oid": "987c9597516278c9fcf10d963a0592ce1384ab93"
             }
           },
           {
             "displayName": "1.120.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-05-12T20:17:22Z"
-                }
-              },
               "oid": "0958016b2af9f09bb4257e0df4a95e2f90590f9f"
             }
           },
           {
             "displayName": "1.119.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-05-12T18:32:22Z"
-                }
-              },
               "oid": "3fe68d450d4918f375c155b26a3a8e08f25b4e92"
             }
           },
           {
             "displayName": "1.119.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-05-05T18:23:50Z"
-                }
-              },
               "oid": "8b640eef5a6c6089c029249d48efa5c99adf7d51"
             }
           },
           {
             "displayName": "1.118.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-04-29T14:36:44Z"
-                }
-              },
               "oid": "034f571df509819cc10b0c8129f66ef77a542f0e"
             }
           },
           {
             "displayName": "1.118.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-04-28T22:54:22Z"
-                }
-              },
               "oid": "9b8ae15a8cf95b9bce1b590b42954530f440e816"
             }
           },
           {
             "displayName": "v0.45.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-04-23T02:00:32Z"
-                }
-              },
               "oid": "356d9f0a1f27b7ee5c2e9e47b23d1f92b6cbeb49"
             }
           },
           {
             "displayName": "1.117.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-04-21T23:12:14Z"
-                }
-              },
               "oid": "10c8e557c8b9f9ed0a87f61f1c9a44bde731c409"
             }
           },
           {
             "displayName": "v0.44.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-04-17T09:25:23Z"
-                }
-              },
               "oid": "8ff9a84c4a9cd0b694aee8f374aa531f7a9d0d08"
             }
           },
           {
             "displayName": "v0.44.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-04-16T09:03:19Z"
-                }
-              },
               "oid": "f89829d8f4bfbd2157a2916d3069f479f6dda69b"
             }
           },
           {
             "displayName": "1.116.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-04-15T00:28:13Z"
-                }
-              },
               "oid": "560a9dba96f961efea7b1612916f89e5d5d4d679"
             }
           },
           {
             "displayName": "1.115.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-04-07T22:04:57Z"
-                }
-              },
               "oid": "41dd792b5e652393e7787322889ed5fdc58bd75b"
             }
           },
           {
             "displayName": "1.114.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-04-01T09:27:11Z"
-                }
-              },
               "oid": "e7fb5e96c0730b9deb70b33781f98e2f35975036"
             }
           },
           {
             "displayName": "1.113.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-03-24T14:07:18Z"
-                }
-              },
               "oid": "cfbea10c5ffb233ea9177d34726e6056e89913dc"
             }
           },
           {
             "displayName": "1.112.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-03-17T18:09:23Z"
-                }
-              },
               "oid": "07ff9d6178ede9a1bd12ad3399074d726ebe6e43"
             }
           },
           {
             "displayName": "1.111.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-03-06T23:06:10Z"
-                }
-              },
               "oid": "ce099c1ed25d9eb3076c11e4a280f3eb52b4fbeb"
             }
           },
           {
             "displayName": "1.110.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-03-06T22:53:57Z"
-                }
-              },
               "oid": "61b3d0ab13be7dda2389f1d3e60a119c7f660cc3"
             }
           },
           {
             "displayName": "1.110",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-03-04T00:50:04Z"
-                }
-              },
               "oid": "0870c2a0c7c0564e7631bfed2675573a94ba4455"
             }
           },
           {
             "displayName": "1.109.5",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-02-19T16:51:04Z"
-                }
-              },
               "oid": "072586267e68ece9a47aa43f8c108e0dcbf44622"
             }
           },
           {
             "displayName": "1.109.4",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-02-16T15:29:17Z"
-                }
-              },
               "oid": "c3a26841a84f20dfe0850d0a5a9bd01da4f003ea"
             }
           },
           {
             "displayName": "1.109.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-02-10T20:08:27Z"
-                }
-              },
               "oid": "591199df409fbf59b4b52d5ad4ee0470152a9b31"
             }
           },
           {
             "displayName": "1.109.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-02-09T16:02:15Z"
-                }
-              },
               "oid": "6534f6ba7604bf324f94cc9a590727f39a4af040"
             }
           },
           {
             "displayName": "1.109.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-02-04T01:55:52Z"
-                }
-              },
               "oid": "bdd88df003631aaa0bcbe057cb0a940b80a476fa"
             }
           },
           {
             "displayName": "1.108.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-01-21T13:41:27Z"
-                }
-              },
               "oid": "c9d77990917f3102ada88be140d28b038d1dd7c7"
             }
           },
           {
             "displayName": "1.108.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-01-13T21:16:20Z"
-                }
-              },
               "oid": "585eba7c0c34fd6b30faac7c62a42050bfbc0086"
             }
           },
           {
             "displayName": "1.108.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-01-08T12:59:30Z"
-                }
-              },
               "oid": "94e8ae2b28cb5cc932b86e1070569c4463565c37"
             }
           },
           {
             "displayName": "1.107.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-12-17T13:53:50Z"
-                }
-              },
               "oid": "994fd12f8d3a5aa16f17d42c041e5809167e845a"
             }
           },
           {
             "displayName": "1.107.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-12-10T06:55:14Z"
-                }
-              },
               "oid": "618725e67565b290ba4da6fe2d29f8fa1d4e3622"
             }
           },
           {
             "displayName": "1.106.3",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-11-25T22:06:45Z"
-                }
-              },
               "oid": "bf9252a2fb45be6893dd8870c0bf37e2e1766d61"
             }
           },
           {
             "displayName": "1.106.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-11-19T16:49:37Z"
-                }
-              },
               "oid": "1e3c50d64110be466c0b4a45222e81d2c9352888"
             }
           },
           {
             "displayName": "1.106.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-11-16T10:10:37Z"
-                }
-              },
               "oid": "cb1933bbc38d329b3595673a600fab5c7368f0a7"
             }
           },
           {
             "displayName": "1.106.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-11-11T14:25:32Z"
-                }
-              },
               "oid": "ac4cbdf48759c7d8c3eb91ffe6bb04316e263c57"
             }
           },
           {
             "displayName": "1.105.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-10-14T22:27:18Z"
-                }
-              },
               "oid": "7d842fb85a0275a4a8e4d7e040d2625abbf7f084"
             }
           },
           {
             "displayName": "1.105.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-10-08T13:50:39Z"
-                }
-              },
               "oid": "03c265b1adee71ac88f833e065f7bb956b60550a"
             }
           },
           {
             "displayName": "1.104.3",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-10-02T12:17:24Z"
-                }
-              },
               "oid": "385651c938df8a906869babee516bffd0ddb9829"
             }
           },
           {
             "displayName": "1.104.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-09-23T22:00:30Z"
-                }
-              },
               "oid": "e3a5acfb517a443235981655413d566533107e92"
             }
           },
           {
             "displayName": "1.104.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-09-17T23:30:36Z"
-                }
-              },
               "oid": "0f0d87fa9e96c856c5212fc86db137ac0d783365"
             }
           },
           {
             "displayName": "1.104.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-09-09T22:02:15Z"
-                }
-              },
               "oid": "f220831ea2d946c0dcb0f3eaa480eb435a2c1260"
             }
           },
           {
             "displayName": "1.103.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-08-20T15:13:53Z"
-                }
-              },
               "oid": "6f17636121051a53c88d3e605c491d22af2ba755"
             }
           },
           {
             "displayName": "1.103.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-08-06T20:09:28Z"
-                }
-              },
               "oid": "e3550cfac4b63ca4eafca7b601f0d2885817fd1f"
             }
           },
           {
             "displayName": "1.103.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-08-06T20:09:28Z"
-                }
-              },
               "oid": "e3550cfac4b63ca4eafca7b601f0d2885817fd1f"
             }
           },
           {
             "displayName": "1.102.3",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-07-29T02:38:03Z"
-                }
-              },
               "oid": "488a1f239235055e34e673291fb8d8c810886f81"
             }
           },
           {
             "displayName": "1.102.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-07-21T12:58:15Z"
-                }
-              },
               "oid": "c306e94f98122556ca081f527b466015e1bc37b0"
             }
           },
           {
             "displayName": "1.102.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-07-15T14:40:12Z"
-                }
-              },
               "oid": "7adae6a56e34cb64d08899664b814cf620465925"
             }
           },
           {
             "displayName": "1.102.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-07-09T22:00:36Z"
-                }
-              },
               "oid": "cb0c47c0cfaad0757385834bd89d410c78a856c0"
             }
           },
           {
             "displayName": "1.101.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-06-24T20:22:47Z"
-                }
-              },
               "oid": "2901c5ac6db8a986a5666c3af51ff804d05af0d4"
             }
           },
           {
             "displayName": "1.101.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-06-18T13:24:11Z"
-                }
-              },
               "oid": "18e3a1ec544e6907be1e944a94c496e302073435"
             }
           },
           {
             "displayName": "1.101.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-06-11T13:47:56Z"
-                }
-              },
               "oid": "dfaf44141ea9deb3b4096f7cd6d24e00c147a4b1"
             }
           },
           {
             "displayName": "1.100.3",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-06-02T13:19:26Z"
-                }
-              },
               "oid": "258e40fedc6cb8edf399a463ce3a9d32e7e1f6f3"
             }
           },
           {
             "displayName": "1.100.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-05-14T21:40:56Z"
-                }
-              },
               "oid": "848b80aeb52026648a8ff9f7c45a9b0a80641e2e"
             }
           },
           {
             "displayName": "1.100.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-05-09T15:33:58Z"
-                }
-              },
               "oid": "91fa95bccb027ece6a968589bb1d662fa9c8e170"
             }
           },
           {
             "displayName": "1.100.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-05-07T12:32:30Z"
-                }
-              },
               "oid": "19e0f9e681ecb8e5c09d8784acaa601316ca4571"
             }
           },
           {
             "displayName": "1.99.3",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-04-15T23:10:26Z"
-                }
-              },
               "oid": "17baf841131aa23349f217ca7c570c76ee87b957"
             }
           },
           {
             "displayName": "1.99.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-04-09T23:39:47Z"
-                }
-              },
               "oid": "4949701c880d4bdb949e3c0e6b400288da7f474b"
             }
           },
           {
             "displayName": "1.99.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-04-04T15:54:57Z"
-                }
-              },
               "oid": "7c6fdfb0b8f2f675eb0b47f3d95eeca78962565b"
             }
           },
           {
             "displayName": "1.99.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-04-02T21:04:16Z"
-                }
-              },
               "oid": "4437686ffebaf200fa4a6e6e67f735f3edf24ada"
             }
           },
           {
             "displayName": "1.98.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-03-12T13:24:52Z"
-                }
-              },
               "oid": "ddc367ed5c8936efe395cffeec279b04ffd7db78"
             }
           },
           {
             "displayName": "1.98.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-03-10T15:26:31Z"
-                }
-              },
               "oid": "2fc07b811f760549dab9be9d2bedd06c51dfcb9a"
             }
           },
           {
             "displayName": "1.98.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-03-04T18:57:48Z"
-                }
-              },
               "oid": "6609ac3d66f4eade5cf376d1cb76f13985724bcb"
             }
           },
           {
             "displayName": "1.97.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-02-12T14:18:30Z"
-                }
-              },
               "oid": "e54c774e0add60467559eb0d1e229c6452cf8447"
             }
           },
           {
             "displayName": "1.97.1",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-02-10T13:07:56Z"
-                }
-              },
               "oid": "e249dada235c2083c83813bd65b7f4707fb97b76"
             }
           },
           {
             "displayName": "1.97.0",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-02-04T18:19:16Z"
-                }
-              },
               "oid": "33fc5a94a3f99ebe7087e8fe79fbe1d37a251016"
             }
           },
           {
             "displayName": "1.96.4",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-01-16T00:03:51Z"
-                }
-              },
               "oid": "cd4ee3b1c348a13bafd8f9ad8060705f6d4b9cba"
             }
           },
           {
             "displayName": "1.96.3",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2025-01-09T15:35:11Z"
-                }
-              },
               "oid": "91fbdddc47bc9c09064bf7acf133d22631cbf083"
             }
           },
           {
             "displayName": "1.96.2",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2024-12-19T10:13:25Z"
-                }
-              },
               "oid": "fabdb6a30b49f79a7aba0f2ad9df9b399473380f"
-            }
-          },
-          {
-            "displayName": "1.96.1",
-            "target": {
-              "commit": {
-                "committer": {
-                  "date": "2024-12-17T17:46:06Z"
-                }
-              },
-              "oid": "42b266171e51a016313f47d0c48aca9295b9cbb2"
             }
           }
         ],

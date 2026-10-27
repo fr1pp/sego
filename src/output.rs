@@ -6,7 +6,8 @@ use serde_json::Serializer;
 use serde_json::ser::{CompactFormatter, Formatter};
 
 use crate::address::{self, Pinned, short};
-use crate::escape;
+use crate::escape::{self, shell_word};
+use crate::sourcegraph::Change;
 
 const DATE_LEN: usize = 10;
 
@@ -21,16 +22,51 @@ pub fn count<N: Copy + Display + PartialEq + From<u8>>(n: N, one: &str, many: &s
     format!("{n} {noun}")
 }
 
-/// Writes `answer` to `out`: one JSON document with every unsafe character
-/// escaped (ADR 0006), or its text.
+/// `bytes` in base64 with padding (RFC 4648), as JSON carries bytes that
+/// aren't UTF-8.
+pub fn base64(bytes: &[u8]) -> String {
+    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::with_capacity(bytes.len().div_ceil(3) * 4);
+    for chunk in bytes.chunks(3) {
+        let n = chunk.iter().enumerate().fold(0u32, |n, (i, &b)| n | u32::from(b) << (16 - 8 * i));
+        for i in 0..4 {
+            if i <= chunk.len() {
+                out.push(char::from(ALPHABET[(n >> (18 - 6 * i)) as usize & 63]));
+            } else {
+                out.push('=');
+            }
+        }
+    }
+    out
+}
+
+/// The header field saying when Sourcegraph last updated its mirror:
+/// `mirrored 2026-10-27T04:17Z`.
+pub fn mirrored(updated_at: &str) -> String {
+    format!("mirrored {updated_at}")
+}
+
+/// An answer as JSON prints it: its fields, then the notes stderr carries
+/// too (ADR 0015).
+#[derive(Serialize)]
+struct Document<'a, A> {
+    #[serde(flatten)]
+    answer: &'a A,
+    notes: Vec<String>,
+}
+
+/// Writes `answer` to `out`: one JSON document with `notes` and every unsafe
+/// character escaped (ADR 0006), or its text.
 pub fn print<A: Display + Serialize>(
     answer: &A,
     json: bool,
+    notes: &Notes,
     out: &mut dyn Write,
 ) -> io::Result<()> {
     if json {
+        let document = Document { answer, notes: notes.texts() };
         let mut serializer = Serializer::with_formatter(&mut *out, EscapingFormatter);
-        answer.serialize(&mut serializer).map_err(io::Error::from)?;
+        document.serialize(&mut serializer).map_err(io::Error::from)?;
         out.write_all(b"\n")
     } else {
         write!(out, "{answer}")
@@ -58,6 +94,21 @@ impl Notes {
     /// A note whose `rest` lines print under the first, each as given.
     pub fn push_lines(&mut self, first: impl Into<String>, rest: Vec<String>) {
         self.0.push(Note { first: first.into(), rest });
+    }
+
+    /// Each note's text, its lines joined by line feeds.
+    pub fn texts(&self) -> Vec<String> {
+        self.0
+            .iter()
+            .map(|note| {
+                let mut text = note.first.clone();
+                for line in &note.rest {
+                    text.push('\n');
+                    text.push_str(line);
+                }
+                text
+            })
+            .collect()
     }
 
     pub fn write(&self, err: &mut dyn Write) -> io::Result<()> {
@@ -118,15 +169,15 @@ pub fn header_line(lead: &str, fields: &[String]) -> String {
 
 /// Where a submodule points, as an address with 12 hex digits of its commit
 /// when the commit is known; `None` when its URL names no repository.
-pub fn submodule_target(url: &str, commit: &str, repo: &str) -> Option<String> {
-    let target = address::submodule_target(url, repo)?;
-    Some(if commit.is_empty() { target } else { format!("{target}@{}", short(commit)) })
+pub fn submodule_address(url: &str, commit: &str, repo: &str) -> Option<String> {
+    let repository = address::submodule_repository(url, repo)?;
+    Some(if commit.is_empty() { repository } else { format!("{repository}@{}", short(commit)) })
 }
 
-/// A submodule as text: its target, else its stored URL, else `?`.
-pub fn submodule_text(target: Option<&str>, url: &str) -> String {
-    match target {
-        Some(target) => target.to_owned(),
+/// A submodule as text: its address, else its stored URL, else `?`.
+pub fn submodule_text(address: Option<&str>, url: &str) -> String {
+    match address {
+        Some(address) => address.to_owned(),
         None if url.is_empty() => "?".to_owned(),
         None => url.to_owned(),
     }
@@ -140,11 +191,105 @@ pub fn code_line(number: u32, marker: Marker, text: &str, focus: Option<usize>) 
     format!("{number}{marker}{}\n", escape::render_line(text, focus))
 }
 
+#[derive(Serialize)]
+pub struct FileRow {
+    /// `A`, `D`, `R` or `M`. A type, mode or submodule change is an `M`.
+    pub status: char,
+    pub old_path: Option<String>,
+    pub new_path: Option<String>,
+    pub added: u64,
+    pub deleted: u64,
+}
+
+fn status(old: Option<&String>, new: Option<&String>) -> char {
+    match (old, new) {
+        (None, _) => 'A',
+        (_, None) => 'D',
+        (Some(old), Some(new)) if old != new => 'R',
+        _ => 'M',
+    }
+}
+
+pub fn file_row(change: Change) -> FileRow {
+    FileRow {
+        status: status(change.old_path.as_ref(), change.new_path.as_ref()),
+        old_path: change.old_path,
+        new_path: change.new_path,
+        added: change.added,
+        deleted: change.deleted,
+    }
+}
+
+/// `M  +2 -2  path`, or `R  +1 -1  old -> new`, without a line break.
+pub fn row_text(row: &FileRow) -> String {
+    let word = |path: &Option<String>| shell_word(path.as_deref().unwrap_or_default()).into_owned();
+    let path = match row.status {
+        'R' => format!("{} -> {}", word(&row.old_path), word(&row.new_path)),
+        'D' => word(&row.old_path),
+        _ => word(&row.new_path),
+    };
+    format!("{}  +{} -{}  {path}", row.status, row.added, row.deleted)
+}
+
+/// `shown` rows are printed out of `total` files.
+pub fn files_field(shown: usize, total: u64) -> String {
+    if (shown as u64) < total {
+        return format!("{shown} of {total} files shown");
+    }
+    count(total, "file", "files")
+}
+
+/// The rows to ask the server for: as many as text prints, or for JSON all.
+pub fn rows_asked(json: bool, rows: usize) -> Option<u32> {
+    (!json).then(|| u32::try_from(rows).unwrap_or(u32::MAX))
+}
+
 #[cfg(test)]
 mod tests {
     use serde::Deserialize;
 
     use super::*;
+
+    #[derive(Serialize)]
+    struct Shown {
+        repo: &'static str,
+    }
+
+    impl Display for Shown {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            writeln!(f, "{}", self.repo)
+        }
+    }
+
+    #[test]
+    fn json_carries_the_notes_after_the_answer_and_text_leaves_them_to_stderr() {
+        let mut notes = Notes::new();
+        notes.push("one");
+        notes.push_lines("two:", vec!["  a".to_owned(), "  b".to_owned()]);
+        let printed = |json: bool| {
+            let mut out = Vec::new();
+            assert!(print(&Shown { repo: "x" }, json, &notes, &mut out).is_ok());
+            String::from_utf8_lossy(&out).into_owned()
+        };
+        assert_eq!(printed(true), "{\"repo\":\"x\",\"notes\":[\"one\",\"two:\\n  a\\n  b\"]}\n");
+        assert_eq!(printed(false), "x\n");
+    }
+
+    #[test]
+    fn base64_matches_rfc_4648s_test_vectors() {
+        for (bytes, encoded) in [
+            ("", ""),
+            ("f", "Zg=="),
+            ("fo", "Zm8="),
+            ("foo", "Zm9v"),
+            ("foob", "Zm9vYg=="),
+            ("fooba", "Zm9vYmE="),
+            ("foobar", "Zm9vYmFy"),
+        ] {
+            assert_eq!(base64(bytes.as_bytes()), encoded);
+        }
+        assert_eq!(base64(&[0xfb, 0xff, 0xbf]), "+/+/");
+    }
 
     #[test]
     fn a_date_is_the_first_ten_characters_of_a_timestamp() {

@@ -9,80 +9,51 @@ a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}  2026-07-01  c-a\u{1b}b\u{202e}c\u{200b}
 '''
 
 [[exchange]]
-operation = "Log"
-variables = "{\"a\":\"v1.0.0\",\"b\":\"v2.0.0\",\"count\":false,\"first\":151,\"gitlab\":false,\"path\":\"a\\u001bb\u202Ec\u200Bd\\ne\\rf\\u0000g\u2028h\u007Fi\",\"probe\":true,\"repo0\":\"example.com/acme/widget\",\"repo1\":\"\"}"
-query = '''
-query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $path: String, $first: Int, $count: Boolean!, $probe: Boolean!) {
-  a0: repository(name: $repo0) { ...Base }
-  b0: repository(name: $repo0) { ...Head }
-  n0: repository(name: $repo0) { ...Ahead }
-  c0: repository(name: $repo0) { ...Commits }
-  t0: repository(name: $repo0) { ...Tags }
-  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
-  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
-  n1: repository(name: $repo1) @include(if: $gitlab) { ...Ahead }
-  c1: repository(name: $repo1) @include(if: $gitlab) { ...Commits }
-  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
-}
-
-fragment Base on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $a) { oid x: path(path: $path) @include(if: $probe) { __typename } }
-}
-
-fragment Head on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $b) { oid x: path(path: $path) @include(if: $probe) { __typename } }
-}
-
-fragment Ahead on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $b) @include(if: $count) { behindAhead(revspec: $a) { ahead } }
-}
-
-fragment Commits on Repository {
-  name
-  defaultBranch { displayName }
-  comparison(base: $a, head: $b) { commits(first: $first, path: $path) { ...Page } }
-}
-fragment Page on GitCommitConnection {
-  nodes { oid subject author { date person { displayName } } parents { oid } }
-  pageInfo { hasNextPage }
-}
-
-fragment Tags on Repository {
-  name
-  defaultBranch { displayName }
-  gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
-}
-'''
+operation = "Range"
+variables = '{"a":"v1.0.0","b":"v2.0.0","gitlab":false,"repo0":"example.com/acme/widget","repo1":""}'
+document = "Range-782f210b"
 status = 200
 content-type = "application/json"
 response = '''
 {
   "data": {
-    "a0": {
-      "commit": {
+    "r0": {
+      "a": {
         "oid": "fedcba9876543210fedcba9876543210fedcba98"
       },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "example.com/acme/widget"
-    },
-    "b0": {
-      "commit": {
+      "b": {
         "oid": "0123456789abcdef0123456789abcdef01234567"
       },
       "defaultBranch": {
         "displayName": "main"
       },
+      "mirrorInfo": null,
       "name": "example.com/acme/widget"
+    }
+  }
+}
+'''
+
+[[exchange]]
+operation = "LogRange"
+variables = "{\"a\":\"fedcba9876543210fedcba9876543210fedcba98\",\"b\":\"0123456789abcdef0123456789abcdef01234567\",\"count\":false,\"first\":150,\"path\":\"a\\u001bb\u202Ec\u200Bd\\ne\\rf\\u0000g\u2028h\u007Fi\",\"probe\":true,\"repo\":\"example.com/acme/widget\"}"
+document = "LogRange-1ae4f20e"
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "a": {
+      "commit": {
+        "oid": "fedcba9876543210fedcba9876543210fedcba98"
+      }
     },
-    "c0": {
+    "b": {
+      "commit": {
+        "oid": "0123456789abcdef0123456789abcdef01234567"
+      }
+    },
+    "c": {
       "comparison": {
         "commits": {
           "nodes": [
@@ -138,21 +109,15 @@ response = '''
       },
       "name": "example.com/acme/widget"
     },
-    "n0": {
+    "n": {
       "commit": {
         "behindAhead": {
-          "ahead": 3
+          "ahead": 3,
+          "behind": 0
         }
-      },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "example.com/acme/widget"
+      }
     },
-    "t0": {
-      "defaultBranch": {
-        "displayName": "main"
-      },
+    "t": {
       "gitRefs": {
         "nodes": [
           {
@@ -173,10 +138,8 @@ response = '''
               "oid": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
             }
           }
-        ],
-        "totalCount": 3
-      },
-      "name": "example.com/acme/widget"
+        ]
+      }
     }
   }
 }

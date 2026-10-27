@@ -20,18 +20,30 @@ options:
   --version    sego's version
 
 text:
-  A file: REPO@COMMIT:PATH  lines A-B of N  rev REV, then a row per line,
-  "N:text". Text shows lines 1-500 when LINES is not given, and 1- shows
-  the whole file; --json carries the same lines.
+  A file: REPO@COMMIT:PATH  lines A-B of N  rev REV  mirrored T, then a
+  row per line, "N:text". Text shows lines 1-500 when LINES is not given,
+  and 1- shows the whole file; --json carries the same lines.
+  rev REV shows when REV was a name, and mirrored T when Sourcegraph last
+  updated its mirror from the host, as read with this answer.
+  CRLF: every line shown ends in CRLF, and those CRs are left out; any
+  other CR prints as \u{d}. not UTF-8: bytes that aren't print as \x{hh}.
+  binary N bytes: Sourcegraph's classification, not git's. A symlink is a
+  file that shows its target; file modes aren't available.
+  A directory or the root prints the ls answer; LINES for one is an error.
   A commit: REPO@COMMIT  DATE  AUTHOR  parents P  N files  +A -D, then
-  the message, indented, and a row per file, "STATUS  +A -D  PATH".
+  the message, indented, and a row per file, "STATUS  +A -D  PATH". A
+  root commit has no file list: Sourcegraph has no diff for it.
 
 json:
-  A file: repo rev commit path total_lines byte_size binary crlf
-  lfs_size submodule start end lines[{line text}] via_raw
-  A commit: repo rev commit author author_date committer committer_date
-  parents subject message files[{status old_path new_path added deleted}]
-  files_total added deleted
+  A file: repo rev commit path kind (file or submodule) total_lines
+  byte_size binary crlf utf8 (null when unknown) lfs_size
+  submodule{url address commit} start
+  end lines[{line text bytes}], bytes the line in base64 when not UTF-8
+  A commit: repo rev commit kind author author_date committer
+  committer_date parents subject message
+  files[{status old_path new_path added deleted}] files_total files_more
+  added deleted
+  Each adds mirrored_at notes.
 
 examples:
   sego show github.com/gorilla/mux@v1.8.0:mux.go 120-180

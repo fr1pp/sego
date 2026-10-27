@@ -12,43 +12,16 @@ sego: note: root commit: Sourcegraph has no diff for it
 '''
 
 [[exchange]]
-operation = "ShowCommit"
-variables = '{"base":"v1.0.0^1","gitlab":false,"repo0":"example.com/acme/widget","repo1":"","rev":"v1.0.0"}'
-query = '''
-query ShowCommit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $base: String!) {
-  m0: repository(name: $repo0) { ...Commit }
-  d0: repository(name: $repo0) { ...Changes }
-  m1: repository(name: $repo1) @include(if: $gitlab) { ...Commit }
-  d1: repository(name: $repo1) @include(if: $gitlab) { ...Changes }
-}
-
-fragment Commit on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $rev) {
-    oid subject message
-    author { date person { displayName } }
-    committer { date person { displayName } }
-    parents { oid }
-  }
-}
-
-fragment Changes on Repository {
-  name
-  defaultBranch { displayName }
-  comparison(base: $base, head: $rev) {
-    all: fileDiffs(first: 0) { totalCount diffStat { added deleted } }
-    page: fileDiffs(first: 200) { nodes { oldPath newPath stat { added deleted } } }
-  }
-}
-'''
+operation = "Commit"
+variables = '{"first":200,"gitlab":false,"patch":false,"paths":null,"repo0":"example.com/acme/widget","repo1":"","rev":"v1.0.0"}'
+document = "Commit-50a06158"
 status = 200
 content-type = "application/json"
+evidence = "GqlError::kind table: git exit 128"
 response = '''
 {
   "data": {
-    "d0": null,
-    "m0": {
+    "r0": {
       "commit": {
         "author": {
           "date": "2020-05-04T10:00:00Z",
@@ -65,19 +38,25 @@ response = '''
         "message": "Start the project\n\nThe first commit.\n",
         "oid": "9f2c1d3e5a7b4c6d8e0f1a2b3c4d5e6f70819a2b",
         "parents": [],
-        "subject": "Start the project"
+        "subject": "Start the project",
+        "w": null
       },
       "defaultBranch": {
         "displayName": "main"
       },
+      "mirrorInfo": null,
       "name": "example.com/acme/widget"
     }
   },
   "errors": [
     {
-      "message": "git command [git diff --secret] failed",
+      "message": "revision not found: repo 1 @9f2c1d3e5a7b4c6d8e0f1a2b3c4d5e6f70819a2b~^0",
       "path": [
-        "d0"
+        "r0",
+        "commit",
+        "w",
+        "commit",
+        "diff"
       ]
     }
   ]

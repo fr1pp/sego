@@ -10,8 +10,9 @@ use serde_json::{Value, json};
 
 use sego::{Endpoint, Response, Transport};
 
-use super::case::{Body, Case, Exchange, Request};
-use super::{Paced, case_paths};
+use super::case::{self, Body, Case, Exchange, Request, Stream};
+use super::replay::Sent;
+use super::{Logged, Paced, case_paths, documents_dir, run};
 
 const GRAPHQL_PATH: &str = "/.api/graphql";
 const DEADLINE: Duration = Duration::from_secs(90);
@@ -39,12 +40,153 @@ pub fn every_case() -> Vec<String> {
     };
     let mut failures = Vec::new();
     for path in paths {
-        match Case::load(&path) {
+        match Case::load(&path, &documents_dir()) {
             Ok(case) => failures.extend(check(&case, &connect)),
             Err(e) => failures.push(e),
         }
     }
     failures
+}
+
+/// Runs sego against sourcegraph.com for each case of `commands`, or of every
+/// command but search for none, whose exchanges are all recorded with their
+/// values checked, and returns how its exit code, stdout or stderr differ
+/// from what the case expects. A difference counts only if a second run
+/// shows it too. Search cases keep the response check.
+pub fn every_answer(commands: &[String]) -> Vec<String> {
+    let server = Live(Rc::new(Paced::new(sego::connect(Endpoint::default()))));
+    let paths = match case_paths() {
+        Ok(paths) => paths,
+        Err(e) => return vec![e],
+    };
+    let mut failures = Vec::new();
+    for path in paths {
+        if server.0.blocked() {
+            failures.push("stopped after sourcegraph.com refused a request".to_owned());
+            break;
+        }
+        let case = match Case::load(&path, &documents_dir()) {
+            Ok(case) => case,
+            Err(e) => {
+                failures.push(e);
+                continue;
+            }
+        };
+        let command = case.args.first().map_or("", String::as_str);
+        let chosen = if commands.is_empty() {
+            command != "search"
+        } else {
+            commands.iter().any(|c| c == command)
+        };
+        if !chosen || !value_checked(&case) {
+            continue;
+        }
+        let answer = || answer_difference(&case, &server);
+        if let Err(found) = answer().or_else(|first| answer().map_err(|_| first)) {
+            failures.push(format!("{}: {found}", path.display()));
+        }
+    }
+    failures
+}
+
+/// Whether every exchange of `case` is recorded from sourcegraph.com with its
+/// values checked; a case with none isn't.
+fn value_checked(case: &Case) -> bool {
+    !case.exchanges.is_empty()
+        && case.exchanges.iter().all(|e| {
+            e.recorded
+                .as_ref()
+                .is_some_and(|r| r.live_values && r.endpoint == Endpoint::default().url(""))
+        })
+}
+
+/// How one run of `case` against `server` differs from what it expects.
+fn answer_difference(case: &Case, server: &Live) -> Result<(), String> {
+    let outcome = run(case, server)?;
+    let mut found = Vec::new();
+    if outcome.code != case.code {
+        found.push(format!("exit {}, expected {}", outcome.code, case.code));
+    }
+    for (name, expected, actual) in
+        [("stdout", &case.stdout, &outcome.stdout), ("stderr", &case.stderr, &outcome.stderr)]
+    {
+        if let Stream::Text(expected) = expected
+            && unmirrored(expected) != unmirrored(actual)
+        {
+            let (expected, actual) = (unmirrored(expected), unmirrored(actual));
+            let diff = similar::TextDiff::from_lines(expected.as_str(), actual.as_str())
+                .unified_diff()
+                .header("expected", "live")
+                .to_string();
+            found.push(format!("{name}:\n{diff}"));
+        }
+    }
+    if found.is_empty() { Ok(()) } else { Err(found.join("\n")) }
+}
+
+/// `text` without the mirror's update time, which moves on its own: the
+/// header field `  mirrored TIME` and the JSON member `"mirrored_at":VALUE`.
+fn unmirrored(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    loop {
+        let field = rest.find("  mirrored ");
+        let member = rest.find("\"mirrored_at\":");
+        let Some(at) = field.into_iter().chain(member).min() else { break };
+        let (mut keep, from) = rest.split_at(at);
+        let skip = if Some(at) == field {
+            let start = "  mirrored ".len();
+            start + from[start..].find(char::is_whitespace).unwrap_or(from.len() - start)
+        } else {
+            let start = "\"mirrored_at\":".len();
+            let value = &from[start..];
+            let len = if let Some(quoted) = value.strip_prefix('"') {
+                quoted.find('"').map_or(value.len(), |n| n + 2)
+            } else {
+                value.find([',', '}']).unwrap_or(value.len())
+            };
+            let mut end = start + len;
+            if from[end..].starts_with(',') {
+                end += 1;
+            } else if let Some(before) = keep.strip_suffix(',') {
+                keep = before;
+            }
+            end
+        };
+        out.push_str(keep);
+        rest = &from[skip..];
+    }
+    out.push_str(rest);
+    out
+}
+
+/// sourcegraph.com, paced, as the transport a case runs through.
+#[derive(Clone)]
+struct Live(Rc<Paced>);
+
+impl Transport for Live {
+    fn post(
+        &self,
+        path: &str,
+        body: &[u8],
+        deadline: Instant,
+    ) -> Result<Response, sego::TransportError> {
+        self.0.post(path, body, deadline)
+    }
+
+    fn get(&self, path: &str, deadline: Instant) -> Result<Response, sego::TransportError> {
+        self.0.get(path, deadline)
+    }
+}
+
+impl Logged for Live {
+    fn sent(&self) -> Vec<Sent> {
+        Vec::new()
+    }
+
+    fn problems(&self) -> Vec<String> {
+        Vec::new()
+    }
 }
 
 /// What differs between the case's recorded responses and what the server
@@ -121,6 +263,10 @@ fn compare(case: &Case, exchange: &Exchange, response: &Response) -> Result<(), 
 
 const TRANSIENT: [&str; 3] = ["elapsedMilliseconds", "requestId", "extensions"];
 
+/// Where a fetch another client started can make a revision lookup wait and
+/// fail; the lookup then answers as if the revision were missing.
+const AFTER_A_FETCH: &str = "revision not found after waiting for a fetch";
+
 type Shape = BTreeMap<String, BTreeSet<&'static str>>;
 
 /// The first way `live` differs from `recorded`, or `None`. Reworded errors
@@ -129,9 +275,12 @@ type Shape = BTreeMap<String, BTreeSet<&'static str>>;
 /// whatever the order of the errors.
 fn drift(recorded: &Value, live: &Value, values: bool) -> Option<String> {
     let (mut recorded, mut live) = (recorded.clone(), live.clone());
+    let (in_recorded, in_live) = (error_paths(&recorded), error_paths(&live));
+    without_lookups_after_a_fetch(&mut live, &in_recorded);
+    without_lookups_after_a_fetch(&mut recorded, &in_live);
     for value in [&mut recorded, &mut live] {
         without_transient(value);
-        without_revisions_not_found(value);
+        missing_revisions_alike(value);
         sort_errors(value);
     }
     if let Some(path) = new_error_path(&recorded, &live) {
@@ -236,11 +385,16 @@ fn shape_difference(recorded: &Value, live: &Value) -> Option<String> {
     None
 }
 
+/// Drops the transient keys, and the mirror's `updatedAt`, which moves
+/// whenever Sourcegraph updates the mirror.
 fn without_transient(value: &mut Value) {
     match value {
         Value::Object(map) => {
             for key in TRANSIENT {
                 map.remove(key);
+            }
+            if let Some(Value::Object(mirror)) = map.get_mut("mirrorInfo") {
+                mirror.remove("updatedAt");
             }
             map.values_mut().for_each(without_transient);
         }
@@ -249,18 +403,38 @@ fn without_transient(value: &mut Value) {
     }
 }
 
-/// sourcegraph.com says a revision isn't there with a null commit and, when
-/// another alias of the request was fetching the repository, an error as
-/// well. Which aliases get the error varies from one answer to the next, and
-/// sego reads both answers the same.
-fn without_revisions_not_found(value: &mut Value) {
-    let Value::Object(map) = value else { return };
+/// Whether the error sits at a revision lookup: a `commit`, a range's end
+/// `a` or `b`, or a split guess's `comparison`.
+fn at_a_lookup(error: &Value) -> bool {
+    let last = error["path"].as_array().and_then(|path| path.last()).and_then(Value::as_str);
+    matches!(last, Some("commit" | "a" | "b" | "comparison"))
+}
+
+/// Drops the errors of revision lookups in `answer` that waited for a fetch
+/// another client started, where the other answer has no error at `other`:
+/// no request can avoid them.
+fn without_lookups_after_a_fetch(answer: &mut Value, other: &[String]) {
+    let Value::Object(map) = answer else { return };
     if let Some(Value::Array(errors)) = map.get_mut("errors") {
         errors.retain(|e| {
-            !e["message"].as_str().is_some_and(|m| m.starts_with("revision not found"))
+            let waited = e["message"].as_str().is_some_and(|m| m.starts_with(AFTER_A_FETCH));
+            !(waited && at_a_lookup(e) && !other.contains(&e["path"].to_string()))
         });
         if errors.is_empty() {
             map.remove("errors");
+        }
+    }
+}
+
+/// Reads every revision-not-found error at a lookup alike: when two
+/// missing names share one fetch, which of them waited for it varies from
+/// one answer to the next.
+fn missing_revisions_alike(value: &mut Value) {
+    if let Some(Value::Array(errors)) = value.get_mut("errors") {
+        for error in errors.iter_mut().filter(|e| at_a_lookup(e)) {
+            if error["message"].as_str().is_some_and(|m| m.starts_with("revision not found")) {
+                error["message"] = Value::from("revision not found");
+            }
         }
     }
 }
@@ -449,7 +623,7 @@ mod tests {
     }
 
     #[test]
-    fn an_error_that_says_a_revision_is_not_found_is_not_drift() {
+    fn only_a_lookup_that_waited_for_a_fetch_is_not_drift() {
         let not_found = |path: &[&str], message: &str| json!({"message": message, "path": path});
         let recorded = json!({
             "data": {"m0": {"commit": null}, "d0": null},
@@ -463,11 +637,61 @@ mod tests {
             ],
         });
         assert_eq!(values(&recorded, &live), None);
+        let at_a_path = json!({
+            "data": {"m0": {"commit": null}, "d0": null},
+            "errors": [
+                not_found(&["m0", "p0"], "revision not found after waiting for a fetch: repo 1"),
+                not_found(&["d0", "comparison"], "revision not found: repo 1 @v1^0"),
+            ],
+        });
+        assert!(shape(&recorded, &at_a_path).is_some());
         let failed = json!({
             "data": {"m0": {"commit": null}, "d0": null},
             "errors": [not_found(&["m0", "commit"], "internal git failure")],
         });
         assert!(shape(&recorded, &failed).is_some());
+        let missing = json!({
+            "data": {"m0": {"commit": null}, "d0": null},
+            "errors": [
+                not_found(&["m0", "commit"], "revision not found: repo 1 @v1"),
+                not_found(&["d0", "comparison"], "revision not found: repo 1 @v1^0"),
+            ],
+        });
+        assert!(shape(&recorded, &missing).is_some());
+    }
+
+    #[test]
+    fn which_of_two_missing_names_waited_for_the_fetch_is_not_drift() {
+        let error =
+            |path: &str, message: &str| json!({"message": message, "path": [path, "comparison"]});
+        let recorded = json!({"data": {"g0": null, "g1": null}, "errors": [
+            error("g0", "revision not found: repo 1 @x^0"),
+            error("g1", "revision not found after waiting for a fetch already in progress: repo 1"),
+        ]});
+        let live = json!({"data": {"g0": null, "g1": null}, "errors": [
+            error("g0", "revision not found after waiting for a fetch already in progress: repo 1"),
+            error("g1", "revision not found: repo 1 @x/y^0"),
+        ]});
+        assert_eq!(values(&recorded, &live), None);
+        let quiet = json!({"data": {"g0": null, "g1": null}, "errors": [
+            error("g0", "revision not found: repo 1 @x^0"),
+        ]});
+        assert_eq!(values(&recorded, &quiet), None);
+    }
+
+    #[test]
+    fn the_mirrors_update_time_is_not_drift() {
+        let at = |time: &str| json!({"data": {"r0": {"mirrorInfo": {"updatedAt": time}}}});
+        assert_eq!(values(&at("2026-10-27T04:17:00Z"), &at("2026-10-27T05:01:12Z")), None);
+    }
+
+    #[test]
+    fn an_answer_is_compared_without_the_mirrors_time() {
+        assert_eq!(unmirrored("a  rev main  mirrored 2026-10-27T04:17Z\nb"), "a  rev main\nb");
+        assert_eq!(unmirrored("a  mirrored 2026-10-27T04:17Z  rev main\n"), "a  rev main\n");
+        assert_eq!(unmirrored(r#"{"a":1,"mirrored_at":"2026-10-27T04:17:00Z"}"#), r#"{"a":1}"#);
+        assert_eq!(unmirrored(r#"{"mirrored_at":null,"a":1}"#), r#"{"a":1}"#);
+        assert_eq!(unmirrored(r#"{"a":1,"mirrored_at":null,"b":2}"#), r#"{"a":1,"b":2}"#);
     }
 
     /// A server that answers each request with the next response and keeps what
@@ -522,11 +746,12 @@ mod tests {
     const MARKED: &str = r#"recorded = { date = 2026-10-07, endpoint = "https://sourcegraph.com", live = "values" }"#;
 
     fn graphql(recorded: &str, body: &str) -> String {
+        let document = case::scratch("Refs", "query Refs($repo0: String!) { r0 { name } }\n");
         format!(
             r#"[[exchange]]
 operation = "Refs"
 variables = '{{"repo0":"example.com/a"}}'
-query = "query Refs($repo0: String!) {{ r0 {{ name }} }}\n"
+document = "{document}"
 status = 200
 {recorded}
 response = '{body}'
@@ -540,7 +765,7 @@ response = '{body}'
 
     fn parse_at(path: &Path, exchanges: &[String]) -> Case {
         let text = format!("args = [\"x\"]\nstatus.code = 0\n\n{}", exchanges.join("\n"));
-        Case::parse(&text, path).unwrap_or_else(|e| panic!("{e}\n{text}"))
+        Case::parse(&text, path, case::SCRATCH.path()).unwrap_or_else(|e| panic!("{e}\n{text}"))
     }
 
     fn parse(exchanges: &[String]) -> Case {

@@ -17,9 +17,15 @@ record:
     cargo test --test it -- --ignored --exact missing_and_stale_responses_are_recorded
 
 # Re-send every recorded request to sourcegraph.com and compare the responses, then run the other live drift tests.
-live:
-    cargo test --test it -- --ignored --exact recorded_responses_still_match_sourcegraph_com
-    cargo test --lib -- --ignored --test-threads=1
+# `just live e2e [COMMAND…]` instead runs sego against sourcegraph.com for each fully value-checked case and compares its answer.
+live *args:
+    if [[ "{{ args }}" == e2e* ]]; then \
+        SEGO_E2E_COMMANDS="$(echo '{{ args }}' | cut -s -d' ' -f2-)" \
+            cargo test --test it -- --ignored --exact answers_still_match_sourcegraph_com --nocapture; \
+    else \
+        cargo test --test it -- --ignored --exact recorded_responses_still_match_sourcegraph_com; \
+        cargo test --lib -- --ignored --test-threads=1; \
+    fi
 
 # Regenerate src/escape/table.rs from the pinned Unicode data.
 escape-table:

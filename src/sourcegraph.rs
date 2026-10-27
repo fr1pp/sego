@@ -2,135 +2,202 @@
 
 mod commits;
 mod files;
+mod gitmodules;
 mod graphql;
 mod http;
 mod raw;
 mod refs;
-mod repository;
+mod resolve;
 mod search;
 
 use std::str::FromStr;
 use std::time::{Duration, Instant};
 
 use crate::address::{Repo, Target};
+use crate::cache::{Cache, Entry};
 use crate::error::Error;
 use graphql::{Envelope, Request};
 
-pub use commits::{Change, Commit, Comparison, History, Log, NEWEST_TAGS, RangeHistory};
-pub use files::{Content, Details, File, Resolved, Submodule, Tree};
+pub use commits::{Change, CommitSummary, Comparison, History, Tag};
+pub use files::{Content, File, Submodule, Window};
+pub use graphql::regexp_reason;
 pub use http::Ureq;
 pub use refs::{RefList, Refs};
+pub use resolve::Resolved;
 pub use search::{
     Alert, CommitResult, FileMatch, Item, Listing, Range, Results, Search, Symbol, UnindexedFile,
 };
 
-/// What a command asks Sourcegraph through: the transport, and the one
-/// client deadline every request of the invocation shares (ADR 0004).
-pub struct Client {
+/// What a history covers: a revision, or the default branch for `None`; or
+/// a range, its head's commits that aren't its base's.
+#[derive(Clone, Copy)]
+pub enum Revisions<'a> {
+    One(Option<&'a str>),
+    Range { base: &'a str, head: &'a str },
+}
+
+/// Part of a list: the items read, the whole list's length when the server
+/// gives it, and whether there is more than the items.
+#[derive(Debug, PartialEq, Eq)]
+pub struct Page<T> {
+    pub items: Vec<T>,
+    pub total: Option<u64>,
+    pub more: bool,
+}
+
+/// What a command asks Sourcegraph through: the transport to `endpoint`, the
+/// cache of raw reads, and the one client deadline every request of the
+/// invocation shares (ADR 0004).
+pub struct Client<'a> {
     transport: Box<dyn Transport>,
+    endpoint: Endpoint,
+    cache: &'a Cache,
     deadline: Instant,
 }
 
-impl Client {
-    /// The client deadline starts now.
-    pub fn new(transport: Box<dyn Transport>) -> Client {
-        Client { transport, deadline: Instant::now() + DEADLINE }
+/// Each method takes the client by value: an invocation asks one question.
+impl<'a> Client<'a> {
+    pub fn new(
+        transport: Box<dyn Transport>,
+        endpoint: Endpoint,
+        cache: &'a Cache,
+        deadline: Instant,
+    ) -> Client<'a> {
+        Client { transport, endpoint, cache, deadline }
+    }
+
+    /// Sends a request through `send`, unless the client deadline has
+    /// passed: every request of an invocation goes through here.
+    fn send(
+        &self,
+        send: impl FnOnce(&dyn Transport) -> Result<Response, TransportError>,
+    ) -> Result<Response, Error> {
+        let host = self.endpoint.host();
+        if Instant::now() >= self.deadline {
+            return Err(Error::deadline(&host));
+        }
+        send(&*self.transport).map_err(|error| error.into_error(&host))
     }
 
     fn exchange(&self, request: &Request) -> Result<Envelope, Error> {
-        graphql::exchange(&*self.transport, request, self.deadline)
+        let response =
+            self.send(|transport| transport.post(GRAPHQL_PATH, &request.body(), self.deadline))?;
+        graphql::classify(response, &self.endpoint.host())
     }
 
     /// The whole file at `route`, a site path from a file's details: `None`
     /// when the route has no file.
-    pub fn raw(&self, route: &str) -> Result<Option<Vec<u8>>, Error> {
-        let host = self.transport.host();
-        let response =
-            self.transport.get(route, self.deadline).map_err(|error| error.into_error(&host))?;
-        raw::read(response, &host)
+    fn raw(&self, route: &str) -> Result<Option<Vec<u8>>, Error> {
+        let response = self.send(|transport| transport.get(route, self.deadline))?;
+        raw::read(response, &self.endpoint.host())
     }
 
-    /// The commit `rev` names in `repo`, with the files it changed against its
-    /// first parent.
-    pub fn commit(&self, repo: &Repo, rev: &str) -> Result<Commit, Error> {
-        let envelope = self.exchange(&commits::commit_request(repo, rev))?;
-        commits::read_commit(&envelope, repo, rev)
+    /// What `target` names in `repo`: a file with the lines of `window` when
+    /// given, or a directory, with every entry beneath it when `recursive`.
+    /// A web URL's split guesses are resolved without fetching first, and
+    /// only when none resolves, once more with fetching.
+    pub fn file(
+        self,
+        repo: &Repo,
+        target: &Target,
+        window: Option<Window>,
+        recursive: bool,
+    ) -> Result<(Resolved, File), Error> {
+        if matches!(target, Target::Split(_)) && resolve::candidates(target).is_empty() {
+            return Err(files::unresolved(target, &repo.candidates()[0]));
+        }
+        let read = |fetch: bool| {
+            let request = files::request(repo, target, window, recursive, fetch);
+            files::read(&self.exchange(&request)?, repo, target, fetch)
+        };
+        let read = match read(false)? {
+            Some(read) => read,
+            None => read(true)?.ok_or_else(|| Error::failed("the revision lookup"))?,
+        };
+        let files::Read { resolved, mut file, body, raw } = read;
+        if let (File::Blob(blob), Some(window)) = (&mut file, window) {
+            let download = || {
+                let route = raw.as_deref().ok_or_else(|| Error::failed("the file's details"))?;
+                let entry = Entry {
+                    repo: &resolved.repo,
+                    commit: &resolved.commit,
+                    path: resolved.path.as_deref().unwrap_or_default(),
+                };
+                let (bytes, unavailable) =
+                    self.cache.read_through(entry, blob.byte_size, || {
+                        self.raw(route)?.ok_or_else(|| Error::failed("the file content"))
+                    })?;
+                Ok((bytes, unavailable.map(|reason| reason.to_string())))
+            };
+            blob.content = files::content(body, window, blob.total_lines, download)?;
+        }
+        Ok((resolved, file))
     }
 
-    /// The comparison of `head` with `base`, or with its first parent for
-    /// `None`, over `paths`, listing at most `first` files or all for `None`.
+    /// The changes of `head` against its first parent, with the commit, or
+    /// against `base` for a range, over `paths`, listing at most `first`
+    /// files or all for `None`. A range is read by its commits' IDs once both
+    /// ends resolve.
     pub fn comparison(
-        &self,
+        self,
         repo: &Repo,
         base: Option<&str>,
         head: &str,
         paths: &[String],
         first: Option<u32>,
     ) -> Result<Comparison, Error> {
-        let request = commits::comparison_request(repo, base, head, paths, first);
-        commits::read_comparison(&self.exchange(&request)?, repo, base, head, paths)
+        let Some(base) = base else {
+            let request = commits::commit_request(repo, head, paths, first);
+            return commits::read_commit(&self.exchange(&request)?, repo, head, paths);
+        };
+        let ends = resolve::read_range(
+            &self.exchange(&resolve::range_request(repo, (base, head)))?,
+            repo,
+            (base, head),
+        )?;
+        let request = commits::comparison_request(
+            &ends.1.repo,
+            (&ends.0.commit, &ends.1.commit),
+            paths,
+            first,
+        );
+        commits::read_comparison(&self.exchange(&request)?, ends, paths)
     }
 
-    /// The history of `rev`, or of `HEAD` for `None`, touching `path`: the
-    /// first `first` commits.
+    /// The commits `revisions` covers touching `path`, across renames when
+    /// `follow`: the first `first`, or all for `None`. A
+    /// range is read by its commits' IDs once both ends resolve.
     pub fn history(
-        &self,
+        self,
         repo: &Repo,
-        rev: Option<&str>,
+        revisions: Revisions<'_>,
         path: Option<&str>,
-        first: u32,
-    ) -> Result<History, Error> {
-        let envelope = self.exchange(&commits::history_request(repo, rev, path, first))?;
-        commits::read_history(&envelope, repo, rev, path)
-    }
-
-    /// The commits in `head` and not in `base` touching `path`: the first
-    /// `first`, or all for `None`.
-    pub fn history_range(
-        &self,
-        repo: &Repo,
-        (base, head): (&str, &str),
-        path: Option<&str>,
+        follow: bool,
         first: Option<u32>,
-    ) -> Result<RangeHistory, Error> {
-        let envelope = self.exchange(&commits::range_request(repo, (base, head), path, first))?;
-        commits::read_range(&envelope, repo, (base, head), path)
-    }
-
-    /// The file `target` names in `repo`, with lines `start` to `end`, or to
-    /// the last for `None`.
-    pub fn file(
-        &self,
-        repo: &Repo,
-        target: &Target,
-        start: u32,
-        end: Option<u32>,
-    ) -> Result<(Resolved, File), Error> {
-        let envelope = self.exchange(&files::file_request(repo, target, start, end))?;
-        files::read_file(&envelope, repo, target, start)
-    }
-
-    /// The directory `target` names in `repo`, with every entry beneath it
-    /// when `recursive`.
-    pub fn tree(
-        &self,
-        repo: &Repo,
-        target: &Target,
-        recursive: bool,
-    ) -> Result<(Resolved, Tree), Error> {
-        let envelope = self.exchange(&files::tree_request(repo, target, recursive))?;
-        files::read_tree(&envelope, repo, target)
+    ) -> Result<History, Error> {
+        let (base, head) = match revisions {
+            Revisions::One(head) => {
+                let request = commits::history_request(repo, head, path, follow, first);
+                return commits::read_history(&self.exchange(&request)?, repo, head, path);
+            }
+            Revisions::Range { base, head } => (base, head),
+        };
+        let request = resolve::range_request(repo, (base, head));
+        let ends = resolve::read_range(&self.exchange(&request)?, repo, (base, head))?;
+        let (a, b) = (ends.0.commit.clone(), ends.1.commit.clone());
+        let request = commits::range_history_request(&ends.1.repo, (&a, &b), path, first);
+        commits::read_range_history(&self.exchange(&request)?, ends, path)
     }
 
     /// The results of `query`, and the listing of the side query
     /// `unindexed` when given.
-    pub fn search(&self, query: &str, unindexed: Option<&str>) -> Result<Search, Error> {
+    pub fn search(self, query: &str, unindexed: Option<&str>) -> Result<Search, Error> {
         search::read(&self.exchange(&search::request(query, unindexed))?, unindexed.is_some())
     }
 
     /// The branches and tags of `repo` that match `text`, at most `first` of
     /// each kind, or as many as the server allows for `None`.
-    pub fn refs(&self, repo: &Repo, text: Option<&str>, first: Option<u32>) -> Result<Refs, Error> {
+    pub fn refs(self, repo: &Repo, text: Option<&str>, first: Option<u32>) -> Result<Refs, Error> {
         let envelope = self.exchange(&refs::request(repo, text, first))?;
         refs::read(&envelope, repo, text)
     }
@@ -139,6 +206,7 @@ impl Client {
 const DEFAULT_ENDPOINT: &str = "https://sourcegraph.com";
 
 pub const DEADLINE: Duration = Duration::from_secs(90);
+
 pub const GRAPHQL_PATH: &str = "/.api/graphql";
 
 /// What the server answered to one request.
@@ -181,7 +249,7 @@ fn parsed(body: &serde_json::Value) -> Envelope {
 }
 
 /// Why a request got no response.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TransportError {
     /// The connection failed; the text says how, without naming the host.
     Network(&'static str),
@@ -193,11 +261,6 @@ pub enum TransportError {
 
 /// How `run` talks to the server.
 pub trait Transport {
-    /// The `host[:port]` that error messages name.
-    fn host(&self) -> String {
-        "sourcegraph.com".to_owned()
-    }
-
     /// Posts `body` as JSON to `path` on the endpoint.
     fn post(&self, path: &str, body: &[u8], deadline: Instant) -> Result<Response, TransportError>;
 
@@ -280,5 +343,195 @@ impl TransportError {
             TransportError::Deadline => Error::deadline(host),
             TransportError::TooLarge => Error::upstream(format!("{host}'s answer is over 64 MiB")),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+    use std::collections::VecDeque;
+    use std::ffi::OsStr;
+    use std::rc::Rc;
+    use std::thread::sleep;
+
+    use serde_json::json;
+
+    use super::*;
+    use crate::error::{Kind, report};
+
+    /// A transport that answers each request with the next of its responses,
+    /// after `delay`, and keeps the paths it was asked.
+    #[derive(Clone, Default)]
+    struct Script {
+        responses: Rc<RefCell<VecDeque<Result<Response, TransportError>>>>,
+        asked: Rc<RefCell<Vec<String>>>,
+        delay: Duration,
+    }
+
+    impl Script {
+        fn new(responses: Vec<Result<Response, TransportError>>, delay: Duration) -> Script {
+            Script {
+                responses: Rc::new(RefCell::new(responses.into())),
+                delay,
+                ..Script::default()
+            }
+        }
+
+        fn answer(&self, what: String) -> Result<Response, TransportError> {
+            self.asked.borrow_mut().push(what);
+            sleep(self.delay);
+            self.responses
+                .borrow_mut()
+                .pop_front()
+                .unwrap_or(Err(TransportError::Network("none left")))
+        }
+    }
+
+    impl Transport for Script {
+        fn post(&self, path: &str, _: &[u8], _: Instant) -> Result<Response, TransportError> {
+            self.answer(format!("POST {path}"))
+        }
+
+        fn get(&self, path: &str, _: Instant) -> Result<Response, TransportError> {
+            self.answer(format!("GET {path}"))
+        }
+    }
+
+    fn json(body: &serde_json::Value) -> Response {
+        Response::of(200, Some("application/json"), body.to_string())
+    }
+
+    /// The first request of `diff gorilla/mux@a...b`: both ends resolve.
+    fn ends() -> serde_json::Value {
+        json!({"data": {"r0": {
+            "name": "github.com/gorilla/mux",
+            "defaultBranch": {"displayName": "main"},
+            "mirrorInfo": null,
+            "a": {"oid": "a".repeat(40)},
+            "b": {"oid": "b".repeat(40)}
+        }}})
+    }
+
+    /// The first request of a web URL with one split guess, which doesn't
+    /// resolve without fetching.
+    fn no_guess() -> serde_json::Value {
+        json!({"data": {
+            "r": {"name": "github.com/gorilla/mux", "defaultBranch": {"displayName": "main"}, "mirrorInfo": null},
+            "g0": null
+        }})
+    }
+
+    fn run<T>(
+        script: &Script,
+        deadline: Duration,
+        ask: impl FnOnce(Client<'_>) -> Result<T, Error>,
+    ) -> Result<T, Error> {
+        let endpoint = Endpoint::default();
+        let cache = Cache::new(Some(OsStr::new("off")), &endpoint);
+        let client =
+            Client::new(Box::new(script.clone()), endpoint, &cache, Instant::now() + deadline);
+        ask(client)
+    }
+
+    fn range(client: Client<'_>) -> Result<Comparison, Error> {
+        client.comparison(
+            &Repo::Exact("github.com/gorilla/mux".to_owned()),
+            Some("a"),
+            "b",
+            &[],
+            None,
+        )
+    }
+
+    fn split(client: Client<'_>) -> Result<(Resolved, File), Error> {
+        let target = Target::Split(vec!["main".to_owned()]);
+        client.file(&Repo::Exact("github.com/gorilla/mux".to_owned()), &target, None, false)
+    }
+
+    /// A text file at `big.c` with `content` as its window, or over the content
+    /// limit for `None`.
+    fn a_file(content: Option<&str>) -> serde_json::Value {
+        let body = content.map(|text| json!({"__typename": "GitBlob", "content": text}));
+        let mut answer = json!({"data": {"r0": {
+            "name": "github.com/gorilla/mux",
+            "defaultBranch": {"displayName": "main"},
+            "mirrorInfo": null,
+            "commit": {
+                "oid": "a".repeat(40),
+                "meta": {"__typename": "GitBlob", "path": "big.c", "byteSize": 3, "totalLines": 1,
+                         "binary": false, "rawURL": "/r/big.c", "lfs": null, "submodule": null},
+                "body": body,
+                "gm": null
+            }
+        }}});
+        if content.is_none() {
+            answer["errors"] = json!([{"message": "file exceeded size limit",
+                                       "path": ["r0", "commit", "body", "content"]}]);
+        }
+        answer
+    }
+
+    fn show(client: Client<'_>) -> Result<(Resolved, File), Error> {
+        let target = Target::At { rev: None, path: Some("big.c".to_owned()) };
+        let window = Some(Window { start: 1, end: None });
+        client.file(&Repo::Exact("github.com/gorilla/mux".to_owned()), &target, window, false)
+    }
+
+    #[test]
+    fn a_raw_read_that_fails_fails_a_file_over_the_limit_and_degrades_exact_bytes() {
+        let refused = || Err(TransportError::Network("connection reset"));
+        let over = Script::new(vec![Ok(json(&a_file(None))), refused()], Duration::ZERO);
+        assert_eq!(run(&over, DEADLINE, show).map_err(|e| e.kind()).err(), Some(Kind::Network));
+        let replaced =
+            Script::new(vec![Ok(json(&a_file(Some("a\u{fffd}b")))), refused()], Duration::ZERO);
+        let (_, file) = run(&replaced, DEADLINE, show).unwrap_or_else(|e| panic!("{e}"));
+        let File::Blob(blob) = file else { panic!("not a blob") };
+        let content = blob.content.unwrap_or_else(|| panic!("no content"));
+        assert_eq!(content.utf8, Err(Error::failed("the raw read")));
+        assert_eq!(content.lines[0].bytes, "a\u{fffd}b".as_bytes());
+        assert_eq!(replaced.asked.borrow()[1], "GET /r/big.c");
+    }
+
+    #[test]
+    fn a_failure_at_either_request_of_a_range_fails_it() {
+        for (failure, kind) in [
+            (TransportError::Network("connection refused"), Kind::Network),
+            (TransportError::Deadline, Kind::Deadline),
+            (TransportError::TooLarge, Kind::Upstream),
+        ] {
+            let first = Script::new(vec![Err(failure.clone())], Duration::ZERO);
+            assert_eq!(run(&first, DEADLINE, range).map_err(|e| e.kind()).err(), Some(kind));
+            let second = Script::new(vec![Ok(json(&ends())), Err(failure)], Duration::ZERO);
+            assert_eq!(run(&second, DEADLINE, range).map_err(|e| e.kind()).err(), Some(kind));
+            assert_eq!(second.asked.borrow().len(), 2);
+        }
+    }
+
+    #[test]
+    fn nothing_is_sent_once_the_client_deadline_has_passed() {
+        let later = Duration::from_millis(50);
+        let script = Script::new(vec![Ok(json(&ends())), Ok(json(&ends()))], later * 2);
+        let error = run(&script, later, range).err().map(|e| report(&e));
+        assert_eq!(
+            error.as_deref(),
+            Some("sego: error: no answer from sourcegraph.com within 90 s\n")
+        );
+        assert_eq!(script.asked.borrow().len(), 1);
+    }
+
+    #[test]
+    fn a_split_guess_fetches_only_when_none_resolves_and_time_is_left() {
+        let script =
+            Script::new(vec![Ok(json(&no_guess())), Ok(json(&no_guess()))], Duration::ZERO);
+        let error = run(&script, DEADLINE, split).err().map(|e| report(&e));
+        assert_eq!(
+            error.as_deref(),
+            Some("sego: error: no revision and path in main resolve in github.com/gorilla/mux\n")
+        );
+        assert_eq!(*script.asked.borrow(), ["POST /.api/graphql", "POST /.api/graphql"]);
+        let late = Script::new(vec![Ok(json(&no_guess()))], Duration::from_millis(100));
+        let error = run(&late, Duration::from_millis(50), split).err().map(|e| e.kind());
+        assert_eq!(error, Some(Kind::Deadline));
+        assert_eq!(late.asked.borrow().len(), 1);
     }
 }

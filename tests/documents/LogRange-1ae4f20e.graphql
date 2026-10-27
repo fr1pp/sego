@@ -1,0 +1,16 @@
+query LogRange($repo: String!, $a: String!, $b: String!, $path: String, $first: Int, $count: Boolean!, $probe: Boolean!) {
+  c: repository(name: $repo) {
+    comparison(base: $a, head: $b, fetchMissing: false) { commits(first: $first, path: $path) { ...Page } }
+  }
+  n: repository(name: $repo) {
+    commit(rev: $b) @include(if: $count) { behindAhead(revspec: $a) { ahead behind } }
+  }
+  a: repository(name: $repo) { commit(rev: $a) { oid x: path(path: $path) @include(if: $probe) { __typename } } }
+  b: repository(name: $repo) { commit(rev: $b) { oid x: path(path: $path) @include(if: $probe) { __typename } } }
+  t: repository(name: $repo) { gitRefs(type: GIT_TAG) { nodes { displayName target { oid } } } }
+}
+
+fragment Page on GitCommitConnection {
+  nodes { oid subject author { date person { displayName } } parents { oid } }
+  pageInfo { hasNextPage }
+}

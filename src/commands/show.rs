@@ -2,27 +2,59 @@ use std::fmt;
 
 use serde::Serialize;
 
-use crate::address::{End, LineRange, Repo, Target, pinned, rev_field};
-use crate::cache::{Cache, Entry};
+use crate::address::{End, LineRange, Repo, Target, pinned, rev_field, short};
+use crate::cli::SHOW_SYNOPSIS;
+use crate::commands::ls::{self, Named};
+use crate::commands::resolved_notes;
 use crate::error::Error;
-use crate::escape::strip_cr;
-use crate::output::{Marker, Notes, code_line, count, header, submodule_target, submodule_text};
-use crate::sourcegraph::{Client, Content, File};
+use crate::escape::{render_line, strip_cr, utf8_escaped};
+use crate::output::{
+    FileRow, Marker, Notes, base64, code_line, date, file_row, files_field, header, mirrored,
+    row_text, rows_asked, submodule_address, submodule_text,
+};
+use crate::sourcegraph::{Client, Comparison, Content, File, Window};
 
 const DEFAULT_WINDOW: u32 = 500;
+/// The files a commit prints in text.
+const TEXT_ROWS: usize = 200;
+const UTF8_NOTE: &str = "U+FFFD may stand for bytes that aren't UTF-8";
 
 #[derive(Serialize)]
 pub struct Line {
-    pub line: u32,
+    #[serde(rename = "line")]
+    pub number: u32,
+    /// The line, CRs included, with U+FFFD for bytes that aren't UTF-8.
     pub text: String,
+    /// The line's bytes in base64, when they aren't UTF-8.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bytes: Option<String>,
+    #[serde(skip)]
+    shown: String,
 }
 
 /// A submodule, as the answer gives it.
 #[derive(Serialize)]
 pub struct Submodule {
-    url: String,
-    target: Option<String>,
+    url: Option<String>,
+    address: Option<String>,
     commit: String,
+}
+
+/// What `show` prints: a file or a submodule, or the listing of a directory.
+#[derive(Serialize)]
+#[serde(untagged)]
+pub enum Shown {
+    File(Answer),
+    Listing(ls::Answer),
+}
+
+impl fmt::Display for Shown {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Shown::File(answer) => answer.fmt(f),
+            Shown::Listing(answer) => answer.fmt(f),
+        }
+    }
 }
 
 #[derive(Serialize)]
@@ -31,16 +63,19 @@ pub struct Answer {
     pub rev: Option<String>,
     pub commit: String,
     pub path: String,
+    pub kind: Named,
     pub total_lines: u32,
     pub byte_size: u64,
     pub binary: bool,
     pub crlf: bool,
+    /// `None` when Sourcegraph's text held U+FFFD and the raw read failed.
+    pub utf8: Option<bool>,
     pub lfs_size: Option<u64>,
     pub submodule: Option<Submodule>,
     pub start: Option<u32>,
     pub end: Option<u32>,
     pub lines: Vec<Line>,
-    pub via_raw: bool,
+    pub mirrored_at: Option<String>,
     #[serde(skip)]
     fields: Vec<String>,
 }
@@ -50,28 +85,29 @@ impl fmt::Display for Answer {
         let address = pinned(&self.repo, &self.commit, Some(&self.path));
         f.write_str(&header(&address, &self.fields))?;
         for line in &self.lines {
-            f.write_str(&code_line(line.line, Marker::Match, &line.text, None))?;
+            f.write_str(&code_line(line.number, Marker::Match, &line.shown, None))?;
         }
         Ok(())
     }
 }
 
 /// What the caller asked for, as the server is asked and as it is reported.
-struct Window {
-    start: u32,
-    end: Option<u32>,
+struct Asked {
+    window: Window,
     shown: Option<LineRange>,
 }
 
-impl Window {
-    fn new(lines: Option<&LineRange>) -> Window {
+impl Asked {
+    fn new(lines: Option<&LineRange>) -> Asked {
         match lines {
-            None => Window { start: 1, end: Some(DEFAULT_WINDOW), shown: None },
-            Some(range) => Window {
-                start: range.start,
-                end: match range.end {
-                    End::Line(end) => Some(end),
-                    End::Open => None,
+            None => Asked { window: Window { start: 1, end: Some(DEFAULT_WINDOW) }, shown: None },
+            Some(range) => Asked {
+                window: Window {
+                    start: range.start,
+                    end: match range.end {
+                        End::Line(end) => Some(end),
+                        End::Open => None,
+                    },
                 },
                 shown: Some(*range),
             },
@@ -87,122 +123,140 @@ pub struct Args {
     pub json: bool,
 }
 
-pub fn run(
-    args: &Args,
-    client: &Client,
-    cache: &Cache,
-    notes: &mut Notes,
-) -> Result<Answer, Error> {
-    let window = Window::new(args.lines.as_ref());
-    let (at, file) = client.file(&args.repo, &args.target, window.start, window.end)?;
+pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Shown, Error> {
+    let asked = Asked::new(args.lines.as_ref());
+    let (at, file) = client.file(&args.repo, &args.target, Some(asked.window), false)?;
     let path = at.path.clone().unwrap_or_default();
-    let mut shown = Answer {
-        repo: at.repo.clone(),
-        rev: at.rev.clone(),
-        commit: at.commit.clone(),
-        path: path.clone(),
-        total_lines: 0,
-        byte_size: 0,
-        binary: false,
-        crlf: false,
-        lfs_size: None,
-        submodule: None,
-        start: None,
-        end: None,
-        lines: Vec::new(),
-        via_raw: false,
-        fields: Vec::new(),
-    };
-    let rev = rev_field(at.rev.as_ref());
     let blob = match file {
         File::Blob(blob) => blob,
-        File::Submodule(module) => {
-            let target = submodule_target(&module.url, &module.commit, &at.repo);
-            shown
-                .fields
-                .push(format!("submodule  {}", submodule_text(target.as_deref(), &module.url)));
-            shown.fields.extend(rev);
-            shown.submodule = Some(Submodule { url: module.url, target, commit: module.commit });
-            return Ok(shown);
-        }
-        File::Directory { entries } => {
+        File::Directory(_) if asked.shown.is_some() => {
             let name = if path.is_empty() { "./" } else { &path };
-            return Err(Error::missing(format!(
-                "{name} is a directory at {} ({})",
-                pinned(&at.repo, &at.commit, None),
-                count(entries, "entry", "entries")
-            )));
+            return Err(Error::usage(
+                format!(
+                    "{name} is a directory at {}; LINES apply to a file",
+                    pinned(&at.repo, &at.commit, None)
+                ),
+                SHOW_SYNOPSIS,
+            ));
+        }
+        File::Directory(_) => return Ok(Shown::Listing(ls::answer(at, file, false, notes))),
+        File::Submodule { submodule, gitmodules } => {
+            resolved_notes(&at, notes);
+            let url = submodule.url.as_deref().unwrap_or_default();
+            let address = submodule_address(url, &submodule.commit, &at.repo);
+            if let Err(error) = gitmodules {
+                notes.push(format!("{}: {error}", ls::GITMODULES_NOTE));
+            }
+            let mut shown = Answer::new(at, path, Named::Submodule);
+            shown.fields.push(format!("submodule  {}", submodule_text(address.as_deref(), url)));
+            shown.finish_fields();
+            shown.submodule =
+                Some(Submodule { url: submodule.url, address, commit: submodule.commit });
+            return Ok(Shown::File(shown));
         }
     };
-    shown.byte_size = blob.details.byte_size;
-    shown.binary = blob.details.binary;
+    resolved_notes(&at, notes);
+    let mut shown = Answer::new(at, path, Named::File);
+    shown.byte_size = blob.byte_size;
+    shown.binary = blob.binary;
     shown.lfs_size = blob.lfs_size;
     if shown.binary {
         shown.fields.push(format!("binary  {} bytes", shown.byte_size));
-        shown.fields.extend(rev);
-        return Ok(shown);
+        shown.finish_fields();
+        return Ok(Shown::File(shown));
     }
-    let total = blob.details.total_lines;
-    shown.total_lines = total;
+    shown.total_lines = blob.total_lines;
     if let Some(size) = shown.lfs_size {
         shown.fields.push(format!("LFS pointer  object {size} bytes"));
     }
     if let Some(content) = blob.content {
-        let first = window.start;
-        let last = window.end.unwrap_or(total).min(total);
-        let content = match content {
-            Content::Lines(text) => text,
-            Content::OverLimit { raw } => {
-                shown.via_raw = true;
-                let entry = Entry { repo: &at.repo, commit: &at.commit, path: &path };
-                let download = || {
-                    client.raw(&raw)?.ok_or_else(|| {
-                        let at = pinned(&at.repo, &at.commit, None);
-                        Error::missing(format!("{path} not found in {at}"))
-                    })
-                };
-                let (bytes, unavailable) = cache.read_through(entry, shown.byte_size, download)?;
-                if let Some(reason) = unavailable {
-                    notes.push(format!("cache unavailable: {reason}"));
-                }
-                lines_from(&String::from_utf8_lossy(&bytes), first)
-            }
-        };
-        let wanted = (last - first + 1) as usize;
-        let lines = split_lines(&content).into_iter().take(wanted);
-        for (number, text) in (first..).zip(lines) {
-            let (text, cr) = strip_cr(text);
-            shown.crlf |= cr;
-            shown.lines.push(Line { line: number, text: text.to_owned() });
-        }
-        if shown.lines.len() != wanted {
-            return Err(Error::failed("the file content"));
-        }
-        shown.start = Some(first);
-        shown.end = Some(last);
+        shown.read(content, asked.window.start, notes);
     }
-    describe(&mut shown, &window, notes);
+    describe(&mut shown, &asked, notes);
     if shown.crlf {
         shown.fields.push("CRLF".to_owned());
     }
-    shown.fields.extend(rev);
-    Ok(shown)
+    if shown.utf8 == Some(false) {
+        shown.fields.push("not UTF-8".to_owned());
+    }
+    shown.finish_fields();
+    Ok(Shown::File(shown))
+}
+
+impl Answer {
+    fn new(at: crate::sourcegraph::Resolved, path: String, kind: Named) -> Answer {
+        Answer {
+            repo: at.repo,
+            rev: at.rev,
+            commit: at.commit,
+            path,
+            kind,
+            total_lines: 0,
+            byte_size: 0,
+            binary: false,
+            crlf: false,
+            utf8: Some(true),
+            lfs_size: None,
+            submodule: None,
+            start: None,
+            end: None,
+            lines: Vec::new(),
+            mirrored_at: at.mirrored_at,
+            fields: Vec::new(),
+        }
+    }
+
+    /// The fields every answer ends with: the revision and the mirror's time.
+    fn finish_fields(&mut self) {
+        self.fields.extend(rev_field(self.rev.as_ref(), &self.commit));
+        self.fields.extend(self.mirrored_at.as_deref().map(mirrored));
+    }
+
+    /// Takes the lines of `content`, the first numbered `first`. When the
+    /// header says CRLF, the CR of each line's terminator is left out of the
+    /// text; every other CR shows.
+    fn read(&mut self, content: Content, first: u32, notes: &mut Notes) {
+        self.crlf = content.crlf;
+        self.utf8 = content.utf8.as_ref().ok().copied();
+        if let Err(error) = &content.utf8 {
+            notes.push(format!("{UTF8_NOTE}: {error}"));
+        }
+        if let Some(reason) = &content.cache_unavailable {
+            notes.push(format!("cache unavailable: {reason}"));
+        }
+        let count = content.lines.len();
+        for (number, line) in (first..).zip(content.lines) {
+            let shown = if content.crlf && line.terminated {
+                line.bytes.strip_suffix(b"\r").unwrap_or(&line.bytes)
+            } else {
+                &line.bytes
+            };
+            let shown = utf8_escaped(shown).into_owned();
+            let bytes = std::str::from_utf8(&line.bytes).is_err().then(|| base64(&line.bytes));
+            let text = String::from_utf8_lossy(&line.bytes).into_owned();
+            self.lines.push(Line { number, text, bytes, shown });
+        }
+        if count > 0 {
+            self.start = Some(first);
+            self.end = Some(first + u32::try_from(count).unwrap_or(u32::MAX) - 1);
+        }
+    }
 }
 
 /// The header's range field and the notes about a range that was cut.
-fn describe(shown: &mut Answer, window: &Window, notes: &mut Notes) {
+fn describe(shown: &mut Answer, asked: &Asked, notes: &mut Notes) {
     let total = shown.total_lines;
     if let (Some(start), Some(end)) = (shown.start, shown.end) {
         let range = if start == end { start.to_string() } else { format!("{start}-{end}") };
-        let rest = if window.shown.is_none() && end < total { " (1- for all)" } else { "" };
+        let rest = if asked.shown.is_none() && end < total { " (1- for all)" } else { "" };
         shown.fields.push(format!("lines {range} of {total}{rest}"));
-        if let Some(asked) = &window.shown
-            && let End::Line(asked_end) = asked.end
-            && asked_end > end
+        if let Some(wanted) = &asked.shown
+            && let End::Line(wanted_end) = wanted.end
+            && wanted_end > end
         {
             notes.push(format!(
                 "lines {} clamped to {range}; the file has {total} lines",
-                asked.display()
+                wanted.display()
             ));
         }
         return;
@@ -210,8 +264,8 @@ fn describe(shown: &mut Answer, window: &Window, notes: &mut Notes) {
     if total == 0 {
         shown.fields.push("lines 0 of 0".to_owned());
     }
-    if let Some(asked) = window.shown.as_ref().map(LineRange::display) {
-        let message = format!("no lines {asked}; the file has {total}");
+    if let Some(wanted) = asked.shown.as_ref().map(LineRange::display) {
+        let message = format!("no lines {wanted}; the file has {total}");
         if total > 0 {
             shown.fields.push(message.clone());
         }
@@ -219,17 +273,134 @@ fn describe(shown: &mut Answer, window: &Window, notes: &mut Notes) {
     }
 }
 
-/// The text of `whole` from line `first` on, as the server's `content`
-/// would give it.
-fn lines_from(whole: &str, first: u32) -> String {
-    let skip = (first - 1) as usize;
-    whole.split_inclusive('\n').skip(skip).collect()
+const MESSAGE_INDENT: &str = "    ";
+const ROOT_NOTE: &str = "root commit: Sourcegraph has no diff for it";
+
+#[derive(Serialize)]
+pub struct CommitAnswer {
+    repo: String,
+    rev: String,
+    commit: String,
+    kind: &'static str,
+    author: String,
+    author_date: String,
+    committer: Option<String>,
+    committer_date: Option<String>,
+    parents: Vec<String>,
+    subject: String,
+    message: String,
+    files: Vec<FileRow>,
+    files_total: Option<u64>,
+    files_more: bool,
+    added: Option<u64>,
+    deleted: Option<u64>,
+    mirrored_at: Option<String>,
 }
 
-fn split_lines(content: &str) -> Vec<&str> {
-    let mut lines: Vec<&str> = content.split('\n').collect();
-    if lines.last() == Some(&"") {
-        lines.pop();
+impl CommitAnswer {
+    fn fields(&self) -> Vec<String> {
+        let mut fields = Vec::new();
+        fields.push(self.author_date.clone());
+        fields.push(self.author.clone());
+        fields.push(if self.parents.is_empty() {
+            "parents none".to_owned()
+        } else {
+            let shorts: Vec<String> = self.parents.iter().map(|oid| short(oid)).collect();
+            format!("parents {}", shorts.join(" "))
+        });
+        if let (Some(total), Some(added), Some(deleted)) =
+            (self.files_total, self.added, self.deleted)
+        {
+            let printed = self.files.len().min(TEXT_ROWS);
+            fields.push(files_field(printed, total));
+            fields.push(format!("+{added} -{deleted}"));
+        }
+        if self.parents.len() > 1 {
+            fields.push("diff against first parent".to_owned());
+        }
+        fields.extend(rev_field(Some(&self.rev), &self.commit));
+        fields.extend(self.mirrored_at.as_deref().map(mirrored));
+        fields
     }
-    lines
+}
+
+impl fmt::Display for CommitAnswer {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let address = pinned(&self.repo, &self.commit, None);
+        f.write_str(&header(&address, &self.fields()))?;
+        let mut lines: Vec<&str> = self.message.split('\n').collect();
+        if lines.last() == Some(&"") {
+            lines.pop();
+        }
+        for line in lines {
+            let (line, _) = strip_cr(line);
+            if line.trim_matches([' ', '\t']).is_empty() {
+                writeln!(f)?;
+            } else {
+                writeln!(f, "{MESSAGE_INDENT}{}", render_line(line, None))?;
+            }
+        }
+        if !self.files.is_empty() {
+            writeln!(f)?;
+            for row in self.files.iter().take(TEXT_ROWS) {
+                writeln!(f, "{}", row_text(row))?;
+            }
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CommitArgs {
+    pub repo: Repo,
+    pub rev: String,
+    pub json: bool,
+}
+
+/// `show REPO@REV`: the commit, its message and the files it changed.
+pub fn run_commit(
+    args: &CommitArgs,
+    client: Client,
+    notes: &mut Notes,
+) -> Result<CommitAnswer, Error> {
+    let first = rows_asked(args.json, TEXT_ROWS);
+    let comparison = client.comparison(&args.repo, None, &args.rev, &[], first)?;
+    resolved_notes(&comparison.head, notes);
+    if comparison.changes.is_none() {
+        notes.push(ROOT_NOTE);
+    }
+    Ok(commit_answer(comparison, &args.rev))
+}
+
+fn commit_answer(comparison: Comparison, rev: &str) -> CommitAnswer {
+    let (files, files_total, files_more, added, deleted) = match comparison.changes {
+        Some(changes) => (
+            changes.files.items.into_iter().map(file_row).collect(),
+            changes.files.total,
+            changes.files.more,
+            Some(changes.added),
+            Some(changes.deleted),
+        ),
+        None => (Vec::new(), None, false, None, None),
+    };
+    let commit = comparison.commit.unwrap_or_default();
+    CommitAnswer {
+        repo: comparison.head.repo,
+        rev: rev.to_owned(),
+        commit: comparison.head.commit,
+        kind: "commit",
+        author: commit.author,
+        author_date: date(&commit.author_date),
+        committer: commit.committer,
+        committer_date: commit.committer_date.as_deref().map(date),
+        parents: commit.parents,
+        subject: commit.subject,
+        message: commit.message.replace("\r\n", "\n"),
+        files,
+        files_total,
+        files_more,
+        added,
+        deleted,
+        mirrored_at: comparison.head.mirrored_at,
+    }
 }

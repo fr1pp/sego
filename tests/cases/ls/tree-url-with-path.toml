@@ -2,173 +2,68 @@
 args = ["ls", "https://github.com/gorilla/mux/tree/v1.8.0/.github"]
 status.code = 0
 stdout = '''
-github.com/gorilla/mux@98cb6bf42e08:.github  2 entries  2 files  rev v1.8.0
+github.com/gorilla/mux@98cb6bf42e08:.github  2 entries  2 files  rev v1.8.0  mirrored 2026-10-27T06:58Z
 file       .github/release-drafter.yml
 file       .github/stale.yml
 '''
 
 [[exchange]]
-operation = "ListTree"
-variables = '{"ambiguous0":false,"ambiguous1":false,"gitlab":false,"parent0":"","parent1":"","path0":".github","path1":"","recursive":false,"repo0":"github.com/gorilla/mux","repo1":"","rev0":"v1.8.0","rev1":"v1.8.0/.github","split":true}'
-query = '''
-query ListTree($repo0: String!, $repo1: String!, $gitlab: Boolean!, $split: Boolean!, $recursive: Boolean!
-$rev0: String!, $path0: String!, $parent0: String!, $ambiguous0: Boolean!
-$rev1: String!, $path1: String!, $parent1: String!, $ambiguous1: Boolean!) {
-  r0: repository(name: $repo0) { ...Guesses }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Guesses }
-}
-
-fragment Guesses on Repository {
-  name
-  defaultBranch { displayName }
-c0: commit(rev: $rev0) {
-    oid
-    tree: tree(path: $path0) { entries(recursive: $recursive) { path isDirectory submodule { url commit } } }
-    file: blob(path: $path0) { totalLines byteSize binary }
-    parent: tree(path: $parent0) { entries { path submodule { url commit } } }
-    x0: path(path: $path0) @include(if: $split) { __typename }
-  }
-  g0: gitRefs(query: $rev0, first: 5) @include(if: $ambiguous0) { nodes { displayName } }
-c1: commit(rev: $rev1) {
-    oid
-    tree: tree(path: $path1) { entries(recursive: $recursive) { path isDirectory submodule { url commit } } }
-    file: blob(path: $path1) { totalLines byteSize binary }
-    parent: tree(path: $parent1) { entries { path submodule { url commit } } }
-    x1: path(path: $path1) @include(if: $split) { __typename }
-  }
-  g1: gitRefs(query: $rev1, first: 5) @include(if: $ambiguous1) { nodes { displayName } }
-}
-'''
+operation = "File"
+variables = '{"content":false,"fetch":false,"path0":".github","path1":"","recursive":false,"repo":"github.com/gorilla/mux","rev0":"v1.8.0","rev1":"v1.8.0/.github"}'
+document = "File-5abb1d75"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
-    "r0": {
-      "c0": {
-        "file": null,
-        "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b",
-        "parent": {
-          "entries": [
-            {
-              "path": ".circleci",
-              "submodule": null
-            },
-            {
-              "path": ".github",
-              "submodule": null
-            },
-            {
-              "path": "AUTHORS",
-              "submodule": null
-            },
-            {
-              "path": "LICENSE",
-              "submodule": null
-            },
-            {
-              "path": "README.md",
-              "submodule": null
-            },
-            {
-              "path": "bench_test.go",
-              "submodule": null
-            },
-            {
-              "path": "doc.go",
-              "submodule": null
-            },
-            {
-              "path": "example_authentication_middleware_test.go",
-              "submodule": null
-            },
-            {
-              "path": "example_cors_method_middleware_test.go",
-              "submodule": null
-            },
-            {
-              "path": "example_route_test.go",
-              "submodule": null
-            },
-            {
-              "path": "go.mod",
-              "submodule": null
-            },
-            {
-              "path": "middleware.go",
-              "submodule": null
-            },
-            {
-              "path": "middleware_test.go",
-              "submodule": null
-            },
-            {
-              "path": "mux.go",
-              "submodule": null
-            },
-            {
-              "path": "mux_httpserver_test.go",
-              "submodule": null
-            },
-            {
-              "path": "mux_test.go",
-              "submodule": null
-            },
-            {
-              "path": "old_test.go",
-              "submodule": null
-            },
-            {
-              "path": "regexp.go",
-              "submodule": null
-            },
-            {
-              "path": "regexp_test.go",
-              "submodule": null
-            },
-            {
-              "path": "route.go",
-              "submodule": null
-            },
-            {
-              "path": "test_helpers.go",
-              "submodule": null
+    "g0": {
+      "comparison": {
+        "range": {
+          "headRevSpec": {
+            "object": {
+              "commit": {
+                "gm": null,
+                "meta": {
+                  "__typename": "GitTree",
+                  "entries": [
+                    {
+                      "isDirectory": false,
+                      "path": ".github/release-drafter.yml",
+                      "submodule": null
+                    },
+                    {
+                      "isDirectory": false,
+                      "path": ".github/stale.yml",
+                      "submodule": null
+                    }
+                  ],
+                  "path": ".github"
+                },
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              }
             }
-          ]
-        },
-        "tree": {
-          "entries": [
-            {
-              "isDirectory": false,
-              "path": ".github/release-drafter.yml",
-              "submodule": null
-            },
-            {
-              "isDirectory": false,
-              "path": ".github/stale.yml",
-              "submodule": null
-            }
-          ]
-        },
-        "x0": {
-          "__typename": "GitTree"
+          }
         }
-      },
-      "c1": null,
+      }
+    },
+    "g1": null,
+    "r": {
       "defaultBranch": {
         "displayName": "main"
+      },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T06:58:09Z"
       },
       "name": "github.com/gorilla/mux"
     }
   },
   "errors": [
     {
-      "message": "not a blob: \".github\"",
+      "message": "revision not found: repo 1700 @v1.8.0/.github^0",
       "path": [
-        "r0",
-        "c0",
-        "file"
+        "g1",
+        "comparison"
       ]
     }
   ]

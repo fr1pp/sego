@@ -1,35 +1,17 @@
 # A located branch list error names the part, not the server's text.
 args = ["refs", "example.com/acme/widget"]
-status.code = 1
+status.code = 3
 stderr = '''
 sego: error: Sourcegraph failed to answer the branch list
 '''
 
 [[exchange]]
 operation = "Refs"
-variables = '{"first":101,"gitlab":false,"query":null,"repo0":"example.com/acme/widget","repo1":"","unfiltered":false}'
-query = '''
-query Refs($repo0: String!, $repo1: String!, $gitlab: Boolean!, $first: Int, $query: String, $unfiltered: Boolean!) {
-  r0: repository(name: $repo0) { ...Refs }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Refs }
-}
-
-fragment Refs on Repository {
-  name
-  defaultBranch { displayName }
-  branches(first: $first, query: $query) { ...Listing }
-  tags(first: $first, query: $query) { ...Listing }
-  all_branches: branches(first: 1) @include(if: $unfiltered) { totalCount }
-  all_tags: tags(first: 1) @include(if: $unfiltered) { totalCount }
-}
-
-fragment Listing on GitRefConnection {
-  totalCount
-  nodes { displayName target { oid commit { committer { date } } } }
-}
-'''
+variables = '{"first":100,"gitlab":false,"query":null,"repo0":"example.com/acme/widget","repo1":"","unfiltered":false}'
+document = "Refs-fed5d5bc"
 status = 200
 content-type = "application/json"
+evidence = "none: a server failure sourcegraph.com doesn't give on demand"
 response = '''
 {
   "data": {

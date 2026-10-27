@@ -25,7 +25,8 @@ options:
 
 defaults:
   A search covers each repository's default branch, and stops after 30
-  results or 20 s; count:N and timeout:60s raise those limits. By default,
+  results or at its 20 s deadline, though the answer can arrive later;
+  count:N and timeout:60s raise them. By default,
   Sourcegraph excludes archived repositories and forks; add archived:yes or
   fork:yes to include them. Files too large to search are skipped, and
   sego show reads any file; index:no reads files skipped for too many
@@ -35,7 +36,7 @@ text:
   N UNIT  R repos  T s      UNIT is matches, commits, files,
                             directories, symbols or repos; N+ when
                             more may exist; "stopped at T s" when the
-                            search ran out of time
+                            deadline cut the search
   query  QUERY              the query as sent
   widen  FILTER (N repos)   repositories in scope left out by default
   REPO@COMMIT:PATH          a file with results, then "N:text" for a
@@ -44,16 +45,20 @@ text:
   A diff result previews at most 5 files and 3 hunks a file.
   Text prints the first 100 matches; --json carries every result fetched.
   Notes on stderr name skipped files; at a pin, a 0 says it can't list them.
+  Sourcegraph doesn't report a search backend that fails to answer, so a 0
+  can come from one, and a search over several repositories can miss a
+  backend's share; every 0 carries a note saying so.
 
 json:
   query pattern_type unit count at_least stopped elapsed_ms limit_ms
-  widen[{filter repos}] unindexed[{repo commit path bytes}] alert
+  widen[{filter repos}] unindexed[{repo commit path bytes}], null when
+  the files skipped are unknown; alert
   results[]: kind (line, path, binary, symbol, commit or repo) and repo;
     file kinds add commit rev path; line adds line text match ranges
     chunk, with match false on a context line; symbol adds line name
     symbol_kind container; commit adds commit date author subject lines
     highlights preview_limited; date is the UTC day of the author date
-  server
+  server notes
 
 examples:
   sego search 'repo:^github\.com/gorilla/mux$ "func NewRouter"'

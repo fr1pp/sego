@@ -7,49 +7,26 @@ sego: error: github.com/ascoders/blog has no commits
 
 [[exchange]]
 operation = "Log"
-variables = '{"first":151,"gitlab":false,"path":null,"repo0":"github.com/ascoders/blog","repo1":"","rev":"HEAD"}'
-query = '''
-query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String, $first: Int) {
-  r0: repository(name: $repo0) { ...History }
-  t0: repository(name: $repo0) { ...Tags }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...History }
-  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
-}
-
-fragment History on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $rev) { oid ancestors(first: $first, path: $path) { ...Page } }
-}
-fragment Page on GitCommitConnection {
-  nodes { oid subject author { date person { displayName } } parents { oid } }
-  pageInfo { hasNextPage }
-}
-
-fragment Tags on Repository {
-  name
-  defaultBranch { displayName }
-  gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
-}
-'''
+variables = '{"first":150,"follow":false,"gitlab":false,"path":null,"repo0":"github.com/ascoders/blog","repo1":"","rev":"HEAD"}'
+document = "Log-88d156a1"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
     "r0": {
       "commit": null,
       "defaultBranch": null,
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T07:13:58Z"
+      },
       "name": "github.com/ascoders/blog"
     },
     "t0": {
-      "defaultBranch": null,
       "gitRefs": {
-        "nodes": [],
-        "totalCount": 0
-      },
-      "name": "github.com/ascoders/blog"
+        "nodes": []
+      }
     }
   }
 }

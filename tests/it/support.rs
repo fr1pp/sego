@@ -33,6 +33,11 @@ pub fn cases_dir() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/cases")
 }
 
+/// Where the cases' queries are stored, each under its name.
+pub fn documents_dir() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/documents")
+}
+
 /// Every case file under `tests/cases`, in order.
 pub fn case_paths() -> Result<Vec<PathBuf>, String> {
     let mut paths = Vec::new();
@@ -65,7 +70,7 @@ pub fn case(name: &str) {
 }
 
 fn check_case(path: &Path) -> Result<Vec<String>, String> {
-    let mut case = Case::load(path)?;
+    let mut case = Case::load(path, &documents_dir())?;
     let outcome = run(&case, &Replay::new(&case))?;
     let mut failures = every_case(&case, &outcome);
     failures.extend(exchanges_used(&case, &outcome));
@@ -84,7 +89,84 @@ fn check_case(path: &Path) -> Result<Vec<String>, String> {
         failures.extend(requests_match(&case, &outcome));
     }
     failures.extend(hostile::check(&case, &outcome));
+    failures.extend(evidence(&case, &cases_dir()));
     Ok(failures)
+}
+
+/// What `evidence` may start with besides a recorded case.
+const EVIDENCE_FORMS: [&str; 2] = ["GqlError::kind table: ", "none: "];
+
+/// Each hand-written response with a located error names its evidence: a
+/// recorded case under `cases` whose response has a located error, an entry
+/// of `GqlError::kind`'s table, or `none: ` and the reason there is none.
+fn evidence(case: &Case, cases: &Path) -> Vec<String> {
+    let mut failures = Vec::new();
+    for (i, exchange) in case.exchanges.iter().enumerate() {
+        if exchange.recorded.is_some() || !located_error(exchange) {
+            continue;
+        }
+        let at = format!("{}: exchange {}", case.path.display(), i + 1);
+        let Some(evidence) = &exchange.evidence else {
+            failures.push(format!("{at} has a hand-written located error and no evidence"));
+            continue;
+        };
+        if EVIDENCE_FORMS.iter().any(|form| evidence.starts_with(form)) {
+            continue;
+        }
+        let cited = Case::load(&cases.join(format!("{evidence}.toml")), &documents_dir());
+        let recorded = cited.is_ok_and(|cited| {
+            cited.exchanges.iter().any(|e| e.recorded.is_some() && located_error(e))
+        });
+        if !recorded {
+            failures.push(format!(
+                "{at} cites {evidence}, which is no case with a recorded located error"
+            ));
+        }
+    }
+    failures
+}
+
+/// Whether the exchange's response holds a GraphQL error with a path.
+fn located_error(exchange: &case::Exchange) -> bool {
+    let case::Body::Text(text) = &exchange.body else { return false };
+    let Ok(body) = serde_json::from_str::<serde_json::Value>(text) else { return false };
+    body["errors"].as_array().is_some_and(|errors| {
+        errors.iter().any(|e| e["path"].as_array().is_some_and(|path| !path.is_empty()))
+    })
+}
+
+/// The documents no case names: each is deleted with `SEGO_BLESS`, unless
+/// written after this check started, since a case blessed meanwhile may name
+/// it.
+pub fn unnamed_documents() -> Result<Vec<String>, String> {
+    let started = std::time::SystemTime::now();
+    let mut named = std::collections::BTreeSet::new();
+    for path in case_paths()? {
+        let text = fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+        let document: toml_edit::DocumentMut =
+            text.parse().map_err(|e| format!("{}: {e}", path.display()))?;
+        for table in
+            document.get("exchange").and_then(|i| i.as_array_of_tables()).iter().copied().flatten()
+        {
+            if let Some(name) = table.get("document").and_then(|i| i.as_str()) {
+                named.insert(format!("{name}.graphql"));
+            }
+        }
+    }
+    let mut unnamed = Vec::new();
+    for path in sorted(&documents_dir())? {
+        let file = path.file_name().and_then(OsStr::to_str).unwrap_or_default().to_owned();
+        if named.contains(&file) {
+            continue;
+        }
+        let modified = fs::metadata(&path).and_then(|m| m.modified());
+        if blessing() && modified.is_ok_and(|at| at < started) {
+            fs::remove_file(&path).map_err(|e| format!("{}: {e}", path.display()))?;
+        } else {
+            unnamed.push(file);
+        }
+    }
+    Ok(unnamed)
 }
 
 /// What one invocation of `run` wrote and returned.
@@ -210,13 +292,15 @@ fn every_case(case: &Case, outcome: &Outcome) -> Vec<String> {
     let graphql =
         outcome.sent.iter().filter(|s| matches!(s.request, Request::Graphql { .. })).count();
     let raw = outcome.sent.len() - graphql;
-    if graphql > 1 || raw > 1 {
+    if graphql > 2 || raw > 1 {
         failures.push(format!(
             "sego sent {graphql} GraphQL requests and {raw} raw reads; an invocation sends at \
-             most one of each"
+             most two and one"
         ));
     }
-    if outcome.code == 2 && !outcome.sent.is_empty() {
+    let from_a_response = |line: &str| FOUND_FROM_A_RESPONSE.iter().any(|m| line.contains(m));
+    let first = outcome.stderr.lines().find(|line| line.starts_with("sego: error: "));
+    if outcome.code == 2 && !outcome.sent.is_empty() && !first.is_some_and(from_a_response) {
         failures
             .push(format!("{} request(s) reached the server on a usage error", outcome.sent.len()));
     }
@@ -229,6 +313,12 @@ fn every_case(case: &Case, outcome: &Outcome) -> Vec<String> {
     }
     failures
 }
+
+/// What the three usage errors found from a response say (ADR 0005): LINES
+/// for a directory, a regular expression the server can't compile, and
+/// `owner/name` on two hosts.
+const FOUND_FROM_A_RESPONSE: [&str; 3] =
+    ["; LINES apply to a file", "the search's regular expression doesn't compile: ", " exists as "];
 
 /// A note, an error or a fact line ends without a period, as in rustc, cargo
 /// and git. A message that starts in uppercase is Sourcegraph's own text,
@@ -441,10 +531,6 @@ impl Paced {
 }
 
 impl Transport for Paced {
-    fn host(&self) -> String {
-        self.inner.host()
-    }
-
     fn post(&self, path: &str, body: &[u8], deadline: Instant) -> Result<Response, TransportError> {
         self.send(|inner| inner.post(path, body, deadline))
     }
@@ -467,9 +553,11 @@ mod tests {
         let text = format!(
             "args = [\"refs\", \"example.com/a/b\"]\n{env}status.code = 0\n\n[[exchange]]\n\
              operation = \"Refs\"\nvariables = '{{\"repo0\":\"example.com/a/b\"}}'\n\
-             query = '''\n{QUERY}'''\nstatus = 200\nresponse = \"{{}}\"\n"
+             document = \"{}\"\nstatus = 200\nresponse = \"{{}}\"\n",
+            case::scratch("Refs", QUERY)
         );
-        Case::parse(&text, Path::new("refs/x.toml")).unwrap_or_else(|e| panic!("{e}"))
+        Case::parse(&text, Path::new("refs/x.toml"), case::SCRATCH.path())
+            .unwrap_or_else(|e| panic!("{e}"))
     }
 
     fn refs(repo: &str, query: &str) -> Request {
@@ -505,25 +593,69 @@ mod tests {
     }
 
     #[test]
-    fn one_graphql_request_and_one_raw_read_are_allowed() {
-        assert_eq!(checked(&outcome(vec![refs("example.com/a/b", QUERY), raw()])), [""; 0]);
+    fn two_graphql_requests_and_one_raw_read_are_allowed() {
+        let sent = vec![refs("example.com/a/b", QUERY), refs("example.com/c/d", QUERY), raw()];
+        assert_eq!(checked(&outcome(sent)), [""; 0]);
     }
 
     #[test]
-    fn a_second_graphql_request_or_raw_read_fails_the_case() {
-        let twice = outcome(vec![refs("example.com/a/b", QUERY), refs("example.com/c/d", QUERY)]);
-        let failures = checked(&twice);
-        assert!(failures[0].contains("2 GraphQL requests and 0 raw reads"), "{failures:?}");
+    fn a_third_graphql_request_or_a_second_raw_read_fails_the_case() {
+        let thrice = outcome(vec![refs("example.com/a/b", QUERY); 3]);
+        let failures = checked(&thrice);
+        assert!(failures[0].contains("3 GraphQL requests and 0 raw reads"), "{failures:?}");
         let failures = checked(&outcome(vec![raw(), raw()]));
         assert!(failures[0].contains("0 GraphQL requests and 2 raw reads"), "{failures:?}");
     }
 
     #[test]
-    fn a_request_on_a_usage_error_fails_the_case() {
+    fn a_request_on_a_usage_error_fails_the_case_unless_the_response_found_it() {
         let failures =
             checked(&Outcome { code: 2, ..outcome(vec![refs("example.com/a/b", QUERY)]) });
         assert!(failures[0].contains("reached the server on a usage error"), "{failures:?}");
         assert_eq!(checked(&Outcome { code: 2, ..outcome(Vec::new()) }), [""; 0]);
+        let found = Outcome {
+            code: 2,
+            stderr: "sego: error: gorilla/mux exists as github.com/gorilla/mux and \
+                     gitlab.com/gorilla/mux\n"
+                .to_owned(),
+            ..outcome(vec![refs("example.com/a/b", QUERY)])
+        };
+        assert_eq!(checked(&found), [""; 0]);
+    }
+
+    fn with_response(response: &str, evidence: Option<&str>, recorded: bool) -> Case {
+        let mut text = format!(
+            "args = [\"x\"]\nstatus.code = 0\n\n[[exchange]]\nstatus = 200\nresponse = '{response}'\n"
+        );
+        if let Some(evidence) = evidence {
+            text = text.replace("response = ", &format!("evidence = \"{evidence}\"\nresponse = "));
+        }
+        if recorded {
+            text = text.replace(
+                "response = ",
+                "recorded = { date = 2026-10-07, endpoint = \"https://sourcegraph.com\" }\nresponse = ",
+            );
+        }
+        Case::parse(&text, Path::new("show/x.toml"), case::SCRATCH.path())
+            .unwrap_or_else(|e| panic!("{e}"))
+    }
+
+    #[test]
+    fn a_hand_written_located_error_names_its_evidence() {
+        let located = r#"{"errors": [{"message": "boom", "path": ["r0", "c0"]}]}"#;
+        let pathless = r#"{"errors": [{"message": "boom"}]}"#;
+        let cases = cases_dir();
+        let failures = evidence(&with_response(located, None, false), &cases);
+        assert!(failures[0].contains("no evidence"), "{failures:?}");
+        assert_eq!(evidence(&with_response(located, None, true), &cases), [""; 0]);
+        assert_eq!(evidence(&with_response(pathless, None, false), &cases), [""; 0]);
+        for cited in ["none: why", "GqlError::kind table: git exit 128", "commit/root-commit"] {
+            assert_eq!(evidence(&with_response(located, Some(cited), false), &cases), [""; 0]);
+        }
+        for cited in ["show/no-such-case", "cli/closed-pipe"] {
+            let failures = evidence(&with_response(located, Some(cited), false), &cases);
+            assert!(failures[0].contains("no case with a recorded located error"), "{failures:?}");
+        }
     }
 
     #[test]

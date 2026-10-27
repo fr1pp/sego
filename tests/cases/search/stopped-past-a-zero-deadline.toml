@@ -1,6 +1,6 @@
 # With timeout:0s every answer arrives past the deadline, so a zero is stopped.
 args = ["search", "repo:example.com/acme/widget foo timeout:0s"]
-status.code = 1
+status.code = 3
 stderr = '''
 sego: error: the search stopped at 0.0 s with no results
 '''
@@ -8,41 +8,7 @@ sego: error: the search stopped at 0.0 s with no results
 [[exchange]]
 operation = "Search"
 variables = '{"listed":true,"query":"repo:example.com/acme/widget foo timeout:0s","unindexed":"repo:example.com/acme/widget type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:0s"}'
-query = '''
-query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
-  search(query: $query, version: V3, patternType: keyword) {
-    results {
-      matchCount approximateResultCount limitHit
-      timedout { name }
-      alert { title description kind proposedQueries { description query } }
-      elapsedMilliseconds
-      dynamicFilters { value count kind }
-      results {
-        __typename
-        ... on FileMatch {
-          repository { name }
-          file { path commit { oid } }
-          revSpec { ... on GitRevSpecExpr { expr } }
-          chunkMatches { content contentStart { line }
-            ranges { start { line character } end { line character } } }
-          symbols { name kind containerName location { range { start { line } } } }
-        }
-        ... on CommitSearchResult {
-          commit { oid subject author { date person { displayName } } repository { name } }
-          matches { body { text } highlights { line character length } }
-        }
-        ... on Repository { name }
-      }
-    }
-  }
-  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
-    results {
-      limitHit elapsedMilliseconds timedout { name } alert { title }
-      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
-    }
-  }
-}
-'''
+document = "Search-328cc8ec"
 status = 200
 content-type = "application/json"
 response = '''

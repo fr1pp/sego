@@ -7,56 +7,37 @@ sego: error: nope.go not found in github.com/gorilla/mux@98cb6bf42e08
 
 [[exchange]]
 operation = "Log"
-variables = '{"first":151,"gitlab":false,"path":"nope.go","repo0":"github.com/gorilla/mux","repo1":"","rev":"v1.8.0"}'
-query = '''
-query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String, $first: Int) {
-  r0: repository(name: $repo0) { ...History }
-  t0: repository(name: $repo0) { ...Tags }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...History }
-  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
-}
-
-fragment History on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $rev) { oid ancestors(first: $first, path: $path) { ...Page } }
-}
-fragment Page on GitCommitConnection {
-  nodes { oid subject author { date person { displayName } } parents { oid } }
-  pageInfo { hasNextPage }
-}
-
-fragment Tags on Repository {
-  name
-  defaultBranch { displayName }
-  gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
-}
-'''
+variables = '{"first":150,"follow":false,"gitlab":false,"path":"nope.go","repo0":"github.com/gorilla/mux","repo1":"","rev":"v1.8.0"}'
+document = "Log-88d156a1"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
     "r0": {
       "commit": {
-        "ancestors": {
-          "nodes": [],
-          "pageInfo": {
-            "hasNextPage": false
+        "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+        "w": {
+          "commit": {
+            "ancestors": {
+              "nodes": [],
+              "pageInfo": {
+                "hasNextPage": false
+              }
+            }
           }
-        },
-        "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+        }
       },
       "defaultBranch": {
         "displayName": "main"
+      },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T07:22:52Z"
       },
       "name": "github.com/gorilla/mux"
     },
     "t0": {
-      "defaultBranch": {
-        "displayName": "main"
-      },
       "gitRefs": {
         "nodes": [
           {
@@ -149,10 +130,8 @@ response = '''
               "oid": "0eeaf8392f5b04950925b8a69fe70f110fa7cbfc"
             }
           }
-        ],
-        "totalCount": 15
-      },
-      "name": "github.com/gorilla/mux"
+        ]
+      }
     }
   }
 }

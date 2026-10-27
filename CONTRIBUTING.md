@@ -27,9 +27,7 @@ stdout = '''
 [[exchange]]
 operation = "Refs"
 variables = '{"repo0":"github.com/gorilla/mux"}'
-query = '''
-…
-'''
+document = "Refs-fed5d5bc"
 status = 200
 content-type = "application/json"
 recorded = { date = 2026-10-07, endpoint = "https://sourcegraph.com" }
@@ -38,6 +36,9 @@ response = '''
 '''
 ```
 
+- `document` names the query's text, stored once in `tests/documents/` as
+  `<operation>-<hash>.graphql`. Bless and record write new documents; bless deletes those no case
+  names.
 - `env` sets `SEGO_ENDPOINT` or `SEGO_CACHE_DIR`.
 - `stdout.closed = true` or `stderr.closed = true` runs the case with that pipe's reader gone.
 - A raw read has `get = "<path>"` in place of the GraphQL request, and names its body with
@@ -58,13 +59,21 @@ Read the blessed diff before committing it.
 
 A response sourcegraph.com can't be made to give on demand, such as a stopped search, is written by
 hand: an `[[exchange]]` with its `status`, `content-type` and `response`, whose request bless fills
-in.
+in. A hand-written response with a located GraphQL error names its `evidence`: a recorded case with
+the same kind of error at the same kind of path (`evidence = "show/binary-file-over-content-limit"`),
+`evidence = "GqlError::kind table: …"`, or `evidence = "none: REASON"`.
 
 ## Live checks
 
 `just live` re-sends every recorded request to sourcegraph.com and fails when a response's shape
 has changed. A response marked `live = "values"` also fails when its values change. Run it after any
 change to a request, and before a release.
+
+`just live e2e [COMMAND…]` runs sego itself against sourcegraph.com for each case whose exchanges are
+all recorded with `live = "values"`, and compares the exit code, stdout and stderr with the case,
+masking `mirrored`. Search cases are left to the response check. Run it with the changed binary
+before re-recording a command's cases: each difference must be a change you intend, or server drift
+that a second run confirms.
 
 ## Generated files
 

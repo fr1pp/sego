@@ -29,6 +29,7 @@ pub fn check(written: &[Written], plan: &Plan, ty: PatternType) -> Vec<String> {
         structural_scope(searches, &mut notes);
     }
     symbol_select_without_pattern(written, ty, &mut notes);
+    symbols_of_content(written, &mut notes);
     notes
 }
 
@@ -307,6 +308,20 @@ fn symbol_select_without_pattern(written: &[Written], ty: PatternType, notes: &m
         "type:symbol with select:symbol and no pattern returns nothing; \
          {remedy} matches every symbol"
     ));
+}
+
+/// A content search's `select:symbol` returns nothing on sourcegraph.com,
+/// pinned or not (live rule `symbols_of_content`).
+fn symbols_of_content(written: &[Written], notes: &mut Vec<String>) {
+    let selected = chosen(written, "select").any(|v| unquoted(v).starts_with("symbol"));
+    let content = chosen(written, "type").all(|v| unquoted(v) == "file");
+    if selected && content && has_pattern(written) {
+        notes.push(
+            "select:symbol over a content search returns nothing on sourcegraph.com; \
+             type:symbol searches symbols"
+                .to_owned(),
+        );
+    }
 }
 
 const FLAGS: &str = "gims";
@@ -792,6 +807,22 @@ returns nothing; /./ matches every symbol";
          patterntype:regexp in place of patterntype:{mode}, /./ matches every \
          symbol"
         )
+    }
+
+    const SYMBOLS_OF_CONTENT: &str = "select:symbol over a content search returns nothing \
+on sourcegraph.com; type:symbol searches symbols";
+
+    #[test]
+    fn a_symbol_select_of_a_content_search_is_noted() {
+        run(vec![
+            ("repo:x@v1 NewRouter select:symbol", vec![SYMBOLS_OF_CONTENT.to_owned()]),
+            ("repo:x NewRouter select:symbol.function", vec![SYMBOLS_OF_CONTENT.to_owned()]),
+            ("repo:x type:file NewRouter Select:'symbol'", vec![SYMBOLS_OF_CONTENT.to_owned()]),
+            ("repo:x type:symbol NewRouter select:symbol", vec![]),
+            ("repo:x NewRouter select:file", vec![]),
+            ("repo:x NewRouter -select:symbol", vec![]),
+            ("repo:x type:commit NewRouter select:symbol", vec![]),
+        ]);
     }
 
     #[test]

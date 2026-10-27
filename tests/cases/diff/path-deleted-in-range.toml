@@ -2,7 +2,7 @@
 args = ["diff", "github.com/gorilla/mux@v1.7.2...v1.7.3", ".travis.yml"]
 status.code = 0
 stdout = '''
-github.com/gorilla/mux@ed099d423848...00bdffe0f3c7:.travis.yml  1 file  +0 -24  base ed099d423848  rev v1.7.2...v1.7.3
+github.com/gorilla/mux@ed099d423848...00bdffe0f3c7:.travis.yml  1 file  +0 -24  base ed099d423848  rev v1.7.2...v1.7.3  mirrored 2026-10-27T07:14Z
 D  +0 -24  .travis.yml
 
     diff --git .travis.yml .travis.yml
@@ -38,82 +38,59 @@ D  +0 -24  .travis.yml
 '''
 
 [[exchange]]
-operation = "Diff"
-variables = '{"a":"v1.7.2","b":"v1.7.3","first":201,"gitlab":false,"patch":true,"path0":".travis.yml","paths":[".travis.yml"],"repo0":"github.com/gorilla/mux","repo1":""}'
-query = '''
-query Diff($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!, $path0: String!) {
-  a0: repository(name: $repo0) { ...Base }
-  b0: repository(name: $repo0) { ...Head }
-  c0: repository(name: $repo0) { ...Comparison }
-  a1: repository(name: $repo1) @include(if: $gitlab) { ...Base }
-  b1: repository(name: $repo1) @include(if: $gitlab) { ...Head }
-  c1: repository(name: $repo1) @include(if: $gitlab) { ...Comparison }
-}
-
-fragment Base on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $a) {
-    oid
-    p0: path(path: $path0) { __typename }
-  }
-}
-
-fragment Head on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $b) {
-    oid parents { oid }
-    p0: path(path: $path0) { __typename }
-  }
-}
-
-fragment Comparison on Repository {
-  name
-  defaultBranch { displayName }
-  comparison(base: $a, head: $b) {
-    all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }
-    page: fileDiffs(first: $first, paths: $paths) {
-      nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }
-    }
-    patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }
-  }
-}
-'''
+operation = "Range"
+variables = '{"a":"v1.7.2","b":"v1.7.3","gitlab":false,"repo0":"github.com/gorilla/mux","repo1":""}'
+document = "Range-782f210b"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
-    "a0": {
+    "r0": {
+      "a": {
+        "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+      },
+      "b": {
+        "oid": "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T07:14:29Z"
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  }
+}
+'''
+
+[[exchange]]
+operation = "Comparison"
+variables = '{"a":"ed099d42384823742bba0bf9a72b53b55c9e2e38","b":"00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15","first":200,"patch":true,"path0":".travis.yml","paths":[".travis.yml"],"repo":"github.com/gorilla/mux"}'
+document = "Comparison-c145ac07"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "a": {
       "commit": {
         "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38",
         "p0": {
           "__typename": "GitBlob"
         }
-      },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "github.com/gorilla/mux"
+      }
     },
-    "b0": {
+    "b": {
       "commit": {
         "oid": "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15",
-        "p0": null,
-        "parents": [
-          {
-            "oid": "05347690167e152b85ece29fdfa9cc12a7b8c385"
-          }
-        ]
-      },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "github.com/gorilla/mux"
+        "p0": null
+      }
     },
-    "c0": {
+    "c": {
       "comparison": {
         "all": {
           "diffStat": {
@@ -137,16 +114,20 @@ response = '''
                 "deleted": 24
               }
             }
-          ]
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
         },
         "patch": {
           "rawDiff": "diff --git .travis.yml .travis.yml\ndeleted file mode 100644\nindex d003ad922f33f1df0d67feb59cdc4bb9f2851a21..0000000000000000000000000000000000000000\n--- .travis.yml\n+++ /dev/null\n@@ -1,24 +0,0 @@\n-language: go\n-\n-\n-matrix:\n-  include:\n-    - go: 1.7.x\n-    - go: 1.8.x\n-    - go: 1.9.x\n-    - go: 1.10.x\n-    - go: 1.11.x\n-    - go: 1.x\n-      env: LATEST=true\n-    - go: tip\n-  allow_failures:\n-    - go: tip\n-\n-install:\n-  - # Skip\n-\n-script:\n-  - go get -t -v ./...\n-  - diff -u <(echo -n) <(gofmt -d .)\n-  - if [[ \"$LATEST\" = true ]]; then go vet .; fi\n-  - go test -v -race ./...\n"
+        },
+        "range": {
+          "mergeBase": {
+            "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+          }
         }
-      },
-      "defaultBranch": {
-        "displayName": "main"
-      },
-      "name": "github.com/gorilla/mux"
+      }
     }
   }
 }

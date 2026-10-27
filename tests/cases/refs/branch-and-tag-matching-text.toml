@@ -3,32 +3,13 @@ args = ["refs", "example.com/acme/widget", "release"]
 status.code = 0
 stdout = '''
 example.com/acme/widget  1 of 1 branch match "release"  0 of 1 tag match "release"
-branch  000000000000  2026-01-02  release  (default)
+branch  000000000000  release  (default)
 '''
 
 [[exchange]]
 operation = "Refs"
-variables = '{"first":101,"gitlab":false,"query":"release","repo0":"example.com/acme/widget","repo1":"","unfiltered":true}'
-query = '''
-query Refs($repo0: String!, $repo1: String!, $gitlab: Boolean!, $first: Int, $query: String, $unfiltered: Boolean!) {
-  r0: repository(name: $repo0) { ...Refs }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...Refs }
-}
-
-fragment Refs on Repository {
-  name
-  defaultBranch { displayName }
-  branches(first: $first, query: $query) { ...Listing }
-  tags(first: $first, query: $query) { ...Listing }
-  all_branches: branches(first: 1) @include(if: $unfiltered) { totalCount }
-  all_tags: tags(first: 1) @include(if: $unfiltered) { totalCount }
-}
-
-fragment Listing on GitRefConnection {
-  totalCount
-  nodes { displayName target { oid commit { committer { date } } } }
-}
-'''
+variables = '{"first":100,"gitlab":false,"query":"release","repo0":"example.com/acme/widget","repo1":"","unfiltered":true}'
+document = "Refs-fed5d5bc"
 status = 200
 content-type = "application/json"
 response = '''
@@ -46,11 +27,6 @@ response = '''
           {
             "displayName": "release",
             "target": {
-              "commit": {
-                "committer": {
-                  "date": "2026-01-02T03:04:05Z"
-                }
-              },
               "oid": "0000000000000000000000000000000000000001"
             }
           }
@@ -60,6 +36,7 @@ response = '''
       "defaultBranch": {
         "displayName": "release"
       },
+      "mirrorInfo": null,
       "name": "example.com/acme/widget",
       "tags": {
         "nodes": [],

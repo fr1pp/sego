@@ -5,7 +5,7 @@ use std::fmt;
 use crate::escape::shell_word;
 
 use url::parse_web;
-pub use url::submodule_target;
+pub use url::submodule_repository;
 
 const MIN_ABBREVIATION: usize = 4;
 pub const FULL_OID: usize = 40;
@@ -124,6 +124,8 @@ pub enum AddressError {
     PullRequestUrl,
     ReleaseUrl,
     UnsupportedUrl(String),
+    LeavesRoot(String),
+    Reflog,
 }
 
 impl fmt::Display for AddressError {
@@ -170,6 +172,11 @@ impl fmt::Display for AddressError {
             Self::UnsupportedUrl(t) => {
                 write!(f, "unsupported URL form: {t}")
             }
+            Self::LeavesRoot(p) => write!(f, "the path {p} leaves the repository's root"),
+            Self::Reflog => write!(
+                f,
+                "sego can't read a reflog or upstream revision: Sourcegraph's mirror has none"
+            ),
         }
     }
 }
@@ -210,16 +217,28 @@ pub fn is_oid_like(rev: &str) -> bool {
     (MIN_ABBREVIATION..=FULL_OID).contains(&rev.len()) && rev.bytes().all(|b| b.is_ascii_hexdigit())
 }
 
-/// The header field for a revision that was not a commit id.
-pub fn rev_field(rev: Option<&String>) -> Option<String> {
-    let rev = rev?;
-    (!is_oid_like(rev)).then(|| format!("rev {rev}"))
+/// Whether `rev`, as written, was a name rather than `commit` written in
+/// full or in part: whether `commit` doesn't start with it, ignoring case.
+pub fn is_name(rev: &str, commit: &str) -> bool {
+    commit.get(..rev.len()).is_none_or(|start| !start.eq_ignore_ascii_case(rev))
 }
 
-/// The header field for a range of which a side was not a commit id, with
-/// the range's `dots`.
-pub fn range_rev_field(base: &str, dots: &str, head: &str) -> Option<String> {
-    (!is_oid_like(base) || !is_oid_like(head)).then(|| format!("rev {base}{dots}{head}"))
+/// The header field for a revision that was a name, not `commit` written in
+/// full or in part.
+pub fn rev_field(rev: Option<&String>, commit: &str) -> Option<String> {
+    let rev = rev?;
+    is_name(rev, commit).then(|| format!("rev {rev}"))
+}
+
+/// The header field for a range of which a side was a name, each side given
+/// as written and with its commit, with the range's `dots`.
+pub fn range_rev_field(
+    (base, base_commit): (&str, &str),
+    dots: &str,
+    (head, head_commit): (&str, &str),
+) -> Option<String> {
+    (is_name(base, base_commit) || is_name(head, head_commit))
+        .then(|| format!("rev {base}{dots}{head}"))
 }
 
 pub fn pinned(repo: &str, commit: &str, path: Option<&str>) -> Pinned {
@@ -288,6 +307,9 @@ pub fn valid_revision(rev: &str) -> bool {
 fn check_revision(rev: &str) -> Result<(), AddressError> {
     if rev.starts_with('-') || rev.chars().any(is_bad_char) {
         return Err(AddressError::InvalidRevision(rev.to_owned()));
+    }
+    if rev.contains("@{") {
+        return Err(AddressError::Reflog);
     }
     Ok(())
 }
@@ -397,10 +419,36 @@ fn parse_repo(repo: &str, token: &str) -> Result<Repo, AddressError> {
     }
 }
 
-/// Drops the leading and trailing `/`; `.` names the root, as `""`.
-pub fn parse_path(path: &str) -> String {
-    let path = path.trim_matches('/');
-    if path == "." { String::new() } else { path.to_owned() }
+/// The path from the repository's root: `.` and empty segments dropped and
+/// each `x/..` resolved, so `""` is the root. A path that leaves the root
+/// names nothing in a mirror.
+pub fn parse_path(path: &str) -> Result<String, AddressError> {
+    let mut segments: Vec<&str> = Vec::new();
+    for segment in path.split('/') {
+        match segment {
+            "" | "." => {}
+            ".." => {
+                segments.pop().ok_or_else(|| AddressError::LeavesRoot(path.to_owned()))?;
+            }
+            _ => segments.push(segment),
+        }
+    }
+    Ok(segments.join("/"))
+}
+
+/// A path operand of `log` or `diff`: a plain path as `parse_path` reads it,
+/// keeping a trailing `/`, which limits it to a directory; a glob or pathspec
+/// magic as written, since git reads it.
+pub fn parse_operand(path: &str) -> Result<String, AddressError> {
+    if !is_plain_path(path) {
+        return Ok(path.to_owned());
+    }
+    let normalised = parse_path(path)?;
+    if path.ends_with('/') && !normalised.is_empty() {
+        Ok(format!("{normalised}/"))
+    } else {
+        Ok(normalised)
+    }
 }
 
 pub fn parse(token: &str) -> Result<Address, AddressError> {
@@ -433,7 +481,8 @@ pub fn parse(token: &str) -> Result<Address, AddressError> {
         }
         (Err(e), _) | (_, Err(e)) => return Err(e),
     };
-    Ok(Address { repo, rev, path: path.map(parse_path), lines: None, kind: UrlKind::Plain })
+    let path = path.map(parse_path).transpose()?;
+    Ok(Address { repo, rev, path, lines: None, kind: UrlKind::Plain })
 }
 
 #[cfg(test)]
@@ -452,6 +501,86 @@ mod tests {
 
     fn ok(token: &str) -> Address {
         parse(token).unwrap_or_else(|e| panic!("{token}: {e}"))
+    }
+
+    #[test]
+    fn the_rev_field_names_a_revision_unless_the_commit_starts_with_it() {
+        assert_eq!(rev_field(Some(&"main".to_owned()), SHA), Some("rev main".to_owned()));
+        assert_eq!(rev_field(Some(&"2024".to_owned()), SHA), Some("rev 2024".to_owned()));
+        assert_eq!(rev_field(Some(&"98CB6BF4".to_owned()), SHA), None);
+        assert_eq!(rev_field(None, SHA), None);
+        let other = "a".repeat(40);
+        assert_eq!(range_rev_field(("98cb6bf4", SHA), "..", ("aaaa", &other)), None,);
+        assert_eq!(
+            range_rev_field(("v1", SHA), "..", ("aaaa", &other)),
+            Some("rev v1..aaaa".to_owned())
+        );
+    }
+
+    #[test]
+    fn a_revision_is_a_name_unless_the_commit_starts_with_it() {
+        for rev in ["main", "v1.8.0", "2024", "HEAD", "98cb6bf4~1"] {
+            assert!(is_name(rev, SHA), "{rev}");
+        }
+        for rev in ["98cb6bf4", "98CB6BF42E08", SHA] {
+            assert!(!is_name(rev, SHA), "{rev}");
+        }
+    }
+
+    #[test]
+    fn a_path_is_normalised_and_may_not_leave_the_root() {
+        for (written, normalised) in [
+            ("a/./b", "a/b"),
+            ("a//b/", "a/b"),
+            ("pkg/x/../brew", "pkg/brew"),
+            (".", ""),
+            ("", ""),
+            ("/a/", "a"),
+            ("a/..", ""),
+            ("*.go", "*.go"),
+        ] {
+            assert_eq!(parse_path(written), Ok(normalised.to_owned()), "{written}");
+        }
+        for written in ["..", "../mux.go", "a/../../b"] {
+            assert_eq!(parse_path(written), Err(AddressError::LeavesRoot(written.to_owned())));
+        }
+        assert_eq!(ok("github.com/x/y@v1:pkg/x/../brew").path.as_deref(), Some("pkg/brew"));
+        assert_eq!(ok("github.com/x/y@v1:.").path.as_deref(), Some(""));
+        assert_eq!(ok("github.com/x/y@v1:").path.as_deref(), Some(""));
+    }
+
+    #[test]
+    fn a_path_operand_keeps_its_trailing_slash_and_a_glob_or_pathspec_is_sent_as_given() {
+        for (written, normalised) in [
+            ("./pkg/", "pkg/"),
+            ("pkg/x/../brew", "pkg/brew"),
+            ("a//b", "a/b"),
+            ("./*.go", "./*.go"),
+            (":(glob)**/x", ":(glob)**/x"),
+            (".", ""),
+        ] {
+            assert_eq!(parse_operand(written), Ok(normalised.to_owned()), "{written}");
+        }
+        assert_eq!(
+            parse_operand("../mux.go"),
+            Err(AddressError::LeavesRoot("../mux.go".to_owned()))
+        );
+    }
+
+    #[test]
+    fn a_reflog_or_upstream_revision_is_refused() {
+        for token in [
+            "github.com/gorilla/mux@@{upstream}:mux.go",
+            "github.com/gorilla/mux@main@{1}",
+            "github.com/gorilla/mux@v1@{u}...v2",
+        ] {
+            assert_eq!(parse(token), Err(AddressError::Reflog), "{token}");
+        }
+        assert_eq!(
+            AddressError::Reflog.to_string(),
+            "sego can't read a reflog or upstream revision: Sourcegraph's mirror has none"
+        );
+        assert!(!valid_revision("main@{1}"));
     }
 
     #[test]

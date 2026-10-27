@@ -8,68 +8,49 @@ github.com/gorilla/context@652e24b8c857  1 commit
 
 [[exchange]]
 operation = "Log"
-variables = '{"first":151,"gitlab":false,"path":null,"repo0":"github.com/gorilla/context","repo1":"","rev":"652e24b8c857"}'
-query = '''
-query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String, $first: Int) {
-  r0: repository(name: $repo0) { ...History }
-  t0: repository(name: $repo0) { ...Tags }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...History }
-  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
-}
-
-fragment History on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $rev) { oid ancestors(first: $first, path: $path) { ...Page } }
-}
-fragment Page on GitCommitConnection {
-  nodes { oid subject author { date person { displayName } } parents { oid } }
-  pageInfo { hasNextPage }
-}
-
-fragment Tags on Repository {
-  name
-  defaultBranch { displayName }
-  gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
-}
-'''
+variables = '{"first":150,"follow":false,"gitlab":false,"path":null,"repo0":"github.com/gorilla/context","repo1":"","rev":"652e24b8c857"}'
+document = "Log-88d156a1"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
     "r0": {
       "commit": {
-        "ancestors": {
-          "nodes": [
-            {
-              "author": {
-                "date": "2012-10-02T21:41:51Z",
-                "person": {
-                  "displayName": "rodrigo moraes"
+        "oid": "652e24b8c8576ce9c689616f02f62ba6dd7acff3",
+        "w": {
+          "commit": {
+            "ancestors": {
+              "nodes": [
+                {
+                  "author": {
+                    "date": "2012-10-02T21:41:51Z",
+                    "person": {
+                      "displayName": "rodrigo moraes"
+                    }
+                  },
+                  "oid": "652e24b8c8576ce9c689616f02f62ba6dd7acff3",
+                  "parents": [],
+                  "subject": "Initial commit"
                 }
-              },
-              "oid": "652e24b8c8576ce9c689616f02f62ba6dd7acff3",
-              "parents": [],
-              "subject": "Initial commit"
+              ],
+              "pageInfo": {
+                "hasNextPage": false
+              }
             }
-          ],
-          "pageInfo": {
-            "hasNextPage": false
           }
-        },
-        "oid": "652e24b8c8576ce9c689616f02f62ba6dd7acff3"
+        }
       },
       "defaultBranch": {
         "displayName": "main"
+      },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-26T23:51:25Z"
       },
       "name": "github.com/gorilla/context"
     },
     "t0": {
-      "defaultBranch": {
-        "displayName": "main"
-      },
       "gitRefs": {
         "nodes": [
           {
@@ -96,10 +77,8 @@ response = '''
               "oid": "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
             }
           }
-        ],
-        "totalCount": 4
-      },
-      "name": "github.com/gorilla/context"
+        ]
+      }
     }
   }
 }

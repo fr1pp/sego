@@ -38,7 +38,7 @@ impl Cache {
         Cache { root: root(var), endpoint: endpoint_key(&endpoint.url("")), used: Cell::new(false) }
     }
 
-    /// The file of `size` bytes at `entry`: the cache's copy when it holds
+    /// The file of `size` bytes at `entry`: what the cache holds, when it is
     /// exactly `size` bytes, or else what `download` reads, which is kept
     /// when it is `size` bytes long. A cache that can't be used doesn't fail
     /// the read; the reason comes back beside the bytes.

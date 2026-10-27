@@ -1,99 +1,102 @@
-use serde::Deserialize;
-use serde_json::{Map, Value, json};
+//! What a path names at a commit: a file, a directory or a submodule, read
+//! through the `path` union under the one revision lookup.
 
-use super::graphql::{Envelope, Request, View, repeated};
-use super::repository::{Located, ambiguous, candidates, locate, repository_variables};
+use std::collections::HashMap;
+use std::fmt::Write as _;
+
+use serde::Deserialize;
+use serde_json::{Map, json};
+
+use super::Page;
+use super::gitmodules;
+use super::graphql::{Envelope, GqlErrorKind, Request, Segment, View, repeated};
+use super::resolve::{self, Repository, Resolved, candidates, repository_variables};
 use crate::address::{Repo, Target, pinned};
 use crate::error::Error;
 
-const LIMIT_MESSAGE: &str = "file exceeded size limit";
-/// How many lines an open-ended range asks for, at most.
+/// How many lines an open-ended window asks for, at most.
 const OPEN_END_SPAN: i64 = 500_000;
 
-/// A file at each revision and path the address may name, `#` numbering
-/// them; `$split` asks whether each path exists and `$ambiguous#` whether its
-/// revision names a ref, to tell the parts of a web URL apart.
-const FILE: &str = "\
-  c#: commit(rev: $rev#) {
+/// What a commit holds at `$path`: `meta` says what the path names, `body`
+/// holds a file's lines apart from it, since the content limit's error nulls
+/// its parent, and `gm` holds `.gitmodules`, whose URLs the server gets wrong.
+const READ: &str = "\
     oid
-    meta: blob(path: $path#) { byteSize totalLines binary rawURL lfs { byteSize } }
-    body: blob(path: $path#) { content(startLine: $start, endLine: $end, textOnly: true) }
-    dir: tree(path: $path#) { entries { path } }
-    parent: tree(path: $parent#) { entries { path submodule { url commit } } }
-    x#: path(path: $path#) @include(if: $split) { __typename }
-  }
-  g#: gitRefs(query: $rev#, first: 5) @include(if: $ambiguous#) { nodes { displayName } }";
+    meta: path(path: $path#) {
+      __typename
+      ... on GitBlob { path byteSize totalLines binary rawURL lfs { byteSize } submodule { commit } }
+      ... on GitTree { path entries(recursive: $recursive) { path isDirectory submodule { commit } } }
+    }
+    body: path(path: $path#) @include(if: $content) {
+      __typename
+      ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }
+    }
+    gm: blob(path: \".gitmodules\") { content }";
 
-/// A directory at each revision and path the address may name, as `FILE`.
-const TREE: &str = "\
-  c#: commit(rev: $rev#) {
-    oid
-    tree: tree(path: $path#) { entries(recursive: $recursive) { path isDirectory submodule { url commit } } }
-    file: blob(path: $path#) { totalLines byteSize binary }
-    parent: tree(path: $parent#) { entries { path submodule { url commit } } }
-    x#: path(path: $path#) @include(if: $split) { __typename }
-  }
-  g#: gitRefs(query: $rev#, first: 5) @include(if: $ambiguous#) { nodes { displayName } }";
+/// One split guess of a web URL, resolved without fetching unless `$fetch`.
+const GUESS: &str = "\
+  g#: repository(name: $repo) {
+    comparison(base: $rev#, head: $rev#, fetchMissing: $fetch) {
+      range { headRevSpec { object { commit {
+READ
+      } } } }
+    }
+  }";
 
-const GUESSED: &str = "$rev#: String!, $path#: String!, $parent#: String!, $ambiguous#: Boolean!";
-
-/// An address resolved to a commit.
-#[derive(Debug, PartialEq, Eq)]
-pub struct Resolved {
-    /// The repository's name as the server spells it.
-    pub repo: String,
-    pub commit: String,
-    /// The revision as asked; `None` for the default branch.
-    pub rev: Option<String>,
-    pub path: Option<String>,
-}
-
-/// What a path names where a file was asked for.
+/// What a path names.
 #[derive(Debug, PartialEq, Eq)]
 pub enum File {
     Blob(Blob),
-    Submodule(Submodule),
-    /// A directory, with how many entries it holds.
-    Directory {
-        entries: usize,
+    Directory(Directory),
+    /// A submodule, and whether `.gitmodules` was read for its URL.
+    Submodule {
+        submodule: Submodule,
+        gitmodules: Result<(), Error>,
     },
 }
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Blob {
-    pub details: Details,
+    pub byte_size: u64,
+    /// Sourcegraph's classification, not git's.
+    pub binary: bool,
+    /// 0 for an empty file.
+    pub total_lines: u32,
     /// The size of the object an LFS pointer names.
     pub lfs_size: Option<u64>,
-    /// `None` when there are no lines to read: the file is binary, or has
-    /// fewer lines than the first asked for.
+    /// The lines asked for; `None` when there are none to read: the file is
+    /// binary, or has fewer lines than the first asked for.
     pub content: Option<Content>,
 }
 
+/// The lines of a window of a file.
 #[derive(Debug, PartialEq, Eq)]
-pub struct Details {
-    pub byte_size: u64,
-    pub binary: bool,
-    /// The file's lines; 0 for an empty file.
-    pub total_lines: u32,
+pub struct Content {
+    pub lines: Vec<Line>,
+    /// Whether at least one line shown ends a line and every one that does
+    /// ends in CRLF.
+    pub crlf: bool,
+    /// Whether the lines are valid UTF-8; `Err` when Sourcegraph's text held
+    /// U+FFFD and the raw read for the exact bytes failed.
+    pub utf8: Result<bool, Error>,
+    /// Why the cache couldn't be used, when a raw read went without it.
+    pub cache_unavailable: Option<String>,
+}
+
+/// A line of a file: its bytes without the line feed, and whether one ended
+/// it.
+#[derive(Debug, PartialEq, Eq)]
+pub struct Line {
+    pub bytes: Vec<u8>,
+    pub terminated: bool,
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum Content {
-    /// The text of the lines asked for.
-    Lines(String),
-    /// The file is over the content limit, so its lines are read whole
-    /// through the raw route at this site path.
-    OverLimit { raw: String },
-}
-
-/// What a path names where a directory was asked for.
-#[derive(Debug, PartialEq, Eq)]
-pub enum Tree {
-    /// Its entries, in the server's order.
-    Entries(Vec<Entry>),
-    Submodule(Submodule),
-    /// A file.
-    File(Details),
+pub struct Directory {
+    /// Every entry, in the server's order.
+    pub entries: Page<Entry>,
+    /// Whether `.gitmodules` was read for the submodules' URLs.
+    pub gitmodules: Result<(), Error>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -103,138 +106,222 @@ pub struct Entry {
     pub submodule: Option<Submodule>,
 }
 
-/// A submodule as its parent stores it. Either field is empty when the
-/// server left it out.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Submodule {
-    pub url: String,
+    /// `None` when `.gitmodules` has no URL for its path, or wasn't read.
+    pub url: Option<String>,
     pub commit: String,
 }
 
-fn parent_of(path: &str) -> &str {
-    path.rsplit_once('/').map_or("", |(parent, _)| parent)
+/// The lines asked of a file: from `start`, to `end` or the last.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Window {
+    pub start: u32,
+    pub end: Option<u32>,
 }
 
-/// The file `target` names in `repo`, with lines `start` to `end`, or to the
-/// last for `None`.
-pub fn file_request(repo: &Repo, target: &Target, start: u32, end: Option<u32>) -> Request {
-    let start = i64::from(start);
-    let end = end.map_or_else(|| (start + OPEN_END_SPAN).min(i64::from(i32::MAX)), i64::from);
-    let shared = [("start", json!(start)), ("end", json!(end))];
-    let (variables, guesses) = guessed(repo, target, &shared);
-    let document = document("ShowFile", "$start: Int!, $end: Int!", FILE, guesses);
-    Request::new("ShowFile", document, variables)
+/// What the response gave for a path, before the raw read.
+pub struct Read {
+    pub resolved: Resolved,
+    pub file: File,
+    pub body: Body,
+    /// The site path of a file's raw read.
+    pub raw: Option<String>,
 }
 
-/// The directory `target` names in `repo`, with every entry beneath it when
-/// `recursive`.
-pub fn tree_request(repo: &Repo, target: &Target, recursive: bool) -> Request {
-    let (variables, guesses) = guessed(repo, target, &[("recursive", json!(recursive))]);
-    let document = document("ListTree", "$recursive: Boolean!", TREE, guesses);
-    Request::new("ListTree", document, variables)
+/// Where a file's lines come from.
+pub enum Body {
+    /// No lines are read.
+    None,
+    /// Sourcegraph's text of the window.
+    Text(String),
+    /// The file is over the content limit: only a raw read has its lines.
+    OverLimit,
 }
 
-/// The variables of a file or directory question: the repository's, each
-/// revision and path `target` may name, and the `shared` ones the guesses
-/// use; and how many guesses there are. With none, nothing uses the shared
-/// variables, and GraphQL refuses a variable nothing uses.
-fn guessed(repo: &Repo, target: &Target, shared: &[(&str, Value)]) -> (Map<String, Value>, usize) {
-    let split = matches!(target, Target::Split(_));
-    let mut variables = repository_variables(repo);
-    let guesses = candidates(target);
-    if !guesses.is_empty() {
-        variables.insert("split".to_owned(), json!(split));
-        variables.extend(shared.iter().map(|(name, value)| ((*name).to_owned(), value.clone())));
+/// The lines of `text`, split after each `\n` as git numbers them.
+pub fn lines(text: &[u8]) -> Vec<Line> {
+    let mut lines: Vec<Line> = text
+        .split(|&b| b == b'\n')
+        .map(|bytes| Line { bytes: bytes.to_vec(), terminated: true })
+        .collect();
+    if let Some(last) = lines.pop()
+        && !last.bytes.is_empty()
+    {
+        lines.push(Line { terminated: false, ..last });
     }
-    for (n, guess) in guesses.iter().enumerate() {
-        let path = guess.path.clone().unwrap_or_default();
-        variables.insert(format!("rev{n}"), json!(guess.rev));
-        variables.insert(format!("parent{n}"), json!(parent_of(&path)));
-        variables.insert(format!("path{n}"), json!(path));
-        variables.insert(format!("ambiguous{n}"), json!(split && ambiguous(&guess.rev)));
-    }
-    (variables, guesses.len())
+    lines
 }
 
-/// The document of `operation`, declaring `declared` besides the
-/// repository's and the guesses' variables, asking `each` for each guess.
-fn document(operation: &str, declared: &str, each: &str, guesses: usize) -> String {
-    let declared = if guesses == 0 {
-        String::new()
-    } else {
-        format!(", $split: Boolean!, {declared}\n{}", repeated(GUESSED, guesses))
-    };
-    format!(
-        "query {operation}($repo0: String!, $repo1: String!, $gitlab: Boolean!{declared}) {{
-  r0: repository(name: $repo0) {{ ...Guesses }}
-  r1: repository(name: $repo1) @include(if: $gitlab) {{ ...Guesses }}
+/// Whether `lines` hold at least one terminated line and every terminated
+/// line ends in CRLF.
+pub fn crlf(lines: &[Line]) -> bool {
+    let mut terminated = lines.iter().filter(|line| line.terminated).peekable();
+    terminated.peek().is_some() && terminated.all(|line| line.bytes.ends_with(b"\r"))
+}
+
+/// The request for what `target` names in `repo`: the lines of `window`
+/// when given, and every entry beneath a directory when `recursive`. A web
+/// URL's split guesses are resolved without fetching unless `fetch`.
+pub fn request(
+    repo: &Repo,
+    target: &Target,
+    window: Option<Window>,
+    recursive: bool,
+    fetch: bool,
+) -> Request {
+    let mut variables = Map::new();
+    variables.insert("recursive".to_owned(), json!(recursive));
+    variables.insert("content".to_owned(), json!(window.is_some()));
+    if let Some(Window { start, end }) = window {
+        let start = i64::from(start);
+        let end = end.map_or_else(|| (start + OPEN_END_SPAN).min(i64::from(i32::MAX)), i64::from);
+        variables.insert("start".to_owned(), json!(start));
+        variables.insert("end".to_owned(), json!(end));
+    }
+    let shared = "$recursive: Boolean!, $content: Boolean!, $start: Int, $end: Int";
+    let document = match target {
+        Target::At { rev, path } => {
+            variables.extend(repository_variables(repo));
+            variables.insert("rev".to_owned(), json!(rev.as_deref().unwrap_or("HEAD")));
+            variables.insert("path".to_owned(), json!(path.as_deref().unwrap_or_default()));
+            format!(
+                "query File($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, \
+                 $path: String!, {shared}) {{
+  r0: repository(name: $repo0) {{ ...File }}
+  r1: repository(name: $repo1) @include(if: $gitlab) {{ ...File }}
 }}
 
-fragment Guesses on Repository {{
+fragment File on Repository {{
   name
   defaultBranch {{ displayName }}
+  mirrorInfo {{ updatedAt }}
+  commit(rev: $rev) {{
+{}
+  }}
+}}
+",
+                READ.replace('#', "")
+            )
+        }
+        Target::Split(_) => {
+            let guesses = candidates(target);
+            variables.insert("repo".to_owned(), json!(repo.candidates()[0]));
+            variables.insert("fetch".to_owned(), json!(fetch));
+            let mut declared = String::new();
+            for (n, guess) in guesses.iter().enumerate() {
+                variables.insert(format!("rev{n}"), json!(guess.rev));
+                variables
+                    .insert(format!("path{n}"), json!(guess.path.as_deref().unwrap_or_default()));
+                let _ = write!(declared, ", $rev{n}: String!, $path{n}: String!");
+            }
+            format!(
+                "query File($repo: String!, $fetch: Boolean!, {shared}{declared}) {{
+  r: repository(name: $repo) {{ name defaultBranch {{ displayName }} mirrorInfo {{ updatedAt }} }}
 {}
 }}
 ",
-        repeated(each, guesses)
-    )
+                repeated(&GUESS.replace("READ", &indent(READ, "      ")), guesses.len())
+            )
+        }
+    };
+    Request::new("File", document, variables)
 }
 
-#[derive(Deserialize)]
-struct Listing {
-    entries: Vec<Listed>,
+fn indent(text: &str, by: &str) -> String {
+    text.lines().map(|line| format!("{by}{line}")).collect::<Vec<_>>().join("\n")
 }
 
-#[derive(Deserialize)]
-struct Listed {
-    path: String,
-    submodule: Option<SubmoduleNode>,
-}
-
-/// A submodule's fields as the parent's tree gives them.
-#[derive(Deserialize)]
-struct SubmoduleNode {
-    url: Option<String>,
-    commit: Option<String>,
-}
-
-impl SubmoduleNode {
-    fn submodule(self) -> Submodule {
-        Submodule { url: self.url.unwrap_or_default(), commit: self.commit.unwrap_or_default() }
+/// What `target` names in `repo`, as the response to `request` gives it;
+/// `None` when no split guess of a web URL resolves with its path without
+/// fetching, which after `fetch` is not found.
+pub fn read(
+    envelope: &Envelope,
+    repo: &Repo,
+    target: &Target,
+    fetch: bool,
+) -> Result<Option<Read>, Error> {
+    match target {
+        Target::At { rev, path } => {
+            let roots: &[&str] = if repo.candidates().len() > 1 { &["r0", "r1"] } else { &["r0"] };
+            let found = resolve::repository(repo, envelope, roots)?;
+            let at = [found.root.as_str(), "commit"];
+            let commit = resolve::commit(envelope, &found, &at, rev.as_deref().unwrap_or("HEAD"))?;
+            let path = path.clone().unwrap_or_default();
+            read_at(envelope, &found, &at, commit, rev.clone(), &path).map(Some)
+        }
+        Target::Split(_) => {
+            let found = resolve::repository(repo, envelope, &["r"])?;
+            if let Some(error) = found.no_commits() {
+                return Err(error);
+            }
+            let guesses = candidates(target);
+            let commit_at = |n: usize| {
+                let mut at = vec![format!("g{n}")];
+                at.extend(
+                    ["comparison", "range", "headRevSpec", "object", "commit"].map(str::to_owned),
+                );
+                at
+            };
+            let resolves = |n: usize| {
+                let at = commit_at(n);
+                let at: Vec<&str> = at.iter().map(String::as_str).collect();
+                let oid = envelope.get(&[&at[..], &["oid"]].concat()).is_some();
+                let meta = [&at[..], &["meta"]].concat();
+                oid && (envelope.get(&meta).is_some() || envelope.error_beneath(&meta).is_some())
+            };
+            let Some(n) = (0..guesses.len()).rev().find(|&n| resolves(n)) else {
+                let failed = (0..guesses.len()).any(|n| {
+                    envelope
+                        .errors_beneath(&[&format!("g{n}")])
+                        .iter()
+                        .any(|e| e.kind() != GqlErrorKind::RevisionNotFound)
+                });
+                if failed {
+                    return Err(Error::failed("the revision lookup"));
+                }
+                if !fetch {
+                    return Ok(None);
+                }
+                return Err(unresolved(target, &found.name));
+            };
+            let at = commit_at(n);
+            let at: Vec<&str> = at.iter().map(String::as_str).collect();
+            let commit = resolve::commit(envelope, &found, &at, &guesses[n].rev)?;
+            let path = guesses[n].path.clone().unwrap_or_default();
+            read_at(envelope, &found, &at, commit, Some(guesses[n].rev.clone()), &path).map(Some)
+        }
     }
 }
 
-/// The submodule the parent's tree lists at `path`.
-fn submodule_at(view: &View<'_>, path: &str) -> Option<Submodule> {
-    let parent: Listing = view.read(&["parent"])?;
-    parent
-        .entries
-        .into_iter()
-        .find(|entry| entry.path == path)?
-        .submodule
-        .map(SubmoduleNode::submodule)
+/// The error for a web URL none of whose split guesses resolves with its
+/// path in `repo`.
+pub fn unresolved(target: &Target, repo: &str) -> Error {
+    let segments = match target {
+        Target::Split(segments) => segments.join("/"),
+        Target::At { .. } => String::new(),
+    };
+    Error::not_found(format!("no revision and path in {segments} resolve in {repo}"))
 }
 
-fn resolved(located: Located) -> Resolved {
-    Resolved { repo: located.repo, commit: located.commit, rev: located.rev, path: located.path }
-}
-
-fn not_found(located: &Located, path: &str) -> Error {
-    Error::missing(format!("{path} not found in {}", pinned(&located.repo, &located.commit, None)))
-}
-
-fn limit_exceeded(view: &View<'_>, tail: &[&str]) -> bool {
-    view.error(tail).is_some_and(|error| error.message.contains(LIMIT_MESSAGE))
+#[derive(Deserialize)]
+#[serde(tag = "__typename")]
+enum Meta {
+    GitBlob(BlobNode),
+    GitTree(TreeNode),
 }
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct Meta {
+struct BlobNode {
+    path: String,
     byte_size: u64,
     total_lines: u64,
     binary: bool,
     #[serde(rename = "rawURL")]
     raw_url: Option<String>,
+    lfs: Option<Lfs>,
+    submodule: Option<SubmoduleNode>,
 }
 
 #[derive(Deserialize)]
@@ -244,143 +331,171 @@ struct Lfs {
 }
 
 #[derive(Deserialize)]
-struct Entries {
-    entries: Vec<serde_json::Value>,
-}
-
-/// The file at `target`, reading its lines only from `start` on.
-pub fn read_file(
-    envelope: &Envelope,
-    repo: &Repo,
-    target: &Target,
-    start: u32,
-) -> Result<(Resolved, File), Error> {
-    let located = locate(repo, target, envelope)?;
-    let view = View::new(envelope, &located.at);
-    let path = located.path.clone().unwrap_or_default();
-    if let Some(submodule) = submodule_at(&view, &path) {
-        return Ok((resolved(located), File::Submodule(submodule)));
-    }
-    let details_failed = || Error::failed("the file's details");
-    let (meta, body, dir) = (view.get(&["meta"]), view.get(&["body"]), view.get(&["dir"]));
-    let (meta_failed, body_failed) = (view.errored(&["meta"]), view.errored(&["body"]));
-    if meta_failed && body_failed && dir.is_some() {
-        let entries = view.read::<Entries>(&["dir"]).map_or(0, |dir| dir.entries.len());
-        return Ok((resolved(located), File::Directory { entries }));
-    }
-    let silent = !(meta_failed || body_failed || view.errored(&["dir"]));
-    if silent && meta.is_none() && body.is_none() && dir.is_none() {
-        return Err(not_found(&located, &path));
-    }
-    let submodule_open = meta_failed || body_failed || meta.is_none() || body.is_none();
-    if submodule_open && view.errored(&["parent"]) {
-        return Err(Error::failed("the directory listing"));
-    }
-    let meta: Meta = view.read(&["meta"]).ok_or_else(details_failed)?;
-    if view.errored(&["meta", "lfs"]) && !limit_exceeded(&view, &["meta", "lfs"]) {
-        return Err(details_failed());
-    }
-    let lfs_size = match view.get(&["meta", "lfs"]) {
-        Some(_) => {
-            let lfs: Lfs = view.read(&["meta", "lfs"]).ok_or_else(details_failed)?;
-            Some(lfs.byte_size.parse::<u64>().map_err(|_| details_failed())?)
-        }
-        None => None,
-    };
-    let total_lines = if meta.byte_size == 0 {
-        0
-    } else {
-        u32::try_from(meta.total_lines).map_err(|_| details_failed())?
-    };
-    let details = Details { byte_size: meta.byte_size, binary: meta.binary, total_lines };
-    let content = if details.binary || start > total_lines {
-        None
-    } else if limit_exceeded(&view, &["body", "content"]) {
-        let raw = meta
-            .raw_url
-            .filter(|raw| raw.starts_with('/') && !raw.starts_with("//"))
-            .ok_or_else(details_failed)?;
-        Some(Content::OverLimit { raw })
-    } else {
-        let text: String =
-            view.read(&["body", "content"]).ok_or_else(|| Error::failed("the file content"))?;
-        Some(Content::Lines(text))
-    };
-    Ok((resolved(located), File::Blob(Blob { details, lfs_size, content })))
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct TreeListing {
-    entries: Vec<TreeNode>,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
 struct TreeNode {
+    path: String,
+    entries: Vec<EntryNode>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct EntryNode {
     path: String,
     is_directory: bool,
     submodule: Option<SubmoduleNode>,
 }
 
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct FileNode {
-    byte_size: u64,
-    binary: bool,
-    total_lines: u64,
+struct SubmoduleNode {
+    commit: String,
 }
 
-/// The directory at `target`.
-pub fn read_tree(
+/// What the commit at `at`, resolved to `commit`, holds at `path`.
+fn read_at(
     envelope: &Envelope,
-    repo: &Repo,
-    target: &Target,
-) -> Result<(Resolved, Tree), Error> {
-    let located = locate(repo, target, envelope)?;
-    let view = View::new(envelope, &located.at);
-    let listing_failed = || Error::failed("the directory listing");
-    let path = located.path.clone().filter(|path| !path.is_empty());
-    if let Some(path) = &path
-        && let Some(submodule) = submodule_at(&view, path)
-    {
-        return Ok((resolved(located), Tree::Submodule(submodule)));
-    }
-    let tree_failed = view.errored_beneath(&["tree"]);
-    if view.get(&["tree"]).is_some() {
-        if tree_failed {
-            return Err(listing_failed());
+    found: &Repository,
+    at: &[&str],
+    commit: String,
+    rev: Option<String>,
+    path: &str,
+) -> Result<Read, Error> {
+    let at: Vec<String> = at.iter().map(|key| (*key).to_owned()).collect();
+    let view = View::new(envelope, &at);
+    let Some(meta) = view.get(&["meta"]) else {
+        let errors = view.errors_beneath(&["meta"]);
+        if errors.iter().any(|e| e.kind() != GqlErrorKind::RevisionNotFound) {
+            let entries = Segment::Key("entries".to_owned());
+            let listing = errors.iter().any(|e| e.path.contains(&entries));
+            let part = if listing { "the directory listing" } else { "the file's details" };
+            return Err(Error::failed(part));
         }
-        let tree: TreeListing = view.read(&["tree"]).ok_or_else(listing_failed)?;
-        let entries = tree
-            .entries
-            .into_iter()
-            .map(|node| Entry {
-                path: node.path,
-                is_directory: node.is_directory,
-                submodule: node.submodule.map(SubmoduleNode::submodule),
-            })
-            .collect();
-        return Ok((resolved(located), Tree::Entries(entries)));
-    }
-    let Some(path) = path else {
-        return Err(listing_failed());
+        let at = pinned(&found.name, &commit, None);
+        let name = if path.is_empty() { "./" } else { path };
+        return Err(Error::not_found(format!("{name} not found in {at}")));
     };
-    let file_failed = view.errored_beneath(&["file"]);
-    match view.get(&["file"]) {
-        Some(_) if tree_failed && !file_failed => {
-            let file: FileNode = view.read(&["file"]).ok_or_else(listing_failed)?;
-            let total_lines = if file.byte_size == 0 {
-                0
-            } else {
-                u32::try_from(file.total_lines).map_err(|_| listing_failed())?
-            };
-            let details = Details { byte_size: file.byte_size, binary: file.binary, total_lines };
-            Ok((resolved(located), Tree::File(details)))
+    let (urls, gitmodules) = if view.errors_beneath(&["gm"]).is_empty() {
+        let text: Option<String> = view.read(&["gm", "content"]);
+        (text.as_deref().map(gitmodules::urls).unwrap_or_default(), Ok(()))
+    } else {
+        (HashMap::new(), Err(Error::failed(".gitmodules")))
+    };
+    let submodule = |path: &str, node: SubmoduleNode| Submodule {
+        url: urls.get(path).cloned(),
+        commit: node.commit,
+    };
+    let lfs_errors = view.errors_beneath(&["meta", "lfs"]);
+    let lfs_failed = lfs_errors.iter().any(|e| e.kind() != GqlErrorKind::OverLimit);
+    let other_failed = view.errors_beneath(&["meta"]).len() > lfs_errors.len();
+    let mut raw = None;
+    let (file, path, body) = match Meta::deserialize(meta) {
+        Ok(Meta::GitTree(tree)) if !other_failed => {
+            let items: Vec<Entry> = tree
+                .entries
+                .into_iter()
+                .map(|node| Entry {
+                    submodule: node.submodule.map(|module| submodule(&node.path, module)),
+                    path: node.path,
+                    is_directory: node.is_directory,
+                })
+                .collect();
+            let total = Some(items.len() as u64);
+            let entries = Page { items, total, more: false };
+            (File::Directory(Directory { entries, gitmodules }), tree.path, Body::None)
         }
-        None if !tree_failed && !file_failed => Err(not_found(&located, &path)),
-        _ => Err(listing_failed()),
+        Ok(Meta::GitBlob(blob)) if !other_failed && !lfs_failed => {
+            if let Some(module) = blob.submodule {
+                let module = submodule(&blob.path, module);
+                (File::Submodule { submodule: module, gitmodules }, blob.path, Body::None)
+            } else {
+                let details_failed = || Error::failed("the file's details");
+                let lfs_size = blob
+                    .lfs
+                    .map(|lfs| lfs.byte_size.parse::<u64>().map_err(|_| details_failed()))
+                    .transpose()?;
+                let total_lines = if blob.byte_size == 0 {
+                    0
+                } else {
+                    u32::try_from(blob.total_lines).map_err(|_| details_failed())?
+                };
+                raw = blob.raw_url.filter(|raw| raw.starts_with('/') && !raw.starts_with("//"));
+                let body = body(&view, blob.binary)?;
+                let file = File::Blob(Blob {
+                    byte_size: blob.byte_size,
+                    binary: blob.binary,
+                    total_lines,
+                    lfs_size,
+                    content: None,
+                });
+                (file, blob.path, body)
+            }
+        }
+        Ok(Meta::GitTree(_)) => return Err(Error::failed("the directory listing")),
+        Ok(Meta::GitBlob(_)) | Err(_) => return Err(Error::failed("the file's details")),
+    };
+    let resolved = Resolved::new(found, commit, rev, Some(path));
+    Ok(Read { resolved, file, body, raw })
+}
+
+/// Where a text file's lines come from: Sourcegraph's text, or for a file
+/// over the content limit, a raw read.
+fn body(view: &View<'_>, binary: bool) -> Result<Body, Error> {
+    if binary {
+        return Ok(Body::None);
     }
+    if let Some(text) = view.read::<String>(&["body", "content"]) {
+        return Ok(Body::Text(text));
+    }
+    let errors = view.errors_beneath(&["body"]);
+    if errors.is_empty() {
+        return Ok(Body::None);
+    }
+    if errors.iter().all(|e| e.kind() == GqlErrorKind::OverLimit) {
+        return Ok(Body::OverLimit);
+    }
+    Err(Error::failed("the file content"))
+}
+
+/// The lines of `window` in a file of `total` lines. `raw` reads the file's
+/// exact bytes, with why the cache was unavailable: it is needed for a file
+/// over the content limit, and for text holding U+FFFD, where it only makes
+/// Sourcegraph's text exact, so its failure leaves the bytes unknown.
+pub fn content(
+    body: Body,
+    window: Window,
+    total: u32,
+    raw: impl FnOnce() -> Result<(Vec<u8>, Option<String>), Error>,
+) -> Result<Option<Content>, Error> {
+    let start = window.start;
+    if start > total {
+        return Ok(None);
+    }
+    let last = window.end.unwrap_or(total).min(total);
+    let wanted = (last - start + 1) as usize;
+    let whole = |bytes: &[u8]| -> Vec<Line> {
+        lines(bytes).into_iter().skip((start - 1) as usize).take(wanted).collect()
+    };
+    let (lines, utf8, cache_unavailable) = match body {
+        Body::None => return Ok(None),
+        Body::Text(text) if !text.contains('\u{fffd}') => (lines(text.as_bytes()), Ok(true), None),
+        Body::Text(text) => match raw() {
+            Ok((bytes, unavailable)) => {
+                let lines = whole(&bytes);
+                let utf8 = lines.iter().all(|line| std::str::from_utf8(&line.bytes).is_ok());
+                (lines, Ok(utf8), unavailable)
+            }
+            Err(_) => (lines(text.as_bytes()), Err(Error::failed("the raw read")), None),
+        },
+        Body::OverLimit => {
+            let (bytes, unavailable) = raw()?;
+            let lines = whole(&bytes);
+            let utf8 = lines.iter().all(|line| std::str::from_utf8(&line.bytes).is_ok());
+            (lines, Ok(utf8), unavailable)
+        }
+    };
+    if lines.len() != wanted {
+        return Err(Error::failed("the file content"));
+    }
+    let crlf = crlf(&lines);
+    Ok(Some(Content { lines, crlf, utf8, cache_unavailable }))
 }
 
 #[cfg(test)]
@@ -388,253 +503,77 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::*;
-    use crate::error::report;
     use crate::sourcegraph::parsed;
 
-    const SHA: &str = "d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809";
-    const REPO: &str = "example.com/acme/widget";
-    const SECRET: &str = "rpc error: code = Internal desc = git command failed";
-
-    fn errors(list: &[(&[&str], &str)]) -> Value {
-        let list: Vec<_> =
-            list.iter().map(|(path, message)| json!({"message": message, "path": path})).collect();
-        json!(list)
+    /// The guess `n` resolving to a commit, holding a blob at its path when
+    /// `held`.
+    fn guess(held: bool) -> Value {
+        let meta = held.then(|| {
+            json!({"__typename": "GitBlob", "path": "NEWS", "byteSize": 1, "totalLines": 1,
+                   "binary": true, "rawURL": null, "lfs": null, "submodule": null})
+        });
+        json!({"comparison": {"range": {"headRevSpec": {"object": {"commit": {
+            "oid": "a".repeat(40), "meta": meta, "body": null, "gm": null
+        }}}}}})
     }
 
-    fn file() -> Value {
-        json!({"data": {"r0": {
-            "name": "example.com/x/y",
-            "defaultBranch": {"displayName": "main"},
-            "c0": {
-                "oid": SHA,
-                "meta": {
-                    "byteSize": 6, "totalLines": 3, "binary": false,
-                    "rawURL": format!("/r/example.com/x/y@{SHA}/-/raw/a.go"),
-                    "lfs": null
-                },
-                "body": {"content": "a\nb\nc\n"},
-                "dir": null,
-                "parent": {"entries": [{"path": "a.go", "submodule": null}]}
-            }
-        }}, "errors": [{"message": "not a directory", "path": ["r0", "c0", "dir"]}]})
-    }
-
-    fn over_the_content_limit() -> Value {
-        let mut body = file();
-        let c0 = &mut body["data"]["r0"]["c0"];
-        c0["meta"]["byteSize"] = json!(2_000_000);
-        c0["body"] = json!(null);
-        body["errors"] = errors(&[
-            (&["r0", "c0", "dir"], "not a directory"),
-            (&["r0", "c0", "body", "content"], "file exceeded size limit"),
-            (&["r0", "c0", "meta", "lfs"], "file exceeded size limit"),
-        ]);
-        body
-    }
-
-    fn at(path: &str) -> Target {
-        Target::At { rev: Some("main".to_owned()), path: Some(path.to_owned()) }
-    }
-
-    fn read(body: &Value, start: u32) -> Result<File, String> {
-        let repo = Repo::Exact("example.com/x/y".to_owned());
-        read_file(&parsed(body), &repo, &at("a.go"), start)
-            .map(|(_, file)| file)
-            .map_err(|e| report(&e))
-    }
-
-    fn failed(part: &str) -> String {
-        format!("sego: error: Sourcegraph failed to answer {part}\n")
-    }
-
-    #[test]
-    fn a_file_is_read_with_its_lines() {
-        let File::Blob(blob) = read(&file(), 1).unwrap_or_else(|e| panic!("{e}")) else {
-            panic!("not a blob")
-        };
-        assert_eq!(blob.details, Details { byte_size: 6, binary: false, total_lines: 3 });
-        assert_eq!(blob.content, Some(Content::Lines("a\nb\nc\n".to_owned())));
-        let File::Blob(past) = read(&file(), 4).unwrap_or_else(|e| panic!("{e}")) else {
-            panic!("not a blob")
-        };
-        assert_eq!(past.content, None);
-    }
-
-    #[test]
-    fn a_file_over_the_content_limit_is_read_through_its_raw_url() {
-        let File::Blob(blob) = read(&over_the_content_limit(), 1).unwrap_or_else(|e| panic!("{e}"))
-        else {
-            panic!("not a blob")
-        };
-        let raw = format!("/r/example.com/x/y@{SHA}/-/raw/a.go");
-        assert_eq!(blob.content, Some(Content::OverLimit { raw }));
-        assert_eq!(blob.lfs_size, None);
-    }
-
-    #[test]
-    fn errors_name_the_part_and_hide_the_server_text() {
-        let secret = "git exec: /srv/secret-host failed";
-        let mut body = file();
-        body["data"]["r0"]["c0"]["body"] = json!(null);
-        body["errors"] = errors(&[(&["r0", "c0", "body"], secret)]);
-
-        let mut meta = file();
-        meta["data"]["r0"]["c0"]["meta"] = json!(null);
-        meta["errors"] = errors(&[(&["r0", "c0", "meta"], secret)]);
-
-        let mut parent = file();
-        let c0 = &mut parent["data"]["r0"]["c0"];
-        c0["meta"] = json!(null);
-        c0["parent"] = json!(null);
-        parent["errors"] =
-            errors(&[(&["r0", "c0", "meta"], secret), (&["r0", "c0", "parent"], secret)]);
-
-        for (body, part) in [
-            (body, "the file content"),
-            (meta, "the file's details"),
-            (parent, "the directory listing"),
-        ] {
-            assert_eq!(read(&body, 1).err(), Some(failed(part)));
+    /// Which split of `release/2.34/master/NEWS` the response chooses, by its
+    /// revision, given each guess's answer.
+    fn chosen(guesses: [Option<Value>; 4], fetch: bool) -> Result<Option<String>, Error> {
+        let mut data = json!({"r": {"name": "github.com/bminor/glibc",
+            "defaultBranch": {"displayName": "master"}, "mirrorInfo": null}});
+        for (n, answer) in guesses.into_iter().enumerate() {
+            data[format!("g{n}")] = answer.unwrap_or(Value::Null);
         }
+        let target =
+            Target::Split(["release", "2.34", "master", "NEWS"].map(str::to_owned).to_vec());
+        let repo = Repo::Exact("github.com/bminor/glibc".to_owned());
+        let read = read(&parsed(&json!({"data": data})), &repo, &target, fetch)?;
+        Ok(read.and_then(|read| read.resolved.rev))
     }
 
     #[test]
-    fn only_the_content_limit_error_at_meta_lfs_means_not_lfs() {
-        let mut body = file();
-        body["data"]["r0"]["c0"]["meta"]["lfs"] = json!(null);
-        body["errors"] = errors(&[(&["r0", "c0", "meta", "lfs"], "lfs backend exploded")]);
-        assert_eq!(read(&body, 1).err(), Some(failed("the file's details")));
-    }
-
-    #[test]
-    fn a_raw_url_that_is_not_a_site_path_is_not_read() {
-        for raw_url in ["@evil.example/x", "//evil.example/x", "https://evil.example/x", ""] {
-            let mut body = over_the_content_limit();
-            body["data"]["r0"]["c0"]["meta"]["rawURL"] = json!(raw_url);
-            assert_eq!(read(&body, 1).err(), Some(failed("the file's details")), "{raw_url}");
-        }
-    }
-
-    #[test]
-    fn a_directory_where_a_file_was_asked_for_is_its_entry_count() {
-        let mut body = file();
-        let c0 = &mut body["data"]["r0"]["c0"];
-        c0["meta"] = json!(null);
-        c0["body"] = json!(null);
-        c0["dir"] = json!({"entries": [{"path": "a"}, {"path": "b"}]});
-        body["errors"] =
-            errors(&[(&["r0", "c0", "meta"], "not a blob"), (&["r0", "c0", "body"], "not a blob")]);
-        assert_eq!(read(&body, 1), Ok(File::Directory { entries: 2 }));
-    }
-
-    fn entry(path: &str, is_dir: bool) -> Value {
-        json!({"path": path, "isDirectory": is_dir, "submodule": null})
-    }
-
-    fn tree_body(mut commit: Value) -> Value {
-        commit["oid"] = json!(SHA);
-        json!({"data": {"r0": {
-            "name": REPO,
-            "defaultBranch": {"displayName": "main"},
-            "c0": commit,
-        }}})
-    }
-
-    fn tree(body: &Value, path: Option<&str>) -> Result<Tree, String> {
-        let target = Target::At { rev: Some("v1".to_owned()), path: path.map(str::to_owned) };
-        read_tree(&parsed(body), &Repo::Exact(REPO.to_owned()), &target)
-            .map(|(_, tree)| tree)
-            .map_err(|e| report(&e))
-    }
-
-    #[test]
-    fn a_tree_is_read_in_the_servers_order_with_its_submodules() {
-        let module = json!({"path": "lib", "isDirectory": false,
-            "submodule": {"url": "../other", "commit": null}});
-        let body = tree_body(json!({
-            "tree": {"entries": [entry("b", false), entry("a", true), module]},
-            "file": null,
-            "parent": null,
-        }));
-        let Tree::Entries(entries) = tree(&body, None).unwrap_or_else(|e| panic!("{e}")) else {
-            panic!("not entries")
-        };
-        let paths: Vec<&str> = entries.iter().map(|e| e.path.as_str()).collect();
-        assert_eq!(paths, ["b", "a", "lib"]);
+    fn the_longest_split_guess_that_resolves_with_its_path_is_chosen() {
+        let both = [None, Some(guess(true)), Some(guess(true)), None];
+        assert_eq!(chosen(both, false), Ok(Some("release/2.34/master".to_owned())));
+        let pathless = [None, Some(guess(true)), Some(guess(false)), None];
+        assert_eq!(chosen(pathless, false), Ok(Some("release/2.34".to_owned())));
+        assert_eq!(chosen([None, None, Some(guess(false)), None], false), Ok(None));
+        let error = chosen([None, None, None, None], true).err().map(|e| e.to_string());
         assert_eq!(
-            entries[2].submodule,
-            Some(Submodule { url: "../other".to_owned(), commit: String::new() })
+            error.as_deref(),
+            Some(
+                "no revision and path in release/2.34/master/NEWS resolve in github.com/bminor/glibc"
+            )
         );
     }
 
-    #[test]
-    fn an_error_beneath_the_tree_fails_the_listing() {
-        let error_at = |part: &str| json!({"message": SECRET, "path": ["r0", "c0", part]});
-        let parent = json!({"entries": [entry("broken", false)]});
+    fn split(text: &[u8]) -> (Vec<(String, bool)>, bool) {
+        let lines = lines(text);
+        let crlf = crlf(&lines);
+        let lines = lines
+            .into_iter()
+            .map(|line| (String::from_utf8_lossy(&line.bytes).into(), line.terminated));
+        (lines.collect(), crlf)
+    }
 
-        let mut tree_only = tree_body(json!({"tree": null, "file": null, "parent": parent}));
-        tree_only["errors"] = json!([error_at("tree")]);
-        let mut file_and_tree = tree_only.clone();
-        file_and_tree["errors"] = json!([error_at("file"), error_at("tree")]);
-        let mut all_three = tree_only.clone();
-        all_three["errors"] = json!([error_at("file"), error_at("tree"), error_at("parent")]);
-        for body in [tree_only, file_and_tree, all_three] {
-            assert_eq!(tree(&body, Some("broken")).err(), Some(failed("the directory listing")));
-        }
-
-        let mut at_the_root = tree_body(json!({"tree": null, "file": null, "parent": null}));
-        at_the_root["errors"] = json!([error_at("tree")]);
-        assert_eq!(tree(&at_the_root, None).err(), Some(failed("the directory listing")));
+    fn line(text: &str, terminated: bool) -> (String, bool) {
+        (text.to_owned(), terminated)
     }
 
     #[test]
-    fn a_file_where_a_tree_was_asked_for_is_its_details() {
-        let mut body = tree_body(json!({
-            "tree": null,
-            "file": {"totalLines": 1, "byteSize": 0, "binary": false},
-            "parent": null,
-        }));
-        body["errors"] = json!([{"message": "not a directory", "path": ["r0", "c0", "tree"]}]);
-        assert_eq!(
-            tree(&body, Some("empty.txt")),
-            Ok(Tree::File(Details { byte_size: 0, binary: false, total_lines: 0 }))
-        );
+    fn lines_split_after_each_line_feed_and_the_last_may_have_none() {
+        assert_eq!(split(b""), (vec![], false));
+        assert_eq!(split(b"a\nb"), (vec![line("a", true), line("b", false)], false));
+        assert_eq!(split(b"a\n\n"), (vec![line("a", true), line("", true)], false));
     }
 
     #[test]
-    fn a_split_address_asks_each_guess_and_looks_up_the_ambiguous_ones() {
-        let segments = ["abcd1234", "y", "z"].map(str::to_owned).to_vec();
-        let request =
-            file_request(&Repo::Exact(REPO.to_owned()), &Target::Split(segments), 1, None);
-        let variables = &request.variables;
-        assert_eq!(variables["split"], true);
-        assert_eq!((&variables["rev1"], &variables["path1"]), (&json!("abcd1234/y"), &json!("z")));
-        assert_eq!(
-            (&variables["ambiguous0"], &variables["ambiguous1"]),
-            (&json!(true), &json!(false))
-        );
-        assert!(request.document.contains("c2: commit(rev: $rev2)"), "{}", request.document);
-        assert!(!request.document.contains("c3"), "{}", request.document);
-    }
-
-    #[test]
-    fn an_address_with_no_valid_guess_declares_nothing_it_doesnt_use() {
-        let target = Target::Split(vec!["-x".to_owned()]);
-        let request = tree_request(&Repo::Exact(REPO.to_owned()), &target, false);
-        assert!(!request.document.contains("$split"), "{}", request.document);
-        assert!(!request.variables.contains_key("recursive"), "{:?}", request.variables);
-    }
-
-    #[test]
-    fn owner_name_asks_gitlab_com_too() {
-        let both =
-            file_request(&Repo::OwnerName("acme/widget".to_owned()), &at("a.go"), 1, Some(2));
-        assert_eq!(both.variables["repo1"], "gitlab.com/acme/widget");
-        assert_eq!(both.variables["gitlab"], true);
-        let one = file_request(&Repo::Exact(REPO.to_owned()), &at("a.go"), 1, Some(2));
-        assert_eq!(
-            (&one.variables["repo1"], &one.variables["gitlab"]),
-            (&json!(""), &json!(false))
-        );
+    fn a_window_is_crlf_when_every_terminated_line_ends_in_cr() {
+        assert!(split(b"a\r\nb\r\n").1);
+        assert!(split(b"a\r\nb").1);
+        assert!(!split(b"a\nb\r\r\nc\n").1);
+        assert_eq!(split(b"a\rb\r"), (vec![line("a\rb\r", false)], false));
+        assert!(!split(b"x\r").1);
     }
 }

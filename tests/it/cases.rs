@@ -427,6 +427,11 @@ mod diff {
     }
 
     #[test]
+    fn divergent_range_base_is_the_merge_base() {
+        case("diff/divergent-range-base-is-the-merge-base.toml");
+    }
+
+    #[test]
     fn empty_comparison_json() {
         case("diff/empty-comparison-json.toml");
     }
@@ -454,6 +459,11 @@ mod diff {
     #[test]
     fn failed_comparison() {
         case("diff/failed-comparison.toml");
+    }
+
+    #[test]
+    fn failed_path_lookup_is_not_a_missing_path() {
+        case("diff/failed-path-lookup-is-not-a-missing-path.toml");
     }
 
     #[test]
@@ -557,6 +567,11 @@ mod diff {
     }
 
     #[test]
+    fn path_that_leaves_the_root() {
+        case("diff/path-that-leaves-the-root.toml");
+    }
+
+    #[test]
     fn path_with_spaces() {
         case("diff/path-with-spaces.toml");
     }
@@ -604,6 +619,11 @@ mod diff {
     #[test]
     fn root_commit_has_no_parent() {
         case("diff/root-commit-has-no-parent.toml");
+    }
+
+    #[test]
+    fn root_commit_is_not_found() {
+        case("diff/root-commit-is-not-found.toml");
     }
 
     #[test]
@@ -726,6 +746,16 @@ mod log {
     }
 
     #[test]
+    fn every_tag_marks_its_commit() {
+        case("log/every-tag-marks-its-commit.toml");
+    }
+
+    #[test]
+    fn follow_crosses_a_rename() {
+        case("log/follow-crosses-a-rename.toml");
+    }
+
+    #[test]
     fn missing_base_revision() {
         case("log/missing-base-revision.toml");
     }
@@ -746,11 +776,6 @@ mod log {
     }
 
     #[test]
-    fn note_for_tags_past_the_default_limit() {
-        case("log/note-for-tags-past-the-default-limit.toml");
-    }
-
-    #[test]
     fn one_commit() {
         case("log/one-commit.toml");
     }
@@ -758,6 +783,11 @@ mod log {
     #[test]
     fn path_in_address() {
         case("log/path-in-address.toml");
+    }
+
+    #[test]
+    fn path_that_leaves_the_root() {
+        case("log/path-that-leaves-the-root.toml");
     }
 
     #[test]
@@ -866,8 +896,13 @@ mod log {
     }
 
     #[test]
-    fn tags_at_the_default_limit_have_no_note() {
-        case("log/tags-at-the-default-limit-have-no-note.toml");
+    fn tags_not_marked_when_the_tag_list_fails_json() {
+        case("log/tags-not-marked-when-the-tag-list-fails-json.toml");
+    }
+
+    #[test]
+    fn tags_not_marked_when_the_tag_list_fails() {
+        case("log/tags-not-marked-when-the-tag-list-fails.toml");
     }
 }
 
@@ -920,23 +955,13 @@ mod ls {
     }
 
     #[test]
-    fn file_path_is_an_answer_error() {
-        case("ls/file-path-is-an-answer-error.toml");
+    fn file_path_answers_with_its_row_json() {
+        case("ls/file-path-answers-with-its-row-json.toml");
     }
 
     #[test]
-    fn file_path_of_binary_file() {
-        case("ls/file-path-of-binary-file.toml");
-    }
-
-    #[test]
-    fn file_path_of_empty_file() {
-        case("ls/file-path-of-empty-file.toml");
-    }
-
-    #[test]
-    fn file_path_of_one_line() {
-        case("ls/file-path-of-one-line.toml");
+    fn file_path_answers_with_its_row() {
+        case("ls/file-path-answers-with-its-row.toml");
     }
 
     #[test]
@@ -1042,6 +1067,11 @@ mod ls {
     #[test]
     fn submodule_path_json() {
         case("ls/submodule-path-json.toml");
+    }
+
+    #[test]
+    fn submodule_urls_come_from_gitmodules() {
+        case("ls/submodule-urls-come-from-gitmodules.toml");
     }
 
     #[test]
@@ -1189,6 +1219,11 @@ mod refs {
     }
 
     #[test]
+    fn tag_naming_a_tree() {
+        case("refs/tag-naming-a-tree.toml");
+    }
+
+    #[test]
     fn tag_without_commit_json() {
         case("refs/tag-without-commit-json.toml");
     }
@@ -1196,16 +1231,6 @@ mod refs {
     #[test]
     fn tag_without_commit() {
         case("refs/tag-without-commit.toml");
-    }
-
-    #[test]
-    fn tag_without_committer_date_json() {
-        case("refs/tag-without-committer-date-json.toml");
-    }
-
-    #[test]
-    fn tag_without_committer_date() {
-        case("refs/tag-without-committer-date.toml");
     }
 
     #[test]
@@ -1823,6 +1848,11 @@ mod search {
     }
 
     #[test]
+    fn regexp_error_in_an_alert() {
+        case("search/regexp-error-in-an-alert.toml");
+    }
+
+    #[test]
     fn regexp_error_long() {
         case("search/regexp-error-long.toml");
     }
@@ -1983,6 +2013,11 @@ mod search {
     }
 
     #[test]
+    fn symbols_of_a_content_search_are_noted() {
+        case("search/symbols-of-a-content-search-are-noted.toml");
+    }
+
+    #[test]
     fn symbols_sit_between_the_chunk_lines_around_them() {
         case("search/symbols-sit-between-the-chunk-lines-around-them.toml");
     }
@@ -2128,8 +2163,8 @@ mod search {
     }
 
     #[test]
-    fn widen_line_on_an_unscoped_answer_with_results_is_absent() {
-        case("search/widen-line-on-an-unscoped-answer-with-results-is-absent.toml");
+    fn widen_line_on_an_unscoped_answer_with_results_is_left_out() {
+        case("search/widen-line-on-an-unscoped-answer-with-results-is-left-out.toml");
     }
 
     #[test]
@@ -2172,6 +2207,11 @@ mod show {
     use crate::support::case;
 
     #[test]
+    fn ambiguous_abbreviation() {
+        case("show/ambiguous-abbreviation.toml");
+    }
+
+    #[test]
     fn binary_file_over_content_limit() {
         case("show/binary-file-over-content-limit.toml");
     }
@@ -2187,8 +2227,23 @@ mod show {
     }
 
     #[test]
+    fn blob_url_whose_guesses_all_miss() {
+        case("show/blob-url-whose-guesses-all-miss.toml");
+    }
+
+    #[test]
     fn blob_url_with_line_fragment() {
         case("show/blob-url-with-line-fragment.toml");
+    }
+
+    #[test]
+    fn bytes_that_arent_utf8_are_read_raw_json() {
+        case("show/bytes-that-arent-utf8-are-read-raw-json.toml");
+    }
+
+    #[test]
+    fn bytes_that_arent_utf8_are_read_raw() {
+        case("show/bytes-that-arent-utf8-are-read-raw.toml");
     }
 
     #[test]
@@ -2217,8 +2272,13 @@ mod show {
     }
 
     #[test]
-    fn directory_is_an_answer_error() {
-        case("show/directory-is-an-answer-error.toml");
+    fn directory_answers_with_its_listing() {
+        case("show/directory-answers-with-its-listing.toml");
+    }
+
+    #[test]
+    fn directory_with_lines_is_a_usage_error() {
+        case("show/directory-with-lines-is-a-usage-error.toml");
     }
 
     #[test]
@@ -2247,6 +2307,11 @@ mod show {
     }
 
     #[test]
+    fn file_using_cr_alone() {
+        case("show/file-using-cr-alone.toml");
+    }
+
+    #[test]
     fn file_without_final_newline() {
         case("show/file-without-final-newline.toml");
     }
@@ -2254,6 +2319,11 @@ mod show {
     #[test]
     fn header_uses_canonical_spelling() {
         case("show/header-uses-canonical-spelling.toml");
+    }
+
+    #[test]
+    fn hex_named_tag_shows_its_rev() {
+        case("show/hex-named-tag-shows-its-rev.toml");
     }
 
     #[test]
@@ -2317,8 +2387,18 @@ mod show {
     }
 
     #[test]
+    fn one_crlf_line_among_lf_lines() {
+        case("show/one-crlf-line-among-lf-lines.toml");
+    }
+
+    #[test]
     fn open_lines_range() {
         case("show/open-lines-range.toml");
+    }
+
+    #[test]
+    fn other_host_lookup_failed() {
+        case("show/other-host-lookup-failed.toml");
     }
 
     #[test]
@@ -2332,11 +2412,6 @@ mod show {
     }
 
     #[test]
-    fn parent_listing_error_beside_file_that_read() {
-        case("show/parent-listing-error-beside-file-that-read.toml");
-    }
-
-    #[test]
     fn path_with_control_characters_json() {
         case("show/path-with-control-characters-json.toml");
     }
@@ -2344,6 +2419,11 @@ mod show {
     #[test]
     fn path_with_control_characters() {
         case("show/path-with-control-characters.toml");
+    }
+
+    #[test]
+    fn path_with_dot_segments_is_normalised() {
+        case("show/path-with-dot-segments-is-normalised.toml");
     }
 
     #[test]
@@ -2364,6 +2444,16 @@ mod show {
     #[test]
     fn raw_read_default_window_has_pointer() {
         case("show/raw-read-default-window-has-pointer.toml");
+    }
+
+    #[test]
+    fn raw_read_failure_leaves_bytes_unknown_json() {
+        case("show/raw-read-failure-leaves-bytes-unknown-json.toml");
+    }
+
+    #[test]
+    fn raw_read_failure_leaves_bytes_unknown() {
+        case("show/raw-read-failure-leaves-bytes-unknown.toml");
     }
 
     #[test]
@@ -2417,6 +2507,16 @@ mod show {
     }
 
     #[test]
+    fn root_lists_the_repository() {
+        case("show/root-lists-the-repository.toml");
+    }
+
+    #[test]
+    fn root_written_as_a_bare_colon() {
+        case("show/root-written-as-a-bare-colon.toml");
+    }
+
+    #[test]
     fn single_line() {
         case("show/single-line.toml");
     }
@@ -2434,6 +2534,16 @@ mod show {
     #[test]
     fn submodule_target_relative_url() {
         case("show/submodule-target-relative-url.toml");
+    }
+
+    #[test]
+    fn submodule_url_comes_from_gitmodules() {
+        case("show/submodule-url-comes-from-gitmodules.toml");
+    }
+
+    #[test]
+    fn submodule_url_unknown_when_gitmodules_fails() {
+        case("show/submodule-url-unknown-when-gitmodules-fails.toml");
     }
 
     #[test]
@@ -2467,7 +2577,17 @@ mod show {
     }
 
     #[test]
+    fn upstream_revision() {
+        case("show/upstream-revision.toml");
+    }
+
+    #[test]
     fn url_invalid_revision() {
         case("show/url-invalid-revision.toml");
+    }
+
+    #[test]
+    fn utf_16_text_is_read_raw() {
+        case("show/utf-16-text-is-read-raw.toml");
     }
 }

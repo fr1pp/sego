@@ -10,7 +10,8 @@ operands:
               Sourcegraph URL
   REPO@A...B  changes from the merge base of A and B to B, as git
               diff A...B
-  REPO@REV    the change REV made, against its first parent
+  REPO@REV    the change REV made, against its first parent; a root
+              commit has none on Sourcegraph
   PATH...     paths or directory prefixes; the file list, counts and patch
               cover only these
 
@@ -24,14 +25,16 @@ text:
   file, "STATUS  +A -D  PATH", with STATUS A, D, M or R (OLD -> NEW),
   then the patch of named paths, indented four spaces. One path joins
   the header as REPO@A...B:PATH; two or more add "paths P...".
+  base is A...B's merge base, or REV's first parent; mirrored T as in
+  sego show --help.
   Text prints 200 file rows; --json carries every file.
   With PATH operands, a rename shows as R only when both its paths are
   named.
 
 json:
-  repo rev_a rev_b commit_a commit_b base files_total added deleted
-  files[{status old_path new_path added deleted}]
-  patch, unindented, or null without PATH
+  repo rev_a rev_b commit_a commit_b base files_total files_more added
+  deleted files[{status old_path new_path added deleted}] paths
+  patch, unindented, or null without PATH; mirrored_at notes
 
 examples:
   sego diff github.com/gorilla/mux@v1.7.4...v1.8.0

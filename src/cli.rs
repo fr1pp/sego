@@ -5,7 +5,7 @@ use std::ffi::OsString;
 use lexopt::Arg;
 
 use crate::address::{self, Address, Dots, Rev, Target, UrlKind};
-use crate::commands::{commit, diff, log, ls, refs, search, show};
+use crate::commands::{diff, log, ls, refs, search, show};
 use crate::error::Error;
 
 pub const SYNOPSIS: &str = "sego COMMAND [--json] ...";
@@ -17,7 +17,7 @@ sego show [--json] REPO@REV";
 pub const LS_SYNOPSIS: &str = "sego ls [--json] [--recursive] REPO[@REV][:PATH]";
 pub const REFS_SYNOPSIS: &str = "sego refs [--json] REPO [TEXT]";
 pub const LOG_SYNOPSIS: &str = "\
-sego log [--json] REPO[@REV][:PATH] [PATH]\n\
+sego log [--json] [--follow] REPO[@REV][:PATH] [PATH]\n\
 sego log [--json] REPO@A..B[:PATH] [PATH]";
 pub const DIFF_SYNOPSIS: &str = "\
 sego diff [--json] REPO@A...B[:PATH] [PATH...]\n\
@@ -56,11 +56,25 @@ pub enum Invocation {
 pub enum Command {
     Search(search::Args),
     Show(show::Args),
-    ShowCommit(commit::Args),
+    ShowCommit(show::CommitArgs),
     Ls(ls::Args),
     Refs(refs::Args),
     Log(log::Args),
     Diff(diff::Args),
+}
+
+impl Command {
+    pub fn json_and_synopsis(&self) -> (bool, &'static str) {
+        match self {
+            Command::Search(args) => (args.json, SEARCH_SYNOPSIS),
+            Command::Show(args) => (args.json, SHOW_SYNOPSIS),
+            Command::ShowCommit(args) => (args.json, SHOW_SYNOPSIS),
+            Command::Ls(args) => (args.json, LS_SYNOPSIS),
+            Command::Refs(args) => (args.json, REFS_SYNOPSIS),
+            Command::Log(args) => (args.json, LOG_SYNOPSIS),
+            Command::Diff(args) => (args.json, DIFF_SYNOPSIS),
+        }
+    }
 }
 
 #[derive(Default)]
@@ -68,6 +82,7 @@ pub enum Command {
 struct Flags {
     json: bool,
     recursive: bool,
+    follow: bool,
     help: bool,
     version: bool,
 }
@@ -105,6 +120,8 @@ pub fn parse(args: &[OsString]) -> Result<Invocation, Error> {
                 return Err(twice("--recursive"));
             }
             Arg::Long("recursive") => flags.recursive = true,
+            Arg::Long("follow") if flags.follow => return Err(twice("--follow")),
+            Arg::Long("follow") => flags.follow = true,
             Arg::Long("help") if flags.help => return Err(twice("--help")),
             Arg::Short('h') if flags.help => return Err(twice("-h")),
             Arg::Long("help") | Arg::Short('h') => flags.help = true,
@@ -142,12 +159,15 @@ pub fn parse(args: &[OsString]) -> Result<Invocation, Error> {
     if flags.recursive && name != "ls" {
         return Err(Error::usage(format!("{name} takes no --recursive"), synopsis_of(Some(name))));
     }
+    if flags.follow && name != "log" {
+        return Err(Error::usage(format!("{name} takes no --follow"), synopsis_of(Some(name))));
+    }
     let command = match name {
         "search" => parse_search(rest, flags.json),
         "show" => parse_show(rest, flags.json),
         "ls" => parse_ls(rest, flags.recursive, flags.json),
         "refs" => parse_refs(rest, flags.json),
-        "log" => parse_log(rest, flags.json),
+        "log" => parse_log(rest, flags.follow, flags.json),
         "diff" => parse_diff(rest, flags.json),
         other => Err(unknown_command(other)),
     };
@@ -256,14 +276,11 @@ fn parse_show(operands: &[String], json: bool) -> Result<Command, Error> {
             return Err(usage(range_message(&base, dots, &head)));
         }
         (Rev::Split(segments), _) => Target::Split(segments),
-        (_, Some(path)) if path.is_empty() => {
-            return Err(usage("show needs a file's path, like REPO[@REV]:PATH".to_owned()));
-        }
         (Rev::One(rev), None) => {
             if !rest.is_empty() || address.lines.is_some() {
                 return Err(usage("a commit takes no LINES".to_owned()));
             }
-            return Ok(Command::ShowCommit(commit::Args { repo: address.repo, rev, json }));
+            return Ok(Command::ShowCommit(show::CommitArgs { repo: address.repo, rev, json }));
         }
         (Rev::Default, None) => {
             return Err(usage(
@@ -361,12 +378,13 @@ fn unsplit(command: &str, synopsis: &'static str) -> Error {
     )
 }
 
-/// The path an operand or address names, or `None` for the root.
-fn named_path(path: &str) -> Option<String> {
-    Some(address::parse_path(path)).filter(|path| !path.is_empty())
+/// The path an operand names, or `None` for the root.
+fn named_path(path: &str, synopsis: &'static str) -> Result<Option<String>, Error> {
+    let path = address::parse_operand(path).map_err(|e| Error::usage(e.to_string(), synopsis))?;
+    Ok(Some(path).filter(|path| !path.is_empty()))
 }
 
-fn parse_log(operands: &[String], json: bool) -> Result<Command, Error> {
+fn parse_log(operands: &[String], follow: bool, json: bool) -> Result<Command, Error> {
     let usage = |message: &str| Error::usage(message, LOG_SYNOPSIS);
     let [token, rest @ ..] = operands else {
         return Err(usage("log needs an address, like REPO[@REV][:PATH]"));
@@ -387,13 +405,17 @@ fn parse_log(operands: &[String], json: bool) -> Result<Command, Error> {
     if rest.iter().any(String::is_empty) {
         return Err(usage("log takes no empty path"));
     }
-    let in_address = address.path.as_deref().and_then(named_path);
-    let operand = rest.first().and_then(|path| named_path(path));
+    let in_address = address.path.filter(|path| !path.is_empty());
+    let operand = rest.first().map(|path| named_path(path, LOG_SYNOPSIS)).transpose()?.flatten();
     let path = match (in_address, operand) {
         (Some(_), Some(_)) => return Err(usage("log takes one path")),
         (path, None) | (None, path) => path,
     };
-    Ok(Command::Log(log::Args { repo: address.repo, revs, path, json }))
+    let plain = path.as_deref().is_some_and(address::is_plain_path);
+    if follow && (!plain || matches!(revs, log::Revs::Range { .. })) {
+        return Err(usage("--follow needs one revision and one plain path"));
+    }
+    Ok(Command::Log(log::Args { repo: address.repo, revs, path, follow, json }))
 }
 
 fn parse_diff(operands: &[String], json: bool) -> Result<Command, Error> {
@@ -420,7 +442,10 @@ fn parse_diff(operands: &[String], json: bool) -> Result<Command, Error> {
         return Err(usage("diff takes no empty path"));
     }
     let mut paths: Vec<String> = Vec::new();
-    for path in address.path.iter().chain(rest).filter_map(|p| named_path(p)) {
+    let in_address = address.path.into_iter().filter(|path| !path.is_empty());
+    let operands = rest.iter().map(|path| named_path(path, DIFF_SYNOPSIS));
+    for path in in_address.map(Ok).chain(operands.filter_map(Result::transpose)) {
+        let path = path?;
         if !paths.contains(&path) {
             paths.push(path);
         }
@@ -437,14 +462,13 @@ mod tests {
     use std::os::unix::ffi::OsStringExt;
 
     use crate::address::{self, End, LineRange, Repo, Rev, Target};
-    use crate::commands::{commit, diff, log, ls, refs, search, show};
+    use crate::commands::{diff, log, ls, refs, search, show};
     use crate::error::{Kind, report, usage_block};
 
     const SHA: &str = "0123456789abcdef0123456789abcdef01234567";
     const COMMAND_LIST: &str = "commands: search, show, ls, refs, log, diff";
     const LIMIT: &str = "sego has no --limit; count: is a query filter";
     const NEEDS_SHOW_ADDRESS: &str = "show needs an address, like REPO[@REV]:PATH";
-    const NEEDS_FILE_PATH: &str = "show needs a file's path, like REPO[@REV]:PATH";
     const RANGE_ONLY_IN_HISTORY: &str = "a range is only valid in log (A..B) and diff (A...B)";
 
     fn os(args: &[&str]) -> Vec<OsString> {
@@ -483,7 +507,7 @@ mod tests {
     fn commit(token: &str, json: bool) -> Invocation {
         let address = address(token);
         let Rev::One(rev) = address.rev else { panic!("{token} names no one revision") };
-        Invocation::Command(Command::ShowCommit(commit::Args { repo: address.repo, rev, json }))
+        Invocation::Command(Command::ShowCommit(show::CommitArgs { repo: address.repo, rev, json }))
     }
 
     fn ls(token: &str, recursive: bool, json: bool) -> Invocation {
@@ -508,8 +532,34 @@ mod tests {
             repo: address.repo,
             revs,
             path: path.map(str::to_owned),
+            follow: false,
             json,
         }))
+    }
+
+    #[test]
+    fn follow_belongs_to_a_log_of_one_revision_and_one_plain_path() {
+        let followed = |token: &str, path: &str| {
+            let Invocation::Command(Command::Log(args)) = log(token, Some(path), false) else {
+                panic!("not a log")
+            };
+            Invocation::Command(Command::Log(log::Args { follow: true, ..args }))
+        };
+        check_parses(vec![
+            (vec!["log", "--follow", "x/y@v1", "a.go"], followed("x/y@v1", "a.go")),
+            (vec!["log", "x/y:src/a.go", "--follow"], followed("x/y", "src/a.go")),
+        ]);
+        let needs = "--follow needs one revision and one plain path";
+        check_errors(
+            LOG_SYNOPSIS,
+            &[
+                (&["log", "--follow", "x/y"], needs),
+                (&["log", "--follow", "x/y@a..b", "a.go"], needs),
+                (&["log", "--follow", "x/y", "*.go"], needs),
+                (&["log", "--follow", "--follow", "x/y", "a.go"], "--follow given twice"),
+            ],
+        );
+        check_errors(DIFF_SYNOPSIS, &[(&["diff", "--follow", "x/y@v1"], "diff takes no --follow")]);
     }
 
     fn diff(token: &str, paths: &[&str], json: bool) -> Invocation {
@@ -568,6 +618,12 @@ mod tests {
         let blob = "https://github.com/x/y/blob/main/a.go#L3-L9";
         check_parses(vec![
             (vec!["show", "github.com/x/y:a.go"], show("github.com/x/y:a.go", None, false)),
+            (vec!["show", "x/y@v1:"], show("x/y@v1:", None, false)),
+            (vec!["show", "x/y:."], show("x/y:.", None, false)),
+            (
+                vec!["show", "sourcegraph.com/github.com/o/r@v1/-/tree/."],
+                show("github.com/o/r@v1:", None, false),
+            ),
             (vec!["show", "--json", "x/y:a.go"], show("x/y:a.go", None, true)),
             (vec!["show", "x/y:a.go", "--json"], show("x/y:a.go", None, true)),
             (vec!["--json", "show", "x/y:a.go"], show("x/y:a.go", None, true)),
@@ -690,7 +746,7 @@ mod tests {
             (vec!["log", "x/y:src"], log("x/y:src", Some("src"), false)),
             (vec!["log", "x/y@v1:src/"], log("x/y@v1:src/", Some("src"), false)),
             (vec!["log", "x/y", "src"], log("x/y", Some("src"), false)),
-            (vec!["log", "x/y", "/src/a.go/"], log("x/y", Some("src/a.go"), false)),
+            (vec!["log", "x/y", "/src/a.go/"], log("x/y", Some("src/a.go/"), false)),
             (vec!["log", "x/y@a..b:s"], log("x/y@a..b:s", Some("s"), false)),
             (vec!["log", "x/y@a..b", "s"], log("x/y@a..b", Some("s"), false)),
             (vec!["log", "x/y@v1:."], log("x/y@v1:.", None, false)),
@@ -719,9 +775,9 @@ mod tests {
             (vec!["diff", "--json", "x/y@v1"], diff("x/y@v1", &[], true)),
             (vec!["diff", "x/y@a...b"], diff("x/y@a...b", &[], false)),
             (vec!["diff", "x/y@a...b:src"], diff("x/y@a...b:src", &["src"], false)),
-            (vec!["diff", "x/y@a...b", "src", "lib/"], diff("x/y@a...b", &["src", "lib"], false)),
+            (vec!["diff", "x/y@a...b", "src", "lib/"], diff("x/y@a...b", &["src", "lib/"], false)),
             (vec!["diff", "x/y@a...b:src", "/lib"], diff("x/y@a...b:src", &["src", "lib"], false)),
-            (vec!["diff", "x/y@v1", "//a/b//", "c"], diff("x/y@v1", &["a/b", "c"], false)),
+            (vec!["diff", "x/y@v1", "//a/b//", "c"], diff("x/y@v1", &["a/b/", "c"], false)),
             (vec!["diff", "x/y@v1...v2", "."], diff("x/y@v1...v2", &[], false)),
             (vec!["diff", "x/y@v1...v2", "/"], diff("x/y@v1...v2", &[], false)),
             (vec!["diff", "x/y@v1...v2:."], diff("x/y@v1...v2:.", &[], false)),
@@ -822,9 +878,6 @@ mod tests {
                     "show takes an address and at most one LINES operand",
                 ),
                 (&["show", "github.com/x/y"], needs_either),
-                (&["show", "x/y:"], NEEDS_FILE_PATH),
-                (&["show", "x/y@v1:"], NEEDS_FILE_PATH),
-                (&["show", "x/y:."], NEEDS_FILE_PATH),
                 (&["show", "x/y@a..b:f"], &range("a..b")),
                 (&["show", "x/y@a...b:f"], &range("a...b")),
                 (&["show", "x/y:f", "0"], "invalid line range 0; lines are numbered from 1"),
@@ -843,17 +896,10 @@ mod tests {
         let needs_either = "show needs a file's path or a revision, like \
                         REPO[@REV]:PATH or REPO@REV";
         let with_lines = format!("https://github.com/o/r/commit/{SHA}#L3");
-        let tree_dot = format!("https://github.com/o/r/tree/{SHA}/.");
-        let blob_dot = format!("https://github.com/o/r/blob/{SHA}/.");
-        let sourcegraph_dot = "sourcegraph.com/github.com/o/r@v1/-/tree/.";
         check_errors(
             SHOW_SYNOPSIS,
             &[
                 (&["show", "x/y"], needs_either),
-                (&["show", "x/y@v1:."], NEEDS_FILE_PATH),
-                (&["show", &tree_dot], NEEDS_FILE_PATH),
-                (&["show", &blob_dot], NEEDS_FILE_PATH),
-                (&["show", sourcegraph_dot], NEEDS_FILE_PATH),
                 (&["show", "x/y@v1", "3"], "a commit takes no LINES"),
                 (&["show", "x/y@v1", "abc"], "a commit takes no LINES"),
                 (&["show", &with_lines], "a commit takes no LINES"),

@@ -2,36 +2,13 @@
 args = ["log", "--json", "example.com/acme/widget@v2.0.0:a\u001Bb\u202Ec\u200Bd\ne\rf\u0000g\u2028h\u007Fi"]
 status.code = 0
 stdout = '''
-{"repo":"example.com/acme/widget","rev":"v2.0.0","commit":"0123456789abcdef0123456789abcdef01234567","rev_a":null,"rev_b":null,"commit_a":null,"commit_b":null,"path":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","total":null,"more":false,"commits":[{"commit":"0123456789abcdef0123456789abcdef01234567","date":"2026-08-01","author":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","subject":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","parents":["89abcdef0123456789abcdef0123456789abcdef"],"tags":["a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","t-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"]},{"commit":"89abcdef0123456789abcdef0123456789abcdef","date":"a\u001bb\u202ec\u200bd\ne\r","author":"b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","subject":"b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","parents":["a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"],"tags":[]},{"commit":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","date":"2026-07-01","author":"c-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","subject":"c-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","parents":[],"tags":["u-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"]}]}
+{"repo":"example.com/acme/widget","rev":"v2.0.0","commit":"0123456789abcdef0123456789abcdef01234567","rev_a":null,"rev_b":null,"commit_a":null,"commit_b":null,"path":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","follow":false,"behind":null,"commits_total":null,"commits_more":false,"commits":[{"commit":"0123456789abcdef0123456789abcdef01234567","date":"2026-08-01","author":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","subject":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","parents":["89abcdef0123456789abcdef0123456789abcdef"],"tags":["a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","t-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"]},{"commit":"89abcdef0123456789abcdef0123456789abcdef","date":"a\u001bb\u202ec\u200bd\ne\r","author":"b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","subject":"b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","parents":["a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"],"tags":[]},{"commit":"a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","date":"2026-07-01","author":"c-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","subject":"c-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi","parents":[],"tags":["u-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"]}],"mirrored_at":null,"notes":[]}
 '''
 
 [[exchange]]
 operation = "Log"
-variables = "{\"first\":151,\"gitlab\":false,\"path\":\"a\\u001bb\u202Ec\u200Bd\\ne\\rf\\u0000g\u2028h\u007Fi\",\"repo0\":\"example.com/acme/widget\",\"repo1\":\"\",\"rev\":\"v2.0.0\"}"
-query = '''
-query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String, $first: Int) {
-  r0: repository(name: $repo0) { ...History }
-  t0: repository(name: $repo0) { ...Tags }
-  r1: repository(name: $repo1) @include(if: $gitlab) { ...History }
-  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }
-}
-
-fragment History on Repository {
-  name
-  defaultBranch { displayName }
-  commit(rev: $rev) { oid ancestors(first: $first, path: $path) { ...Page } }
-}
-fragment Page on GitCommitConnection {
-  nodes { oid subject author { date person { displayName } } parents { oid } }
-  pageInfo { hasNextPage }
-}
-
-fragment Tags on Repository {
-  name
-  defaultBranch { displayName }
-  gitRefs(type: GIT_TAG, first: 1000) { totalCount nodes { displayName target { oid } } }
-}
-'''
+variables = "{\"first\":150,\"follow\":false,\"gitlab\":false,\"path\":\"a\\u001bb\u202Ec\u200Bd\\ne\\rf\\u0000g\u2028h\u007Fi\",\"repo0\":\"example.com/acme/widget\",\"repo1\":\"\",\"rev\":\"v2.0.0\"}"
+document = "Log-88d156a1"
 status = 200
 content-type = "application/json"
 response = '''
@@ -39,65 +16,67 @@ response = '''
   "data": {
     "r0": {
       "commit": {
-        "ancestors": {
-          "nodes": [
-            {
-              "author": {
-                "date": "2026-08-01T09:00:00Z",
-                "person": {
-                  "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
-                }
-              },
-              "oid": "0123456789abcdef0123456789abcdef01234567",
-              "parents": [
+        "oid": "0123456789abcdef0123456789abcdef01234567",
+        "w": {
+          "commit": {
+            "ancestors": {
+              "nodes": [
                 {
-                  "oid": "89abcdef0123456789abcdef0123456789abcdef"
+                  "author": {
+                    "date": "2026-08-01T09:00:00Z",
+                    "person": {
+                      "displayName": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                    }
+                  },
+                  "oid": "0123456789abcdef0123456789abcdef01234567",
+                  "parents": [
+                    {
+                      "oid": "89abcdef0123456789abcdef0123456789abcdef"
+                    }
+                  ],
+                  "subject": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                },
+                {
+                  "author": {
+                    "date": "a\u001bb\u202ec\u200bd\ne\rT00:00:00Z",
+                    "person": {
+                      "displayName": "b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                    }
+                  },
+                  "oid": "89abcdef0123456789abcdef0123456789abcdef",
+                  "parents": [
+                    {
+                      "oid": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                    }
+                  ],
+                  "subject": "b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                },
+                {
+                  "author": {
+                    "date": "2026-07-01T00:00:00Z",
+                    "person": {
+                      "displayName": "c-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+                    }
+                  },
+                  "oid": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+                  "parents": [],
+                  "subject": "c-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
                 }
               ],
-              "subject": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
-            },
-            {
-              "author": {
-                "date": "a\u001bb\u202ec\u200bd\ne\rT00:00:00Z",
-                "person": {
-                  "displayName": "b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
-                }
-              },
-              "oid": "89abcdef0123456789abcdef0123456789abcdef",
-              "parents": [
-                {
-                  "oid": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
-                }
-              ],
-              "subject": "b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
-            },
-            {
-              "author": {
-                "date": "2026-07-01T00:00:00Z",
-                "person": {
-                  "displayName": "c-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
-                }
-              },
-              "oid": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
-              "parents": [],
-              "subject": "c-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+              "pageInfo": {
+                "hasNextPage": false
+              }
             }
-          ],
-          "pageInfo": {
-            "hasNextPage": false
           }
-        },
-        "oid": "0123456789abcdef0123456789abcdef01234567"
+        }
       },
       "defaultBranch": {
         "displayName": "main"
       },
+      "mirrorInfo": null,
       "name": "example.com/acme/widget"
     },
     "t0": {
-      "defaultBranch": {
-        "displayName": "main"
-      },
       "gitRefs": {
         "nodes": [
           {
@@ -118,10 +97,8 @@ response = '''
               "oid": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
             }
           }
-        ],
-        "totalCount": 3
-      },
-      "name": "example.com/acme/widget"
+        ]
+      }
     }
   }
 }

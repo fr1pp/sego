@@ -8,7 +8,6 @@ use crate::output::Notes;
 use crate::sourcegraph::{Client, Listing, Search};
 
 pub use answer::Answer;
-use answer::in_time;
 use plan::PatternType;
 use query::Query;
 
@@ -30,8 +29,9 @@ fn regexp_error(reason: &str, query: &Query) -> Error {
     } else {
         reason.to_owned()
     };
-    let error =
-        Error::upstream(format!("the search's regular expression doesn't compile: {reason}"));
+    let error = Error::usage_from_response(format!(
+        "the search's regular expression doesn't compile: {reason}"
+    ));
     if query.pattern_type == PatternType::Structural {
         error
             .fact("structural search compiles each :[name~regex] hole as an RE2 regular expression")
@@ -41,12 +41,12 @@ fn regexp_error(reason: &str, query: &Query) -> Error {
 }
 
 /// Whether the side query's listing holds every unindexed file: no alert,
-/// nothing cut, and back clear of its deadline.
+/// nothing cut, and back before its deadline.
 fn complete(listing: &Listing, deadline_ms: u64) -> bool {
     listing.alert.is_none()
         && !listing.limit_hit
         && listing.timedout.is_empty()
-        && in_time(listing.elapsed_milliseconds, deadline_ms)
+        && listing.elapsed_milliseconds < deadline_ms
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -55,7 +55,7 @@ pub struct Args {
     pub json: bool,
 }
 
-pub fn run(args: &Args, client: &Client, notes: &mut Notes) -> Result<Answer, Error> {
+pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Error> {
     let query = Query::new(&args.query);
     for note in &query.notes {
         notes.push(note);
@@ -66,7 +66,12 @@ pub fn run(args: &Args, client: &Client, notes: &mut Notes) -> Result<Answer, Er
         Search::BadRegexp { reason } => return Err(regexp_error(&reason, &query)),
     };
     let deadline_ms = query.deadline_ms;
-    let unindexed = listing.filter(|listing| complete(listing, deadline_ms)).map(Listing::files);
+    // An empty listing can't be told from one that failed under load, so it
+    // leaves the files skipped unknown (ADR 0007).
+    let unindexed = listing
+        .filter(|listing| complete(listing, deadline_ms))
+        .map(Listing::files)
+        .filter(|files| !files.is_empty());
     let answer = Answer::new(query, results, unindexed);
     answer.judge(notes)?;
     Ok(answer)
@@ -76,11 +81,13 @@ pub fn run(args: &Args, client: &Client, notes: &mut Notes) -> Result<Answer, Er
 mod tests {
     use super::*;
 
+    use std::ffi::OsStr;
     use std::thread::sleep;
-    use std::time::Duration;
+    use std::time::{Duration, Instant};
 
+    use crate::cache::Cache;
     use crate::error::{Error, report};
-    use crate::sourcegraph::{Endpoint, Listing, Results};
+    use crate::sourcegraph::{DEADLINE, Endpoint, Listing, Results};
 
     const SQLITE_FILE: &str = "c_src/sqlite3.c";
     const X509_FILE: &str = "src/crypto/x509/x509_test.go";
@@ -94,7 +101,10 @@ mod tests {
     fn searched_live(query: &str) -> Result<(Results, Option<Listing>), String> {
         sleep(PAUSE);
         let query = Query::new(query);
-        let client = Client::new(crate::connect(Endpoint::default()));
+        let deadline = Instant::now() + DEADLINE;
+        let cache = Cache::new(Some(OsStr::new("off")), &Endpoint::default());
+        let client =
+            Client::new(crate::connect(Endpoint::default()), Endpoint::default(), &cache, deadline);
         match client.search(&query.text, query.unindexed.as_deref()) {
             Ok(Search::Results { results, unindexed }) => Ok((results, unindexed)),
             Ok(Search::BadRegexp { reason }) => Err(format!("{}: {reason}", query.text)),
@@ -164,15 +174,26 @@ mod tests {
         }
     }
 
+    /// The local check `symbols_of_content` notes that this returns nothing.
+    fn symbols_of_content() -> Result<(), String> {
+        let (results, _) =
+            searched_live(r"repo:^github\.com/gorilla/mux$ NewRouter select:symbol")?;
+        match results.match_count {
+            0 => Ok(()),
+            n => Err(format!("matchCount {n}; select:symbol over content now answers")),
+        }
+    }
+
     #[test]
     #[ignore = "sends requests to sourcegraph.com"]
     fn the_rules_search_relies_on_for_counts_and_unindexed_files_still_hold_on_the_live_server() {
-        let rules: [(&str, Rule); 5] = [
+        let rules: [(&str, Rule); 6] = [
             ("placeholder listing", placeholder_listing),
             ("trigram reason", trigram_reason),
             ("cap and plus", cap_and_plus),
             ("complete answer", complete_answer),
             ("utility counts", utility_counts),
+            ("symbols of content", symbols_of_content),
         ];
         let failures: Vec<String> = rules
             .iter()
