@@ -204,9 +204,14 @@ fn repo_select(value: &str) -> bool {
 /// - each index replica returns at most the cap in files, and the server
 ///   merges them into directories without saying it cut them, at any cap
 ///   but `count:all`;
-/// - the server clears zoekt's skipped-shard flag for a `repo` select, so
-///   only a scope of one repository, which can't be cut short, or a search
-///   of commits, which zoekt doesn't run, is exact.
+/// - for a `repo` select the server drops the index's skipped-file and
+///   skipped-shard flags, and reports a cut only once the repositories reach
+///   the cap. Each replica still stops at the cap counted in files, and a
+///   large repository's shards can fill several of those, so fewer
+///   repositories than the cap come back unflagged (#32). Even `count:all`
+///   meets the index's match limits unflagged. Only a scope of one
+///   repository, which can't be cut short, or a search of commits, which the
+///   index doesn't run, is exact.
 fn lower_bound(written: &[Written], plan: &Plan) -> bool {
     let directories =
         chosen(written, "select").any(|value| value == "file.directory") && cap(written).is_some();
