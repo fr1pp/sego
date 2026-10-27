@@ -3,19 +3,16 @@ use std::fmt;
 use serde::Serialize;
 
 use crate::address::{End, LineRange, Repo, Target, pinned, rev_field, short};
-use crate::cli::SHOW_SYNOPSIS;
-use crate::commands::ls::{self, Named};
-use crate::commands::resolved_notes;
+use crate::commands::{AddressKind, ls};
 use crate::error::Error;
 use crate::escape::{render_line, strip_cr, utf8_escaped};
 use crate::output::{
-    FileRow, Marker, Notes, base64, code_line, date, file_row, files_field, header, mirrored,
+    FileRow, Marker, Notes, base64, closing_fields, code_line, date, file_row, files_field, header,
     row_text, rows_asked, submodule_address, submodule_text,
 };
-use crate::sourcegraph::{Client, Comparison, Content, File, Window};
+use crate::sourcegraph::{Client, Comparison, Content, File, Resolved, Revisions, Window};
 
 const DEFAULT_WINDOW: u32 = 500;
-/// The files a commit prints in text.
 const TEXT_ROWS: usize = 200;
 const UTF8_NOTE: &str = "U+FFFD may stand for bytes that aren't UTF-8";
 
@@ -63,7 +60,7 @@ pub struct Answer {
     pub rev: Option<String>,
     pub commit: String,
     pub path: String,
-    pub kind: Named,
+    pub kind: AddressKind,
     pub total_lines: u32,
     pub byte_size: u64,
     pub binary: bool,
@@ -131,23 +128,19 @@ pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Shown, Erro
         File::Blob(blob) => blob,
         File::Directory(_) if asked.shown.is_some() => {
             let name = if path.is_empty() { "./" } else { &path };
-            return Err(Error::usage(
-                format!(
-                    "{name} is a directory at {}; LINES apply to a file",
-                    pinned(&at.repo, &at.commit, None)
-                ),
-                SHOW_SYNOPSIS,
-            ));
+            return Err(Error::usage_from_response(format!(
+                "{name} is a directory at {}; LINES apply to a file",
+                pinned(&at.repo, &at.commit, None)
+            )));
         }
         File::Directory(_) => return Ok(Shown::Listing(ls::answer(at, file, false, notes))),
         File::Submodule { submodule, gitmodules } => {
-            resolved_notes(&at, notes);
             let url = submodule.url.as_deref().unwrap_or_default();
             let address = submodule_address(url, &submodule.commit, &at.repo);
+            let mut shown = Answer::new(at, path, AddressKind::Submodule, notes);
             if let Err(error) = gitmodules {
                 notes.push(format!("{}: {error}", ls::GITMODULES_NOTE));
             }
-            let mut shown = Answer::new(at, path, Named::Submodule);
             shown.fields.push(format!("submodule  {}", submodule_text(address.as_deref(), url)));
             shown.finish_fields();
             shown.submodule =
@@ -155,8 +148,7 @@ pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Shown, Erro
             return Ok(Shown::File(shown));
         }
     };
-    resolved_notes(&at, notes);
-    let mut shown = Answer::new(at, path, Named::File);
+    let mut shown = Answer::new(at, path, AddressKind::File, notes);
     shown.byte_size = blob.byte_size;
     shown.binary = blob.binary;
     shown.lfs_size = blob.lfs_size;
@@ -184,8 +176,10 @@ pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Shown, Erro
 }
 
 impl Answer {
-    fn new(at: crate::sourcegraph::Resolved, path: String, kind: Named) -> Answer {
+    /// The answer for `path` at `at`, whose lookup it takes in.
+    fn new(at: Resolved, path: String, kind: AddressKind, notes: &mut Notes) -> Answer {
         Answer {
+            mirrored_at: at.lookup.noting_other_host(|note| notes.push(note)),
             repo: at.repo,
             rev: at.rev,
             commit: at.commit,
@@ -201,15 +195,14 @@ impl Answer {
             start: None,
             end: None,
             lines: Vec::new(),
-            mirrored_at: at.mirrored_at,
             fields: Vec::new(),
         }
     }
 
     /// The fields every answer ends with: the revision and the mirror's time.
     fn finish_fields(&mut self) {
-        self.fields.extend(rev_field(self.rev.as_ref(), &self.commit));
-        self.fields.extend(self.mirrored_at.as_deref().map(mirrored));
+        let rev = rev_field(self.rev.as_ref(), &self.commit);
+        self.fields.extend(closing_fields(rev, self.mirrored_at.as_deref()));
     }
 
     /// Takes the lines of `content`, the first numbered `first`. When the
@@ -281,7 +274,7 @@ pub struct CommitAnswer {
     repo: String,
     rev: String,
     commit: String,
-    kind: &'static str,
+    kind: AddressKind,
     author: String,
     author_date: String,
     committer: Option<String>,
@@ -318,8 +311,8 @@ impl CommitAnswer {
         if self.parents.len() > 1 {
             fields.push("diff against first parent".to_owned());
         }
-        fields.extend(rev_field(Some(&self.rev), &self.commit));
-        fields.extend(self.mirrored_at.as_deref().map(mirrored));
+        let rev = rev_field(Some(&self.rev), &self.commit);
+        fields.extend(closing_fields(rev, self.mirrored_at.as_deref()));
         fields
     }
 }
@@ -364,15 +357,16 @@ pub fn run_commit(
     notes: &mut Notes,
 ) -> Result<CommitAnswer, Error> {
     let first = rows_asked(args.json, TEXT_ROWS);
-    let comparison = client.comparison(&args.repo, None, &args.rev, &[], first)?;
-    resolved_notes(&comparison.head, notes);
+    let revisions = Revisions::One(Some(&args.rev));
+    let comparison = client.comparison(&args.repo, revisions, &[], first)?;
+    Ok(commit_answer(comparison, &args.rev, notes))
+}
+
+fn commit_answer(comparison: Comparison, rev: &str, notes: &mut Notes) -> CommitAnswer {
+    let mirrored_at = comparison.lookup().noting_other_host(|note| notes.push(note));
     if comparison.changes.is_none() {
         notes.push(ROOT_NOTE);
     }
-    Ok(commit_answer(comparison, &args.rev))
-}
-
-fn commit_answer(comparison: Comparison, rev: &str) -> CommitAnswer {
     let (files, files_total, files_more, added, deleted) = match comparison.changes {
         Some(changes) => (
             changes.files.items.into_iter().map(file_row).collect(),
@@ -388,7 +382,7 @@ fn commit_answer(comparison: Comparison, rev: &str) -> CommitAnswer {
         repo: comparison.head.repo,
         rev: rev.to_owned(),
         commit: comparison.head.commit,
-        kind: "commit",
+        kind: AddressKind::Commit,
         author: commit.author,
         author_date: date(&commit.author_date),
         committer: commit.committer,
@@ -401,6 +395,6 @@ fn commit_answer(comparison: Comparison, rev: &str) -> CommitAnswer {
         files_more,
         added,
         deleted,
-        mirrored_at: comparison.head.mirrored_at,
+        mirrored_at,
     }
 }

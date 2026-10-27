@@ -1,4 +1,4 @@
-# When every file was added there is no base.
+# When every file was added, the base is the merge base all the same.
 args = ["diff", "github.com/gorilla/mux@v1.6.2...v1.7.0", ".github"]
 status.code = 0
 stdout = '''

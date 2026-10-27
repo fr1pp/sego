@@ -4,7 +4,7 @@
 use serde_json::{Map, Value, json};
 
 use super::graphql::{Envelope, GqlErrorKind, Request};
-use crate::address::{FULL_OID, Repo, Target, is_name, is_oid_like, valid_revision};
+use crate::address::{FULL_OID, Repo, is_name, is_oid_like, parse_path, valid_revision};
 use crate::error::{Error, Kind};
 
 pub const NOT_INDEXED: &str = "sourcegraph.com serves indexed repositories from \
@@ -21,18 +21,42 @@ pub struct Resolved {
     pub rev: Option<String>,
     /// The path as read, from the repository's root.
     pub path: Option<String>,
-    /// When Sourcegraph last updated its mirror, as read with the answer;
+    pub lookup: Lookup,
+}
+
+/// What looking up an address's repository adds beside the answer, which
+/// every answer that resolved an address takes in through
+/// `noting_other_host`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Lookup {
+    /// When Sourcegraph last updated its mirror, as read with the response;
     /// `None` when the revision was a commit, or the server didn't say.
-    pub mirrored_at: Option<String>,
+    mirrored_at: Option<String>,
     /// `Err` when the other host's lookup for `owner/name` failed.
-    pub other_host: Result<(), Error>,
+    other_host: Result<(), Error>,
+}
+
+impl Lookup {
+    /// Hands a failed lookup of the other host to `note`, and returns when
+    /// Sourcegraph last updated its mirror: neither is taken without the
+    /// other.
+    pub fn noting_other_host(self, note: impl FnOnce(String)) -> Option<String> {
+        if let Err(error) = self.other_host {
+            note(error.to_string());
+        }
+        self.mirrored_at
+    }
 }
 
 impl Resolved {
-    /// When the mirror was last updated, as this end or a range's other end
-    /// read it: both ends share one mirror.
-    pub fn mirrored_with(&self, other: Option<&Resolved>) -> Option<String> {
-        self.mirrored_at.clone().or_else(|| other.and_then(|other| other.mirrored_at.clone()))
+    /// The lookup as this end or a range's other end read it: both ends
+    /// share one repository and one mirror.
+    pub fn lookup_with(&self, other: Option<&Resolved>) -> Lookup {
+        let mirrored_at = self.lookup.mirrored_at.clone();
+        Lookup {
+            mirrored_at: mirrored_at.or_else(|| other?.lookup.mirrored_at.clone()),
+            other_host: self.lookup.other_host.clone(),
+        }
     }
 
     pub fn new(
@@ -42,15 +66,17 @@ impl Resolved {
         path: Option<String>,
     ) -> Resolved {
         let named = rev.as_deref().is_none_or(|rev| is_name(rev, &commit));
-        Resolved {
-            repo: found.name.clone(),
-            mirrored_at: found.updated_at.clone().filter(|_| named),
-            other_host: found.other_host.clone(),
-            commit,
-            rev,
-            path,
-        }
+        let mut lookup = found.lookup();
+        lookup.mirrored_at = lookup.mirrored_at.filter(|_| named);
+        Resolved { repo: found.name.clone(), lookup, commit, rev, path }
     }
+}
+
+/// The two ends of a range, each resolved.
+#[derive(Debug, PartialEq, Eq)]
+pub struct Ends {
+    pub base: Resolved,
+    pub head: Resolved,
 }
 
 /// The repository a response found for an address.
@@ -60,6 +86,8 @@ pub struct Repository {
     pub name: String,
     /// The response key it was read at.
     pub root: String,
+    /// Which of the address's candidates it is, in order.
+    candidate: usize,
     /// Whether it has a default branch, which only a repository with no
     /// commits lacks.
     has_commits: bool,
@@ -71,6 +99,17 @@ pub struct Repository {
 }
 
 impl Repository {
+    /// The one of `keys`, a root per candidate of the address in order,
+    /// that this candidate is read at.
+    pub fn root_among<'k>(&self, keys: [&'k str; 2]) -> &'k str {
+        keys[self.candidate]
+    }
+
+    /// What looking it up adds beside the answer.
+    pub fn lookup(&self) -> Lookup {
+        Lookup { mirrored_at: self.updated_at.clone(), other_host: self.other_host.clone() }
+    }
+
     /// The error for a repository with no commits, or whose default branch's
     /// lookup failed; `None` when it has commits.
     pub fn no_commits(&self) -> Option<Error> {
@@ -93,29 +132,23 @@ fn to_the_minute(time: &str) -> String {
     }
 }
 
-/// One revision and path that an address may name.
-pub struct Candidate {
+/// One split of a web URL's segments into a revision and a path.
+pub struct Guess {
     pub rev: String,
     pub path: Option<String>,
 }
 
-/// The revision and path `target` names: one for a revision and a path,
-/// and for the segments of a web URL each split into a revision and a path.
-/// Split prefixes that are not valid revisions are never sent.
-pub fn candidates(target: &Target) -> Vec<Candidate> {
-    match target {
-        Target::At { rev, path } => vec![Candidate {
-            rev: rev.clone().unwrap_or_else(|| "HEAD".to_owned()),
-            path: path.clone(),
-        }],
-        Target::Split(segs) => (1..=segs.len())
-            .map(|k| Candidate {
-                rev: segs[..k].join("/"),
-                path: Some(segs[k..].join("/")).filter(|p| !p.is_empty()),
-            })
-            .filter(|c| valid_revision(&c.rev))
-            .collect(),
-    }
+/// Each split of `segments` into a revision and a path, the path
+/// normalised. Splits whose prefix is not a valid revision, or whose path
+/// leaves the root, are never sent.
+pub fn split_guesses(segments: &[String]) -> Vec<Guess> {
+    (1..=segments.len())
+        .filter_map(|k| {
+            let path = parse_path(&segments[k..].join("/")).ok()?;
+            Some(Guess { rev: segments[..k].join("/"), path: Some(path).filter(|p| !p.is_empty()) })
+        })
+        .filter(|guess| valid_revision(&guess.rev))
+        .collect()
 }
 
 /// The variables naming `repo`: `$repo0`, and `$repo1`, the gitlab.com
@@ -129,6 +162,14 @@ pub fn repository_variables(repo: &Repo) -> Map<String, Value> {
     variables.insert("repo1".to_owned(), json!(names.get(1).map_or("", String::as_str)));
     variables.insert("gitlab".to_owned(), json!(names.len() > 1));
     variables
+}
+
+const ROOTS: [&str; 2] = ["r0", "r1"];
+
+/// The response keys of `repo`'s candidates, `r0` and `r1` in the
+/// documents, one per candidate in order.
+pub fn roots(repo: &Repo) -> &'static [&'static str] {
+    &ROOTS[..repo.candidates().len()]
 }
 
 /// The revisions of an address that name no commit in `repo`: one
@@ -149,19 +190,40 @@ fn missing_revisions(repo: &str, missing: &Missing<'_>) -> Error {
         Missing::Head(rev) => {
             format!("head revision {rev} not found in {repo}{}", hex_reading(rev))
         }
-        Missing::Both(base, head) => format!("revisions {base} and {head} not found in {repo}"),
+        Missing::Both(base, head) => {
+            let reading = match (is_abbreviation(base), is_abbreviation(head)) {
+                (false, false) => String::new(),
+                (true, true) => {
+                    ": no ref has either name and no single commit starts with either".to_owned()
+                }
+                (true, false) => end_hex_reading(base),
+                (false, true) => end_hex_reading(head),
+            };
+            format!("revisions {base} and {head} not found in {repo}{reading}")
+        }
     };
     Error::not_found(message)
 }
 
-/// What a missing revision of 4 to 39 hex digits rules out, which is true
-/// whether it names nothing or more than one commit.
+/// Whether `rev` could abbreviate a commit ID: 4 to 39 hex digits.
+fn is_abbreviation(rev: &str) -> bool {
+    is_oid_like(rev) && rev.len() < FULL_OID
+}
+
+/// What a missing revision that could abbreviate a commit ID rules out,
+/// which is true whether it names nothing or more than one commit.
 fn hex_reading(rev: &str) -> &'static str {
-    if is_oid_like(rev) && rev.len() < FULL_OID {
+    if is_abbreviation(rev) {
         ": no ref has that name and no single commit starts with it"
     } else {
         ""
     }
+}
+
+/// `hex_reading` for `rev`, the one of two missing ends that could
+/// abbreviate a commit ID.
+fn end_hex_reading(rev: &str) -> String {
+    format!(": no ref is named {rev} and no single commit starts with it")
 }
 
 /// The candidate of `repo` the response holds, read from the roots `roots`,
@@ -182,19 +244,15 @@ pub fn repository(repo: &Repo, envelope: &Envelope, roots: &[&str]) -> Result<Re
     };
     match found[..] {
         [] if (0..roots.len()).any(failed) => Err(Error::failed("the repository lookup")),
-        [] => {
-            let written = match repo {
-                Repo::Exact(name) | Repo::OwnerName(name) => name,
-            };
-            Err(Error::not_found(format!("{written} is not on {}", envelope.host))
-                .fact(NOT_INDEXED))
-        }
+        [] => Err(Error::not_found(format!("{} is not on {}", repo.as_written(), envelope.host))
+            .fact(NOT_INDEXED)),
         [i] => {
             let other = (0..roots.len()).find(|&j| j != i && failed(j));
             let root = roots[i];
             Ok(Repository {
                 name: name_at(i),
                 root: root.to_owned(),
+                candidate: i,
                 has_commits: envelope.get(&[root, "defaultBranch"]).is_some(),
                 branch_failed: envelope.error_beneath(&[root, "defaultBranch"]).is_some(),
                 updated_at: envelope
@@ -207,16 +265,12 @@ pub fn repository(repo: &Repo, envelope: &Envelope, roots: &[&str]) -> Result<Re
                 },
             })
         }
-        [a, b, ..] => {
-            let written = match repo {
-                Repo::Exact(name) | Repo::OwnerName(name) => name,
-            };
-            Err(Error::usage_from_response(format!(
-                "{written} exists as {} and {}",
-                name_at(a),
-                name_at(b)
-            )))
-        }
+        [a, b, ..] => Err(Error::usage_from_response(format!(
+            "{} exists as {} and {}",
+            repo.as_written(),
+            name_at(a),
+            name_at(b)
+        ))),
     }
 }
 
@@ -242,7 +296,7 @@ pub fn commit(
 /// Both ends of a range, each looked up once. Two missing names share one
 /// fetch, so one may come back after waiting for it, which reads as missing
 /// too.
-const RANGE: &str = "\
+const RANGE_ENDS: &str = "\
 query Range($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!) {
   r0: repository(name: $repo0) { ...Ends }
   r1: repository(name: $repo1) @include(if: $gitlab) { ...Ends }
@@ -258,22 +312,17 @@ fragment Ends on Repository {
 ";
 
 /// The request that resolves the range `base` and `head` in `repo`.
-pub fn range_request(repo: &Repo, (base, head): (&str, &str)) -> Request {
+pub fn range_request(repo: &Repo, base: &str, head: &str) -> Request {
     let mut variables = repository_variables(repo);
     variables.insert("a".to_owned(), json!(base));
     variables.insert("b".to_owned(), json!(head));
-    Request::new("Range", RANGE.to_owned(), variables)
+    Request::new("Range", RANGE_ENDS.to_owned(), variables)
 }
 
 /// Both ends of the range `base` and `head`, from the response to
 /// `range_request`.
-pub fn read_range(
-    envelope: &Envelope,
-    repo: &Repo,
-    (base, head): (&str, &str),
-) -> Result<(Resolved, Resolved), Error> {
-    let roots: &[&str] = if repo.candidates().len() > 1 { &["r0", "r1"] } else { &["r0"] };
-    let found = repository(repo, envelope, roots)?;
+pub fn read_range(envelope: &Envelope, repo: &Repo, base: &str, head: &str) -> Result<Ends, Error> {
+    let found = repository(repo, envelope, roots(repo))?;
     let a = commit(envelope, &found, &[&found.root, "a"], base);
     let b = commit(envelope, &found, &[&found.root, "b"], head);
     let (a, b) = match (a, b) {
@@ -288,24 +337,21 @@ pub fn read_range(
         (Ok(_), Err(_)) => return Err(missing_revisions(&found.name, &Missing::Head(head))),
     };
     let end = |oid: String, rev: &str| Resolved::new(&found, oid, Some(rev.to_owned()), None);
-    Ok((end(a, base), end(b, head)))
+    Ok(Ends { base: end(a, base), head: end(b, head) })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn split(segments: &[&str]) -> Target {
-        Target::Split(segments.iter().map(ToString::to_string).collect())
+    fn guesses(segments: &[&str]) -> Vec<(String, Option<String>)> {
+        let segments: Vec<String> = segments.iter().map(ToString::to_string).collect();
+        split_guesses(&segments).into_iter().map(|guess| (guess.rev, guess.path)).collect()
     }
 
     #[test]
-    fn a_slashed_url_revision_has_a_candidate_per_split() {
-        let got: Vec<(String, Option<String>)> =
-            candidates(&split(&["release", "2.34", "master", "NEWS"]))
-                .into_iter()
-                .map(|c| (c.rev, c.path))
-                .collect();
+    fn a_slashed_url_revision_has_a_guess_per_split() {
+        let got = guesses(&["release", "2.34", "master", "NEWS"]);
         let want = [
             ("release", Some("2.34/master/NEWS")),
             ("release/2.34", Some("master/NEWS")),
@@ -314,7 +360,14 @@ mod tests {
         ]
         .map(|(r, p)| (r.to_owned(), p.map(str::to_owned)));
         assert_eq!(got, want);
-        assert!(candidates(&split(&["-x", "a"])).is_empty());
+        assert_eq!(guesses(&["-x", "a"]), Vec::new());
+    }
+
+    #[test]
+    fn a_split_guess_path_is_normalised_and_never_leaves_the_root() {
+        let want = |rev: &str, path: Option<&str>| (rev.to_owned(), path.map(str::to_owned));
+        assert_eq!(guesses(&["main", "a", ".", "b", "..", "c"])[0], want("main", Some("a/c")));
+        assert!(guesses(&["main", "..", "a"]).iter().all(|(rev, _)| rev != "main"));
     }
 
     #[test]

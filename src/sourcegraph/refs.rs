@@ -3,7 +3,7 @@ use serde_json::{Value, json};
 
 use super::Page;
 use super::graphql::{Envelope, Request};
-use super::resolve::{self, repository_variables};
+use super::resolve::{self, Lookup, repository_variables};
 use crate::address::Repo;
 use crate::error::Error;
 
@@ -37,8 +37,7 @@ fragment Listing on GitRefConnection {
 pub struct Refs {
     /// The repository's name as the server spells it.
     pub repo: String,
-    /// When Sourcegraph last updated its mirror, as read with the refs.
-    pub mirrored_at: Option<String>,
+    pub lookup: Lookup,
     pub default_branch: Option<String>,
     pub branches: RefList,
     pub tags: RefList,
@@ -118,7 +117,7 @@ struct Target {
 }
 
 pub fn read(envelope: &Envelope, repo: &Repo, text: Option<&str>) -> Result<Refs, Error> {
-    let roots: &[&str] = if repo.candidates().len() > 1 { &["r0", "r1"] } else { &["r0"] };
+    let roots = resolve::roots(repo);
     for kind in [Kind::Branch, Kind::Tag] {
         let listed = |root: &&str| {
             envelope.error_beneath(&[root, kind.key()]).is_some()
@@ -160,7 +159,7 @@ pub fn read(envelope: &Envelope, repo: &Repo, text: Option<&str>) -> Result<Refs
         Ok(RefList { page: Page { items, total: Some(listing.total_count), more }, unfiltered })
     };
     Ok(Refs {
-        mirrored_at: found.updated_at.clone(),
+        lookup: found.lookup(),
         branches: list(Kind::Branch)?,
         tags: list(Kind::Tag)?,
         repo: found.name,

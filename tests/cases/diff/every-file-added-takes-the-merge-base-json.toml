@@ -1,4 +1,4 @@
-# In JSON the base is null when every file was added.
+# In JSON the base is the merge base when every file was added.
 args = ["diff", "--json", "github.com/gorilla/mux@v1.6.2...v1.7.0", ".github"]
 status.code = 0
 stdout = '''

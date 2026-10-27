@@ -138,6 +138,15 @@ struct ListedFile {
 }
 
 impl Listing {
+    /// Whether the listing holds every unindexed file: no alert, nothing
+    /// cut, and back before `deadline_ms`.
+    pub fn complete(&self, deadline_ms: u64) -> bool {
+        self.alert.is_none()
+            && !self.limit_hit
+            && self.timedout.is_empty()
+            && self.elapsed_milliseconds < deadline_ms
+    }
+
     /// The file matches, in order; anything else is skipped.
     pub fn files(self) -> Vec<UnindexedFile> {
         self.results

@@ -15,6 +15,13 @@ The facts sego adds are:
 - the exact bytes of a window whose text Sourcegraph already gave.
 
 In code each is a `Result<T, Error>` field of the answer the `sourcegraph` module returns, and the
-error's message is the note's reason. The cache is the one exception: it is the reason it was
-unavailable, an `Option<String>`, since no `Error` kind describes a local directory. A note says what is unknown and why, such as "tags not
-marked: Sourcegraph failed to answer the tag list", never only that something went wrong.
+error's message is the note's reason. There are two exceptions:
+- The cache is the reason it was unavailable, an `Option<String>`, since no `Error` kind describes a
+  local directory.
+- The unindexed listing is an `Option`, `None` when it wasn't sent or can't be read. `search`
+  treats a listing that is incomplete or empty as unknown too. A side query that fails under load
+  usually comes back empty rather than with an error (ADR 0007), so the note is fixed and gives no
+  reason.
+
+A note says what is unknown and why, such as "tags not marked: Sourcegraph failed to answer the tag
+list", never only that something went wrong.

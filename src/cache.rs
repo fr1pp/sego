@@ -9,7 +9,6 @@ use etcetera::app_strategy::{AppStrategy, AppStrategyArgs, choose_app_strategy};
 use ring::digest::{SHA256, digest};
 
 use crate::error::Error;
-use crate::sourcegraph::Endpoint;
 
 mod store;
 mod trim;
@@ -32,10 +31,10 @@ pub struct Entry<'a> {
 }
 
 impl Cache {
-    /// The cache for files read from `endpoint`; `var` is the value of
-    /// `SEGO_CACHE_DIR`.
-    pub fn new(var: Option<&OsStr>, endpoint: &Endpoint) -> Cache {
-        Cache { root: root(var), endpoint: endpoint_key(&endpoint.url("")), used: Cell::new(false) }
+    /// The cache for files read from the endpoint at `endpoint_url`; `var` is
+    /// the value of `SEGO_CACHE_DIR`.
+    pub fn new(var: Option<&OsStr>, endpoint_url: &str) -> Cache {
+        Cache { root: root(var), endpoint: endpoint_key(endpoint_url), used: Cell::new(false) }
     }
 
     /// The file of `size` bytes at `entry`: what the cache holds, when it is
@@ -90,9 +89,10 @@ impl Cache {
     }
 }
 
-/// `url` with a lowercase scheme and host and no `user[:pw]@`, so that
-/// spellings of one endpoint share a cache.
+/// `url` with a lowercase scheme and host, no `user[:pw]@` and no trailing
+/// `/`, so that spellings of one endpoint share a cache.
 fn endpoint_key(url: &str) -> String {
+    let url = url.trim_end_matches('/');
     let (scheme, rest) = url.split_once("://").unwrap_or(("", url));
     let (authority, path) = rest.find('/').map_or((rest, ""), |at| rest.split_at(at));
     let host_port = authority.rsplit('@').next().unwrap_or_default();
@@ -218,11 +218,10 @@ mod tests {
 
     #[test]
     fn spellings_of_one_endpoint_share_a_key() {
-        let key = |s: &str| endpoint_key(&s.parse::<Endpoint>().unwrap().url(""));
-        assert_eq!(key("HTTPS://Sourcegraph.COM/"), "https://sourcegraph.com");
-        assert_eq!(key("https://user:pw@host:3080/sg/"), "https://host:3080/sg");
-        assert_ne!(key("http://x"), key("https://x"));
-        assert_ne!(key("https://x/a"), key("https://x"));
+        assert_eq!(endpoint_key("HTTPS://Sourcegraph.COM/"), "https://sourcegraph.com");
+        assert_eq!(endpoint_key("https://user:pw@host:3080/sg/"), "https://host:3080/sg");
+        assert_ne!(endpoint_key("http://x"), endpoint_key("https://x"));
+        assert_ne!(endpoint_key("https://x/a"), endpoint_key("https://x"));
     }
 
     #[test]
@@ -261,10 +260,12 @@ mod tests {
 
     const FILE: &[u8] = b"1\n2\n3\n";
 
+    const SOURCEGRAPH: &str = "https://sourcegraph.com";
+
     const BIG: Entry<'static> = Entry { repo: "example.com/x/y", commit: "c", path: "big.c" };
 
     fn cache_at(dir: &Path) -> Cache {
-        Cache::new(Some(dir.as_os_str()), &Endpoint::default())
+        Cache::new(Some(dir.as_os_str()), SOURCEGRAPH)
     }
 
     /// Reads `BIG` of `size` bytes through `cache` from a download of `FILE`,
@@ -363,7 +364,7 @@ mod tests {
 
     #[test]
     fn a_cache_that_is_off_reads_through_every_time() {
-        let cache = Cache::new(Some(OsStr::new("off")), &Endpoint::default());
+        let cache = Cache::new(Some(OsStr::new("off")), SOURCEGRAPH);
         let downloads = Cell::new(0);
         for _ in 0..2 {
             assert_eq!(read(&cache, FILE.len() as u64, &downloads), (FILE.to_vec(), None));

@@ -3,12 +3,12 @@ use std::fmt::{self, Write as _};
 use serde::Serialize;
 
 use crate::address::{Repo, pinned, range_rev_field, rev_field, short};
-use crate::commands::resolved_notes;
+use crate::commands::Revs;
 use crate::error::Error;
 use crate::escape::shell_word;
 use crate::escape::{one_line, render_line};
-use crate::output::{Notes, count, date, header, header_line, mirrored};
-use crate::sourcegraph::{Client, CommitSummary, History, Revisions, Tag};
+use crate::output::{Notes, closing_fields, count, date, header, header_line};
+use crate::sourcegraph::{Client, CommitSummary, History, Tag};
 
 const ROWS: usize = 150;
 #[expect(clippy::cast_possible_truncation, reason = "the row limit is a few hundred")]
@@ -86,8 +86,8 @@ impl fmt::Display for Answer {
         let header = if let Some((a, b)) = self.range() {
             let commit_a = self.at.commit_a.as_deref().unwrap_or_default();
             let commit_b = self.at.commit_b.as_deref().unwrap_or_default();
-            fields.extend(range_rev_field((a, commit_a), "..", (b, commit_b)));
-            fields.extend(self.mirrored_at.as_deref().map(mirrored));
+            let rev = range_rev_field((a, commit_a), "..", (b, commit_b));
+            fields.extend(closing_fields(rev, self.mirrored_at.as_deref()));
             let mut address = format!(
                 "{}@{}..{}",
                 self.repo,
@@ -100,12 +100,9 @@ impl fmt::Display for Answer {
             }
             header_line(&shell_word(&address), &fields)
         } else {
-            fields.extend(rev_field(
-                self.at.rev.as_ref(),
-                self.at.commit.as_deref().unwrap_or_default(),
-            ));
-            fields.extend(self.mirrored_at.as_deref().map(mirrored));
             let commit = self.at.commit.as_deref().unwrap_or_default();
+            let rev = rev_field(self.at.rev.as_ref(), commit);
+            fields.extend(closing_fields(rev, self.mirrored_at.as_deref()));
             header(&pinned(&self.repo, commit, self.path.as_deref()), &fields)
         };
         f.write_str(&header)?;
@@ -132,14 +129,6 @@ fn row(entry: &Entry) -> String {
     line
 }
 
-/// The commits `log` lists: a revision's history, from the default branch
-/// for `None`, or the commits in a range's head and not in its base.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Revs {
-    One(Option<String>),
-    Range { base: String, head: String },
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Args {
     pub repo: Repo,
@@ -152,20 +141,16 @@ pub struct Args {
 
 pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Error> {
     let path = args.path.as_deref();
-    let (revisions, first) = match &args.revs {
-        Revs::One(rev) => (Revisions::One(rev.as_deref()), Some(FIRST)),
-        Revs::Range { base, head } => {
-            (Revisions::Range { base, head }, (!args.json).then_some(FIRST))
-        }
-    };
-    let history = client.history(&args.repo, revisions, path, args.follow, first)?;
-    resolved_notes(&history.head, notes);
+    let range = matches!(args.revs, Revs::Range { .. });
+    let first = (!range || !args.json).then_some(FIRST);
+    let history = client.history(&args.repo, args.revs.revisions(), path, args.follow, first)?;
     Ok(answer(history, args, notes))
 }
 
 /// The answer for `history`, its entries marked with the tags that name
 /// them.
 fn answer(history: History, args: &Args, notes: &mut Notes) -> Answer {
+    let mirrored_at = history.lookup().noting_other_host(|note| notes.push(note));
     let tags = match history.tags {
         Ok(tags) => Some(tags),
         Err(error) => {
@@ -184,7 +169,6 @@ fn answer(history: History, args: &Args, notes: &mut Notes) -> Answer {
         parents: commit.parents,
     };
     let commits = history.commits.items.into_iter().map(entry).collect();
-    let mirrored_at = history.head.mirrored_with(history.base.as_ref());
     let at = match (&args.revs, history.base) {
         (Revs::Range { base, head }, Some(base_end)) => At {
             rev_a: Some(base.clone()),

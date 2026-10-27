@@ -1033,7 +1033,7 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
     }
 
     #[test]
-    fn an_empty_query_plans_no_searches() {
+    fn an_empty_query_plans_no_basic_queries() {
         for query in ["", "  \t"] {
             let Plan::Read(basic_queries) = plan(query) else { panic!("{query:?}") };
             assert_eq!(basic_queries.count(), 0);
@@ -1048,7 +1048,7 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
     }
 
     #[test]
-    fn a_plan_lists_its_searches_only_when_they_fit_the_size_asked() {
+    fn a_plan_lists_its_basic_queries_only_when_they_fit_the_size_asked() {
         let Plan::Read(basic_queries) = plan(&pairs(6)) else { panic!() };
         assert_eq!(basic_queries.count(), 64);
         assert_eq!(basic_queries.list(64).map(|list| list.len()), Some(64));
@@ -1058,7 +1058,7 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
     }
 
     #[test]
-    fn reach_covers_every_search_however_many() {
+    fn reach_covers_every_basic_query_however_many() {
         let Plan::Read(basic_queries) = plan(&pairs(70)) else { panic!() };
         assert_eq!(basic_queries.count(), u64::MAX);
         assert!(basic_queries.list(4096).is_none());
@@ -1162,7 +1162,7 @@ query ParseTree($query: String!, $patternType: SearchPatternType!) {
     /// One basic query can hold a filter for every few bytes; listing it, as
     /// `Query::new` does for `index:no`, gives each of them once.
     #[test]
-    fn one_search_lists_every_filter_of_a_mebibyte_query() {
+    fn one_basic_query_lists_every_filter_of_a_mebibyte_query() {
         let query = "f:a ".repeat((1 << 20) / 4);
         let filters = plan(&query).each().map(|each| each[0].len());
         assert_eq!(filters, Some(1 << 18));

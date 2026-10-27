@@ -5,7 +5,7 @@ use serde::Serialize;
 use crate::address::{Repo, short};
 use crate::error::Error;
 use crate::escape::one_line;
-use crate::output::{count, header_line, mirrored, rows_asked};
+use crate::output::{Notes, closing_fields, count, header_line, rows_asked};
 use crate::sourcegraph::{Client, RefList, Refs};
 
 const TEXT_ROWS: usize = 100;
@@ -97,7 +97,7 @@ impl Answer {
                 _ => fields.push(count(total, kind.word(), kind.plural())),
             }
         }
-        fields.extend(self.mirrored_at.as_deref().map(mirrored));
+        fields.extend(closing_fields(None, self.mirrored_at.as_deref()));
         fields
     }
 
@@ -125,13 +125,13 @@ pub struct Args {
     pub json: bool,
 }
 
-pub fn run(args: &Args, client: Client) -> Result<Answer, Error> {
+pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Error> {
     let first = rows_asked(args.json, TEXT_ROWS);
     let refs = client.refs(&args.repo, args.text.as_deref(), first)?;
-    Ok(answer(refs, args.text.clone()))
+    Ok(answer(refs, args.text.clone(), notes))
 }
 
-fn answer(refs: Refs, query: Option<String>) -> Answer {
+fn answer(refs: Refs, query: Option<String>, notes: &mut Notes) -> Answer {
     let default = refs.default_branch.as_deref();
     let rows = |kind: Kind, list: &RefList| -> Vec<Row> {
         list.page
@@ -157,7 +157,7 @@ fn answer(refs: Refs, query: Option<String>) -> Answer {
         branches_more: refs.branches.page.more,
         tags_more: refs.tags.page.more,
         rows: all,
-        mirrored_at: refs.mirrored_at,
+        mirrored_at: refs.lookup.noting_other_host(|note| notes.push(note)),
         repo: refs.repo,
     }
 }

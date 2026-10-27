@@ -6,7 +6,7 @@ use serde_json::{Value, json};
 use super::Page;
 use super::graphql::{Envelope, GqlErrorKind, Request, Segment, View, repeated};
 use super::resolve::repository_variables;
-use super::resolve::{self, Resolved};
+use super::resolve::{self, Ends, Lookup, Resolved};
 use crate::address::{Repo, is_plain_path, pinned, short};
 use crate::error::Error;
 
@@ -99,8 +99,15 @@ pub struct Comparison {
     pub from: Option<String>,
     /// `None` for a root commit, which Sourcegraph has no diff for.
     pub changes: Option<Changes>,
-    /// The patch of the paths given, when there were any.
+    /// `None` when no paths were given: only named paths get a patch.
     pub patch: Option<String>,
+}
+
+impl Comparison {
+    /// The lookup of the repository, as either end read it.
+    pub fn lookup(&self) -> Lookup {
+        self.head.lookup_with(self.base.as_ref())
+    }
 }
 
 /// The files a comparison changed, and their totals.
@@ -152,18 +159,10 @@ pub fn commit_request(repo: &Repo, rev: &str, paths: &[String], first: Option<u3
     Request::new("Commit", document, variables)
 }
 
-/// The comparison of the commits `base` and `head` in `repo`, by their full
-/// IDs, over `paths`, listing at most `first` files or all for `None`.
-pub fn comparison_request(
-    repo: &str,
-    (base, head): (&str, &str),
-    paths: &[String],
-    first: Option<u32>,
-) -> Request {
-    let mut variables = serde_json::Map::new();
-    variables.insert("repo".to_owned(), json!(repo));
-    variables.insert("a".to_owned(), json!(base));
-    variables.insert("b".to_owned(), json!(head));
+/// The comparison of a range's resolved ends, by their full IDs, over
+/// `paths`, listing at most `first` files or all for `None`.
+pub fn comparison_request(ends: &Ends, paths: &[String], first: Option<u32>) -> Request {
+    let mut variables = ends_variables(ends);
     variables.insert("first".to_owned(), json!(first));
     let (probes, declared) = probed(paths, &mut variables);
     let document = COMPARISON.replace("{declared}", &declared).replace(
@@ -333,7 +332,7 @@ fn probe_failed(envelope: &Envelope) -> bool {
 }
 
 /// The error for a path in neither commit of a comparison.
-fn path_not_found(path: &str, repo: &str, (a, b): (&str, &str)) -> Error {
+fn path_not_found(path: &str, repo: &str, a: &str, b: &str) -> Error {
     Error::not_found(format!("{path} not found in {} or @{}", pinned(repo, a, None), short(b)))
 }
 
@@ -345,8 +344,7 @@ pub fn read_commit(
     rev: &str,
     paths: &[String],
 ) -> Result<Comparison, Error> {
-    let roots: &[&str] = if repo.candidates().len() > 1 { &["r0", "r1"] } else { &["r0"] };
-    let found = resolve::repository(repo, envelope, roots)?;
+    let found = resolve::repository(repo, envelope, resolve::roots(repo))?;
     let root = found.root.clone();
     let oid = resolve::commit(envelope, &found, &[&root, "commit"], rev)?;
     let at = [root.clone(), "commit".to_owned()];
@@ -383,7 +381,7 @@ pub fn read_commit(
         return Err(Error::failed("the path lookup"));
     }
     if let Some(path) = missing_path(paths, (at_parent, at_head)) {
-        return Err(path_not_found(path, &head.repo, (&parent, &head.commit)));
+        return Err(path_not_found(path, &head.repo, &parent, &head.commit));
     }
     let failed = || Error::failed("the file list");
     if view.errored_beneath(&["w"]) {
@@ -404,11 +402,11 @@ pub fn read_commit(
     })
 }
 
-/// The comparison of `base` with `head`, both resolved, from the response
-/// to `comparison_request`.
+/// The comparison of a range's ends, from the response to
+/// `comparison_request`.
 pub fn read_comparison(
     envelope: &Envelope,
-    (base, head): (Resolved, Resolved),
+    Ends { base, head }: Ends,
     paths: &[String],
 ) -> Result<Comparison, Error> {
     let (at_a, at_b) = (envelope.get(&["a", "commit"]), envelope.get(&["b", "commit"]));
@@ -419,7 +417,7 @@ pub fn read_comparison(
         return Err(Error::failed("the path lookup"));
     }
     if let Some(path) = missing_path(paths, (at_a, at_b)) {
-        return Err(path_not_found(path, &head.repo, (&base.commit, &head.commit)));
+        return Err(path_not_found(path, &head.repo, &base.commit, &head.commit));
     }
     let failed = || Error::failed("the comparison");
     if envelope.error_beneath(&["c"]).is_some() {
@@ -440,6 +438,9 @@ pub fn read_comparison(
     }
     Ok(Comparison { head, base: Some(base), commit: None, from, changes: Some(changes), patch })
 }
+
+/// The roots of `HISTORY`'s tag lists, one per candidate of the address.
+const TAG_ROOTS: [&str; 2] = ["t0", "t1"];
 
 /// A revision's history, its first `$first` commits, in a wrapper whose
 /// error nulls only the wrapper, and every tag under its own root.
@@ -475,7 +476,7 @@ fragment Tags on Repository {
 /// The commits in a range's head and not in its base, by their full IDs,
 /// with how far each is ahead of the other when `$count`, whether the path
 /// exists at each end when `$probe`, and every tag.
-const RANGE: &str = "\
+const LOG_RANGE: &str = "\
 query LogRange($repo: String!, $a: String!, $b: String!, $path: String, $first: Int, \
 $count: Boolean!, $probe: Boolean!) {
   c: repository(name: $repo) {
@@ -510,6 +511,13 @@ pub struct History {
     pub behind: Option<u64>,
 }
 
+impl History {
+    /// The lookup of the repository, as either end read it.
+    pub fn lookup(&self) -> Lookup {
+        self.head.lookup_with(self.base.as_ref())
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct CommitSummary {
     pub oid: String,
@@ -523,7 +531,6 @@ pub struct CommitSummary {
 #[derive(Debug, PartialEq, Eq)]
 pub struct Tag {
     pub name: String,
-    /// The commit the tag names.
     pub commit: String,
 }
 
@@ -544,23 +551,24 @@ pub fn history_request(
     Request::new("Log", HISTORY.to_owned(), variables)
 }
 
-/// The commits in `head` and not in `base`, both commits of `repo` by their
+/// The commits in a range's head and not its base, both resolved, by their
 /// full IDs, touching `path`: the first `first`, or all for `None`.
-pub fn range_history_request(
-    repo: &str,
-    (base, head): (&str, &str),
-    path: Option<&str>,
-    first: Option<u32>,
-) -> Request {
-    let mut variables = serde_json::Map::new();
-    variables.insert("repo".to_owned(), json!(repo));
-    variables.insert("a".to_owned(), json!(base));
-    variables.insert("b".to_owned(), json!(head));
+pub fn range_history_request(ends: &Ends, path: Option<&str>, first: Option<u32>) -> Request {
+    let mut variables = ends_variables(ends);
     variables.insert("path".to_owned(), json!(path));
     variables.insert("first".to_owned(), json!(first));
     variables.insert("count".to_owned(), json!(path.is_none()));
     variables.insert("probe".to_owned(), json!(path.is_some_and(is_plain_path)));
-    Request::new("LogRange", RANGE.to_owned(), variables)
+    Request::new("LogRange", LOG_RANGE.to_owned(), variables)
+}
+
+/// `$repo`, `$a` and `$b`: a range's repository and its ends' full IDs.
+fn ends_variables(ends: &Ends) -> serde_json::Map<String, Value> {
+    let mut variables = serde_json::Map::new();
+    variables.insert("repo".to_owned(), json!(ends.head.repo));
+    variables.insert("a".to_owned(), json!(ends.base.commit));
+    variables.insert("b".to_owned(), json!(ends.head.commit));
+    variables
 }
 
 #[derive(Deserialize)]
@@ -612,7 +620,8 @@ fn page(envelope: &Envelope, at: &[&str], total: Option<u64>) -> Option<Page<Com
     Some(Page { items, total, more: page.page_info.has_next_page })
 }
 
-/// Every tag the root `root` lists.
+/// Every tag listed at `root`, or the failure that leaves log's tags
+/// unmarked.
 fn tags(envelope: &Envelope, root: &str) -> Result<Vec<Tag>, Error> {
     let failed = || Error::failed("the tag list");
     if envelope.error_beneath(&[root]).is_some() {
@@ -636,8 +645,7 @@ pub fn read_history(
     rev: Option<&str>,
     path: Option<&str>,
 ) -> Result<History, Error> {
-    let roots: &[&str] = if repo.candidates().len() > 1 { &["r0", "r1"] } else { &["r0"] };
-    let found = resolve::repository(repo, envelope, roots)?;
+    let found = resolve::repository(repo, envelope, resolve::roots(repo))?;
     let root = found.root.clone();
     let oid = resolve::commit(envelope, &found, &[&root, "commit"], rev.unwrap_or("HEAD"))?;
     let list_failed = || Error::failed("the commit list");
@@ -653,15 +661,14 @@ pub fn read_history(
         let at = pinned(&head.repo, &head.commit, None);
         return Err(Error::not_found(format!("{path} not found in {at}")));
     }
-    let tags = tags(envelope, &root.replacen('r', "t", 1));
+    let tags = tags(envelope, found.root_among(TAG_ROOTS));
     Ok(History { head, base: None, commits, tags, behind: None })
 }
 
-/// The commits in a range, both ends resolved, from the response to
-/// `range_history_request`.
+/// The commits in a range, from the response to `range_history_request`.
 pub fn read_range_history(
     envelope: &Envelope,
-    (base, head): (Resolved, Resolved),
+    Ends { base, head }: Ends,
     path: Option<&str>,
 ) -> Result<History, Error> {
     let comparison_failed = || Error::failed("the comparison");
@@ -675,7 +682,7 @@ pub fn read_range_history(
         && envelope.get(&["b", "commit", "x"]).is_none()
         && commits.as_ref().is_some_and(|commits| commits.items.is_empty())
     {
-        return Err(path_not_found(path, &head.repo, (&base.commit, &head.commit)));
+        return Err(path_not_found(path, &head.repo, &base.commit, &head.commit));
     }
     let mut commits = commits.ok_or_else(comparison_failed)?;
     let mut behind = None;

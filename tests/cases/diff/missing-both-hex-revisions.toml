@@ -1,0 +1,40 @@
+# Both ends missing, each of 4 to 39 hex digits, says what neither can be.
+args = ["diff", "github.com/gorilla/mux@dead...beef"]
+status.code = 1
+stderr = '''
+sego: error: revisions dead and beef not found in github.com/gorilla/mux: no ref has either name and no single commit starts with either
+'''
+
+[[exchange]]
+operation = "Range"
+variables = '{"a":"dead","b":"beef","gitlab":false,"repo0":"github.com/gorilla/mux","repo1":""}'
+document = "Range-782f210b"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "r0": {
+      "a": null,
+      "b": null,
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-27T12:46:03Z"
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  },
+  "errors": [
+    {
+      "message": "revision not found after waiting for a fetch already in progress: repo 1700",
+      "path": [
+        "r0",
+        "b"
+      ]
+    }
+  ]
+}
+'''

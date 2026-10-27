@@ -3,24 +3,15 @@ use std::fmt;
 use serde::Serialize;
 
 use crate::address::{Repo, Target, pinned, rev_field};
-use crate::commands::resolved_notes;
+use crate::commands::AddressKind;
 use crate::error::Error;
 use crate::escape::one_line;
 use crate::escape::shell_word;
-use crate::output::{Notes, count, header, mirrored, submodule_address, submodule_text};
+use crate::output::{Notes, closing_fields, count, header, submodule_address, submodule_text};
 use crate::sourcegraph::{Client, File, Resolved, Submodule};
 
 const TEXT_ROWS: usize = 200;
 pub const GITMODULES_NOTE: &str = "submodule URLs unknown";
-
-/// What a path names, as `show` and `ls` say in JSON.
-#[derive(Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Named {
-    File,
-    Directory,
-    Submodule,
-}
 
 #[derive(Clone, Copy, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -97,7 +88,7 @@ pub struct Answer {
     rev: Option<String>,
     commit: String,
     path: Option<String>,
-    kind: Named,
+    kind: AddressKind,
     recursive: bool,
     entries: Vec<Entry>,
     entries_total: Option<u64>,
@@ -123,8 +114,8 @@ impl Answer {
                 fields.push(count(n, one, many));
             }
         }
-        fields.extend(rev_field(self.rev.as_ref(), &self.commit));
-        fields.extend(self.mirrored_at.as_deref().map(mirrored));
+        let rev = rev_field(self.rev.as_ref(), &self.commit);
+        fields.extend(closing_fields(rev, self.mirrored_at.as_deref()));
         fields
     }
 }
@@ -156,7 +147,7 @@ pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Err
 /// The listing of what `file` is at `at`: a directory's entries, or one row
 /// for a file or a submodule.
 pub fn answer(at: Resolved, file: File, recursive: bool, notes: &mut Notes) -> Answer {
-    resolved_notes(&at, notes);
+    let mirrored_at = at.lookup.noting_other_host(|note| notes.push(note));
     let path = at.path.clone().filter(|path| !path.is_empty());
     let row_path = path.as_deref().unwrap_or_default();
     let (kind, entries, gitmodules) = match file {
@@ -168,14 +159,16 @@ pub fn answer(at: Resolved, file: File, recursive: bool, notes: &mut Notes) -> A
                 .map(|entry| Entry::new(&entry.path, entry.is_directory, entry.submodule, &at.repo))
                 .collect();
             entries.sort_by(|a, b| a.path.split('/').cmp(b.path.split('/')));
-            (Named::Directory, entries, directory.gitmodules)
+            (AddressKind::Directory, entries, directory.gitmodules)
         }
         File::Submodule { submodule, gitmodules } => (
-            Named::Submodule,
+            AddressKind::Submodule,
             vec![Entry::new(row_path, false, Some(submodule), &at.repo)],
             gitmodules,
         ),
-        File::Blob(_) => (Named::File, vec![Entry::new(row_path, false, None, &at.repo)], Ok(())),
+        File::Blob(_) => {
+            (AddressKind::File, vec![Entry::new(row_path, false, None, &at.repo)], Ok(()))
+        }
     };
     if let Err(error) = gitmodules
         && entries.iter().any(|entry| matches!(entry.kind, Kind::Submodule))
@@ -192,6 +185,6 @@ pub fn answer(at: Resolved, file: File, recursive: bool, notes: &mut Notes) -> A
         kind,
         recursive,
         entries,
-        mirrored_at: at.mirrored_at,
+        mirrored_at,
     }
 }

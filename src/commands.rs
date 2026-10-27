@@ -13,15 +13,52 @@ use std::io::Write;
 
 use serde::Serialize;
 
-use crate::Failure;
-use crate::cli::Command;
-use crate::error::Error;
+use crate::error::{Error, Failure};
 use crate::output::{Notes, print};
-use crate::sourcegraph::{Client, Resolved};
+use crate::sourcegraph::{Client, Revisions};
+
+/// A command that asks Sourcegraph, with its arguments narrowed to what it
+/// acts on.
+#[derive(Debug, PartialEq, Eq)]
+pub enum Command {
+    Search(search::Args),
+    Show(show::Args),
+    ShowCommit(show::CommitArgs),
+    Ls(ls::Args),
+    Refs(refs::Args),
+    Log(log::Args),
+    Diff(diff::Args),
+}
+
+/// What `log` and `diff` cover: a revision, or the default branch for
+/// `None`; or a range, its head against its base.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Revs {
+    One(Option<String>),
+    Range { base: String, head: String },
+}
+
+impl Revs {
+    /// The revisions as the client takes them.
+    fn revisions(&self) -> Revisions<'_> {
+        match self {
+            Revs::One(rev) => Revisions::One(rev.as_deref()),
+            Revs::Range { base, head } => Revisions::Range { base, head },
+        }
+    }
+}
+
+/// What an address names, as `show` and `ls` say in JSON.
+#[derive(Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum AddressKind {
+    File,
+    Directory,
+    Submodule,
+    Commit,
+}
 
 /// Runs `command`, then writes its notes to `err` and its answer to `out`.
-/// A usage error found from the server's response takes the command's
-/// synopsis here.
 pub fn run(
     command: Command,
     client: Client,
@@ -29,40 +66,18 @@ pub fn run(
     out: &mut dyn Write,
     err: &mut dyn Write,
 ) -> Result<(), Failure> {
-    let (json, synopsis) = command.json_and_synopsis();
-    let with_synopsis = |error: Error| error.with_synopsis(synopsis);
     match command {
         Command::Search(args) => {
-            let answer = search::run(&args, client, notes).map_err(with_synopsis);
-            write(answer, json, notes, out, err)
+            write(search::run(&args, client, notes), args.json, notes, out, err)
         }
-        Command::Show(args) => {
-            write(show::run(&args, client, notes).map_err(with_synopsis), json, notes, out, err)
-        }
+        Command::Show(args) => write(show::run(&args, client, notes), args.json, notes, out, err),
         Command::ShowCommit(args) => {
-            let answer = show::run_commit(&args, client, notes).map_err(with_synopsis);
-            write(answer, json, notes, out, err)
+            write(show::run_commit(&args, client, notes), args.json, notes, out, err)
         }
-        Command::Ls(args) => {
-            write(ls::run(&args, client, notes).map_err(with_synopsis), json, notes, out, err)
-        }
-        Command::Refs(args) => {
-            write(refs::run(&args, client).map_err(with_synopsis), json, notes, out, err)
-        }
-        Command::Log(args) => {
-            write(log::run(&args, client, notes).map_err(with_synopsis), json, notes, out, err)
-        }
-        Command::Diff(args) => {
-            write(diff::run(&args, client, notes).map_err(with_synopsis), json, notes, out, err)
-        }
-    }
-}
-
-/// The notes every resolved address may carry: a failed lookup of the other
-/// host of `owner/name`.
-pub fn resolved_notes(at: &Resolved, notes: &mut Notes) {
-    if let Err(error) = &at.other_host {
-        notes.push(error.to_string());
+        Command::Ls(args) => write(ls::run(&args, client, notes), args.json, notes, out, err),
+        Command::Refs(args) => write(refs::run(&args, client, notes), args.json, notes, out, err),
+        Command::Log(args) => write(log::run(&args, client, notes), args.json, notes, out, err),
+        Command::Diff(args) => write(diff::run(&args, client, notes), args.json, notes, out, err),
     }
 }
 

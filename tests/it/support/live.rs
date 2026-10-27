@@ -3,6 +3,7 @@ use std::collections::hash_map::DefaultHasher;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fs;
 use std::hash::{Hash, Hasher};
+use std::path::PathBuf;
 use std::rc::Rc;
 use std::time::{Duration, Instant};
 
@@ -34,18 +35,29 @@ pub fn every_case() -> Vec<String> {
         servers.borrow_mut().insert(endpoint.to_owned(), server.clone());
         Ok(server)
     };
+    let (cases, mut failures) = every_loaded_case();
+    for (_, case) in &cases {
+        failures.extend(check(case, &connect));
+    }
+    failures
+}
+
+/// Every case, each with its path, and the reasons any case couldn't be
+/// loaded.
+fn every_loaded_case() -> (Vec<(PathBuf, Case)>, Vec<String>) {
     let paths = match case_paths() {
         Ok(paths) => paths,
-        Err(e) => return vec![e],
+        Err(e) => return (Vec::new(), vec![e]),
     };
+    let mut cases = Vec::new();
     let mut failures = Vec::new();
     for path in paths {
         match Case::load(&path, &documents_dir()) {
-            Ok(case) => failures.extend(check(&case, &connect)),
+            Ok(case) => cases.push((path, case)),
             Err(e) => failures.push(e),
         }
     }
-    failures
+    (cases, failures)
 }
 
 /// Runs sego against sourcegraph.com for each case of `commands`, or of every
@@ -55,23 +67,12 @@ pub fn every_case() -> Vec<String> {
 /// shows it too. Search cases keep the response check.
 pub fn every_answer(commands: &[String]) -> Vec<String> {
     let server = Live(Rc::new(Paced::new(sego::connect(Endpoint::default()))));
-    let paths = match case_paths() {
-        Ok(paths) => paths,
-        Err(e) => return vec![e],
-    };
-    let mut failures = Vec::new();
-    for path in paths {
+    let (cases, mut failures) = every_loaded_case();
+    for (path, case) in cases {
         if server.0.blocked() {
             failures.push("stopped after sourcegraph.com refused a request".to_owned());
             break;
         }
-        let case = match Case::load(&path, &documents_dir()) {
-            Ok(case) => case,
-            Err(e) => {
-                failures.push(e);
-                continue;
-            }
-        };
         let command = case.args.first().map_or("", String::as_str);
         let chosen = if commands.is_empty() {
             command != "search"

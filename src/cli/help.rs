@@ -106,8 +106,9 @@ const SHOW_FACTS: &str = r#"text:
   and 1- shows the whole file; --json carries the same lines.
   rev REV shows when REV was a name, and mirrored T when Sourcegraph last
   updated its mirror from the host, as read with this answer.
-  CRLF: every line shown ends in CRLF, and those CRs are left out; any
-  other CR prints as \u{d}. not UTF-8: bytes that aren't print as \x{hh}.
+  CRLF: every line shown that has a line ending ends in CRLF, and those
+  CRs are left out; any other CR prints as \u{d}. not UTF-8: bytes that
+  aren't print as \x{hh}.
   binary N bytes: Sourcegraph's classification, not git's. A symlink is a
   file that shows its target; file modes aren't available.
   A directory or the root prints the ls answer; LINES for one is an error.

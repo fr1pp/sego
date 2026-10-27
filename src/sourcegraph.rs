@@ -10,6 +10,7 @@ mod refs;
 mod resolve;
 mod search;
 
+use std::ffi::OsStr;
 use std::str::FromStr;
 use std::time::{Duration, Instant};
 
@@ -103,7 +104,9 @@ impl<'a> Client<'a> {
         window: Option<Window>,
         recursive: bool,
     ) -> Result<(Resolved, File), Error> {
-        if matches!(target, Target::Split(_)) && resolve::candidates(target).is_empty() {
+        if let Target::Split(segments) = target
+            && resolve::split_guesses(segments).is_empty()
+        {
             return Err(files::unresolved(target, &repo.candidates()[0]));
         }
         let read = |fetch: bool| {
@@ -134,33 +137,26 @@ impl<'a> Client<'a> {
         Ok((resolved, file))
     }
 
-    /// The changes of `head` against its first parent, with the commit, or
-    /// against `base` for a range, over `paths`, listing at most `first`
-    /// files or all for `None`. A range is read by its commits' IDs once both
-    /// ends resolve.
+    /// The changes `revisions` covers over `paths`: a revision's against
+    /// its first parent, with the commit, or a range's head's against its
+    /// base, listing at most `first` files or all for `None`. A range is read
+    /// by its commits' IDs once both ends resolve.
     pub fn comparison(
         self,
         repo: &Repo,
-        base: Option<&str>,
-        head: &str,
+        revisions: Revisions<'_>,
         paths: &[String],
         first: Option<u32>,
     ) -> Result<Comparison, Error> {
-        let Some(base) = base else {
-            let request = commits::commit_request(repo, head, paths, first);
-            return commits::read_commit(&self.exchange(&request)?, repo, head, paths);
+        let ends = match revisions {
+            Revisions::One(rev) => {
+                let rev = rev.unwrap_or("HEAD");
+                let request = commits::commit_request(repo, rev, paths, first);
+                return commits::read_commit(&self.exchange(&request)?, repo, rev, paths);
+            }
+            Revisions::Range { base, head } => self.ends(repo, base, head)?,
         };
-        let ends = resolve::read_range(
-            &self.exchange(&resolve::range_request(repo, (base, head)))?,
-            repo,
-            (base, head),
-        )?;
-        let request = commits::comparison_request(
-            &ends.1.repo,
-            (&ends.0.commit, &ends.1.commit),
-            paths,
-            first,
-        );
+        let request = commits::comparison_request(&ends, paths, first);
         commits::read_comparison(&self.exchange(&request)?, ends, paths)
     }
 
@@ -175,18 +171,22 @@ impl<'a> Client<'a> {
         follow: bool,
         first: Option<u32>,
     ) -> Result<History, Error> {
-        let (base, head) = match revisions {
+        let ends = match revisions {
             Revisions::One(head) => {
                 let request = commits::history_request(repo, head, path, follow, first);
                 return commits::read_history(&self.exchange(&request)?, repo, head, path);
             }
-            Revisions::Range { base, head } => (base, head),
+            Revisions::Range { base, head } => self.ends(repo, base, head)?,
         };
-        let request = resolve::range_request(repo, (base, head));
-        let ends = resolve::read_range(&self.exchange(&request)?, repo, (base, head))?;
-        let (a, b) = (ends.0.commit.clone(), ends.1.commit.clone());
-        let request = commits::range_history_request(&ends.1.repo, (&a, &b), path, first);
+        let request = commits::range_history_request(&ends, path, first);
         commits::read_range_history(&self.exchange(&request)?, ends, path)
+    }
+
+    /// Both ends of the range `base` and `head` in `repo`, resolved in one
+    /// request, so that what follows reads them by their commits' IDs.
+    fn ends(&self, repo: &Repo, base: &str, head: &str) -> Result<resolve::Ends, Error> {
+        let request = resolve::range_request(repo, base, head);
+        resolve::read_range(&self.exchange(&request)?, repo, base, head)
     }
 
     /// The results of `query`, and the listing of the side query
@@ -296,6 +296,12 @@ impl FromStr for Endpoint {
 }
 
 impl Endpoint {
+    /// The cache for files read from this endpoint; `var` is the value of
+    /// `SEGO_CACHE_DIR`.
+    pub fn cache(&self, var: Option<&OsStr>) -> Cache {
+        Cache::new(var, &self.base)
+    }
+
     /// The URL of `path` on this endpoint.
     pub fn url(&self, path: &str) -> String {
         format!("{}{path}", self.base)
@@ -427,7 +433,7 @@ mod tests {
         ask: impl FnOnce(Client<'_>) -> Result<T, Error>,
     ) -> Result<T, Error> {
         let endpoint = Endpoint::default();
-        let cache = Cache::new(Some(OsStr::new("off")), &endpoint);
+        let cache = endpoint.cache(Some(OsStr::new("off")));
         let client =
             Client::new(Box::new(script.clone()), endpoint, &cache, Instant::now() + deadline);
         ask(client)
@@ -436,8 +442,7 @@ mod tests {
     fn range(client: Client<'_>) -> Result<Comparison, Error> {
         client.comparison(
             &Repo::Exact("github.com/gorilla/mux".to_owned()),
-            Some("a"),
-            "b",
+            Revisions::Range { base: "a", head: "b" },
             &[],
             None,
         )
@@ -452,7 +457,7 @@ mod tests {
     /// limit for `None`.
     fn a_file(content: Option<&str>) -> serde_json::Value {
         let body = content.map(|text| json!({"__typename": "GitBlob", "content": text}));
-        let mut answer = json!({"data": {"r0": {
+        let mut response = json!({"data": {"r0": {
             "name": "github.com/gorilla/mux",
             "defaultBranch": {"displayName": "main"},
             "mirrorInfo": null,
@@ -465,10 +470,10 @@ mod tests {
             }
         }}});
         if content.is_none() {
-            answer["errors"] = json!([{"message": "file exceeded size limit",
-                                       "path": ["r0", "commit", "body", "content"]}]);
+            response["errors"] = json!([{"message": "file exceeded size limit",
+                                         "path": ["r0", "commit", "body", "content"]}]);
         }
-        answer
+        response
     }
 
     fn show(client: Client<'_>) -> Result<(Resolved, File), Error> {

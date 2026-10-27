@@ -3,12 +3,12 @@ use std::fmt;
 use serde::Serialize;
 
 use crate::address::{Repo, range_rev_field, rev_field, short};
-use crate::commands::resolved_notes;
+use crate::commands::Revs;
 use crate::error::Error;
 use crate::escape::render_line;
 use crate::escape::shell_word;
 use crate::output::{
-    FileRow, Notes, file_row, files_field, header_line, mirrored, row_text, rows_asked,
+    FileRow, Notes, closing_fields, file_row, files_field, header_line, row_text, rows_asked,
 };
 use crate::sourcegraph::Client;
 
@@ -60,8 +60,7 @@ impl fmt::Display for Answer {
             fields.push(format!("paths {}", words.join(" ")));
         }
         fields.extend(self.base.as_deref().map(|b| format!("base {}", short(b))));
-        fields.extend(self.rev_field());
-        fields.extend(self.mirrored_at.as_deref().map(mirrored));
+        fields.extend(closing_fields(self.rev_field(), self.mirrored_at.as_deref()));
         f.write_str(&header_line(&lead, &fields))?;
         for row in self.files.iter().take(TEXT_ROWS) {
             writeln!(f, "{}", row_text(row))?;
@@ -76,14 +75,6 @@ impl fmt::Display for Answer {
     }
 }
 
-/// What `diff` compares: a revision with its first parent, or the head of a
-/// range with its base.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Revs {
-    One(String),
-    Range { base: String, head: String },
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Args {
     pub repo: Repo,
@@ -93,24 +84,27 @@ pub struct Args {
 }
 
 pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Error> {
-    let (base, head) = match &args.revs {
-        Revs::One(rev) => (None, rev),
-        Revs::Range { base, head } => (Some(base.as_str()), head),
+    let (rev_a, head) = match &args.revs {
+        Revs::One(rev) => (None, rev.as_deref().unwrap_or("HEAD")),
+        Revs::Range { base, head } => (Some(base.clone()), head.as_str()),
     };
     let first = rows_asked(args.json, TEXT_ROWS);
-    let comparison = client.comparison(&args.repo, base, head, &args.paths, first)?;
-    resolved_notes(&comparison.head, notes);
-    let (Some(changes), Some(from)) = (comparison.changes, comparison.from.clone()) else {
-        return Err(Error::not_found(format!(
-            "{head} is a root commit: Sourcegraph has no diff for it"
-        )));
+    let comparison = client.comparison(&args.repo, args.revs.revisions(), &args.paths, first)?;
+    let mirrored_at = comparison.lookup().noting_other_host(|note| notes.push(note));
+    let root_commit =
+        || Error::not_found(format!("{head} is a root commit: Sourcegraph has no diff for it"));
+    let Some(changes) = comparison.changes else {
+        return Err(root_commit());
     };
-    let mirrored_at = comparison.head.mirrored_with(comparison.base.as_ref());
-    let commit_a = comparison.base.map_or(from, |base| base.commit);
+    let commit_a = match (comparison.base, &comparison.from) {
+        (Some(base), _) => base.commit,
+        (None, Some(parent)) => parent.clone(),
+        (None, None) => return Err(root_commit()),
+    };
     Ok(Answer {
         repo: comparison.head.repo,
-        rev_a: base.map(str::to_owned),
-        rev_b: head.clone(),
+        rev_a,
+        rev_b: head.to_owned(),
         commit_a,
         commit_b: comparison.head.commit,
         base: comparison.from,

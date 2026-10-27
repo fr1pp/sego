@@ -5,7 +5,7 @@ use std::ffi::OsString;
 use lexopt::Arg;
 
 use crate::address::{self, Address, Dots, Rev, Target, UrlKind};
-use crate::commands::{diff, log, ls, refs, search, show};
+use crate::commands::{Command, Revs, diff, log, ls, refs, search, show};
 use crate::error::Error;
 
 pub const SYNOPSIS: &str = "sego COMMAND [--json] ...";
@@ -50,30 +50,16 @@ pub enum Invocation {
     Command(Command),
 }
 
-/// A command that asks Sourcegraph, with its arguments narrowed to what it
-/// acts on.
-#[derive(Debug, PartialEq, Eq)]
-pub enum Command {
-    Search(search::Args),
-    Show(show::Args),
-    ShowCommit(show::CommitArgs),
-    Ls(ls::Args),
-    Refs(refs::Args),
-    Log(log::Args),
-    Diff(diff::Args),
-}
-
-impl Command {
-    pub fn json_and_synopsis(&self) -> (bool, &'static str) {
-        match self {
-            Command::Search(args) => (args.json, SEARCH_SYNOPSIS),
-            Command::Show(args) => (args.json, SHOW_SYNOPSIS),
-            Command::ShowCommit(args) => (args.json, SHOW_SYNOPSIS),
-            Command::Ls(args) => (args.json, LS_SYNOPSIS),
-            Command::Refs(args) => (args.json, REFS_SYNOPSIS),
-            Command::Log(args) => (args.json, LOG_SYNOPSIS),
-            Command::Diff(args) => (args.json, DIFF_SYNOPSIS),
-        }
+/// The synopsis of `command`, which a usage error found from its response
+/// carries.
+pub fn synopsis(command: &Command) -> &'static str {
+    match command {
+        Command::Search(_) => SEARCH_SYNOPSIS,
+        Command::Show(_) | Command::ShowCommit(_) => SHOW_SYNOPSIS,
+        Command::Ls(_) => LS_SYNOPSIS,
+        Command::Refs(_) => REFS_SYNOPSIS,
+        Command::Log(_) => LOG_SYNOPSIS,
+        Command::Diff(_) => DIFF_SYNOPSIS,
     }
 }
 
@@ -397,9 +383,9 @@ fn parse_log(operands: &[String], follow: bool, json: bool) -> Result<Command, E
         Rev::Range { dots: Dots::Three, .. } if address.kind != UrlKind::Compare => {
             return Err(usage("log takes A..B, not A...B"));
         }
-        Rev::Range { base, head, .. } => log::Revs::Range { base, head },
-        Rev::One(rev) => log::Revs::One(Some(rev)),
-        Rev::Default => log::Revs::One(None),
+        Rev::Range { base, head, .. } => Revs::Range { base, head },
+        Rev::One(rev) => Revs::One(Some(rev)),
+        Rev::Default => Revs::One(None),
         Rev::Split(_) => return Err(unsplit("log", LOG_SYNOPSIS)),
     };
     if rest.iter().any(String::is_empty) {
@@ -412,7 +398,7 @@ fn parse_log(operands: &[String], follow: bool, json: bool) -> Result<Command, E
         (path, None) | (None, path) => path,
     };
     let plain = path.as_deref().is_some_and(address::is_plain_path);
-    if follow && (!plain || matches!(revs, log::Revs::Range { .. })) {
+    if follow && (!plain || matches!(revs, Revs::Range { .. })) {
         return Err(usage("--follow needs one revision and one plain path"));
     }
     Ok(Command::Log(log::Args { repo: address.repo, revs, path, follow, json }))
@@ -428,8 +414,8 @@ fn parse_diff(operands: &[String], json: bool) -> Result<Command, Error> {
         Rev::Range { dots: Dots::Two, .. } => {
             return Err(usage("diff takes A...B (Sourcegraph compares from the merge base)"));
         }
-        Rev::Range { base, head, .. } => diff::Revs::Range { base, head },
-        Rev::One(rev) => diff::Revs::One(rev),
+        Rev::Range { base, head, .. } => Revs::Range { base, head },
+        Rev::One(rev) => Revs::One(Some(rev)),
         Rev::Split(_) => return Err(unsplit("diff", DIFF_SYNOPSIS)),
         Rev::Default => {
             return Err(usage(
@@ -462,7 +448,7 @@ mod tests {
     use std::os::unix::ffi::OsStringExt;
 
     use crate::address::{self, End, LineRange, Repo, Rev, Target};
-    use crate::commands::{diff, log, ls, refs, search, show};
+    use crate::commands::{Command, Revs, diff, log, ls, refs, search, show};
     use crate::error::{Kind, report, usage_block};
 
     const SHA: &str = "0123456789abcdef0123456789abcdef01234567";
@@ -523,9 +509,9 @@ mod tests {
     fn log(token: &str, path: Option<&str>, json: bool) -> Invocation {
         let address = address(token);
         let revs = match address.rev {
-            Rev::Range { base, head, .. } => log::Revs::Range { base, head },
-            Rev::One(rev) => log::Revs::One(Some(rev)),
-            Rev::Default => log::Revs::One(None),
+            Rev::Range { base, head, .. } => Revs::Range { base, head },
+            Rev::One(rev) => Revs::One(Some(rev)),
+            Rev::Default => Revs::One(None),
             Rev::Split(_) => panic!("{token} is split"),
         };
         Invocation::Command(Command::Log(log::Args {
@@ -565,8 +551,8 @@ mod tests {
     fn diff(token: &str, paths: &[&str], json: bool) -> Invocation {
         let address = address(token);
         let revs = match address.rev {
-            Rev::Range { base, head, .. } => diff::Revs::Range { base, head },
-            Rev::One(rev) => diff::Revs::One(rev),
+            Rev::Range { base, head, .. } => Revs::Range { base, head },
+            Rev::One(rev) => Revs::One(Some(rev)),
             _ => panic!("{token} names no revision or range"),
         };
         let paths = paths.iter().map(|p| (*p).to_owned()).collect();

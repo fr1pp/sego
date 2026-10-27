@@ -40,10 +40,14 @@ pub fn base64(bytes: &[u8]) -> String {
     out
 }
 
-/// The header field saying when Sourcegraph last updated its mirror:
-/// `mirrored 2026-10-27T04:17Z`.
-pub fn mirrored(updated_at: &str) -> String {
-    format!("mirrored {updated_at}")
+/// The fields a header ends with: `rev_field`, the `rev` field that
+/// `address::rev_field` or `address::range_rev_field` gives, then when
+/// Sourcegraph last updated its mirror, `mirrored 2026-10-27T04:17Z`.
+pub fn closing_fields(
+    rev_field: Option<String>,
+    mirrored_at: Option<&str>,
+) -> impl Iterator<Item = String> {
+    rev_field.into_iter().chain(mirrored_at.map(|at| format!("mirrored {at}")))
 }
 
 /// An answer as JSON prints it: its fields, then the notes stderr carries

@@ -40,15 +40,6 @@ fn regexp_error(reason: &str, query: &Query) -> Error {
     }
 }
 
-/// Whether the side query's listing holds every unindexed file: no alert,
-/// nothing cut, and back before its deadline.
-fn complete(listing: &Listing, deadline_ms: u64) -> bool {
-    listing.alert.is_none()
-        && !listing.limit_hit
-        && listing.timedout.is_empty()
-        && listing.elapsed_milliseconds < deadline_ms
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Args {
     pub query: String,
@@ -69,7 +60,7 @@ pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Err
     // An empty listing can't be told from one that failed under load, so it
     // leaves the files skipped unknown (ADR 0007).
     let unindexed = listing
-        .filter(|listing| complete(listing, deadline_ms))
+        .filter(|listing| listing.complete(deadline_ms))
         .map(Listing::files)
         .filter(|files| !files.is_empty());
     let answer = Answer::new(query, results, unindexed);
@@ -85,7 +76,6 @@ mod tests {
     use std::thread::sleep;
     use std::time::{Duration, Instant};
 
-    use crate::cache::Cache;
     use crate::error::{Error, report};
     use crate::sourcegraph::{DEADLINE, Endpoint, Listing, Results};
 
@@ -102,7 +92,7 @@ mod tests {
         sleep(PAUSE);
         let query = Query::new(query);
         let deadline = Instant::now() + DEADLINE;
-        let cache = Cache::new(Some(OsStr::new("off")), &Endpoint::default());
+        let cache = Endpoint::default().cache(Some(OsStr::new("off")));
         let client =
             Client::new(crate::connect(Endpoint::default()), Endpoint::default(), &cache, deadline);
         match client.search(&query.text, query.unindexed.as_deref()) {

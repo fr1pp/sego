@@ -19,6 +19,13 @@ pub enum Repo {
 }
 
 impl Repo {
+    /// The name as the address wrote it.
+    pub fn as_written(&self) -> &str {
+        match self {
+            Repo::Exact(name) | Repo::OwnerName(name) => name,
+        }
+    }
+
     pub fn candidates(&self) -> Vec<String> {
         match self {
             Repo::Exact(name) => vec![name.clone()],

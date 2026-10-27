@@ -10,7 +10,7 @@ use serde_json::{Map, json};
 use super::Page;
 use super::gitmodules;
 use super::graphql::{Envelope, GqlErrorKind, Request, Segment, View, repeated};
-use super::resolve::{self, Repository, Resolved, candidates, repository_variables};
+use super::resolve::{self, Repository, Resolved, repository_variables, split_guesses};
 use crate::address::{Repo, Target, pinned};
 use crate::error::Error;
 
@@ -204,8 +204,8 @@ fragment File on Repository {{
                 READ.replace('#', "")
             )
         }
-        Target::Split(_) => {
-            let guesses = candidates(target);
+        Target::Split(segments) => {
+            let guesses = split_guesses(segments);
             variables.insert("repo".to_owned(), json!(repo.candidates()[0]));
             variables.insert("fetch".to_owned(), json!(fetch));
             let mut declared = String::new();
@@ -243,19 +243,18 @@ pub fn read(
 ) -> Result<Option<Read>, Error> {
     match target {
         Target::At { rev, path } => {
-            let roots: &[&str] = if repo.candidates().len() > 1 { &["r0", "r1"] } else { &["r0"] };
-            let found = resolve::repository(repo, envelope, roots)?;
+            let found = resolve::repository(repo, envelope, resolve::roots(repo))?;
             let at = [found.root.as_str(), "commit"];
             let commit = resolve::commit(envelope, &found, &at, rev.as_deref().unwrap_or("HEAD"))?;
             let path = path.clone().unwrap_or_default();
             read_at(envelope, &found, &at, commit, rev.clone(), &path).map(Some)
         }
-        Target::Split(_) => {
+        Target::Split(segments) => {
             let found = resolve::repository(repo, envelope, &["r"])?;
             if let Some(error) = found.no_commits() {
                 return Err(error);
             }
-            let guesses = candidates(target);
+            let guesses = split_guesses(segments);
             let commit_at = |n: usize| {
                 let mut at = vec![format!("g{n}")];
                 at.extend(
@@ -518,12 +517,12 @@ mod tests {
     }
 
     /// Which split of `release/2.34/master/NEWS` the response chooses, by its
-    /// revision, given each guess's answer.
+    /// revision, given each guess's response.
     fn chosen(guesses: [Option<Value>; 4], fetch: bool) -> Result<Option<String>, Error> {
         let mut data = json!({"r": {"name": "github.com/bminor/glibc",
             "defaultBranch": {"displayName": "master"}, "mirrorInfo": null}});
-        for (n, answer) in guesses.into_iter().enumerate() {
-            data[format!("g{n}")] = answer.unwrap_or(Value::Null);
+        for (n, response) in guesses.into_iter().enumerate() {
+            data[format!("g{n}")] = response.unwrap_or(Value::Null);
         }
         let target =
             Target::Split(["release", "2.34", "master", "NEWS"].map(str::to_owned).to_vec());

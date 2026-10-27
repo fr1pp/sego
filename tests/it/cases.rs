@@ -442,13 +442,13 @@ mod diff {
     }
 
     #[test]
-    fn every_file_added_has_no_base_json() {
-        case("diff/every-file-added-has-no-base-json.toml");
+    fn every_file_added_takes_the_merge_base_json() {
+        case("diff/every-file-added-takes-the-merge-base-json.toml");
     }
 
     #[test]
-    fn every_file_added_has_no_base() {
-        case("diff/every-file-added-has-no-base.toml");
+    fn every_file_added_takes_the_merge_base() {
+        case("diff/every-file-added-takes-the-merge-base.toml");
     }
 
     #[test]
@@ -484,6 +484,16 @@ mod diff {
     #[test]
     fn missing_base_revision() {
         case("diff/missing-base-revision.toml");
+    }
+
+    #[test]
+    fn missing_both_hex_revisions() {
+        case("diff/missing-both-hex-revisions.toml");
+    }
+
+    #[test]
+    fn missing_both_revisions_one_hex() {
+        case("diff/missing-both-revisions-one-hex.toml");
     }
 
     #[test]
@@ -594,6 +604,16 @@ mod diff {
     #[test]
     fn range_head_is_a_root_commit() {
         case("diff/range-head-is-a-root-commit.toml");
+    }
+
+    #[test]
+    fn range_with_no_shared_history_prints_no_base_json() {
+        case("diff/range-with-no-shared-history-prints-no-base-json.toml");
+    }
+
+    #[test]
+    fn range_with_no_shared_history_prints_no_base() {
+        case("diff/range-with-no-shared-history-prints-no-base.toml");
     }
 
     #[test]
@@ -1166,6 +1186,11 @@ mod refs {
     #[test]
     fn names_with_control_characters() {
         case("refs/names-with-control-characters.toml");
+    }
+
+    #[test]
+    fn other_host_lookup_failed() {
+        case("refs/other-host-lookup-failed.toml");
     }
 
     #[test]
@@ -2589,5 +2614,10 @@ mod show {
     #[test]
     fn utf_16_text_is_read_raw() {
         case("show/utf-16-text-is-read-raw.toml");
+    }
+
+    #[test]
+    fn web_url_path_with_dot_segments() {
+        case("show/web-url-path-with-dot-segments.toml");
     }
 }

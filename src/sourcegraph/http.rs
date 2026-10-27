@@ -139,7 +139,6 @@ mod tests {
 
     use crate::sourcegraph::{Endpoint, GRAPHQL_PATH, Transport, TransportError};
 
-    use crate::cache::Cache;
     use crate::sourcegraph::{Client, Request};
 
     mod server {
@@ -508,7 +507,7 @@ mod tests {
         let server = Server::start(|_| Response::new(500).body("down"));
         let host = endpoint_host_of(&server.url());
         let endpoint = server.url().parse::<Endpoint>().unwrap_or_else(|e| panic!("{e}"));
-        let cache = Cache::new(Some(OsStr::new("off")), &endpoint);
+        let cache = endpoint.cache(Some(OsStr::new("off")));
         let connect = || Client::new(Box::new(client(&server)), endpoint.clone(), &cache, soon());
 
         let request = Request {
@@ -533,7 +532,7 @@ mod tests {
         drop(listener);
         let url = format!("http://{address}");
         let endpoint = url.parse::<Endpoint>().unwrap_or_else(|e| panic!("{e}"));
-        let cache = Cache::new(Some(OsStr::new("off")), &endpoint);
+        let cache = endpoint.cache(Some(OsStr::new("off")));
         let client =
             Client::new(Box::new(Ureq::without_proxy(endpoint.clone())), endpoint, &cache, soon());
         let request = Request {

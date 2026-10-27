@@ -1,9 +1,39 @@
 use std::fmt::{self, Write as _};
+use std::io;
 
 use crate::escape::one_line;
 
 const MAX_FACTS: usize = 2;
 const USAGE_PREFIX: &str = "usage: ";
+
+/// Why an invocation stopped: its answer was an error, or writing failed.
+pub enum Failure {
+    Answer(Error),
+    Write(io::Error),
+}
+
+impl Failure {
+    /// The failure with `synopsis` when it is a usage error without one.
+    #[must_use]
+    pub fn with_synopsis(self, synopsis: &'static str) -> Failure {
+        match self {
+            Failure::Answer(error) => Failure::Answer(error.with_synopsis(synopsis)),
+            Failure::Write(error) => Failure::Write(error),
+        }
+    }
+}
+
+impl From<Error> for Failure {
+    fn from(error: Error) -> Failure {
+        Failure::Answer(error)
+    }
+}
+
+impl From<io::Error> for Failure {
+    fn from(error: io::Error) -> Failure {
+        Failure::Write(error)
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Kind {
@@ -32,8 +62,8 @@ impl Error {
         Error { synopsis: Some(synopsis), ..Error::new(Kind::Usage, message) }
     }
 
-    /// A usage error found from the server's response, which the command
-    /// gives its synopsis with `with_synopsis`.
+    /// A usage error found from the server's response, which takes its
+    /// command's synopsis with `with_synopsis`.
     pub fn usage_from_response(message: impl Into<String>) -> Error {
         Error::new(Kind::Usage, message)
     }

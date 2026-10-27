@@ -1,4 +1,4 @@
-# Content shorter than the lines the details report is an answer error.
+# Content shorter than the lines the details report is a failure.
 args = ["show", "example.com/acme/gadget@main:a.go"]
 status.code = 3
 stderr = '''

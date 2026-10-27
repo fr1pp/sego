@@ -1,4 +1,4 @@
-# A raw read the server cannot find is an answer error.
+# A raw read the server cannot find is a failure.
 args = ["show", "example.com/acme/widget@main:big.c", "1-2"]
 status.code = 3
 stderr = '''

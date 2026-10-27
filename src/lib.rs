@@ -18,9 +18,8 @@ use std::ffi::{OsStr, OsString};
 use std::io::{self, Write};
 use std::time::Instant;
 
-use cache::Cache;
 use cli::{Invocation, SYNOPSIS};
-use error::Error;
+use error::{Error, Failure};
 use output::Notes;
 use sourcegraph::Client;
 
@@ -84,23 +83,6 @@ fn endpoint(value: Option<&OsStr>) -> Result<Endpoint, Error> {
     text.parse().map_err(|reason| Error::usage(format!("SEGO_ENDPOINT {reason}: {text}"), SYNOPSIS))
 }
 
-enum Failure {
-    Answer(Error),
-    Write(io::Error),
-}
-
-impl From<Error> for Failure {
-    fn from(error: Error) -> Failure {
-        Failure::Answer(error)
-    }
-}
-
-impl From<io::Error> for Failure {
-    fn from(error: io::Error) -> Failure {
-        Failure::Write(error)
-    }
-}
-
 fn attempt(
     args: &[OsString],
     env: &Env,
@@ -115,10 +97,12 @@ fn attempt(
         Invocation::Command(command) => command,
     };
     let endpoint = endpoint(env.endpoint.as_deref())?;
-    let cache = Cache::new(env.cache_dir.as_deref(), &endpoint);
+    let cache = endpoint.cache(env.cache_dir.as_deref());
     let deadline = Instant::now() + sourcegraph::DEADLINE;
     let client = Client::new(connect(endpoint.clone()), endpoint, &cache, deadline);
-    commands::run(command, client, notes, out, err)?;
+    let synopsis = cli::synopsis(&command);
+    commands::run(command, client, notes, out, err)
+        .map_err(|failure| failure.with_synopsis(synopsis))?;
     out.flush()?;
     cache.trim();
     Ok(())
