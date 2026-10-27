@@ -165,6 +165,7 @@ A commit or diff result whose diff preview the server cut to 5 files or 3 hunks 
 
 **Content limit**:
 The size, 1,572,864 bytes, above which Sourcegraph's API returns no content for a file.
+_Avoid_: size limit (the index skips files over a different size, 1 MiB)
 
 **Raw read**:
 A read of a file's exact bytes through Sourcegraph's raw route, for a file over the content limit or

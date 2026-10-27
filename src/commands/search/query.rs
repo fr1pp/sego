@@ -209,7 +209,7 @@ fn repo_select(value: &str) -> bool {
 ///   the cap. Each replica still stops at the cap counted in files, and a
 ///   large repository's shards can fill several of those, so fewer
 ///   repositories than the cap come back unflagged (#32). Even `count:all`
-///   meets the index's match limits unflagged. Only a scope of one
+///   can meet the index's match limits unflagged. Only a scope of one
 ///   repository, which can't be cut short, or a search of commits, which the
 ///   index doesn't run, is exact.
 fn lower_bound(written: &[Written], plan: &Plan) -> bool {
