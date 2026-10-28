@@ -10,9 +10,6 @@ example.com/acme/widget@0123456789ab:src/real.txt
 10:a binary value
 11:another binary
 '''
-stderr = '''
-sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
-'''
 
 [[exchange]]
 operation = "Search"

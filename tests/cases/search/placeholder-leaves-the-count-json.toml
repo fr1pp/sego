@@ -3,10 +3,7 @@
 args = ["search", "--json", "repo:example.com/acme/widget binary"]
 status.code = 0
 stdout = '''
-{"query":"repo:example.com/acme/widget binary","pattern_type":"keyword","unit":"matches","count":2,"at_least":false,"stopped":false,"elapsed_ms":300,"limit_ms":20000,"widen":[],"unindexed":null,"alert":null,"results":[{"kind":"line","repo":"example.com/acme/widget","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"src/real.txt","line":10,"text":"a binary value","match":true,"ranges":[[2,8]],"chunk":1},{"kind":"line","repo":"example.com/acme/widget","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"src/real.txt","line":11,"text":"another binary","match":true,"ranges":[[8,14]],"chunk":1}],"server":{"match_count":3,"approximate_count":"3","limit_hit":false,"timedout":[]},"notes":["the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched"]}
-'''
-stderr = '''
-sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
+{"query":"repo:example.com/acme/widget binary","pattern_type":"keyword","unit":"matches","count":2,"at_least":false,"stopped":false,"elapsed_ms":300,"limit_ms":20000,"widen":[],"unindexed":null,"alert":null,"results":[{"kind":"line","repo":"example.com/acme/widget","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"src/real.txt","line":10,"text":"a binary value","match":true,"ranges":[[2,8]],"chunk":1},{"kind":"line","repo":"example.com/acme/widget","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"src/real.txt","line":11,"text":"another binary","match":true,"ranges":[[8,14]],"chunk":1}],"server":{"match_count":3,"approximate_count":"3","limit_hit":false,"timedout":[]},"notes":[]}
 '''
 
 [[exchange]]

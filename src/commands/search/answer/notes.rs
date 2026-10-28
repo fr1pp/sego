@@ -4,10 +4,12 @@ use crate::address::pinned;
 use crate::error::Error;
 use crate::escape::shell_word;
 use crate::output::{Notes, count};
+use crate::pointer;
 
+use super::super::query::Index;
 use super::text::tenths;
 use super::{Alert, Answer};
-use crate::sourcegraph::{UnindexedFile, regexp_reason};
+use crate::sourcegraph::{LARGEST_READ, UnindexedFile, regexp_reason};
 
 const FACTS: usize = 2;
 const MIB: u64 = 1 << 20;
@@ -16,12 +18,6 @@ const LISTED: usize = 3;
 const PROCESS_FAILURE: &str = "Unable To Process Query";
 const REVISIONS: &str = "Some revisions could not be searched";
 const NO_REPOSITORIES: &str = "No repositories found";
-const PINNED: &str = "at a pinned revision the search can't tell which files it skipped; files over 1 MiB are never searched";
-const UNLISTED: &str = "the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched";
-const ZERO: &str =
-    "Sourcegraph doesn't report a search backend that fails to answer, and a 0 can come from one";
-const UNLISTED_INDEX_NO: &str =
-    "the search can't tell which files it skipped; files over 1 MiB are never searched";
 
 impl Answer {
     /// Writes the answer's notes, or the error it is: an alert that means
@@ -54,7 +50,8 @@ impl Answer {
             return Err(Error::upstream(format!(
                 "the search stopped at {} s with no results",
                 tenths(self.elapsed_ms)
-            )));
+            ))
+            .fact(&self.query.stopped_pointer));
         }
         push_notes(self, notes);
         Ok(())
@@ -69,18 +66,22 @@ fn revisions(alert: &Alert) -> Error {
     let Some(text) = description(alert) else {
         return Error::not_found(&alert.title);
     };
-    let lines: Vec<String> = text
+    let missing: Vec<(&str, &str)> = text
         .lines()
         .filter_map(|line| line.trim().strip_prefix("* "))
         .filter_map(|rest| rest.split_once('@'))
-        .map(|(repo, rev)| format!("revision {rev} not found in {repo}"))
         .collect();
+    let lines: Vec<String> =
+        missing.iter().map(|(repo, rev)| format!("revision {rev} not found in {repo}")).collect();
     let Some((first, rest)) = lines.split_first() else {
         return Error::not_found(text);
     };
     let error = Error::not_found(first);
     match rest {
-        [] => error,
+        [] => match pointer::refs(missing[0].0, missing[0].1) {
+            Some(line) => error.fact(line),
+            None => error,
+        },
         [one] => error.fact(one),
         [one, two] => error.fact(one).fact(two),
         [one, ..] => {
@@ -134,36 +135,22 @@ fn push_notes(searched: &Answer, notes: &mut Notes) {
     }
     if let Some((first, rest)) = unindexed_note(searched) {
         notes.push_lines(first, rest);
+        for pointer in unindexed_pointers(searched) {
+            notes.push(pointer);
+        }
     }
-    if let Some(note) = unlisted_note(searched) {
-        notes.push(note);
-    }
-    if searched.is_zero() {
-        notes.push(ZERO);
+    if searched.stopped {
+        notes.push(&searched.query.stopped_pointer);
     }
 }
 
-/// The note on a content search that can't list the files it skipped, for
-/// a zero or a complete answer. At a pin it is only for a zero: hits show
-/// the files were searched, and a file over 1 MiB they miss goes unsaid.
-fn unlisted_note(searched: &Answer) -> Option<&'static str> {
-    if searched.unindexed.is_some()
-        || !searched.query.content_search
-        || searched.stopped
-        || searched.at_least
-    {
-        return None;
-    }
-    Some(if searched.query.pinned {
-        if searched.count > 0 {
-            return None;
-        }
-        PINNED
-    } else if searched.query.index_no {
-        UNLISTED_INDEX_NO
-    } else {
-        UNLISTED
-    })
+/// The pointers to what reaches the files `unindexed_note` lists.
+fn unindexed_pointers(searched: &Answer) -> Vec<String> {
+    let files = searched.unindexed.iter().flatten();
+    let dense = files.clone().filter(|file| file.bytes <= MIB).count();
+    let over: Vec<u64> = files.map(|file| file.bytes).filter(|&bytes| bytes > MIB).collect();
+    let written = searched.query.index != Index::Unwritten;
+    pointer::unindexed(dense, &over, written, LARGEST_READ)
 }
 
 /// The note on the text files in scope that the search index doesn't hold,
@@ -179,7 +166,7 @@ fn unindexed_note(searched: &Answer) -> Option<(String, Vec<String>)> {
         .unindexed
         .iter()
         .flatten()
-        .filter(|file| !searched.query.index_no || file.bytes > MIB)
+        .filter(|file| searched.query.index != Index::No || file.bytes > MIB)
         .collect();
     if files.is_empty() {
         return None;
@@ -249,11 +236,6 @@ mod tests {
 
     const MIB: u64 = 1_048_576;
     const COMMIT: &str = "0123456789abcdef0123456789abcdef01234567";
-    const PINNED_NOTE: &str = "sego: note: at a pinned revision the search \
-    can't tell which files it skipped; files over 1 MiB are never searched\n";
-    const UNLISTED_NOTE: &str = "sego: note: the search can't tell which files \
-    it skipped; files over 1 MiB and files with too many distinct trigrams \
-    are never searched\n";
 
     fn results(overrides: &Value) -> Results {
         let mut base = json!({
@@ -288,30 +270,14 @@ mod tests {
     }
 
     /// The notes `judge` writes for the response to `query`, given the files
-    /// the side query listed, which is `None` when it wasn't sent, without
-    /// the note every zero carries.
+    /// the side query listed, which is `None` when it wasn't sent.
     fn notes_for(query: &str, overrides: &Value, unindexed: Option<Vec<UnindexedFile>>) -> String {
-        every_note_for(query, overrides, unindexed).replace(&format!("sego: note: {ZERO}\n"), "")
-    }
-
-    fn every_note_for(
-        query: &str,
-        overrides: &Value,
-        unindexed: Option<Vec<UnindexedFile>>,
-    ) -> String {
         let answer = Answer::new(Query::new(query), results(overrides), unindexed);
         let mut notes = Notes::new();
         assert!(answer.judge(&mut notes).is_ok(), "{query}");
         let mut printed = Vec::new();
         assert!(notes.write(&mut printed).is_ok());
         String::from_utf8_lossy(&printed).into_owned()
-    }
-
-    #[test]
-    fn a_zero_says_a_backend_that_failed_could_have_given_it() {
-        let zero = format!("sego: note: {ZERO}\n");
-        assert!(every_note_for("repo:x type:repo foo", &json!({}), None).ends_with(&zero));
-        assert!(!every_note_for("repo:x type:repo foo", &one_result(), None).contains(ZERO));
     }
 
     #[test]
@@ -325,75 +291,19 @@ mod tests {
     }
 
     #[test]
-    fn a_content_search_that_cant_list_its_unindexed_files_says_so() {
-        for query in [
-            "repo:x a or b",
-            r"repo:^github\.com/sharkdp/bat$ (syntax_request.md or zzqqxx)",
-            "repo:x foo",
-            "foo",
-            "repo:x type:symbol foo",
-            "type:symbol foo",
-        ] {
-            for overrides in [json!({}), one_result()] {
-                assert_eq!(notes_for(query, &overrides, None), UNLISTED_NOTE, "{query}");
-            }
-        }
-    }
-
-    #[test]
-    fn a_search_that_reads_no_contents_has_no_unlisted_note() {
-        for query in [
-            "repo:x",
-            r"repo:x file:\.go$",
-            "repo:x type:path foo",
-            "repo:x type:bogus foo",
-            "repo:x@v1 type:bogus foo",
-            "repo:x type:commit foo",
-            "repo:x type:diff foo",
-            "repo:x type:repo foo",
-        ] {
-            assert_eq!(notes_for(query, &json!({}), None), "", "{query}");
-        }
-    }
-
-    #[test]
-    fn a_pinned_content_search_has_the_pinned_note() {
-        for query in [
-            "repo:x@v1 a or b",
-            r"repo:^github\.com/gorilla/mux$@v1.8.0 file:^mux\.go$ (StrictSlash or zzqqxx)",
-            "repo:x@v1 index:no a or b",
-            "repo:x@v1 type:symbol foo",
-        ] {
-            assert_eq!(notes_for(query, &json!({}), None), PINNED_NOTE, "{query}");
-        }
-    }
-
-    #[test]
-    fn a_head_or_empty_revision_takes_the_default_branch_notes() {
+    fn a_head_or_empty_revision_lists_the_files_it_skipped() {
         let listed = |path| {
             format!(
                 "sego: note: the contents of 1 file in scope aren't in the \
-             search index (1 over 1 MiB):\n  {path}  2.0 MiB\n"
+             search index (1 over 1 MiB):\n  {path}  2.0 MiB\nsego: note: sego show reads \
+             the 1 file over 1 MiB, which no search reaches\n"
             )
         };
-        for query in [
-            "repo:x@HEAD foo",
-            "repo:x@ foo",
-            "repo:x rev:HEAD foo",
-            "repo:x revision:HEAD foo",
-            "repo:x@HEAD a or b",
-        ] {
-            for overrides in [json!({}), one_result()] {
-                assert_eq!(notes_for(query, &overrides, None), UNLISTED_NOTE, "{query}");
-            }
-        }
         for query in ["repo:x@HEAD foo", "repo:x@ foo", "repo:x rev:HEAD foo"] {
             for (overrides, path) in [(json!({}), "x@0123456789ab:big"), (one_result(), "big")] {
                 let files = Some(vec![file("x", "big", 2 * MIB)]);
                 assert_eq!(notes_for(query, &overrides, files), listed(path), "{query}");
             }
         }
-        assert_eq!(notes_for("repo:x@HEAD:v1 foo", &json!({}), None), PINNED_NOTE);
-        assert_eq!(notes_for("repo:x@HEAD:v1 foo", &one_result(), None), "");
     }
 }

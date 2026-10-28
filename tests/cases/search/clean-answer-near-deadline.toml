@@ -8,9 +8,6 @@ query  repo:example.com/app foo count:1000
 example.com/app@0123456789ab:main.go
 1:foo 0
 '''
-stderr = '''
-sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
-'''
 
 [[exchange]]
 operation = "Search"

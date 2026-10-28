@@ -1,13 +1,9 @@
-# At a pinned revision nothing lists the files too large to search.
+# A search at a pinned revision sends no side query.
 args = ["search", "repo:example.com/acme/widget@v1 foo"]
 status.code = 0
 stdout = '''
 0 matches  0.2 s
 query  repo:example.com/acme/widget@v1 foo
-'''
-stderr = '''
-sego: note: at a pinned revision the search can't tell which files it skipped; files over 1 MiB are never searched
-sego: note: Sourcegraph doesn't report a search backend that fails to answer, and a 0 can come from one
 '''
 
 [[exchange]]

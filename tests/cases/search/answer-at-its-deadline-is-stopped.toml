@@ -7,6 +7,9 @@ query  repo:example.com/acme/widget foo
 
 example.com/acme/widget
 '''
+stderr = '''
+sego: note: timeout:60s raises its 20 s deadline to 60 s, the most sourcegraph.com allows
+'''
 
 [[exchange]]
 operation = "Search"

@@ -10,7 +10,8 @@ stderr = '''
 sego: note: the contents of 2 files in scope aren't in the search index (1 over 1 MiB, 1 too many distinct trigrams):
   example.com/acme/widget@aaaaaaaaaaaa:big.c  1.9 MiB
   example.com/acme/widget@bbbbbbbbbbbb:dense.txt  900 B
-sego: note: Sourcegraph doesn't report a search backend that fails to answer, and a 0 can come from one
+sego: note: index:no searches the 1 file with too many distinct trigrams
+sego: note: sego show reads the 1 file over 1 MiB, which no search reaches
 '''
 
 [[exchange]]

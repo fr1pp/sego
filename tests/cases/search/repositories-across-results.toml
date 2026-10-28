@@ -20,9 +20,6 @@ example.com/commits@0123456789ab  2024-05-06  Ann  fix
 
 example.com/a
 '''
-stderr = '''
-sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
-'''
 
 [[exchange]]
 operation = "Search"

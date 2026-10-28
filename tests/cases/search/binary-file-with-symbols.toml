@@ -11,9 +11,6 @@ binary file; lines not shown
 3:function  S
 5:function  T
 '''
-stderr = '''
-sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
-'''
 
 [[exchange]]
 operation = "Search"

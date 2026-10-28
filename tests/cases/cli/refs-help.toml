@@ -33,4 +33,8 @@ json:
 examples:
   sego refs github.com/gorilla/mux 1.8
   sego refs --json github.com/gorilla/mux | jq -r '.refs[].name'
+
+errors:
+  An error's indented lines state facts, such as the default branch, and
+  can name the sego command or filter that finds what it couldn't.
 '''

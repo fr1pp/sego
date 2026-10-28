@@ -11,7 +11,6 @@ stderr = '''
 sego: note: Too many results: Narrow the search.
 sego: note: the server proposes: repo:example.com/acme/widget foo lang:go
 sego: note: the server proposes: repo:example.com/acme/widget foo lang:rust
-sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
 '''
 
 [[exchange]]

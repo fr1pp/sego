@@ -9,6 +9,7 @@ example.com/acme/router@0123456789ab:main.go
 '''
 stderr = '''
 sego: note: at a pinned revision, select: keeps only what each repository's first 30 matches hold; count:all gives every one
+sego: note: timeout:60s raises its 20 s deadline to 60 s, the most sourcegraph.com allows
 '''
 
 [[exchange]]

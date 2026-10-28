@@ -1,5 +1,4 @@
-# An or query sends no side query, so the search can't name the files it
-# skipped.
+# An or query sends no side query.
 args = ["search", "repo:example.com/acme/widget (foo or zzqqxx)"]
 status.code = 0
 stdout = '''
@@ -8,9 +7,6 @@ query  repo:example.com/acme/widget (foo or zzqqxx)
 
 example.com/acme/widget@0123456789ab:main.go
 1:foo
-'''
-stderr = '''
-sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
 '''
 
 [[exchange]]

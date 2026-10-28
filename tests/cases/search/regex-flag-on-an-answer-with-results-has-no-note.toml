@@ -1,5 +1,4 @@
-# A complete answer with results has the note on unlisted files and none on the
-# flag.
+# A complete answer with results has no note on the flag.
 args = ["search", "lang:javascript /msie/i"]
 status.code = 0
 stdout = '''
@@ -8,9 +7,6 @@ query  lang:javascript /msie/i
 
 example.com/acme/widget@0123456789ab:ie.js
 1:msie
-'''
-stderr = '''
-sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
 '''
 
 [[exchange]]

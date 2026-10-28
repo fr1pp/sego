@@ -109,6 +109,11 @@ impl Error {
         self
     }
 
+    #[must_use]
+    pub fn facts(self, facts: impl IntoIterator<Item = String>) -> Error {
+        facts.into_iter().fold(self, Error::fact)
+    }
+
     pub fn kind(&self) -> Kind {
         self.kind
     }

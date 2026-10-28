@@ -32,4 +32,8 @@ json:
 examples:
   sego ls github.com/gorilla/mux@v1.8.0
   sego ls --recursive github.com/gorilla/mux@v1.8.0:.github
+
+errors:
+  An error's indented lines state facts, such as the default branch, and
+  can name the sego command or filter that finds what it couldn't.
 '''

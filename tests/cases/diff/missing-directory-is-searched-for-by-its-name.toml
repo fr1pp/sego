@@ -1,0 +1,88 @@
+# A missing path written with a trailing slash is searched for by its last name.
+args = ["diff", "github.com/gorilla/mux@v1.7.4...v1.8.0", "nope/"]
+status.code = 1
+stderr = '''
+sego: error: nope/ not found in github.com/gorilla/mux@75dcda0896e1 or @98cb6bf42e08
+  sego search 'repo:^github\.com/gorilla/mux$@98cb6bf42e08 file:(^|/)nope(/|$) count:all' lists the files named nope, or under a directory named nope, at 98cb6bf42e08
+  sego log github.com/gorilla/mux@98cb6bf42e08:nope/ lists any commits that changed nope/
+'''
+
+[[exchange]]
+operation = "Range"
+variables = '{"a":"v1.7.4","b":"v1.8.0","gitlab":false,"repo0":"github.com/gorilla/mux","repo1":""}'
+document = "Range-782f210b"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-28, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "r0": {
+      "a": {
+        "oid": "75dcda0896e109a2a22c9315bca3bb21b87b2ba5"
+      },
+      "b": {
+        "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-28T06:02:18Z"
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  }
+}
+'''
+
+[[exchange]]
+operation = "Comparison"
+variables = '{"a":"75dcda0896e109a2a22c9315bca3bb21b87b2ba5","b":"98cb6bf42e086f6af920b965c38cacc07402d51b","first":200,"patch":true,"path0":"nope/","paths":["nope/"],"repo":"github.com/gorilla/mux"}'
+document = "Comparison-c145ac07"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-28, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "a": {
+      "commit": {
+        "oid": "75dcda0896e109a2a22c9315bca3bb21b87b2ba5",
+        "p0": null
+      }
+    },
+    "b": {
+      "commit": {
+        "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+        "p0": null
+      }
+    },
+    "c": {
+      "comparison": {
+        "all": {
+          "diffStat": {
+            "added": 0,
+            "deleted": 0
+          },
+          "totalCount": 0
+        },
+        "page": {
+          "nodes": [],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        },
+        "patch": {
+          "rawDiff": ""
+        },
+        "range": {
+          "mergeBase": {
+            "oid": "75dcda0896e109a2a22c9315bca3bb21b87b2ba5"
+          }
+        }
+      }
+    }
+  }
+}
+'''

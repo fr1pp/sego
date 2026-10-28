@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::fmt::{self, Write as _};
 
 use serde::Serialize;
@@ -8,6 +9,7 @@ use crate::error::Error;
 use crate::escape::shell_word;
 use crate::escape::{one_line, render_line};
 use crate::output::{Notes, closing_fields, count, date, header, header_line};
+use crate::pointer;
 use crate::sourcegraph::{Client, CommitSummary, History, Tag};
 
 const ROWS: usize = 150;
@@ -147,6 +149,17 @@ pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Err
     Ok(answer(history, args, notes))
 }
 
+/// Whether a log from the last of `page`'s commits holds exactly those a
+/// cut log left out: no other commit on the page has a parent off it, so
+/// every commit left out is an ancestor of the last.
+fn continues(page: &[Entry]) -> bool {
+    let shown: HashSet<&str> = page.iter().map(|entry| entry.commit.as_str()).collect();
+    let Some((_, rest)) = page.split_last() else {
+        return false;
+    };
+    rest.iter().flat_map(|entry| &entry.parents).all(|parent| shown.contains(parent.as_str()))
+}
+
 /// The answer for `history`, its entries marked with the tags that name
 /// them.
 fn answer(history: History, args: &Args, notes: &mut Notes) -> Answer {
@@ -168,7 +181,20 @@ fn answer(history: History, args: &Args, notes: &mut Notes) -> Answer {
         subject: commit.subject,
         parents: commit.parents,
     };
-    let commits = history.commits.items.into_iter().map(entry).collect();
+    let commits: Vec<Entry> = history.commits.items.into_iter().map(entry).collect();
+    if matches!(args.revs, Revs::One(_))
+        && history.commits.more
+        && !args.follow
+        && let Some(oldest) = commits.last()
+    {
+        let path = args.path.as_deref();
+        let note = if path.is_none() && continues(&commits) {
+            pointer::log_continues(pointer::At { repo: &history.head.repo, commit: &oldest.commit })
+        } else {
+            pointer::log_rest(history.head.at(), &oldest.commit, path)
+        };
+        notes.push(note);
+    }
     let at = match (&args.revs, history.base) {
         (Revs::Range { base, head }, Some(base_end)) => At {
             rev_a: Some(base.clone()),

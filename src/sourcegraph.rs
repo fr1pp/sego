@@ -29,6 +29,9 @@ pub use search::{
     Alert, CommitResult, FileMatch, Item, Listing, Range, Results, Search, Symbol, UnindexedFile,
 };
 
+/// The most bytes of a file a read can return: a response holds no more.
+pub const LARGEST_READ: u64 = http::BODY_LIMIT;
+
 /// What a history covers: a revision, or the default branch for `None`; or
 /// a range, its head's commits that aren't its base's.
 #[derive(Clone, Copy)]

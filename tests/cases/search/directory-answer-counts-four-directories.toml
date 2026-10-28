@@ -10,9 +10,6 @@ example.com/acme/widget@0123456789ab:src/a/
 example.com/acme/widget@0123456789ab:src/b/
 example.com/acme/widget@0123456789ab:docs/
 '''
-stderr = '''
-sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
-'''
 
 [[exchange]]
 operation = "Search"

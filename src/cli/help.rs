@@ -63,15 +63,16 @@ const SEARCH_FACTS: &str = r#"defaults:
   results or at its 20 s deadline, though the answer can arrive later;
   count:N and timeout:60s raise them. By default,
   Sourcegraph excludes archived repositories and forks; add archived:yes or
-  fork:yes to include them. Files too large to search are skipped, and
-  sego show reads any file; index:no reads files skipped for too many
-  distinct trigrams.
+  fork:yes to include them. No search reads a file over 1 MiB, and
+  sego show reads files under 64 MiB; index:no searches files skipped for
+  too many distinct trigrams.
 
 text:
   N UNIT  R repos  T s      UNIT is matches, commits, files,
                             directories, symbols or repos; N+ when
                             more may exist; "stopped at T s" when the
-                            deadline cut the search
+                            deadline cut the search, and a note names
+                            what reaches further
   query  QUERY              the query as sent
   widen  FILTER (N repos)   repositories in scope left out by default
   REPO@COMMIT:PATH          a file with results, then "N:text" for a
@@ -79,10 +80,10 @@ text:
   A match is one matched range; a line can hold several.
   A diff result previews at most 5 files and 3 hunks a file.
   Text prints the first 100 matches; --json carries every result fetched.
-  Notes on stderr name skipped files; at a pin, a 0 says it can't list them.
-  Sourcegraph doesn't report a search backend that fails to answer, so a 0
-  can come from one, and a search over several repositories can miss a
-  backend's share; every 0 carries a note saying so.
+  A note names the files a search skipped, when the search can list them,
+  and what reads them. Sourcegraph doesn't report a search backend that
+  fails to answer, so a 0 can come from one, and a search over several
+  repositories can miss a backend's share.
 
 json:
   query pattern_type unit count at_least stopped elapsed_ms limit_ms
@@ -207,8 +208,8 @@ const LOG_FACTS: &str = r#"text:
   then a row per commit, "COMMIT  DATE  AUTHOR  SUBJECT", with
   "(tag: NAME)" before the subject of a tagged commit. behind B: commits
   in A and not in B, for a range with no PATH.
-  Text and JSON list the first 150 commits of a REV; a range lists them
-  all in JSON.
+  Text and JSON list the first 150 commits of a REV, and without --follow
+  a note names what lists the rest; a range lists them all in JSON.
 
 json:
   repo rev commit rev_a rev_b commit_a commit_b path follow behind
@@ -256,8 +257,14 @@ examples:
 
 /// A command's help: its usage, then `operands`, `options` and `facts`,
 /// one blank line apart.
+const ERRORS: &str = "\
+errors:
+  An error's indented lines state facts, such as the default branch, and
+  can name the sego command or filter that finds what it couldn't.
+";
+
 fn command_help(synopsis: &str, operands: &str, options: &str, facts: &str) -> String {
-    format!("{}\n\n{operands}\n{options}\n{facts}", usage_block(synopsis))
+    format!("{}\n\n{operands}\n{options}\n{facts}\n{ERRORS}", usage_block(synopsis))
 }
 
 pub fn search() -> String {
@@ -333,6 +340,12 @@ exit codes: 0 answered, 1 not found, 2 usage error, 3 failure
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_read_limit_help_states_is_the_one_sego_keeps() {
+        let mib = crate::sourcegraph::LARGEST_READ >> 20;
+        assert!(SEARCH_FACTS.contains(&format!("files under {mib} MiB")));
+    }
 
     fn topics() -> impl Iterator<Item = Option<&'static str>> {
         std::iter::once(None).chain(COMMANDS.iter().map(|entry| Some(entry.name)))

@@ -7,7 +7,6 @@ query  repo:example.com/acme/widget foo
 '''
 stderr = '''
 sego: note: 1 result of kind Weird not shown
-sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
 '''
 
 [[exchange]]

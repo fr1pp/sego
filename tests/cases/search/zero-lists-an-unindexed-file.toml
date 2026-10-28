@@ -9,7 +9,7 @@ query  repo:^github\.com/elixir-sqlite/exqlite$ sqlite3VdbeExec
 stderr = '''
 sego: note: the contents of 1 file in scope aren't in the search index (1 over 1 MiB):
   github.com/elixir-sqlite/exqlite@794f414a791e:c_src/sqlite3.c  9.1 MiB
-sego: note: Sourcegraph doesn't report a search backend that fails to answer, and a 0 can come from one
+sego: note: sego show reads the 1 file over 1 MiB, which no search reaches
 '''
 
 [[exchange]]

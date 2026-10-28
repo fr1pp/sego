@@ -154,6 +154,9 @@ f89494aed121  2012-10-14  Kamil Kisiel  Finished converting rest of mux tests to
 bcb4f4bcdcd3  2012-10-05  Kamil Kisiel  Converted TestRoute to a table-driven test
 eac83ba2c004  2012-10-03  moraes  Initial files.
 '''
+stderr = '''
+sego: note: sego log github.com/gorilla/mux@eac83ba2c004 continues from the last commit shown
+'''
 
 [[exchange]]
 operation = "Log"

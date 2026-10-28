@@ -10,6 +10,7 @@ use crate::escape::shell_word;
 use crate::output::{
     FileRow, Notes, closing_fields, file_row, files_field, header_line, row_text, rows_asked,
 };
+use crate::pointer;
 use crate::sourcegraph::Client;
 
 const PATCH_INDENT: &str = "    ";
@@ -91,8 +92,10 @@ pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Err
     let first = rows_asked(args.json, TEXT_ROWS);
     let comparison = client.comparison(&args.repo, args.revs.revisions(), &args.paths, first)?;
     let mirrored_at = comparison.lookup().noting_other_host(|note| notes.push(note));
-    let root_commit =
-        || Error::not_found(format!("{head} is a root commit: Sourcegraph has no diff for it"));
+    let root_commit = || {
+        Error::not_found(format!("{head} is a root commit: Sourcegraph has no diff for it"))
+            .fact(pointer::root_tree(comparison.head.at()))
+    };
     let Some(changes) = comparison.changes else {
         return Err(root_commit());
     };

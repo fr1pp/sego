@@ -6,7 +6,7 @@ github.com/gorilla/mux@4e8d10dc715f  2012-10-02  rodrigo moraes  parents none
     Initial commit
 '''
 stderr = '''
-sego: note: root commit: Sourcegraph has no diff for it
+sego: note: root commit: Sourcegraph has no diff for it; sego ls --recursive --json github.com/gorilla/mux@4e8d10dc715f lists every file it adds
 '''
 
 [[exchange]]

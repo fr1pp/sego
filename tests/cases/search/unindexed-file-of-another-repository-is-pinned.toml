@@ -11,6 +11,7 @@ example.com/acme/widget@0123456789ab:main.go
 stderr = '''
 sego: note: the contents of 1 file in scope aren't in the search index (1 over 1 MiB):
   example.com/acme/gadget@0123456789ab:p  2.0 MiB
+sego: note: sego show reads the 1 file over 1 MiB, which no search reaches
 '''
 
 [[exchange]]

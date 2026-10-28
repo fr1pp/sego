@@ -1,5 +1,4 @@
-# The note on the query comes before the alert, and the note on files the search
-# skipped comes last.
+# The note on the query comes before the alert.
 args = ["search", "lang:go lang:rust foo"]
 status.code = 0
 stdout = '''
@@ -11,7 +10,6 @@ example.com/acme/widget
 stderr = '''
 sego: note: lang: filters intersect: a file must match both
 sego: note: Heads up: be careful
-sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
 '''
 
 [[exchange]]

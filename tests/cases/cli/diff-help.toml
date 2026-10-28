@@ -39,4 +39,8 @@ json:
 examples:
   sego diff github.com/gorilla/mux@v1.7.4...v1.8.0
   sego diff github.com/gorilla/mux@v1.7.4...v1.8.0 mux.go
+
+errors:
+  An error's indented lines state facts, such as the default branch, and
+  can name the sego command or filter that finds what it couldn't.
 '''

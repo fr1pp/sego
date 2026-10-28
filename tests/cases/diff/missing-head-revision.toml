@@ -3,6 +3,8 @@ args = ["diff", "github.com/gorilla/mux@v1.7.0...v9.9.9"]
 status.code = 1
 stderr = '''
 sego: error: head revision v9.9.9 not found in github.com/gorilla/mux
+  the default branch is main
+  sego refs github.com/gorilla/mux 9.9.9 lists the refs whose names contain 9.9.9
 '''
 
 [[exchange]]

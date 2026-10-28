@@ -59,7 +59,8 @@ A fact about an answer, written to stderr before the answer as `sego: note: …`
 _Avoid_: warning, hint
 
 **Pointer**:
-A note or error line naming the sego command, option or filter that gets what an answer left out.
+A note or error line naming the sego command, option or filter that gets what an answer left out,
+or finds a name an error left the caller without, worked out from the answer.
 _Avoid_: suggestion, hint, advice
 
 **Usage error**:

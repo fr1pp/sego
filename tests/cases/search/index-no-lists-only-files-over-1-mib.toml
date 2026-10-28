@@ -13,6 +13,7 @@ stderr = '''
 sego: note: the contents of 2 files in scope aren't in the search index (2 over 1 MiB):
   bigger  3.0 MiB
   big  2.0 MiB
+sego: note: sego show reads the 2 files over 1 MiB, which no search reaches
 '''
 
 [[exchange]]

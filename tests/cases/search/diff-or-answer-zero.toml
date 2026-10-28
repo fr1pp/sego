@@ -5,9 +5,6 @@ stdout = '''
 0 matches  0.4 s
 query  (repo:example.com/app type:diff foo) or (repo:example.com/app bar)
 '''
-stderr = '''
-sego: note: Sourcegraph doesn't report a search backend that fails to answer, and a 0 can come from one
-'''
 
 [[exchange]]
 operation = "Search"

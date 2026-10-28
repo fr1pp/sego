@@ -28,15 +28,16 @@ defaults:
   results or at its 20 s deadline, though the answer can arrive later;
   count:N and timeout:60s raise them. By default,
   Sourcegraph excludes archived repositories and forks; add archived:yes or
-  fork:yes to include them. Files too large to search are skipped, and
-  sego show reads any file; index:no reads files skipped for too many
-  distinct trigrams.
+  fork:yes to include them. No search reads a file over 1 MiB, and
+  sego show reads files under 64 MiB; index:no searches files skipped for
+  too many distinct trigrams.
 
 text:
   N UNIT  R repos  T s      UNIT is matches, commits, files,
                             directories, symbols or repos; N+ when
                             more may exist; "stopped at T s" when the
-                            deadline cut the search
+                            deadline cut the search, and a note names
+                            what reaches further
   query  QUERY              the query as sent
   widen  FILTER (N repos)   repositories in scope left out by default
   REPO@COMMIT:PATH          a file with results, then "N:text" for a
@@ -44,10 +45,10 @@ text:
   A match is one matched range; a line can hold several.
   A diff result previews at most 5 files and 3 hunks a file.
   Text prints the first 100 matches; --json carries every result fetched.
-  Notes on stderr name skipped files; at a pin, a 0 says it can't list them.
-  Sourcegraph doesn't report a search backend that fails to answer, so a 0
-  can come from one, and a search over several repositories can miss a
-  backend's share; every 0 carries a note saying so.
+  A note names the files a search skipped, when the search can list them,
+  and what reads them. Sourcegraph doesn't report a search backend that
+  fails to answer, so a 0 can come from one, and a search over several
+  repositories can miss a backend's share.
 
 json:
   query pattern_type unit count at_least stopped elapsed_ms limit_ms
@@ -63,4 +64,8 @@ json:
 examples:
   sego search 'repo:^github\.com/gorilla/mux$ "func NewRouter"'
   sego search --json 'repo:^github\.com/gorilla/mux$ StrictSlash count:100'
+
+errors:
+  An error's indented lines state facts, such as the default branch, and
+  can name the sego command or filter that finds what it couldn't.
 '''

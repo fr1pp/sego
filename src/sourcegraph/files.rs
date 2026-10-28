@@ -13,6 +13,7 @@ use super::graphql::{Envelope, GqlErrorKind, Request, Segment, View, repeated};
 use super::resolve::{self, Repository, Resolved, repository_variables, split_guesses};
 use crate::address::{Repo, Target, pinned};
 use crate::error::Error;
+use crate::pointer;
 
 /// How many lines an open-ended window asks for, at most.
 const OPEN_END_SPAN: i64 = 500_000;
@@ -368,8 +369,12 @@ fn read_at(
             return Err(Error::failed(part));
         }
         let at = pinned(&found.name, &commit, None);
-        let name = if path.is_empty() { "./" } else { path };
-        return Err(Error::not_found(format!("{name} not found in {at}")));
+        if path.is_empty() {
+            return Err(Error::not_found(format!("./ not found in {at}")));
+        }
+        let missing =
+            pointer::missing_path(pointer::At { repo: &found.name, commit: &commit }, path);
+        return Err(Error::not_found(format!("{path} not found in {at}")).facts(missing));
     };
     let (urls, gitmodules) = if view.errors_beneath(&["gm"]).is_empty() {
         let text: Option<String> = view.read(&["gm", "content"]);

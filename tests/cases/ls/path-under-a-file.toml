@@ -3,6 +3,8 @@ args = ["ls", "github.com/gorilla/mux@v1.8.0:mux.go/x"]
 status.code = 1
 stderr = '''
 sego: error: mux.go/x not found in github.com/gorilla/mux@98cb6bf42e08
+  sego search 'repo:^github\.com/gorilla/mux$@98cb6bf42e08 file:(^|/)x(/|$) count:all' lists the files named x, or under a directory named x, at 98cb6bf42e08
+  sego log github.com/gorilla/mux@98cb6bf42e08:mux.go/x lists any commits that changed mux.go/x
 '''
 
 [[exchange]]

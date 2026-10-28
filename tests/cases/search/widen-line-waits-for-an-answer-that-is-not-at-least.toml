@@ -6,9 +6,6 @@ stdout = '''
 0+ matches  0.1 s
 query  lang:javascript Foo count:2
 '''
-stderr = '''
-sego: note: Sourcegraph doesn't report a search backend that fails to answer, and a 0 can come from one
-'''
 
 [[exchange]]
 operation = "Search"

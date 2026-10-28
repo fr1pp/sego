@@ -3,6 +3,8 @@ args = ["diff", "example.com/acme/widget@v1...v2", "here.go", "gone.go"]
 status.code = 1
 stderr = '''
 sego: error: gone.go not found in example.com/acme/widget@0123456789ab or @89abcdef0123
+  sego search 'repo:^example\.com/acme/widget$@89abcdef0123 file:(^|/)gone\.go(/|$) count:all' lists the files named gone.go, or under a directory named gone.go, at 89abcdef0123
+  sego log example.com/acme/widget@89abcdef0123:gone.go lists any commits that changed gone.go
 '''
 
 [[exchange]]

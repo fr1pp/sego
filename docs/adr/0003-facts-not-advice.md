@@ -7,6 +7,13 @@ answer left out (`--json has the full list`), or that finds a name an error left
 The aim is that nothing sego prints is false, and that nothing it prints invites a search the agent
 can't win.
 
+A pointer is worked out from the answer: it gives the command or filter itself, ready to run, and
+appears only where it holds for that answer. One pointer guesses at meaning. A missing revision that
+ends in a release number points to the refs that contain the number (`release/1.28` gives
+`sego refs REPO 1.28`), since tags and branches spell one release with different prefixes and
+separators: on 2026-10-27, `refs` found nothing for `release/1.28` in kubernetes or `release-8.0` in
+dotnet/runtime, and found both branches by the number alone. A list of refs can't mislead.
+
 Every answer is **pinned**, so each location names its commit as a pinned address. Every answer is
 also **honest about size**: when sego prints less than it found, it says how much less, and when the
 server stops early, sego passes on the server's signal. Agents take what sego prints at face value.

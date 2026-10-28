@@ -20,8 +20,8 @@ error's message is the note's reason. There are two exceptions:
   local directory.
 - The unindexed listing is an `Option`, `None` when it wasn't sent or can't be read. `search`
   treats a listing that is incomplete or empty as unknown too. A side query that fails under load
-  usually comes back empty rather than with an error (ADR 0007), so the note is fixed and gives no
-  reason.
+  usually comes back empty rather than with an error (ADR 0007), so unknown is the common case, and
+  it prints no note: one would sit on almost every answer. Its JSON field is still `null`.
 
 A note says what is unknown and why, such as "tags not marked: Sourcegraph failed to answer the tag
 list", never only that something went wrong.

@@ -25,8 +25,8 @@ text:
   then a row per commit, "COMMIT  DATE  AUTHOR  SUBJECT", with
   "(tag: NAME)" before the subject of a tagged commit. behind B: commits
   in A and not in B, for a range with no PATH.
-  Text and JSON list the first 150 commits of a REV; a range lists them
-  all in JSON.
+  Text and JSON list the first 150 commits of a REV, and without --follow
+  a note names what lists the rest; a range lists them all in JSON.
 
 json:
   repo rev commit rev_a rev_b commit_a commit_b path follow behind
@@ -37,4 +37,8 @@ json:
 examples:
   sego log github.com/gorilla/mux:mux.go
   sego log github.com/gorilla/mux@v1.7.4..v1.8.0 mux.go
+
+errors:
+  An error's indented lines state facts, such as the default branch, and
+  can name the sego command or filter that finds what it couldn't.
 '''

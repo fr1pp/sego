@@ -13,6 +13,8 @@ sego: note: the contents of 3 files in scope aren't in the search index (2 over 
   bigger.txt  3.0 MiB
   big.txt  2.0 MiB
   small.txt  4.9 KiB
+sego: note: index:no searches the 1 file with too many distinct trigrams
+sego: note: sego show reads the 2 files over 1 MiB, which no search reaches
 '''
 
 [[exchange]]

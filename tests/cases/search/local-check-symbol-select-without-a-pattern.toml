@@ -8,7 +8,6 @@ query  repo:example.com/acme/widget@a..b type:symbol select:symbol.method
 stderr = '''
 sego: note: repo:example.com/acme/widget@a..b searches b only
 sego: note: type:symbol with select:symbol and no pattern returns nothing; /./ matches every symbol
-sego: note: Sourcegraph doesn't report a search backend that fails to answer, and a 0 can come from one
 '''
 
 [[exchange]]

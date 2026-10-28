@@ -5,6 +5,7 @@ mod query;
 
 use crate::error::{Error, Kind};
 use crate::output::Notes;
+use crate::pointer;
 use crate::sourcegraph::{Client, Listing, Search};
 
 pub use answer::Answer;
@@ -12,11 +13,7 @@ use plan::PatternType;
 use query::Query;
 
 fn pointed(error: Error) -> Error {
-    if error.kind() == Kind::Deadline {
-        error.fact("repo:, lang: or file: narrows what the search reads")
-    } else {
-        error
-    }
+    if error.kind() == Kind::Deadline { error.fact(pointer::NARROWS) } else { error }
 }
 
 const REASON_CHARS: usize = 200;
@@ -197,10 +194,28 @@ mod tests {
         }
     }
 
+    /// `stopped_pointer` says sourcegraph.com allows at most `timeout:60s`:
+    /// a search that runs longer stops at 60 s, whatever `timeout:` it asks for.
+    fn deadline_ceiling() -> Result<(), String> {
+        let (results, _) =
+            searched_live(r"repo:^github\.com/torvalds/linux$ type:diff zqxjvkwq timeout:90s")?;
+        let ms = results.elapsed_milliseconds;
+        let stopped = !results.timedout.is_empty();
+        if ms > 85_000 {
+            Err(format!("ran {ms} ms; the most allowed is no longer 60 s"))
+        } else if ms >= 59_000 {
+            Ok(())
+        } else if stopped {
+            Err(format!("stopped early at {ms} ms, likely under load; run it again"))
+        } else {
+            Err(format!("the search finished in {ms} ms; it no longer runs long"))
+        }
+    }
+
     #[test]
     #[ignore = "sends requests to sourcegraph.com"]
-    fn the_rules_search_relies_on_for_counts_and_unindexed_files_still_hold_on_the_live_server() {
-        let rules: [(&str, Rule); 7] = [
+    fn the_rules_search_relies_on_still_hold_on_the_live_server() {
+        let rules: [(&str, Rule); 8] = [
             ("placeholder listing", placeholder_listing),
             ("trigram reason", trigram_reason),
             ("cap and plus", cap_and_plus),
@@ -208,6 +223,7 @@ mod tests {
             ("utility counts", utility_counts),
             ("symbols of content", symbols_of_content),
             ("repo select cut", repo_select_cut),
+            ("deadline ceiling", deadline_ceiling),
         ];
         let failures: Vec<String> = rules
             .iter()

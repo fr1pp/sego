@@ -9,8 +9,6 @@ query  repo:example.com/acme/widget@v1 patterntype:structural foo(...)
 stderr = '''
 sego: note: a structural search over more than one file can miss matches without a +; file:^PATH$ makes it complete, and a regex search marks a cut with +
 sego: note: with no lang: and no file: extension, a structural search can parse files as the wrong language and miss matches; lang: names the language
-sego: note: at a pinned revision the search can't tell which files it skipped; files over 1 MiB are never searched
-sego: note: Sourcegraph doesn't report a search backend that fails to answer, and a 0 can come from one
 '''
 
 [[exchange]]

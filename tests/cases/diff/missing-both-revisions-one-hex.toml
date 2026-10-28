@@ -3,6 +3,8 @@ args = ["diff", "github.com/gorilla/mux@dead...v9.9.9"]
 status.code = 1
 stderr = '''
 sego: error: revisions dead and v9.9.9 not found in github.com/gorilla/mux: no ref is named dead and no single commit starts with it
+  the default branch is main
+  sego refs github.com/gorilla/mux 9.9.9 lists the refs whose names contain 9.9.9
 '''
 
 [[exchange]]

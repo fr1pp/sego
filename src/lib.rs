@@ -12,6 +12,7 @@ mod commands;
 mod error;
 mod escape;
 mod output;
+mod pointer;
 mod sourcegraph;
 
 use std::ffi::{OsStr, OsString};

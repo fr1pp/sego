@@ -12,7 +12,8 @@ sego: note: the contents of 5 files in scope aren't in the search index (3 over 
   example.com/acme/widget@111111111111:data/dump.sql  3.3 MiB
   example.com/acme/gadget@222222222222:vendor/big.js  1.1 MiB
   … (+2 more files; --json has the full list)
-sego: note: Sourcegraph doesn't report a search backend that fails to answer, and a 0 can come from one
+sego: note: index:no searches the 2 files with too many distinct trigrams
+sego: note: sego show reads the 3 files over 1 MiB, which no search reaches
 '''
 
 [[exchange]]

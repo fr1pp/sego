@@ -7,8 +7,6 @@ query  repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter select:symbol
 '''
 stderr = '''
 sego: note: select:symbol over a content search returns nothing on sourcegraph.com; type:symbol searches symbols
-sego: note: at a pinned revision the search can't tell which files it skipped; files over 1 MiB are never searched
-sego: note: Sourcegraph doesn't report a search backend that fails to answer, and a 0 can come from one
 '''
 
 [[exchange]]

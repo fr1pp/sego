@@ -13,9 +13,6 @@ example.com/app@0123456789ab:a.go
 
 example.com/app@0123456789ab:b.go
 '''
-stderr = '''
-sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
-'''
 
 [[exchange]]
 operation = "Search"

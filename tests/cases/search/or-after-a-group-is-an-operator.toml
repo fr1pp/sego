@@ -5,10 +5,6 @@ stdout = '''
 0 matches  2.0 s
 query  (repo:^github\.com/gorilla/mux$ zqxv)or useState
 '''
-stderr = '''
-sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
-sego: note: Sourcegraph doesn't report a search backend that fails to answer, and a 0 can come from one
-'''
 
 [[exchange]]
 operation = "Search"

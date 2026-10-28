@@ -6,6 +6,7 @@ use serde_json::{Map, Value, json};
 use super::graphql::{Envelope, GqlErrorKind, Request};
 use crate::address::{FULL_OID, Repo, is_name, is_oid_like, parse_path, valid_revision};
 use crate::error::{Error, Kind};
+use crate::pointer;
 
 pub const NOT_INDEXED: &str = "sourcegraph.com serves indexed repositories from \
     github.com, gitlab.com and a few other hosts; a renamed repository \
@@ -49,6 +50,11 @@ impl Lookup {
 }
 
 impl Resolved {
+    /// The commit as a pointer names it.
+    pub fn at(&self) -> pointer::At<'_> {
+        pointer::At { repo: &self.repo, commit: &self.commit }
+    }
+
     /// The lookup as this end or a range's other end read it: both ends
     /// share one repository and one mirror.
     pub fn lookup_with(&self, other: Option<&Resolved>) -> Lookup {
@@ -88,9 +94,9 @@ pub struct Repository {
     pub root: String,
     /// Which of the address's candidates it is, in order.
     candidate: usize,
-    /// Whether it has a default branch, which only a repository with no
-    /// commits lacks.
-    has_commits: bool,
+    /// The default branch's name, which only a repository with no commits
+    /// lacks.
+    default_branch: Option<String>,
     /// Whether the default branch's lookup failed, which leaves that unknown.
     branch_failed: bool,
     /// When Sourcegraph last updated its mirror, to the minute.
@@ -115,7 +121,7 @@ impl Repository {
     pub fn no_commits(&self) -> Option<Error> {
         if self.branch_failed {
             Some(Error::failed("the repository lookup"))
-        } else if self.has_commits {
+        } else if self.default_branch.is_some() {
             None
         } else {
             Some(Error::not_found(format!("{} has no commits", self.name)))
@@ -181,15 +187,17 @@ enum Missing<'a> {
     Both(&'a str, &'a str),
 }
 
-fn missing_revisions(repo: &str, missing: &Missing<'_>) -> Error {
-    let message = match missing {
-        Missing::Revision(rev) => format!("revision {rev} not found in {repo}{}", hex_reading(rev)),
-        Missing::Base(rev) => {
-            format!("base revision {rev} not found in {repo}{}", hex_reading(rev))
-        }
-        Missing::Head(rev) => {
-            format!("head revision {rev} not found in {repo}{}", hex_reading(rev))
-        }
+/// The error for revisions that name no commit in `found`. When `sego refs`
+/// can match one, it states the default branch, then points to the refs
+/// the first such one could have meant.
+fn missing_revisions(found: &Repository, missing: &Missing<'_>) -> Error {
+    let repo = &found.name;
+    let one =
+        |label: &str, rev: &str| format!("{label} {rev} not found in {repo}{}", hex_reading(rev));
+    let (message, revs) = match *missing {
+        Missing::Revision(rev) => (one("revision", rev), vec![rev]),
+        Missing::Base(rev) => (one("base revision", rev), vec![rev]),
+        Missing::Head(rev) => (one("head revision", rev), vec![rev]),
         Missing::Both(base, head) => {
             let reading = match (is_abbreviation(base), is_abbreviation(head)) {
                 (false, false) => String::new(),
@@ -199,10 +207,16 @@ fn missing_revisions(repo: &str, missing: &Missing<'_>) -> Error {
                 (true, false) => end_hex_reading(base),
                 (false, true) => end_hex_reading(head),
             };
-            format!("revisions {base} and {head} not found in {repo}{reading}")
+            (format!("revisions {base} and {head} not found in {repo}{reading}"), vec![base, head])
         }
     };
-    Error::not_found(message)
+    let error = Error::not_found(message);
+    let Some(line) = revs.iter().find_map(|rev| pointer::refs(repo, rev)) else {
+        return error;
+    };
+    let branch =
+        found.default_branch.as_ref().map(|branch| format!("the default branch is {branch}"));
+    error.facts(branch.into_iter().chain([line]))
 }
 
 /// Whether `rev` could abbreviate a commit ID: 4 to 39 hex digits.
@@ -253,7 +267,10 @@ pub fn repository(repo: &Repo, envelope: &Envelope, roots: &[&str]) -> Result<Re
                 name: name_at(i),
                 root: root.to_owned(),
                 candidate: i,
-                has_commits: envelope.get(&[root, "defaultBranch"]).is_some(),
+                default_branch: envelope
+                    .get(&[root, "defaultBranch", "displayName"])
+                    .and_then(Value::as_str)
+                    .map(str::to_owned),
                 branch_failed: envelope.error_beneath(&[root, "defaultBranch"]).is_some(),
                 updated_at: envelope
                     .get(&[root, "mirrorInfo", "updatedAt"])
@@ -288,9 +305,7 @@ pub fn commit(
     if envelope.errors_beneath(at).iter().any(|e| e.kind() != GqlErrorKind::RevisionNotFound) {
         return Err(Error::failed("the revision lookup"));
     }
-    Err(found
-        .no_commits()
-        .unwrap_or_else(|| missing_revisions(&found.name, &Missing::Revision(rev))))
+    Err(found.no_commits().unwrap_or_else(|| missing_revisions(found, &Missing::Revision(rev))))
 }
 
 /// Both ends of a range, each looked up once. Two missing names share one
@@ -331,10 +346,10 @@ pub fn read_range(envelope: &Envelope, repo: &Repo, base: &str, head: &str) -> R
         (Err(_), Err(_)) => {
             return Err(found
                 .no_commits()
-                .unwrap_or_else(|| missing_revisions(&found.name, &Missing::Both(base, head))));
+                .unwrap_or_else(|| missing_revisions(&found, &Missing::Both(base, head))));
         }
-        (Err(_), Ok(_)) => return Err(missing_revisions(&found.name, &Missing::Base(base))),
-        (Ok(_), Err(_)) => return Err(missing_revisions(&found.name, &Missing::Head(head))),
+        (Err(_), Ok(_)) => return Err(missing_revisions(&found, &Missing::Base(base))),
+        (Ok(_), Err(_)) => return Err(missing_revisions(&found, &Missing::Head(head))),
     };
     let end = |oid: String, rev: &str| Resolved::new(&found, oid, Some(rev.to_owned()), None);
     Ok(Ends { base: end(a, base), head: end(b, head) })
@@ -372,7 +387,16 @@ mod tests {
 
     #[test]
     fn a_missing_hex_revision_says_what_it_rules_out() {
-        let message = |rev: &str| missing_revisions("r", &Missing::Revision(rev)).to_string();
+        let found = Repository {
+            name: "r".to_owned(),
+            root: "r0".to_owned(),
+            candidate: 0,
+            default_branch: Some("main".to_owned()),
+            branch_failed: false,
+            updated_at: None,
+            other_host: Ok(()),
+        };
+        let message = |rev: &str| missing_revisions(&found, &Missing::Revision(rev)).to_string();
         assert_eq!(
             message("49c0"),
             "revision 49c0 not found in r: no ref has that name and no single commit starts with it"

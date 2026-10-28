@@ -10,7 +10,7 @@ stderr = '''
 sego: note: the contents of 2 files in scope aren't in the search index (2 too many distinct trigrams):
   example.com/acme/lib@0123456789ab:u  1.0 MiB
   example.com/acme/lib@0123456789ab:t  100 B
-sego: note: Sourcegraph doesn't report a search backend that fails to answer, and a 0 can come from one
+sego: note: index:no searches the 2 files with too many distinct trigrams
 '''
 
 [[exchange]]

@@ -502,6 +502,11 @@ mod diff {
     }
 
     #[test]
+    fn missing_directory_is_searched_for_by_its_name() {
+        case("diff/missing-directory-is-searched-for-by-its-name.toml");
+    }
+
+    #[test]
     fn missing_head_revision() {
         case("diff/missing-head-revision.toml");
     }
@@ -776,6 +781,11 @@ mod log {
     }
 
     #[test]
+    fn follow_past_150_commits_points_nowhere() {
+        case("log/follow-past-150-commits-points-nowhere.toml");
+    }
+
+    #[test]
     fn missing_base_revision() {
         case("log/missing-base-revision.toml");
     }
@@ -903,6 +913,11 @@ mod log {
     #[test]
     fn revision_past_default_limit() {
         case("log/revision-past-default-limit.toml");
+    }
+
+    #[test]
+    fn revision_with_a_path_past_150_commits_points_to_the_rest() {
+        case("log/revision-with-a-path-past-150-commits-points-to-the-rest.toml");
     }
 
     #[test]
@@ -1528,18 +1543,8 @@ mod search {
     }
 
     #[test]
-    fn head_zero_with_a_cut_side_query_notes_the_default_branch() {
-        case("search/head-zero-with-a-cut-side-query-notes-the-default-branch.toml");
-    }
-
-    #[test]
     fn index_no_lists_only_files_over_1_mib() {
         case("search/index-no-lists-only-files-over-1-mib.toml");
-    }
-
-    #[test]
-    fn index_no_search_names_only_files_over_1_mib_as_skipped() {
-        case("search/index-no-search-names-only-files-over-1-mib-as-skipped.toml");
     }
 
     #[test]
@@ -1688,8 +1693,8 @@ mod search {
     }
 
     #[test]
-    fn or_search_cannot_list_unindexed_files() {
-        case("search/or-search-cannot-list-unindexed-files.toml");
+    fn or_search_sends_no_side_query() {
+        case("search/or-search-sends-no-side-query.toml");
     }
 
     #[test]
@@ -1728,8 +1733,8 @@ mod search {
     }
 
     #[test]
-    fn pinned_search_zero_lists_no_unindexed_files() {
-        case("search/pinned-search-zero-lists-no-unindexed-files.toml");
+    fn pinned_search_sends_no_side_query() {
+        case("search/pinned-search-sends-no-side-query.toml");
     }
 
     #[test]
@@ -1743,13 +1748,13 @@ mod search {
     }
 
     #[test]
-    fn pinned_select_directory_zero_notes_skipped_files() {
-        case("search/pinned-select-directory-zero-notes-skipped-files.toml");
+    fn pinned_select_directory_zero_has_no_cap_note() {
+        case("search/pinned-select-directory-zero-has-no-cap-note.toml");
     }
 
     #[test]
-    fn pinned_select_file_zero_notes_skipped_files() {
-        case("search/pinned-select-file-zero-notes-skipped-files.toml");
+    fn pinned_select_file_zero_has_no_cap_note() {
+        case("search/pinned-select-file-zero-has-no-cap-note.toml");
     }
 
     #[test]
@@ -2098,6 +2103,11 @@ mod search {
     }
 
     #[test]
+    fn unindexed_file_over_64_mib_is_not_pointed_to_sego_show() {
+        case("search/unindexed-file-over-64-mib-is-not-pointed-to-sego-show.toml");
+    }
+
+    #[test]
     fn unindexed_file_with_a_space_is_quoted() {
         case("search/unindexed-file-with-a-space-is-quoted.toml");
     }
@@ -2399,6 +2409,11 @@ mod show {
     #[test]
     fn missing_repository() {
         case("show/missing-repository.toml");
+    }
+
+    #[test]
+    fn missing_revision_ending_in_a_release_number() {
+        case("show/missing-revision-ending-in-a-release-number.toml");
     }
 
     #[test]

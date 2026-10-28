@@ -7,7 +7,6 @@ query  repo:^github\.com/gorilla/mux$@v1.8.0 type:bogus NewRouter
 '''
 stderr = '''
 sego: note: type:bogus is not a result type; the server returns nothing
-sego: note: Sourcegraph doesn't report a search backend that fails to answer, and a 0 can come from one
 '''
 
 [[exchange]]

@@ -2,10 +2,7 @@
 args = ["search", "--json", "repo:example.com/app foo"]
 status.code = 0
 stdout = '''
-{"query":"repo:example.com/app foo","pattern_type":"keyword","unit":"matches","count":1,"at_least":false,"stopped":false,"elapsed_ms":100,"limit_ms":20000,"widen":[],"unindexed":null,"alert":null,"results":[{"kind":"binary","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"a.bin"}],"server":{"match_count":1,"approximate_count":"1","limit_hit":false,"timedout":[]},"notes":["the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched"]}
-'''
-stderr = '''
-sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
+{"query":"repo:example.com/app foo","pattern_type":"keyword","unit":"matches","count":1,"at_least":false,"stopped":false,"elapsed_ms":100,"limit_ms":20000,"widen":[],"unindexed":null,"alert":null,"results":[{"kind":"binary","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"a.bin"}],"server":{"match_count":1,"approximate_count":"1","limit_hit":false,"timedout":[]},"notes":[]}
 '''
 
 [[exchange]]

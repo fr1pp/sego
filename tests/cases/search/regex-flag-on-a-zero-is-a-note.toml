@@ -7,8 +7,6 @@ query  repo:example.com/acme/widget /cloudflare/i
 '''
 stderr = '''
 sego: note: the server searches `/cloudflare/i` as text; it ignores case by default
-sego: note: the search can't tell which files it skipped; files over 1 MiB and files with too many distinct trigrams are never searched
-sego: note: Sourcegraph doesn't report a search backend that fails to answer, and a 0 can come from one
 '''
 
 [[exchange]]
