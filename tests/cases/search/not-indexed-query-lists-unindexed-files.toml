@@ -1,0 +1,574 @@
+# A query that names NOT-INDEXED keeps the placeholders, and prints each
+# unindexed file with the index's reason.
+args = ["search", 'repo:^github\.com/sharkdp/bat$ NOT-INDEXED count:all']
+status.code = 0
+stdout = '''
+14 matches  1 repo  11.2 s
+query  repo:^github\.com/sharkdp/bat$ NOT-INDEXED count:all
+
+github.com/sharkdp/bat@a9aa73d21545:assets/themes.bin
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@a9aa73d21545:assets/syntaxes.bin
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@a9aa73d21545:tests/examples/test.binary
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@a9aa73d21545:assets/acknowledgements.bin
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@a9aa73d21545:tests/examples/nonprintable.txt
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@a9aa73d21545:tests/examples/test_UTF-16BE.txt
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@a9aa73d21545:tests/examples/test_UTF-16LE.txt
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@a9aa73d21545:tests/examples/control_characters.txt
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@a9aa73d21545:tests/examples/test_UTF-16BE-complicated.txt
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@a9aa73d21545:tests/examples/test_UTF-16LE-complicated.txt
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@a9aa73d21545:tests/syntax-tests/source/PowerShell/test.ps1
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@a9aa73d21545:tests/examples/regression_tests/issue_3631.txt
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@a9aa73d21545:tests/syntax-tests/source/Plaintext/plaintext.txt
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@a9aa73d21545:tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt
+NOT-INDEXED: contains too many trigrams
+'''
+
+[[exchange]]
+operation = "Search"
+variables = '{"query":"repo:^github\\.com/sharkdp/bat$ NOT-INDEXED count:all"}'
+document = "Search-8bd92430"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-28, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "14",
+        "dynamicFilters": [
+          {
+            "count": 14,
+            "kind": "type",
+            "value": "type:file"
+          },
+          {
+            "count": 14,
+            "kind": "repo",
+            "value": "repo:^github\\.com/sharkdp/bat$"
+          },
+          {
+            "count": 9,
+            "kind": "lang",
+            "value": "lang:text"
+          },
+          {
+            "count": 1,
+            "kind": "lang",
+            "value": "lang:powershell"
+          }
+        ],
+        "elapsedMilliseconds": 11212,
+        "limitHit": false,
+        "matchCount": 14,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: contains binary content",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 11,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+              },
+              "path": "assets/themes.bin"
+            },
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: contains binary content",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 11,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+              },
+              "path": "assets/syntaxes.bin"
+            },
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: contains binary content",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 11,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+              },
+              "path": "tests/examples/test.binary"
+            },
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: contains binary content",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 11,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+              },
+              "path": "assets/acknowledgements.bin"
+            },
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: contains binary content",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 11,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+              },
+              "path": "tests/examples/nonprintable.txt"
+            },
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: contains binary content",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 11,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+              },
+              "path": "tests/examples/test_UTF-16BE.txt"
+            },
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: contains binary content",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 11,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+              },
+              "path": "tests/examples/test_UTF-16LE.txt"
+            },
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: contains binary content",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 11,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+              },
+              "path": "tests/examples/control_characters.txt"
+            },
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: contains binary content",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 11,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+              },
+              "path": "tests/examples/test_UTF-16BE-complicated.txt"
+            },
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: contains binary content",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 11,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+              },
+              "path": "tests/examples/test_UTF-16LE-complicated.txt"
+            },
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: contains binary content",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 11,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+              },
+              "path": "tests/syntax-tests/source/PowerShell/test.ps1"
+            },
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: contains binary content",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 11,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+              },
+              "path": "tests/examples/regression_tests/issue_3631.txt"
+            },
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: contains binary content",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 11,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+              },
+              "path": "tests/syntax-tests/source/Plaintext/plaintext.txt"
+            },
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "NOT-INDEXED: contains too many trigrams",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 11,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+              },
+              "path": "tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt"
+            },
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": null,
+            "symbols": []
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}
+'''

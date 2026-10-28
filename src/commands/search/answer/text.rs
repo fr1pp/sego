@@ -1,12 +1,11 @@
 use std::fmt::{self, Write as _};
 
-use super::{
-    Answer, Chunk, FileItem, Group, PREVIEW_FILES, PREVIEW_HUNKS, Row, SymbolRow, file_items, rows,
-};
+use super::{Answer, Chunk, FileItem, Group, PREVIEW_FILES, PREVIEW_HUNKS, Row, SymbolRow, rows};
 use crate::address::pinned;
 use crate::commands::search::query::Unit;
 use crate::escape::{escape, one_line, render_line};
 use crate::output::{Marker, code_line, count, header};
+use crate::sourcegraph::NOT_INDEXED;
 
 pub const TEXT_UNITS: u32 = 100;
 
@@ -90,11 +89,11 @@ impl Answer {
             groups += 1;
             let header_end;
             match group {
-                Group::File { repo, commit, path, binary, chunks, symbols, .. } => {
+                Group::File { repo, commit, path, .. } => {
                     let shown = if path.is_empty() { "./" } else { path };
                     out.push_str(&header(&pinned(repo, commit, Some(shown)), &[]));
                     header_end = out.len();
-                    printed += file_body(&mut out, &file_items(*binary, chunks, symbols), printed);
+                    printed += file_body(&mut out, &group.file_items(), printed);
                 }
                 Group::Commit {
                     repo,
@@ -180,6 +179,9 @@ fn file_body(out: &mut String, items: &[FileItem], before: u32) -> u32 {
     for item in &chosen {
         match item {
             FileItem::Binary => out.push_str("binary file; lines not shown\n"),
+            FileItem::Unindexed(reason) => {
+                let _ = writeln!(out, "{NOT_INDEXED}: {}", escape(reason));
+            }
             FileItem::Path => {}
             FileItem::Chunk(index, chunk) => chunks.push((*index, chunk)),
             FileItem::Symbol(symbol) => symbols.push(symbol),

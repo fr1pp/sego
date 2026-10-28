@@ -34,7 +34,8 @@ const READ: &str = "\
     }
     gm: blob(path: \".gitmodules\") { content }";
 
-/// One split guess of a web URL, resolved without fetching unless `$fetch`.
+/// One split guess of a web URL, resolved without fetching unless `$fetch`,
+/// so a wrong guess costs no fetch.
 const GUESS: &str = "\
   g#: repository(name: $repo) {
     comparison(base: $rev#, head: $rev#, fetchMissing: $fetch) {

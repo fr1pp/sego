@@ -3,7 +3,7 @@
 args = ["search", "--json", "repo:example.com/app foo"]
 status.code = 0
 stdout = '''
-{"query":"repo:example.com/app foo","pattern_type":"keyword","unit":"matches","count":1,"at_least":false,"stopped":false,"elapsed_ms":100,"limit_ms":20000,"widen":[],"unindexed":null,"alert":null,"results":[],"server":{"match_count":1,"approximate_count":"1","limit_hit":false,"timedout":[]},"notes":["1 result of kind Weird not shown"]}
+{"query":"repo:example.com/app foo","pattern_type":"keyword","unit":"matches","count":1,"at_least":false,"stopped":false,"elapsed_ms":100,"limit_ms":20000,"widen":[],"alert":null,"results":[],"server":{"match_count":1,"approximate_count":"1","limit_hit":false,"timedout":[]},"notes":["1 result of kind Weird not shown"]}
 '''
 stderr = '''
 sego: note: 1 result of kind Weird not shown
@@ -11,8 +11,8 @@ sego: note: 1 result of kind Weird not shown
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":true,"query":"repo:example.com/app foo","unindexed":"repo:example.com/app type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:example.com/app foo"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''
@@ -31,15 +31,6 @@ response = '''
             "__typename": "Weird"
           }
         ],
-        "timedout": []
-      }
-    },
-    "unindexed": {
-      "results": {
-        "alert": null,
-        "elapsedMilliseconds": 10,
-        "limitHit": false,
-        "results": [],
         "timedout": []
       }
     }

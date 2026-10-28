@@ -11,8 +11,8 @@ sego: note: select:symbol over a content search returns nothing on sourcegraph.c
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":false,"query":"repo:^github\\.com/gorilla/mux$@v1.8.0 NewRouter select:symbol","unindexed":""}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:^github\\.com/gorilla/mux$@v1.8.0 NewRouter select:symbol"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com" }

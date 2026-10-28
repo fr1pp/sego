@@ -19,8 +19,8 @@ sego: note: repo:, lang: or file: narrows what the search reads
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":true,"query":"repo:example.com/app foo count:30","unindexed":"repo:example.com/app type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:60s"}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:example.com/app foo count:30"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''
@@ -115,15 +115,6 @@ response = '''
             "name": "example.com/app"
           }
         ]
-      }
-    },
-    "unindexed": {
-      "results": {
-        "alert": null,
-        "elapsedMilliseconds": 10,
-        "limitHit": false,
-        "results": [],
-        "timedout": []
       }
     }
   }

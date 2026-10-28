@@ -1,4 +1,4 @@
-# `Or(` is an operator, so the query splits into two searches, the second across every repository: no widen line, and no side query for unindexed files.
+# `Or(` is an operator, so the query splits into two searches, the second across every repository.
 args = ["search", 'repo:^github\.com/gorilla/mux$ zqxv Or(NewRouter)']
 status.code = 0
 stdout = '''
@@ -8,15 +8,12 @@ query  repo:^github\.com/gorilla/mux$ zqxv Or(NewRouter)
 example.com/acme/server@0123456789ab:main.go
 12:	r := mux.NewRouter()
 '''
-stderr = '''
-sego: note: filters outside parentheses apply only to the operand of OR they sit in; the other operands search every repository
-'''
 
 # Written by hand: the second search is cut, and cut results vary from run to run.
 [[exchange]]
 operation = "Search"
-variables = '{"listed":false,"query":"repo:^github\\.com/gorilla/mux$ zqxv Or(NewRouter)","unindexed":""}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:^github\\.com/gorilla/mux$ zqxv Or(NewRouter)"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''

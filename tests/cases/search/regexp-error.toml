@@ -9,8 +9,8 @@ usage: sego search [--json] QUERY...
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":false,"query":"repo:example.com/acme/widget@v1 /(a/","unindexed":""}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:example.com/acme/widget@v1 /(a/"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 evidence = "search/structural-regex-hole"

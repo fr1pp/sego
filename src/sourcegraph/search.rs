@@ -1,14 +1,15 @@
-use serde::de::{DeserializeOwned, Deserializer, Error as _, IgnoredAny};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::de::{DeserializeOwned, Deserializer, Error as _};
 use serde_json::{Map, Value, json};
 
 use super::graphql::{Envelope, Request};
 use crate::error::Error;
 
-/// A search, and when `$listed` the side query that lists the files the
-/// index skipped.
+/// The word that starts the index's placeholder for a file it skipped.
+pub const NOT_INDEXED: &str = "NOT-INDEXED";
+
 const DOCUMENT: &str = "\
-query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
+query Search($query: String!) {
   search(query: $query, version: V3, patternType: keyword) {
     results {
       matchCount approximateResultCount limitHit
@@ -34,44 +35,29 @@ query Search($query: String!, $unindexed: String!, $listed: Boolean!) {
       }
     }
   }
-  unindexed: search(query: $unindexed, version: V3, patternType: keyword) @include(if: $listed) {
-    results {
-      limitHit elapsedMilliseconds timedout { name } alert { title }
-      results { ... on FileMatch { repository { name } file { path byteSize commit { oid } } } }
-    }
-  }
 }
 ";
 
 /// What a search found, or why the server couldn't run it.
 #[derive(Debug)]
-#[expect(clippy::large_enum_variant, reason = "an invocation reads one")]
 pub enum Search {
-    Results {
-        results: Results,
-        /// The side query's listing; `None` when it wasn't sent, or failed or
-        /// can't be read.
-        unindexed: Option<Listing>,
-    },
+    Results(Results),
     /// The server's regular expression engine couldn't compile the query,
     /// for this reason.
-    BadRegexp { reason: String },
+    BadRegexp {
+        reason: String,
+    },
 }
 
-/// `query`, and the side query `unindexed` that lists the files the index
-/// skipped, when given. A `String!` is sent even where its part is skipped.
-pub fn request(query: &str, unindexed: Option<&str>) -> Request {
+pub fn request(query: &str) -> Request {
     let mut variables = Map::new();
     variables.insert("query".to_owned(), json!(query));
-    variables.insert("unindexed".to_owned(), json!(unindexed.unwrap_or_default()));
-    variables.insert("listed".to_owned(), json!(unindexed.is_some()));
     Request::new("Search", DOCUMENT.to_owned(), variables)
 }
 
 /// A located error at or beneath `search` leaves no part of the answer to
-/// trust. The `unindexed` alias, read only when `listed` sent it, can't fail
-/// the search: any problem with it leaves its listing unknown.
-pub fn read(envelope: &Envelope, listed: bool) -> Result<Search, Error> {
+/// trust.
+pub fn read(envelope: &Envelope) -> Result<Search, Error> {
     let failed = || Error::failed("the search");
     if let Some(error) = envelope.error_beneath(&["search"]) {
         return error
@@ -80,13 +66,7 @@ pub fn read(envelope: &Envelope, listed: bool) -> Result<Search, Error> {
             .ok_or_else(failed);
     }
     let results = envelope.get(&["search", "results"]).ok_or_else(failed)?;
-    let results = Results::deserialize(results).map_err(|_| failed())?;
-    let unindexed = if !listed || envelope.error_beneath(&["unindexed"]).is_some() {
-        None
-    } else {
-        envelope.get(&["unindexed", "results"]).and_then(|v| Listing::deserialize(v).ok())
-    };
-    Ok(Search::Results { results, unindexed })
+    Results::deserialize(results).map(Search::Results).map_err(|_| failed())
 }
 
 #[derive(Debug, Deserialize)]
@@ -101,65 +81,6 @@ pub struct Results {
     pub dynamic_filters: Vec<DynamicFilter>,
     #[serde(rename = "results")]
     pub items: Vec<Item>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct UnindexedFile {
-    pub repo: String,
-    pub commit: String,
-    pub path: String,
-    pub bytes: u64,
-}
-
-/// The `unindexed` alias's results.
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Listing {
-    pub limit_hit: bool,
-    pub elapsed_milliseconds: u64,
-    pub timedout: Vec<Named>,
-    pub alert: Option<IgnoredAny>,
-    /// A selection naming only `FileMatch` leaves `{}` for any other kind.
-    pub results: Vec<Value>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Listed {
-    repository: Named,
-    file: ListedFile,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct ListedFile {
-    path: String,
-    byte_size: u64,
-    commit: Oid,
-}
-
-impl Listing {
-    /// Whether the listing holds every unindexed file: no alert, nothing
-    /// cut, and back before `deadline_ms`.
-    pub fn complete(&self, deadline_ms: u64) -> bool {
-        self.alert.is_none()
-            && !self.limit_hit
-            && self.timedout.is_empty()
-            && self.elapsed_milliseconds < deadline_ms
-    }
-
-    /// The file matches, in order; anything else is skipped.
-    pub fn files(self) -> Vec<UnindexedFile> {
-        self.results
-            .into_iter()
-            .filter_map(|item| serde_json::from_value::<Listed>(item).ok())
-            .map(|listed| UnindexedFile {
-                repo: listed.repository.name,
-                commit: listed.file.commit.oid,
-                path: listed.file.path,
-                bytes: listed.file.byte_size,
-            })
-            .collect()
-    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -228,6 +149,21 @@ pub struct FileMatch {
     pub rev_spec: Option<RevSpec>,
     pub chunk_matches: Vec<ChunkMatch>,
     pub symbols: Vec<Symbol>,
+}
+
+impl FileMatch {
+    /// Why the index skipped this file, when the match is the index's
+    /// placeholder for it: one chunk at line 0 that reads `NOT-INDEXED:
+    /// REASON`, with no symbols.
+    pub fn placeholder_reason(&self) -> Option<&str> {
+        match self.chunk_matches.as_slice() {
+            [chunk] if self.symbols.is_empty() && chunk.content_start.line == 0 => {
+                let reason = chunk.content.strip_prefix(NOT_INDEXED)?.strip_prefix(": ")?;
+                Some(reason.trim_end_matches('\n'))
+            }
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -332,4 +268,53 @@ pub struct Highlight {
     pub line: u32,
     pub character: u32,
     pub length: u32,
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+
+    fn placeholder_file(chunks: &Value, symbols: &Value) -> Value {
+        json!({
+            "__typename": "FileMatch",
+            "repository": {"name": "r/a"},
+            "file": {"path": "big.bin", "commit": {"oid": "c1"}},
+            "revSpec": null,
+            "chunkMatches": chunks,
+            "symbols": symbols,
+        })
+    }
+
+    fn placeholder_chunk(content: &str, line: u32) -> Value {
+        json!({"content": content, "contentStart": {"line": line}, "ranges": []})
+    }
+
+    fn reason(value: &Value) -> Option<String> {
+        let item: Item =
+            serde_json::from_value(value.clone()).unwrap_or_else(|e| panic!("bad fixture: {e}"));
+        match item {
+            Item::FileMatch(file) => file.placeholder_reason().map(str::to_owned),
+            _ => panic!("not a file match"),
+        }
+    }
+
+    #[test]
+    fn a_placeholder_is_one_not_indexed_line_at_line_zero_with_no_symbols() {
+        let text = "NOT-INDEXED: exceeds the maximum size limit";
+        let one = |chunks: Value| reason(&placeholder_file(&chunks, &json!([])));
+        assert_eq!(
+            one(json!([placeholder_chunk(text, 0)])).as_deref(),
+            Some("exceeds the maximum size limit")
+        );
+        assert_eq!(one(json!([placeholder_chunk(text, 3)])), None);
+        assert_eq!(one(json!([placeholder_chunk("not-indexed: x", 0)])), None);
+        assert_eq!(one(json!([])), None);
+        assert_eq!(one(json!([placeholder_chunk(text, 0), placeholder_chunk(text, 0)])), None);
+        let symbol =
+            json!({"name": "S", "kind": "FUNCTION", "containerName": null, "location": null});
+        let with_symbol = placeholder_file(&json!([placeholder_chunk(text, 0)]), &json!([symbol]));
+        assert_eq!(reason(&with_symbol), None);
+    }
 }

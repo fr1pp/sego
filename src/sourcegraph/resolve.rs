@@ -8,7 +8,7 @@ use crate::address::{FULL_OID, Repo, is_name, is_oid_like, parse_path, valid_rev
 use crate::error::{Error, Kind};
 use crate::pointer;
 
-pub const NOT_INDEXED: &str = "sourcegraph.com serves indexed repositories from \
+pub const SOURCEGRAPH_COM_MIRRORS: &str = "sourcegraph.com serves indexed repositories from \
     github.com, gitlab.com and a few other hosts; a renamed repository \
     appears only under its new name";
 
@@ -159,8 +159,8 @@ pub fn split_guesses(segments: &[String]) -> Vec<Guess> {
 
 /// The variables naming `repo`: `$repo0`, and `$repo1`, the gitlab.com
 /// candidate of `owner/name`, which `$gitlab` switches on. A `String!` is
-/// sent even where its part is skipped, so `$repo1` is empty for an exact
-/// name.
+/// sent even where its part is skipped, and `null` for one fails the request
+/// with an error that names no path, so `$repo1` is empty for an exact name.
 pub fn repository_variables(repo: &Repo) -> Map<String, Value> {
     let names = repo.candidates();
     let mut variables = Map::new();
@@ -170,6 +170,9 @@ pub fn repository_variables(repo: &Repo) -> Map<String, Value> {
     variables
 }
 
+/// Each candidate has its own `repository` alias. `repositories(names:)`
+/// would take both in one field, but it sorts its results, drops a missing
+/// name, and nulls all of `data` when it fails.
 const ROOTS: [&str; 2] = ["r0", "r1"];
 
 /// The response keys of `repo`'s candidates, `r0` and `r1` in the
@@ -259,7 +262,7 @@ pub fn repository(repo: &Repo, envelope: &Envelope, roots: &[&str]) -> Result<Re
     match found[..] {
         [] if (0..roots.len()).any(failed) => Err(Error::failed("the repository lookup")),
         [] => Err(Error::not_found(format!("{} is not on {}", repo.as_written(), envelope.host))
-            .fact(NOT_INDEXED)),
+            .fact(SOURCEGRAPH_COM_MIRRORS)),
         [i] => {
             let other = (0..roots.len()).find(|&j| j != i && failed(j));
             let root = roots[i];

@@ -1,26 +1,14 @@
-# With results in two repositories every file is a pinned address.
-args = ["search", "repo:example.com/acme/(widget|gadget) foo"]
+# The JSON form gives each unindexed file as an unindexed record with its reason.
+args = ["search", "--json", "repo:example.com/acme/widget NOT-INDEXED count:all"]
 status.code = 0
 stdout = '''
-2 matches  2 repos  0.1 s
-query  repo:example.com/acme/(widget|gadget) foo
-
-example.com/acme/widget@0123456789ab:main.go
-1:foo
-
-example.com/acme/gadget@0123456789ab:main.go
-1:foo
-'''
-stderr = '''
-sego: note: the contents of 1 file in scope aren't in the search index (1 over 1 MiB):
-  example.com/acme/widget@0123456789ab:p  2.0 MiB
-sego: note: sego show reads the 1 file over 1 MiB, which no search reaches
+{"query":"repo:example.com/acme/widget NOT-INDEXED count:all","pattern_type":"keyword","unit":"matches","count":2,"at_least":false,"stopped":false,"elapsed_ms":300,"limit_ms":60000,"widen":[],"alert":null,"results":[{"kind":"unindexed","repo":"example.com/acme/widget","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"vendor/sqlite3.c","reason":"exceeds the maximum size limit"},{"kind":"unindexed","repo":"example.com/acme/widget","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"testdata/words.txt","reason":"contains too many trigrams"}],"server":{"match_count":2,"approximate_count":"2","limit_hit":false,"timedout":[]},"notes":[]}
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":true,"query":"repo:example.com/acme/(widget|gadget) foo","unindexed":"repo:example.com/acme/(widget|gadget) type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:example.com/acme/widget NOT-INDEXED count:all"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''
@@ -31,7 +19,7 @@ response = '''
         "alert": null,
         "approximateResultCount": "2",
         "dynamicFilters": [],
-        "elapsedMilliseconds": 100,
+        "elapsedMilliseconds": 300,
         "limitHit": false,
         "matchCount": 2,
         "results": [
@@ -39,14 +27,14 @@ response = '''
             "__typename": "FileMatch",
             "chunkMatches": [
               {
-                "content": "foo",
+                "content": "NOT-INDEXED: exceeds the maximum size limit",
                 "contentStart": {
                   "line": 0
                 },
                 "ranges": [
                   {
                     "end": {
-                      "character": 3,
+                      "character": 11,
                       "line": 0
                     },
                     "start": {
@@ -61,7 +49,7 @@ response = '''
               "commit": {
                 "oid": "0123456789abcdef0123456789abcdef01234567"
               },
-              "path": "main.go"
+              "path": "vendor/sqlite3.c"
             },
             "repository": {
               "name": "example.com/acme/widget"
@@ -73,14 +61,14 @@ response = '''
             "__typename": "FileMatch",
             "chunkMatches": [
               {
-                "content": "foo",
+                "content": "NOT-INDEXED: contains too many trigrams",
                 "contentStart": {
                   "line": 0
                 },
                 "ranges": [
                   {
                     "end": {
-                      "character": 3,
+                      "character": 11,
                       "line": 0
                     },
                     "start": {
@@ -95,35 +83,13 @@ response = '''
               "commit": {
                 "oid": "0123456789abcdef0123456789abcdef01234567"
               },
-              "path": "main.go"
-            },
-            "repository": {
-              "name": "example.com/acme/gadget"
-            },
-            "revSpec": null,
-            "symbols": []
-          }
-        ],
-        "timedout": []
-      }
-    },
-    "unindexed": {
-      "results": {
-        "alert": null,
-        "elapsedMilliseconds": 10,
-        "limitHit": false,
-        "results": [
-          {
-            "file": {
-              "byteSize": 2097152,
-              "commit": {
-                "oid": "0123456789abcdef0123456789abcdef01234567"
-              },
-              "path": "p"
+              "path": "testdata/words.txt"
             },
             "repository": {
               "name": "example.com/acme/widget"
-            }
+            },
+            "revSpec": null,
+            "symbols": []
           }
         ],
         "timedout": []

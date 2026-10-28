@@ -7,8 +7,8 @@ sego: error: Sourcegraph failed to answer the search
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":false,"query":"repo:^github\\.com/gorilla/mux$@v1.8.0:^v1.7.4 NewRouter","unindexed":""}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:^github\\.com/gorilla/mux$@v1.8.0:^v1.7.4 NewRouter"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 evidence = "none: a server failure sourcegraph.com doesn't give on demand"

@@ -3,7 +3,6 @@
 args = ["search", 'repo:^github\.com/gorilla/mux$ lang:go patterntype:structural fmt.:[fn~Err(?=orf)\w+](...)']
 status.code = 2
 stderr = '''
-sego: note: a structural search over more than one file can miss matches without a +; file:^PATH$ makes it complete, and a regex search marks a cut with +
 sego: error: the search's regular expression doesn't compile: invalid or unsupported Perl syntax: `(?=`
   structural search compiles each :[name~regex] hole as an RE2 regular expression
 usage: sego search [--json] QUERY...
@@ -11,24 +10,15 @@ usage: sego search [--json] QUERY...
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":true,"query":"repo:^github\\.com/gorilla/mux$ lang:go patterntype:structural fmt.:[fn~Err(?=orf)\\w+](...)","unindexed":"repo:^github\\.com/gorilla/mux$ lang:go type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:^github\\.com/gorilla/mux$ lang:go patterntype:structural fmt.:[fn~Err(?=orf)\\w+](...)"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
-    "search": null,
-    "unindexed": {
-      "results": {
-        "alert": null,
-        "elapsedMilliseconds": 496,
-        "limitHit": false,
-        "results": [],
-        "timedout": []
-      }
-    }
+    "search": null
   },
   "errors": [
     {

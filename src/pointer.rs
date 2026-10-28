@@ -5,8 +5,6 @@
 use crate::address::{is_oid_like, pinned, short};
 use crate::escape::shell_word;
 
-const MIB: u64 = 1 << 20;
-
 pub const NARROWS: &str = "repo:, lang: or file: narrows what the search reads";
 
 /// A commit of a repository, as a pointer names it.
@@ -101,37 +99,6 @@ pub fn stopped(deadline_ms: Option<u64>, most_ms: u64, timeout: Option<&str>) ->
             ms / 1000
         ),
     }
-}
-
-/// What reaches the files a search skipped: `index:no` the `dense` ones
-/// with too many trigrams, unless the query has an `index:` already, and
-/// `sego show` those of the sizes `over`, over 1 MiB, that a response of at
-/// most `largest` bytes can hold.
-pub fn unindexed(dense: usize, over: &[u64], index_written: bool, largest: u64) -> Vec<String> {
-    let mut pointers = Vec::new();
-    if dense > 0 && !index_written {
-        pointers.push(format!(
-            "index:no searches the {} with too many distinct trigrams",
-            files(dense)
-        ));
-    }
-    let readable = over.iter().filter(|&&bytes| bytes < largest).count();
-    if readable > 0 {
-        let under = if readable == over.len() {
-            String::new()
-        } else {
-            format!(" and under {} MiB", largest / MIB)
-        };
-        pointers.push(format!(
-            "sego show reads the {} over 1 MiB{under}, which no search reaches",
-            files(readable)
-        ));
-    }
-    pointers
-}
-
-fn files(n: usize) -> String {
-    if n == 1 { "1 file".to_owned() } else { format!("{n} files") }
 }
 
 /// The release number `rev` ends in, such as `1.28` in `release-1.28`.

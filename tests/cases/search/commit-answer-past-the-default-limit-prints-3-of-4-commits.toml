@@ -135,8 +135,8 @@ example.com/acme/widget@cccccccccccc  2024-05-06  Ann  Add line 3
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":false,"query":"repo:example.com/acme/widget type:diff line count:4","unindexed":""}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:example.com/acme/widget type:diff line count:4"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''

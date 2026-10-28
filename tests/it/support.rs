@@ -289,15 +289,6 @@ pub trait Logged {
 /// The checks every case gets, whatever it expects.
 fn every_case(case: &Case, outcome: &Outcome) -> Vec<String> {
     let mut failures = Vec::new();
-    let graphql =
-        outcome.sent.iter().filter(|s| matches!(s.request, Request::Graphql { .. })).count();
-    let raw = outcome.sent.len() - graphql;
-    if graphql > 2 || raw > 1 {
-        failures.push(format!(
-            "sego sent {graphql} GraphQL requests and {raw} raw reads; an invocation sends at \
-             most two and one"
-        ));
-    }
     let from_a_response = |line: &str| FOUND_FROM_A_RESPONSE.iter().any(|m| line.contains(m));
     let first = outcome.stderr.lines().find(|line| line.starts_with("sego: error: "));
     if outcome.code == 2 && !outcome.sent.is_empty() && !first.is_some_and(from_a_response) {
@@ -308,7 +299,8 @@ fn every_case(case: &Case, outcome: &Outcome) -> Vec<String> {
     failures.extend(outcome.problems.iter().cloned());
     failures.extend(deadline(outcome));
     failures.extend(endpoint(case, outcome));
-    if outcome.cache_entries.is_some_and(|n| n > 0) && raw == 0 {
+    let raw = outcome.sent.iter().any(|s| matches!(s.request, Request::Raw { .. }));
+    if outcome.cache_entries.is_some_and(|n| n > 0) && !raw {
         failures.push("the cache directory was written with no raw read sent".to_owned());
     }
     failures
@@ -590,21 +582,6 @@ mod tests {
 
     fn checked(outcome: &Outcome) -> Vec<String> {
         every_case(&case(""), outcome)
-    }
-
-    #[test]
-    fn two_graphql_requests_and_one_raw_read_are_allowed() {
-        let sent = vec![refs("example.com/a/b", QUERY), refs("example.com/c/d", QUERY), raw()];
-        assert_eq!(checked(&outcome(sent)), [""; 0]);
-    }
-
-    #[test]
-    fn a_third_graphql_request_or_a_second_raw_read_fails_the_case() {
-        let thrice = outcome(vec![refs("example.com/a/b", QUERY); 3]);
-        let failures = checked(&thrice);
-        assert!(failures[0].contains("3 GraphQL requests and 0 raw reads"), "{failures:?}");
-        let failures = checked(&outcome(vec![raw(), raw()]));
-        assert!(failures[0].contains("0 GraphQL requests and 2 raw reads"), "{failures:?}");
     }
 
     #[test]

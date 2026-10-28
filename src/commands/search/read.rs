@@ -1,11 +1,199 @@
-//! The reading of a query's text, as the server reads it: groups, `and`,
-//! `or` and `not`, filters, quoted and `/`-delimited patterns.
+//! What a query writes, read as the server reads its text: groups, `and`,
+//! `or` and `not`, filters, and quoted and `/`-delimited patterns.
 
-use std::mem::take;
+/// The fields the server reads as filters, in any case.
+pub const KNOWN: &[&str] = &[
+    "repo",
+    "r",
+    "file",
+    "f",
+    "path",
+    "lang",
+    "l",
+    "language",
+    "content",
+    "type",
+    "case",
+    "fork",
+    "archived",
+    "visibility",
+    "rev",
+    "revision",
+    "context",
+    "g",
+    "patterntype",
+    "select",
+    "count",
+    "timeout",
+    "index",
+    "before",
+    "after",
+    "since",
+    "until",
+    "author",
+    "committer",
+    "message",
+    "m",
+    "msg",
+    "repohasfile",
+    "repohascommitafter",
+    "rule",
+];
 
-use super::{
-    Filter, KNOWN, Kind, Node, PREDICATES, PatternType, Written, WrittenFilter, combine, pattern,
-};
+const TYPES: [(&str, PatternType); 8] = [
+    ("keyword", PatternType::Keyword),
+    ("standard", PatternType::Standard),
+    ("lucky", PatternType::Standard),
+    ("regexp", PatternType::Regexp),
+    ("regex", PatternType::Regexp),
+    ("literal", PatternType::Literal),
+    ("structural", PatternType::Structural),
+    ("codycontext", PatternType::CodyContext),
+];
+
+/// The fields whose value can be a predicate, such as `has.file(...)`, and
+/// the predicates each takes.
+const PREDICATES: [(&str, &str); 3] = [
+    (
+        "repo r",
+        "contains.file has.file contains.path has.path contains.content \
+         has.content contains.commit.after has.commit.after has.description \
+         has.meta has.topic has.tag has has.key contains",
+    ),
+    ("file f path", "contains.content has.content has.owner has.contributor"),
+    ("rev revision", "at.time"),
+];
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PatternType {
+    Keyword,
+    Standard,
+    Regexp,
+    Literal,
+    Structural,
+    CodyContext,
+}
+
+impl PatternType {
+    pub fn named(value: &str) -> Option<Self> {
+        TYPES.iter().find(|t| t.0 == value).map(|t| t.1)
+    }
+
+    pub fn name(self) -> &'static str {
+        TYPES.iter().find(|t| t.1 == self).map_or("", |t| t.0)
+    }
+}
+
+/// What a query writes, in the order written: each filter of a known field
+/// and each pattern, as the server reads them apart, and each `or` it reads
+/// as an operator. A filter with an empty value, which the server drops, is
+/// left out.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Written {
+    Filter(WrittenFilter),
+    /// A pattern's text, without a `not` before it, which negates it.
+    /// `delimited` is a quoted or `/`-delimited pattern.
+    Pattern {
+        text: String,
+        negated: bool,
+        delimited: bool,
+    },
+    Or,
+}
+
+/// A filter as written: the field as spelled and the value with any quotes.
+/// `negated` is a `-` before it or a `not`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct WrittenFilter {
+    pub negated: bool,
+    pub field: String,
+    pub value: String,
+}
+
+impl WrittenFilter {
+    /// The filter as the query could restate it.
+    pub fn raw(&self) -> String {
+        format!("{}{}:{}", if self.negated { "-" } else { "" }, self.field, self.value)
+    }
+
+    /// The value as the server reads it: a quoted value without its quotes,
+    /// its escapes read. An escape the server doesn't know is kept as
+    /// written, the `\` with it.
+    pub fn read_value(&self) -> String {
+        let quote = self.value.chars().next().filter(|q| matches!(q, '"' | '\''));
+        let Some((quote, body)) =
+            quote.and_then(|q| Some((q, self.value.strip_prefix(q)?.strip_suffix(q)?)))
+        else {
+            return self.value.clone();
+        };
+        let mut out = String::new();
+        let mut chars = body.chars();
+        while let Some(c) = chars.next() {
+            if c != '\\' {
+                out.push(c);
+                continue;
+            }
+            match chars.next() {
+                Some('n') => out.push('\n'),
+                Some('r') => out.push('\r'),
+                Some('t') => out.push('\t'),
+                Some(e) if e == '\\' || e == quote => out.push(e),
+                Some(e) => out.extend(['\\', e]),
+                None => out.push('\\'),
+            }
+        }
+        out
+    }
+}
+
+/// The values of the non-negated `name:` filters; a negated `type:` or
+/// `select:` doesn't choose what the results are.
+pub fn chosen<'a>(written: &'a [Written], name: &'a str) -> impl Iterator<Item = &'a str> {
+    written.iter().filter_map(move |item| match item {
+        Written::Filter(f) if !f.negated && f.field.eq_ignore_ascii_case(name) => {
+            Some(f.value.as_str())
+        }
+        _ => None,
+    })
+}
+
+/// Whether the query writes a pattern.
+pub fn has_pattern(written: &[Written]) -> bool {
+    written.iter().any(|item| matches!(item, Written::Pattern { .. }))
+}
+
+/// A quoted value without its quotes.
+pub fn unquoted(value: &str) -> &str {
+    ['"', '\''].iter().find_map(|q| value.strip_prefix(*q)?.strip_suffix(*q)).unwrap_or(value)
+}
+
+/// A query as read: its pattern type, and what it writes. A query the
+/// server rejects while reading it writes nothing, in keyword mode.
+pub struct Reading {
+    pub pattern_type: PatternType,
+    pub written: Vec<Written>,
+}
+
+pub fn read(query: &str) -> Reading {
+    let rejected = Reading { pattern_type: PatternType::Keyword, written: Vec::new() };
+    // Narrower indices keep the reading small; no command line comes near
+    // 4 Gi characters.
+    let Some(text) = Text::new(query) else { return rejected };
+    let mut ty = PatternType::Keyword;
+    if let Ok(literal) = groups_or_flat(&text, PatternType::Literal) {
+        for item in &literal {
+            if let Written::Filter(f) = item
+                && f.field.eq_ignore_ascii_case("patterntype")
+            {
+                ty = PatternType::named(unquoted(&f.value)).unwrap_or(ty);
+            }
+        }
+    }
+    match groups_or_flat(&text, ty) {
+        Ok(written) => Reading { pattern_type: ty, written },
+        Err(Halt::Reject | Halt::Missing) => rejected,
+    }
+}
 
 fn ascii_space(c: char) -> bool {
     matches!(c, '\t' | '\n' | '\x0B' | '\x0C' | '\r' | ' ')
@@ -23,9 +211,10 @@ fn starts(c: &[char], i: usize, word: &str) -> bool {
 }
 
 /// The query's characters, with what a balanced run needs worked out once,
-/// so that reading takes time linear in the query's length. A run starts after a character that isn't `\`, so its
-/// escapes pair up as they do read from the start of the query.
-pub struct Text {
+/// so that reading takes time linear in the query's length. A run starts
+/// after a character that isn't `\`, so its escapes pair up as they do read
+/// from the start of the query.
+struct Text {
     c: Vec<char>,
     /// The end of the run of ASCII letters from each index.
     letters: Vec<u32>,
@@ -53,7 +242,7 @@ fn ix(i: usize) -> u32 {
 
 impl Text {
     #[expect(clippy::many_single_char_names, reason = "indices into `c`")]
-    pub fn new(query: &str) -> Option<Text> {
+    fn new(query: &str) -> Option<Text> {
         let c: Vec<char> = query.chars().collect();
         let n = c.len();
         if ix(n) == NONE {
@@ -166,31 +355,6 @@ impl Text {
         self.c.get(i).is_none_or(|&c| ascii_space(c) || c == ')')
     }
 
-    /// A quoted filter value's text, its escapes read. An escape the server
-    /// doesn't know is kept as written, the `\` with it.
-    fn unquote(&self, open: usize, close: usize) -> String {
-        let mut out = String::new();
-        let mut i = open + 1;
-        while i < close {
-            let c = self.c[i];
-            i += 1;
-            if c != '\\' {
-                out.push(c);
-                continue;
-            }
-            let e = self.c[i];
-            i += 1;
-            match e {
-                'n' => out.push('\n'),
-                'r' => out.push('\r'),
-                't' => out.push('\t'),
-                _ if e == '\\' || e == self.c[open] => out.push(e),
-                _ => out.extend(['\\', e]),
-            }
-        }
-        out
-    }
-
     /// The end of a predicate value starting at `s`, for the field as
     /// written.
     fn predicate(&self, field: &str, s: usize) -> Option<usize> {
@@ -208,38 +372,49 @@ impl Text {
     }
 }
 
-pub enum Halt {
+enum Halt {
     Reject,
     Missing,
 }
 
-pub struct Reading {
-    pub root: Node,
-    pub flat: bool,
-    pub sharing_off: bool,
-    pub written: Vec<Written>,
-}
-
 /// Reads the query in `ty` with groups, or, when a group is left open or
 /// an operand is missing, with every parenthesis as text.
-pub fn read(text: &Text, ty: PatternType) -> Result<Reading, Halt> {
+fn groups_or_flat(text: &Text, ty: PatternType) -> Result<Vec<Written>, Halt> {
     let mut groups = Reader::new(text, ty, false);
     match groups.read() {
-        Ok(root) if groups.open == 0 => {
+        Ok(()) if groups.open == 0 => {
+            // Standard and literal mode reject a sequence of patterns that
+            // holds a group read as `and` or `or`.
             let strict = matches!(ty, PatternType::Standard | PatternType::Literal);
-            if strict && groups.mixed {
-                return Err(Halt::Reject);
-            }
-            let sharing_off = groups.sharing_off;
-            return Ok(Reading { root, flat: false, sharing_off, written: groups.written });
+            return if strict && groups.mixed { Err(Halt::Reject) } else { Ok(groups.written) };
         }
-        Ok(_) | Err(Halt::Missing) => {}
+        Ok(()) | Err(Halt::Missing) => {}
         Err(halt) => return Err(halt),
     }
     let mut flat = Reader::new(text, ty, true);
     match flat.read() {
-        Ok(root) => Ok(Reading { root, flat: true, sharing_off: false, written: flat.written }),
+        Ok(()) => Ok(flat.written),
         Err(_) => Err(Halt::Reject),
+    }
+}
+
+/// What reading needs of an item: whether it holds a filter, and whether
+/// it is a group of several items, read as `and` or `or`.
+#[derive(Clone, Copy)]
+struct Item {
+    filters: bool,
+    operator: bool,
+}
+
+const PATTERN: Item = Item { filters: false, operator: false };
+
+/// Several items read as one, `and` or `or` when `operator`; one item is
+/// itself.
+fn combine(items: &[Item], operator: bool) -> Option<Item> {
+    match items {
+        [] => None,
+        [one] => Some(*one),
+        many => Some(Item { filters: many.iter().any(|i| i.filters), operator }),
     }
 }
 
@@ -247,9 +422,9 @@ pub fn read(text: &Text, ty: PatternType) -> Result<Reading, Halt> {
 /// being read, and the items of the level being read.
 #[derive(Default)]
 struct Frame {
-    operands: Vec<Node>,
-    levels: Vec<Node>,
-    items: Vec<Node>,
+    operands: Vec<Item>,
+    levels: Vec<Item>,
+    items: Vec<Item>,
 }
 
 impl Frame {
@@ -259,64 +434,43 @@ impl Frame {
         if self.items.is_empty() {
             return Err(Halt::Missing);
         }
-        let (mut level, patterns): (Vec<Node>, Vec<Node>) =
-            self.items.drain(..).partition(|n| n.leaves().1 == 0);
+        let (mut level, patterns): (Vec<Item>, Vec<Item>) =
+            self.items.drain(..).partition(|i| i.filters);
         if patterns.len() > 1 {
-            let op = |n: &Node| matches!(n, Node::Op(op) if op.kind != Kind::Seq);
-            *mixed |= patterns.iter().any(op);
-            level.push(combine(Kind::Seq, patterns));
+            *mixed |= patterns.iter().any(|i| i.operator);
+            level.push(PATTERN);
         } else {
             level.extend(patterns);
         }
-        self.levels.push(combine(Kind::And, level));
+        self.levels.extend(combine(&level, true));
         Ok(())
     }
 
     fn end_operand(&mut self) {
-        let levels = take(&mut self.levels);
-        self.operands.push(combine(Kind::And, levels));
+        let levels = std::mem::take(&mut self.levels);
+        self.operands.extend(combine(&levels, true));
     }
 
-    fn end(mut self, mixed: &mut bool) -> Result<Node, Halt> {
+    fn end(mut self, mixed: &mut bool) -> Result<Item, Halt> {
         self.end_level(mixed)?;
         self.end_operand();
-        Ok(combine(Kind::Or, self.operands))
+        combine(&self.operands, true).ok_or(Halt::Missing)
     }
 }
 
-#[expect(
-    clippy::struct_excessive_bools,
-    reason = "independent facts about one reading, not a state machine"
-)]
 struct Reader<'t> {
     t: &'t Text,
     ty: PatternType,
     flat: bool,
     pos: usize,
     open: usize,
-    or_seen: bool,
-    close_seen: bool,
-    /// The shared-filter rule is off: a group opened after an `or`, or an
-    /// `or` followed a `)`.
-    sharing_off: bool,
     mixed: bool,
     written: Vec<Written>,
 }
 
 impl<'t> Reader<'t> {
     fn new(t: &'t Text, ty: PatternType, flat: bool) -> Self {
-        Reader {
-            t,
-            ty,
-            flat,
-            pos: 0,
-            open: 0,
-            or_seen: false,
-            close_seen: false,
-            sharing_off: false,
-            mixed: false,
-            written: Vec::new(),
-        }
+        Reader { t, ty, flat, pos: 0, open: 0, mixed: false, written: Vec::new() }
     }
 
     fn write_pattern(&mut self, start: usize, end: usize, negated: bool, delimited: bool) {
@@ -327,7 +481,7 @@ impl<'t> Reader<'t> {
     /// A `)` ends the innermost or-expression being read, unless `or`
     /// follows it: then that or-expression carries on, though its group is
     /// closed.
-    fn read(&mut self) -> Result<Node, Halt> {
+    fn read(&mut self) -> Result<(), Halt> {
         let t = self.t;
         let mut frames = vec![Frame::default()];
         loop {
@@ -336,31 +490,29 @@ impl<'t> Reader<'t> {
             }
             let Some(frame) = frames.last_mut() else { unreachable!() };
             let Some(&c) = t.c.get(self.pos) else {
-                let mut node = None;
+                let mut child = None;
                 while let Some(mut frame) = frames.pop() {
-                    frame.items.extend(node);
-                    node = Some(frame.end(&mut self.mixed)?);
+                    frame.items.extend(child);
+                    child = Some(frame.end(&mut self.mixed)?);
                 }
-                return node.ok_or(Halt::Missing);
+                return Ok(());
             };
             if !self.flat && c == '(' {
                 if self.ty != PatternType::Keyword
                     && let Some(end) = t.run(self.pos)
                 {
-                    frame.items.push(pattern(self.pos, false, false, false));
+                    frame.items.push(PATTERN);
                     self.write_pattern(self.pos, end, false, false);
                     self.pos = end;
                     continue;
                 }
-                self.sharing_off |= self.or_seen;
                 self.open += 1;
                 self.pos += 1;
                 frames.push(Frame::default());
             } else if !self.flat && c == ')' {
                 self.open = self.open.checked_sub(1).ok_or(Halt::Reject)?;
-                self.close_seen = true;
                 if frame.items.is_empty() {
-                    frame.items.push(pattern(self.pos, false, false, false));
+                    frame.items.push(PATTERN);
                     // The server reads an empty group as the pattern `()`.
                     let empty = Written::Pattern {
                         text: "()".to_owned(),
@@ -383,8 +535,6 @@ impl<'t> Reader<'t> {
             } else if let Some((or, len)) = self.operator() {
                 frame.end_level(&mut self.mixed)?;
                 if or {
-                    self.sharing_off |= self.close_seen;
-                    self.or_seen = true;
                     self.written.push(Written::Or);
                     frame.end_operand();
                 }
@@ -409,7 +559,7 @@ impl<'t> Reader<'t> {
         })
     }
 
-    fn item(&mut self) -> Result<Node, Halt> {
+    fn item(&mut self) -> Result<Item, Halt> {
         let (c, start) = (&self.t.c, self.pos);
         let after_space = start == 0 || {
             let before = c[start - 1];
@@ -427,55 +577,54 @@ impl<'t> Reader<'t> {
                 return Err(Halt::Reject);
             }
         }
-        let filter = self.filter(not.then_some(start))?;
-        Ok(filter.unwrap_or_else(|| self.pattern(start, not)))
+        if self.filter(not)? {
+            return Ok(Item { filters: true, operator: false });
+        }
+        self.pattern(not);
+        Ok(PATTERN)
     }
 
-    /// A filter at the current position; after `not` at `not`, a negated
-    /// one. `None` when there is none, or when a quoted value after `not`
-    /// is malformed, which leaves the text after the `:` to read.
-    fn filter(&mut self, not: Option<usize>) -> Result<Option<Node>, Halt> {
+    /// Reads a filter at the current position, negated after `not`. `false`
+    /// when there is none, or when a quoted value after `not` is malformed,
+    /// which leaves the text after the `:` to read.
+    fn filter(&mut self, not: bool) -> Result<bool, Halt> {
         let (t, s) = (self.t, self.pos);
-        let Some(&first) = t.c.get(s) else { return Ok(None) };
+        let Some(&first) = t.c.get(s) else { return Ok(false) };
         let dash = first == '-';
         let letters = s + usize::from(dash);
         let colon = t.letters[letters] as usize;
         if colon == letters || t.c.get(colon) != Some(&':') || !known(&t.c[letters..colon]) {
-            return Ok(None);
+            return Ok(false);
         }
         let field = t.text(letters, colon);
         let v = colon + 1;
-        let (value, end, predicate) = if matches!(t.c.get(v), Some('"' | '\'')) {
-            let close = t.closing(v);
-            match close.map(|close| (t.unquote(v, close), close)) {
-                Some((value, close)) => (value, close + 1, false),
-                None if not.is_some() => {
+        let (end, empty) = if matches!(t.c.get(v), Some('"' | '\'')) {
+            match t.closing(v) {
+                Some(close) => (close + 1, close == v + 1),
+                None if not => {
                     self.pos = v;
-                    return Ok(None);
+                    return Ok(false);
                 }
                 None => return Err(Halt::Reject),
             }
-        } else if let Some(end) = t.predicate(&field, v) {
-            (t.text(v, end), end, true)
         } else {
-            let end = t.run(v).unwrap_or_else(|| t.plain(v, true, true));
-            (t.text(v, end), end, false)
+            let end = t
+                .predicate(&field, v)
+                .unwrap_or_else(|| t.run(v).unwrap_or_else(|| t.plain(v, true, true)));
+            (end, end == v)
         };
-        if dash && not.is_some() {
+        if dash && not {
             return Err(Halt::Reject);
         }
         self.pos = end;
-        let negated = dash || not.is_some();
-        let at = not.unwrap_or(s);
-        if !value.is_empty() {
-            let written = WrittenFilter { negated, field: field.clone(), value: t.text(v, end) };
+        if !empty {
+            let written = WrittenFilter { negated: dash || not, field, value: t.text(v, end) };
             self.written.push(Written::Filter(written));
         }
-        let filter = Filter { field, value, negated, predicate, at };
-        Ok(Some(Node::Filter(Box::new(filter))))
+        Ok(true)
     }
 
-    fn pattern(&mut self, at: usize, negated: bool) -> Node {
+    fn pattern(&mut self, negated: bool) {
         let (t, s, ty) = (self.t, self.pos, self.ty);
         let slashes = !matches!(ty, PatternType::Literal | PatternType::Structural);
         let quotes = matches!(ty, PatternType::Keyword | PatternType::Regexp);
@@ -487,8 +636,7 @@ impl<'t> Reader<'t> {
         if let Some(c) = close.filter(|&c| t.terminal(c + 1)) {
             self.pos = c + 1;
             self.write_pattern(s, self.pos, negated, true);
-            let slash = t.c[s] == '/';
-            return pattern(at, negated, c == s + 1 && !slash, slash && c > s + 1);
+            return;
         }
         self.pos = match (!self.flat).then(|| t.run(s)).flatten() {
             Some(end) => end,
@@ -496,6 +644,5 @@ impl<'t> Reader<'t> {
             None => t.plain(s, false, false),
         };
         self.write_pattern(s, self.pos, negated, false);
-        pattern(at, negated, self.pos == s, false)
     }
 }

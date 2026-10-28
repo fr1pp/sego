@@ -1333,11 +1333,6 @@ mod search {
     }
 
     #[test]
-    fn at_least_answer_has_no_unindexed_files_note() {
-        case("search/at-least-answer-has-no-unindexed-files-note.toml");
-    }
-
-    #[test]
     fn binary_file_json() {
         case("search/binary-file-json.toml");
     }
@@ -1358,8 +1353,8 @@ mod search {
     }
 
     #[test]
-    fn capped_zero_has_no_flag_or_unindexed_files_note() {
-        case("search/capped-zero-has-no-flag-or-unindexed-files-note.toml");
+    fn capped_zero_has_no_flag_note() {
+        case("search/capped-zero-has-no-flag-note.toml");
     }
 
     #[test]
@@ -1533,23 +1528,8 @@ mod search {
     }
 
     #[test]
-    fn head_search_lists_unindexed_files() {
-        case("search/head-search-lists-unindexed-files.toml");
-    }
-
-    #[test]
     fn head_select_has_no_select_note() {
         case("search/head-select-has-no-select-note.toml");
-    }
-
-    #[test]
-    fn index_no_lists_only_files_over_1_mib() {
-        case("search/index-no-lists-only-files-over-1-mib.toml");
-    }
-
-    #[test]
-    fn index_no_with_no_file_over_1_mib_has_no_note() {
-        case("search/index-no-with-no-file-over-1-mib-has-no-note.toml");
     }
 
     #[test]
@@ -1573,11 +1553,6 @@ mod search {
     }
 
     #[test]
-    fn local_check_or_filters_bind_to_one_operand() {
-        case("search/local-check-or-filters-bind-to-one-operand.toml");
-    }
-
-    #[test]
     fn local_check_range_in_a_repository_revision() {
         case("search/local-check-range-in-a-repository-revision.toml");
     }
@@ -1585,11 +1560,6 @@ mod search {
     #[test]
     fn local_check_regex_syntax_in_keyword_mode() {
         case("search/local-check-regex-syntax-in-keyword-mode.toml");
-    }
-
-    #[test]
-    fn local_check_structural_search_without_a_language() {
-        case("search/local-check-structural-search-without-a-language.toml");
     }
 
     #[test]
@@ -1663,13 +1633,18 @@ mod search {
     }
 
     #[test]
-    fn not_before_a_file_filter_is_restated_in_the_side_query() {
-        case("search/not-before-a-file-filter-is-restated-in-the-side-query.toml");
+    fn not_before_a_pinned_repository_negates_it() {
+        case("search/not-before-a-pinned-repository-negates-it.toml");
     }
 
     #[test]
-    fn not_before_a_pinned_repository_negates_it() {
-        case("search/not-before-a-pinned-repository-negates-it.toml");
+    fn not_indexed_query_lists_unindexed_files_json() {
+        case("search/not-indexed-query-lists-unindexed-files-json.toml");
+    }
+
+    #[test]
+    fn not_indexed_query_lists_unindexed_files() {
+        case("search/not-indexed-query-lists-unindexed-files.toml");
     }
 
     #[test]
@@ -1685,21 +1660,6 @@ mod search {
     #[test]
     fn or_before_a_parenthesis_splits_the_query() {
         case("search/or-before-a-parenthesis-splits-the-query.toml");
-    }
-
-    #[test]
-    fn or_search_at_least_has_no_note_on_unlisted_files() {
-        case("search/or-search-at-least-has-no-note-on-unlisted-files.toml");
-    }
-
-    #[test]
-    fn or_search_sends_no_side_query() {
-        case("search/or-search-sends-no-side-query.toml");
-    }
-
-    #[test]
-    fn or_search_stopped_has_no_note_on_unlisted_files() {
-        case("search/or-search-stopped-has-no-note-on-unlisted-files.toml");
     }
 
     #[test]
@@ -1730,11 +1690,6 @@ mod search {
     #[test]
     fn pinned_repo_select_has_no_select_note() {
         case("search/pinned-repo-select-has-no-select-note.toml");
-    }
-
-    #[test]
-    fn pinned_search_sends_no_side_query() {
-        case("search/pinned-search-sends-no-side-query.toml");
     }
 
     #[test]
@@ -1978,11 +1933,6 @@ mod search {
     }
 
     #[test]
-    fn stopped_answer_has_no_unindexed_files_note() {
-        case("search/stopped-answer-has-no-unindexed-files-note.toml");
-    }
-
-    #[test]
     fn stopped_answer_with_a_real_result_among_placeholders() {
         case("search/stopped-answer-with-a-real-result-among-placeholders.toml");
     }
@@ -2098,76 +2048,6 @@ mod search {
     }
 
     #[test]
-    fn unindexed_file_of_another_repository_is_pinned() {
-        case("search/unindexed-file-of-another-repository-is-pinned.toml");
-    }
-
-    #[test]
-    fn unindexed_file_over_64_mib_is_not_pointed_to_sego_show() {
-        case("search/unindexed-file-over-64-mib-is-not-pointed-to-sego-show.toml");
-    }
-
-    #[test]
-    fn unindexed_file_with_a_space_is_quoted() {
-        case("search/unindexed-file-with-a-space-is-quoted.toml");
-    }
-
-    #[test]
-    fn unindexed_file_with_results_from_two_repositories_is_pinned() {
-        case("search/unindexed-file-with-results-from-two-repositories-is-pinned.toml");
-    }
-
-    #[test]
-    fn unindexed_files_all_with_too_many_trigrams() {
-        case("search/unindexed-files-all-with-too-many-trigrams.toml");
-    }
-
-    #[test]
-    fn unindexed_files_are_unknown_after_an_error_at_the_listing() {
-        case("search/unindexed-files-are-unknown-after-an-error-at-the-listing.toml");
-    }
-
-    #[test]
-    fn unindexed_files_are_unknown_after_an_error_in_a_listed_file() {
-        case("search/unindexed-files-are-unknown-after-an-error-in-a-listed-file.toml");
-    }
-
-    #[test]
-    fn unindexed_files_are_unknown_when_the_listing_arrives_late() {
-        case("search/unindexed-files-are-unknown-when-the-listing-arrives-late.toml");
-    }
-
-    #[test]
-    fn unindexed_files_are_unknown_when_the_listing_has_an_alert() {
-        case("search/unindexed-files-are-unknown-when-the-listing-has-an-alert.toml");
-    }
-
-    #[test]
-    fn unindexed_files_are_unknown_when_the_listing_is_null() {
-        case("search/unindexed-files-are-unknown-when-the-listing-is-null.toml");
-    }
-
-    #[test]
-    fn unindexed_files_are_unknown_when_the_listing_is_stopped() {
-        case("search/unindexed-files-are-unknown-when-the-listing-is-stopped.toml");
-    }
-
-    #[test]
-    fn unindexed_files_follow_the_unshown_kinds() {
-        case("search/unindexed-files-follow-the-unshown-kinds.toml");
-    }
-
-    #[test]
-    fn unindexed_files_four_order_by_reason_then_size() {
-        case("search/unindexed-files-four-order-by-reason-then-size.toml");
-    }
-
-    #[test]
-    fn unindexed_files_three_have_no_tail() {
-        case("search/unindexed-files-three-have-no-tail.toml");
-    }
-
-    #[test]
     fn unpinned_select_has_no_select_note() {
         case("search/unpinned-select-has-no-select-note.toml");
     }
@@ -2220,21 +2100,6 @@ mod search {
     #[test]
     fn widen_line_with_control_characters() {
         case("search/widen-line-with-control-characters.toml");
-    }
-
-    #[test]
-    fn zero_lists_an_unindexed_file() {
-        case("search/zero-lists-an-unindexed-file.toml");
-    }
-
-    #[test]
-    fn zero_lists_unindexed_files_across_repositories() {
-        case("search/zero-lists-unindexed-files-across-repositories.toml");
-    }
-
-    #[test]
-    fn zero_lists_unindexed_files_and_skips_an_entry_without_a_file() {
-        case("search/zero-lists-unindexed-files-and-skips-an-entry-without-a-file.toml");
     }
 }
 

@@ -1,16 +1,16 @@
 mod answer;
 mod checks;
-mod plan;
 mod query;
+mod read;
 
 use crate::error::{Error, Kind};
 use crate::output::Notes;
 use crate::pointer;
-use crate::sourcegraph::{Client, Listing, Search};
+use crate::sourcegraph::{Client, Search};
 
 pub use answer::Answer;
-use plan::PatternType;
 use query::Query;
+use read::PatternType;
 
 fn pointed(error: Error) -> Error {
     if error.kind() == Kind::Deadline { error.fact(pointer::NARROWS) } else { error }
@@ -48,19 +48,11 @@ pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Err
     for note in &query.notes {
         notes.push(note);
     }
-    let search = client.search(&query.text, query.unindexed.as_deref()).map_err(pointed)?;
-    let (results, listing) = match search {
-        Search::Results { results, unindexed } => (results, unindexed),
+    let results = match client.search(&query.text).map_err(pointed)? {
+        Search::Results(results) => results,
         Search::BadRegexp { reason } => return Err(regexp_error(&reason, &query)),
     };
-    let deadline_ms = query.deadline_ms;
-    // An empty listing can't be told from one that failed under load, so it
-    // leaves the files skipped unknown (ADR 0007).
-    let unindexed = listing
-        .filter(|listing| listing.complete(deadline_ms))
-        .map(Listing::files)
-        .filter(|files| !files.is_empty());
-    let answer = Answer::new(query, results, unindexed);
+    let answer = Answer::new(query, results);
     answer.judge(notes)?;
     Ok(answer)
 }
@@ -74,61 +66,29 @@ mod tests {
     use std::time::{Duration, Instant};
 
     use crate::error::{Error, report};
-    use crate::sourcegraph::{DEADLINE, Endpoint, Listing, Results};
+    use crate::sourcegraph::{DEADLINE, Endpoint, Item, Results};
 
-    const SQLITE_FILE: &str = "c_src/sqlite3.c";
-    const X509_FILE: &str = "src/crypto/x509/x509_test.go";
-    const TRIGRAM_LIMIT: u64 = 1_048_576;
     const PAUSE: Duration = Duration::from_secs(1);
 
     type Rule = fn() -> Result<(), String>;
 
-    /// sourcegraph.com's results for `query`, and the listing of the side
-    /// query sego sends with it.
-    fn searched_live(query: &str) -> Result<(Results, Option<Listing>), String> {
+    /// sourcegraph.com's results for `query`.
+    fn searched_live(query: &str) -> Result<Results, String> {
         sleep(PAUSE);
         let query = Query::new(query);
         let deadline = Instant::now() + DEADLINE;
         let cache = Endpoint::default().cache(Some(OsStr::new("off")));
         let client =
             Client::new(crate::connect(Endpoint::default()), Endpoint::default(), &cache, deadline);
-        match client.search(&query.text, query.unindexed.as_deref()) {
-            Ok(Search::Results { results, unindexed }) => Ok((results, unindexed)),
+        match client.search(&query.text) {
+            Ok(Search::Results(results)) => Ok(results),
             Ok(Search::BadRegexp { reason }) => Err(format!("{}: {reason}", query.text)),
             Err(e) => Err(format!("{}: {}", query.text, report(&e))),
         }
     }
 
-    fn listed_bytes(query: &str, path: &str) -> Result<u64, String> {
-        let (_, listing) = searched_live(query)?;
-        let files = listing.ok_or_else(|| format!("{query}: no listing"))?.files();
-        files.iter().find(|f| f.path == path).map(|f| f.bytes).ok_or_else(|| {
-            let paths: Vec<&str> = files.iter().map(|f| f.path.as_str()).collect();
-            format!("{path} is not listed (listed: {paths:?})")
-        })
-    }
-
-    fn placeholder_listing() -> Result<(), String> {
-        let bytes = listed_bytes(r"repo:^github\.com/elixir-sqlite/exqlite$ zqxv", SQLITE_FILE)?;
-        if bytes > TRIGRAM_LIMIT {
-            Ok(())
-        } else {
-            Err(format!("{SQLITE_FILE} is {bytes} bytes, not over {TRIGRAM_LIMIT}"))
-        }
-    }
-
-    fn trigram_reason() -> Result<(), String> {
-        let query = r"repo:^github\.com/golang/go$ file:^src/crypto/x509/ zqxv";
-        let bytes = listed_bytes(query, X509_FILE)?;
-        if bytes <= TRIGRAM_LIMIT {
-            Ok(())
-        } else {
-            Err(format!("{X509_FILE} is {bytes} bytes, over {TRIGRAM_LIMIT}"))
-        }
-    }
-
     fn cap_and_plus() -> Result<(), String> {
-        let (results, _) = searched_live(r"repo:^github\.com/gorilla/mux$ func")?;
+        let results = searched_live(r"repo:^github\.com/gorilla/mux$ func")?;
         let (count, hit) = (results.match_count, results.limit_hit);
         if count == 30 && hit {
             Ok(())
@@ -138,7 +98,7 @@ mod tests {
     }
 
     fn complete_answer() -> Result<(), String> {
-        let (results, _) = searched_live(r"repo:^github\.com/gorilla/mux$ catchallhandler")?;
+        let results = searched_live(r"repo:^github\.com/gorilla/mux$ catchallhandler")?;
         let (count, hit) = (results.match_count, results.limit_hit);
         if (1..30).contains(&count) && !hit {
             Ok(())
@@ -148,7 +108,7 @@ mod tests {
     }
 
     fn utility_counts() -> Result<(), String> {
-        let (results, _) = searched_live(r"repo:^github\.com/gorilla/ zqxjkvbnmwqtyplkh")?;
+        let results = searched_live(r"repo:^github\.com/golang/ zqxjkvbnmwqtyplkh")?;
         let found = results.dynamic_filters.iter().find(|f| {
             f.value == "archived:yes" && f.kind.eq_ignore_ascii_case("utility") && f.count >= 1
         });
@@ -161,10 +121,32 @@ mod tests {
         }
     }
 
+    /// `FileMatch::placeholder_reason` still reads the index's placeholder:
+    /// bat's binary assets are among its unindexed files.
+    fn placeholder_format() -> Result<(), String> {
+        let results = searched_live(r"repo:^github\.com/sharkdp/bat$ NOT-INDEXED count:all")?;
+        let reasons: Vec<&str> = results
+            .items
+            .iter()
+            .filter_map(|item| match item {
+                Item::FileMatch(file) => file.placeholder_reason(),
+                _ => None,
+            })
+            .collect();
+        if reasons.contains(&"contains binary content") {
+            Ok(())
+        } else {
+            Err(format!(
+                "{} results, none a placeholder for binary content (reasons read: {reasons:?}); \
+                 a zero may be a backend that failed to answer, so run it again",
+                results.items.len()
+            ))
+        }
+    }
+
     /// The local check `symbols_of_content` notes that this returns nothing.
     fn symbols_of_content() -> Result<(), String> {
-        let (results, _) =
-            searched_live(r"repo:^github\.com/gorilla/mux$ NewRouter select:symbol")?;
+        let results = searched_live(r"repo:^github\.com/gorilla/mux$ NewRouter select:symbol")?;
         match results.match_count {
             0 => Ok(()),
             n => Err(format!("matchCount {n}; select:symbol over content now answers")),
@@ -175,8 +157,8 @@ mod tests {
     /// capped repo select answers fewer than `count:all`, unflagged (#32).
     fn repo_select_cut() -> Result<(), String> {
         const SCOPE: &str = r"repo:^github\.com/(torvalds/linux|chromium/chromium|kubernetes/kubernetes|golang/go|gorilla/mux)$ func select:repo timeout:60s";
-        let (capped, _) = searched_live(&format!("{SCOPE} count:10"))?;
-        let (every, _) = searched_live(&format!("{SCOPE} count:all"))?;
+        let capped = searched_live(&format!("{SCOPE} count:10"))?;
+        let every = searched_live(&format!("{SCOPE} count:all"))?;
         let stopped = |r: &Results| !r.timedout.is_empty() || r.elapsed_milliseconds >= 60_000;
         if stopped(&capped) || stopped(&every) || every.limit_hit {
             return Err("a search stopped or count:all was cut; run it again".to_owned());
@@ -197,7 +179,7 @@ mod tests {
     /// `stopped_pointer` says sourcegraph.com allows at most `timeout:60s`:
     /// a search that runs longer stops at 60 s, whatever `timeout:` it asks for.
     fn deadline_ceiling() -> Result<(), String> {
-        let (results, _) =
+        let results =
             searched_live(r"repo:^github\.com/torvalds/linux$ type:diff zqxjvkwq timeout:90s")?;
         let ms = results.elapsed_milliseconds;
         let stopped = !results.timedout.is_empty();
@@ -215,9 +197,8 @@ mod tests {
     #[test]
     #[ignore = "sends requests to sourcegraph.com"]
     fn the_rules_search_relies_on_still_hold_on_the_live_server() {
-        let rules: [(&str, Rule); 8] = [
-            ("placeholder listing", placeholder_listing),
-            ("trigram reason", trigram_reason),
+        let rules: [(&str, Rule); 7] = [
+            ("placeholder format", placeholder_format),
             ("cap and plus", cap_and_plus),
             ("complete answer", complete_answer),
             ("utility counts", utility_counts),

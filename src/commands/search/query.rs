@@ -1,40 +1,16 @@
 use std::time::Duration;
 
 use crate::pointer;
+use crate::sourcegraph::NOT_INDEXED;
 
 use super::checks::{check, flag_note};
-use super::plan::{
-    PatternType, Plan, Written, WrittenFilter as Filter, chosen, has_pattern, plan, unquoted,
+use super::read::{
+    PatternType, Written, WrittenFilter as Filter, chosen, has_pattern, read, unquoted,
 };
 
 const MAX_DEADLINE_MS: u64 = 60_000;
 const DEFAULT_DEADLINE_MS: u64 = 20_000;
 const DEFAULT_CAP: u64 = 30;
-const SCOPE_FIELDS: [&str; 13] = [
-    "repo",
-    "r",
-    "file",
-    "f",
-    "path",
-    "lang",
-    "l",
-    "language",
-    "fork",
-    "archived",
-    "visibility",
-    "context",
-    "g",
-];
-/// Filters that don't change which files the query searches.
-const SETTING_FIELDS: [&str; 8] =
-    ["count", "timeout", "type", "select", "case", "patterntype", "index", "content"];
-/// The spellings the server reads as No for `index:`: `n` and `no` in three
-/// cases, and the false spellings it accepts for any boolean; case matters,
-/// so `nO` and `fALSE` are rejected.
-const INDEX_NO: [&str; 11] = ["n", "N", "no", "NO", "No", "0", "f", "F", "false", "FALSE", "False"];
-/// What the index holds in place of a file it skipped, before a space and
-/// the reason.
-pub const NOT_INDEXED: &str = "NOT-INDEXED:";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Unit {
@@ -70,17 +46,6 @@ impl Unit {
     }
 }
 
-/// What the query's `index:` filters say. The server takes one `index:` in
-/// a basic query, and rejects a second.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Index {
-    Unwritten,
-    /// Every basic query has `index:no`, which searches the files the index
-    /// skipped for too many trigrams but still not those over 1 MiB.
-    No,
-    Other,
-}
-
 #[expect(
     clippy::struct_excessive_bools,
     reason = "independent facts about one query, not a state machine"
@@ -101,45 +66,49 @@ pub struct Query {
     /// The query has a non-negated `type:diff`.
     pub diff: bool,
     pub deadline_ms: u64,
-    pub unindexed: Option<String>,
     pub select_cut: Option<u64>,
     pub select_drops: bool,
-    pub index: Index,
     /// What reaches further when the search stops: a longer deadline while
     /// sourcegraph.com allows one, otherwise a narrower scope.
     pub stopped_pointer: String,
     pub repo_scoped: bool,
     pub repo_names: Option<String>,
+    /// A pattern names `NOT-INDEXED`, so the placeholders of unindexed
+    /// files are results, not matches to drop.
+    pub lists_placeholders: bool,
     pub flag_note: Option<String>,
     pub notes: Vec<String>,
 }
 
 impl Query {
-    /// The facts about `text` that its plan gives, and the notes of the
-    /// local checks. A plan sego rejects gives none.
+    /// The facts about `text` that what it writes gives, and the notes of
+    /// the local checks. A query the server rejects while reading it gives
+    /// none.
     pub fn new(text: &str) -> Query {
-        let plan = plan(text);
-        let written = plan.written();
+        let reading = read(text);
+        let written = reading.written.as_slice();
         let deadline_ms = deadline_ms(written);
-        let pattern_type = search_type(written, &plan);
+        let pattern_type = reading.pattern_type;
         Query {
             text: text.to_owned(),
             pattern_type,
             lucky: pattern_type == PatternType::Standard && written_type(written) == Some("lucky"),
-            notes: check(written, &plan, pattern_type),
+            notes: check(written, pattern_type),
             cap: cap(written),
             unit: unit(written),
             by_results: stated_unit(written).is_none(),
-            lower_bound: lower_bound(written, &plan),
+            lower_bound: lower_bound(written),
             diff: chosen(written, "type").any(|value| value == "diff"),
-            unindexed: unindexed_query(written, deadline_ms),
             select_cut: select_cut(written),
             select_drops: select_drops(written),
-            index: index(written, &plan),
-            stopped_pointer: stopped_pointer(written, &plan, deadline_ms),
-            repo_scoped: repo_scoped(&plan),
+            stopped_pointer: stopped_pointer(written, deadline_ms),
+            repo_scoped: repo_scoped(written),
             repo_names: repo_names(written),
-            flag_note: flag_note(written, search_type(written, &plan)),
+            lists_placeholders: written.iter().any(|item| {
+                matches!(item, Written::Pattern { text, negated: false, .. }
+                    if text.to_ascii_uppercase().contains(NOT_INDEXED))
+            }),
+            flag_note: flag_note(written, pattern_type),
             deadline_ms,
         }
     }
@@ -225,11 +194,11 @@ fn repo_select(value: &str) -> bool {
 ///   can meet the index's match limits unflagged. Only a scope of one
 ///   repository, which can't be cut short, or a search of commits, which the
 ///   index doesn't run, is exact.
-fn lower_bound(written: &[Written], plan: &Plan) -> bool {
+fn lower_bound(written: &[Written]) -> bool {
     let directories =
         chosen(written, "select").any(|value| value == "file.directory") && cap(written).is_some();
     let repos =
-        chosen(written, "select").any(repo_select) && !history(written) && !one_repository(plan);
+        chosen(written, "select").any(repo_select) && !history(written) && !one_repository(written);
     directories || repos
 }
 
@@ -243,38 +212,16 @@ fn history(written: &[Written]) -> bool {
         && !written.contains(&Written::Or)
 }
 
-fn duration_text(ms: u64) -> String {
-    if ms.is_multiple_of(1000) { format!("{}s", ms / 1000) } else { format!("{ms}ms") }
-}
-
-/// The pointer for a search that stopped at `deadline_ms`. A plan of more
-/// than one basic query has a deadline for each, which `deadline_ms`
-/// doesn't hold.
-fn stopped_pointer(written: &[Written], plan: &Plan, deadline_ms: u64) -> String {
-    let one = matches!(plan, Plan::Read(basic_queries) if basic_queries.count() <= 1);
+/// The pointer for a search that stopped at `deadline_ms`. A query with
+/// `or` can run as several searches, each with its own deadline, which
+/// `deadline_ms` doesn't hold.
+fn stopped_pointer(written: &[Written], deadline_ms: u64) -> String {
+    let one = !written.contains(&Written::Or);
     let timeout = written.iter().find_map(|item| match item {
         Written::Filter(filter) if field(item, "timeout") => Some(filter.raw()),
         _ => None,
     });
     pointer::stopped(one.then_some(deadline_ms), MAX_DEADLINE_MS, timeout.as_deref())
-}
-
-/// A second search for the files the index skipped, within the query's
-/// scope. `None` unless the query is a plain text search (`plain_scope`)
-/// whose revisions are all `HEAD` or empty, and none negated: the side
-/// query is exact only on the default branch's index.
-fn unindexed_query(written: &[Written], deadline_ms: u64) -> Option<String> {
-    let scope = plain_scope(written)?;
-    if filters(written).any(|f| names_unindexed_revision(f) || (f.negated && names_revision(f))) {
-        return None;
-    }
-    Some(format!(
-        "{} type:file select:file index:only patterntype:regexp \
-         ^{NOT_INDEXED}\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ \
-         count:all timeout:{}",
-        scope.join(" "),
-        duration_text(deadline_ms),
-    ))
 }
 
 /// The cap that can cut a pinned search's `select:` answer: the searcher
@@ -309,37 +256,11 @@ fn content_search(written: &[Written]) -> bool {
     has_pattern(written) && chosen(written, "type").all(|v| v == "file" || v == "symbol")
 }
 
-fn index(written: &[Written], plan: &Plan) -> Index {
-    if index_no(written, plan) {
-        Index::No
-    } else if written.iter().any(|item| field(item, "index")) {
-        Index::Other
-    } else {
-        Index::Unwritten
-    }
-}
-
-/// Whether every basic query of the query's plan has `index:no`. A query
-/// whose basic queries aren't read (`Plan::each`) has it when any non-negated
-/// `index:` is No.
-fn index_no(written: &[Written], plan: &Plan) -> bool {
-    let no = |negated: bool, field: &str, value: &str| {
-        !negated && field.eq_ignore_ascii_case("index") && INDEX_NO.contains(&value)
-    };
-    match plan.each() {
-        Some(basic_queries) if !basic_queries.is_empty() => basic_queries
-            .iter()
-            .all(|basic| basic.iter().any(|f| no(f.negated, &f.field, &f.value))),
-        _ => filters(written).any(|f| no(f.negated, &f.field, &f.value)),
-    }
-}
-
-/// Whether every basic query of the query's plan has a non-negated `repo:`
-/// filter. A basic query narrowed only by other filters covers the whole corpus.
-fn repo_scoped(plan: &Plan) -> bool {
-    let Plan::Read(basic_queries) = plan else { return false };
-    let ends = basic_queries.reach(false, |scoped, f| scoped || (f.field == "repo" && !f.negated));
-    !ends.is_empty() && ends.iter().all(|&scoped| scoped)
+/// Whether the query has a non-negated `repo:` filter and no `or`. A query
+/// narrowed only by other filters covers the whole corpus, and an operand of
+/// `or` can sit beside no `repo:` filter at all.
+fn repo_scoped(written: &[Written]) -> bool {
+    !written.contains(&Written::Or) && filters(written).any(|f| is_repo(f) && !f.negated)
 }
 
 /// A `type:repo` search for the name in the query's one positive `repo:`
@@ -402,11 +323,6 @@ fn is_revision(f: &Filter) -> bool {
     is(f, &["rev", "revision"])
 }
 
-/// A `repo:` value with `@`, or a `rev:` or `revision:` filter.
-fn names_revision(f: &Filter) -> bool {
-    (is_repo(f) && f.value.contains('@')) || is_revision(f)
-}
-
 /// A revision filter that names a revision the searcher reads: one other
 /// than `HEAD`, which the index holds, or the empty revision, which means
 /// `HEAD`.
@@ -419,41 +335,6 @@ fn names_unindexed_revision(f: &Filter) -> bool {
         return false;
     };
     revisions.split(':').any(|rev| !rev.is_empty() && rev != "HEAD")
-}
-
-/// The scope filters, as written, of a query that is plainly a text search
-/// of named repositories at any revision: every filter is a scope field, a
-/// setting or a revision, and what the scope restates is all that narrows
-/// the files searched. `None` for any other query.
-fn plain_scope(written: &[Written]) -> Option<Vec<String>> {
-    let path_function = |f: &Filter| {
-        is(f, &["file", "f", "path"])
-            && (f.value.starts_with("has.") || f.value.starts_with("contains."))
-    };
-    let plain = filters(written).any(|f| is_repo(f) && !f.negated)
-        && has_pattern(written)
-        && filters(written)
-            .all(|f| is(f, &SCOPE_FIELDS) || is(f, &SETTING_FIELDS) || is_revision(f))
-        && !filters(written).any(path_function)
-        && !written
-            .iter()
-            .any(|t| matches!(t, Written::Or | Written::Pattern { negated: true, .. }))
-        && !chosen(written, "type").any(|v| matches!(v, "commit" | "diff" | "repo" | "path"));
-    let scope: Vec<String> =
-        filters(written).filter(|f| is(f, &SCOPE_FIELDS)).map(Filter::raw).collect();
-    if !plain || scope.iter().any(|raw| raw.contains(char::is_whitespace)) {
-        return None;
-    }
-    Some(scope)
-}
-
-/// The pattern type the server searches in: the plan's, or for a query it
-/// rejects while reading it, the last `patterntype:` value as written.
-fn search_type(written: &[Written], plan: &Plan) -> PatternType {
-    match plan {
-        Plan::Read(basic_queries) => basic_queries.pattern_type,
-        _ => written_type(written).and_then(PatternType::named).unwrap_or(PatternType::Keyword),
-    }
 }
 
 /// The last `patterntype:` value that names a type, unquoted.
@@ -551,24 +432,14 @@ fn digits(text: &str) -> (&str, &str) {
     text.split_at(end)
 }
 
-/// Whether the query can search only one repository: each basic query of its
-/// plan has a non-negated `repo:` whose value is one exact name, the same in
-/// every one. Two `repo:` filters in a basic query intersect, so one exact
-/// name among them is enough. A plan of 64 or more basic queries isn't read.
-fn one_repository(plan: &Plan) -> bool {
-    let Some(basic_queries) = plan.each() else {
-        return false;
-    };
-    let mut names = basic_queries.iter().map(|basic| {
-        basic
-            .iter()
-            .filter(|f| f.field == "repo" && !f.negated)
-            .find_map(|f| exact_repository(&f.value))
-    });
-    let Some(Some(first)) = names.next() else {
-        return false;
-    };
-    names.all(|name| name == Some(first))
+/// Whether the query can search only one repository: it has no `or`, and a
+/// non-negated `repo:` whose value is one exact name. Two `repo:` filters
+/// intersect, so one exact name among them is enough.
+fn one_repository(written: &[Written]) -> bool {
+    !written.contains(&Written::Or)
+        && filters(written)
+            .filter(|f| is_repo(f) && !f.negated)
+            .any(|f| exact_repository(&f.read_value()).is_some())
 }
 
 /// The name in a `repo:` value that matches one repository: `^NAME$`, with
@@ -782,78 +653,6 @@ mod tests {
     }
 
     #[test]
-    fn an_eligible_query_gets_an_unindexed_files_query() {
-        assert_eq!(
-            Query::new(r"repo:^github\.com/gorilla/mux$ file:\.go$ -lang:markdown foo count:5")
-                .unindexed
-                .as_deref(),
-            Some(
-                r"repo:^github\.com/gorilla/mux$ file:\.go$ -lang:markdown type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\ (exceeds\ the\ maximum\ size\ limit|contains\ too\ many\ trigrams)$ count:all timeout:60s"
-            ),
-        );
-        assert_eq!(
-            Query::new("R:x -F:y foo timeout:1500ms").unindexed.as_deref(),
-            Some(
-                r"R:x -F:y type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\ (exceeds\ the\ maximum\ size\ limit|contains\ too\ many\ trigrams)$ count:all timeout:1500ms"
-            ),
-        );
-        assert_eq!(
-            Query::new("repo:x g:team foo case:yes content:y").unindexed.as_deref(),
-            Some(
-                r"repo:x g:team type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\ (exceeds\ the\ maximum\ size\ limit|contains\ too\ many\ trigrams)$ count:all timeout:20s"
-            ),
-        );
-        assert_eq!(
-            Query::new("repo:x@HEAD rev:HEAD foo").unindexed.as_deref(),
-            Some(
-                r"repo:x@HEAD type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\ (exceeds\ the\ maximum\ size\ limit|contains\ too\ many\ trigrams)$ count:all timeout:20s"
-            ),
-        );
-        for (query, scope) in [
-            ("repo:x NOT file:test foo", "repo:x -file:test"),
-            ("NOT repo:x repo:y foo", "-repo:x repo:y"),
-        ] {
-            assert_eq!(
-                Query::new(query).unindexed,
-                Some(format!(
-                    r"{scope} type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\ (exceeds\ the\ maximum\ size\ limit|contains\ too\ many\ trigrams)$ count:all timeout:20s"
-                )),
-                "{query}"
-            );
-        }
-        assert_eq!(duration_text(500), "500ms");
-        assert_eq!(duration_text(20_000), "20s");
-    }
-
-    #[test]
-    fn an_ineligible_query_gets_no_unindexed_files_query() {
-        for q in [
-            "foo",
-            "-repo:x foo",
-            "repo:x a or b",
-            "repo:x@v1 foo",
-            "repo:x@HEAD:v1 foo",
-            "repo:x -r:y@v1 foo",
-            "repo:x -r:y@HEAD foo",
-            "repo:x rev:v1 foo",
-            "repo:x revision:v1 foo",
-            "repo:x type:diff foo",
-            "repo:x type:commit foo",
-            "repo:x type:repo",
-            r#"repo:x file:"a b" foo"#,
-            r"repo:x repohasfile:go\.mod foo",
-            "repo:x repohascommitafter:2024 foo",
-            "repo:x author:a foo",
-            "repo:x file:has.content(x) foo",
-            "repo:x path:contains.file(a) foo",
-            r"repo:x file:\.go$",
-            "repo:x type:path foo",
-        ] {
-            assert_eq!(Query::new(q).unindexed, None, "{q}");
-        }
-    }
-
-    #[test]
     fn a_directory_count_is_a_lower_bound_unless_count_all() {
         let rows = [
             ("repo:x type:diff foo", false),
@@ -954,62 +753,20 @@ mod tests {
         assert!(!query.lower_bound);
         assert!(query.diff);
         assert_eq!(query.deadline_ms, 20_000);
-        assert_eq!(query.unindexed, None);
 
         let query = Query::new("repo:x foo select:file count:all");
         assert_eq!(query.cap, None);
         assert_eq!(query.unit, Unit::Files);
         assert!(!query.lower_bound);
         assert!(!query.diff);
-        assert!(query.unindexed.is_some());
     }
 
     #[test]
-    fn only_a_query_at_head_lists_its_unindexed_files() {
-        for q in ["repo:x@v1 foo", "repo:x rev:v1 foo", "repo:x revision:v1 foo"] {
-            let query = Query::new(q);
-            assert_eq!(query.unindexed, None, "{q}");
-        }
-        for q in [
-            "repo:x foo",
-            "repo:x@HEAD foo",
-            "repo:x@ foo",
-            "repo:x rev:HEAD foo",
-            "repo:x revision:HEAD foo",
-        ] {
-            let query = Query::new(q);
-            assert!(query.unindexed.is_some(), "{q}");
-        }
-        for q in
-            ["repo:x@HEAD:v1 foo", "repo:x@HEAD rev:v1 foo", "repo:x@head foo", "repo:x@main foo"]
-        {
-            let query = Query::new(q);
-            assert_eq!(query.unindexed, None, "{q}");
-        }
-        for q in [
-            "repo:x@v1 a or b",
-            r"repo:^github\.com/gorilla/mux$@v1.8.0 file:^mux\.go$ (StrictSlash or zzqqxx)",
-            "repo:x rev:v1 NOT foo",
-            "repo:x@v1 repohasfile:y foo",
-            "repo:x@v1 type:file foo",
-            "repo:x@v1 type:symbol foo",
-            "repo:x rev:v1 type:symbol type:file foo",
-        ] {
-            let query = Query::new(q);
-            assert_eq!(query.unindexed, None, "{q}");
-        }
-        for q in ["repo:x -r:y@v1 foo", "repo:x -rev:v1 foo", "repo:x -rev:v1 a or b"] {
-            let query = Query::new(q);
-            assert_eq!(query.unindexed, None, "{q}");
-        }
-    }
-
-    #[test]
-    fn a_positive_repo_filter_scopes_a_query() {
+    fn a_positive_repo_filter_without_or_scopes_a_query() {
         for q in ["repo:x foo", "r:x foo", r"repo:^github\.com/org/ file:a foo"] {
             assert!(Query::new(q).repo_scoped, "{q}");
         }
-        for q in ["foo", "-repo:x foo", "file:x foo", "lang:go foo"] {
+        for q in ["foo", "-repo:x foo", "file:x foo", "lang:go foo", "repo:x a or b"] {
             assert!(!Query::new(q).repo_scoped, "{q}");
         }
     }
@@ -1075,7 +832,7 @@ mod tests {
             "type:symbol type:file foo",
             "(type:symbol X) or (Y type:symbol X)",
         ] {
-            assert!(content_search(plan(q).written()), "{q}");
+            assert!(content_search(&read(q).written), "{q}");
         }
         for q in [
             "repo:x",
@@ -1088,7 +845,7 @@ mod tests {
             "repo:x type:commit foo",
             "repo:x type:diff foo",
         ] {
-            assert!(!content_search(plan(q).written()), "{q}");
+            assert!(!content_search(&read(q).written), "{q}");
         }
     }
 
@@ -1111,42 +868,6 @@ mod tests {
             let query = Query::new(quoted);
             assert_eq!(query.notes, Vec::<String>::new(), "{line}");
             assert_eq!(query.cap, None, "{line}");
-        }
-    }
-
-    #[test]
-    fn index_no_is_any_value_the_server_reads_as_no() {
-        for value in ["n", "N", "no", "NO", "No", "0", "f", "F", "false", "FALSE", "False"] {
-            let q = format!("repo:x index:{value} foo");
-            assert_eq!(Query::new(&q).index, Index::No, "{q}");
-        }
-        let deep = format!("{}repo:x foo{} index:no", "(".repeat(65), ")".repeat(65));
-        let wide = format!("{} index:no", vec!["(repo:x foo)"; 64].join(" or "));
-        for q in [deep.as_str(), wide.as_str()] {
-            assert_eq!(Query::new(q).index, Index::No, "{q}");
-        }
-        for q in [
-            "repo:x INDEX:no foo",
-            "(repo:x index:no foo) or (repo:y index:no bar)",
-            "repo:x index:no foo or bar",
-        ] {
-            assert_eq!(Query::new(q).index, Index::No, "{q}");
-        }
-        for q in [
-            "",
-            "(repo:x index:no foo) or (repo:y bar)",
-            "(repo:x foo) or (repo:y index:no bar)",
-            "repo:x foo",
-            "repo:x index:yes foo",
-            "repo:x index:only foo",
-            "repo:x index:true foo",
-            "repo:x index:1 foo",
-            "repo:x index:nO foo",
-            "repo:x index:fALSE foo",
-            "repo:x index:off foo",
-            "repo:x -index:no foo",
-        ] {
-            assert_ne!(Query::new(q).index, Index::No, "{q}");
         }
     }
 

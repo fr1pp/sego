@@ -1,21 +1,21 @@
 # The note on the query comes before the alert.
-args = ["search", "lang:go lang:rust foo"]
+args = ["search", "lnag:go foo"]
 status.code = 0
 stdout = '''
 1 match  1 repo  0.2 s
-query  lang:go lang:rust foo
+query  lnag:go foo
 
 example.com/acme/widget
 '''
 stderr = '''
-sego: note: lang: filters intersect: a file must match both
+sego: note: 'lnag:' is not a filter; the server searches `lnag:go` as text
 sego: note: Heads up: be careful
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":false,"query":"lang:go lang:rust foo","unindexed":""}'
-document = "Search-328cc8ec"
+variables = '{"query":"lnag:go foo"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''

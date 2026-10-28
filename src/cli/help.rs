@@ -65,7 +65,8 @@ const SEARCH_FACTS: &str = r#"defaults:
   Sourcegraph excludes archived repositories and forks; add archived:yes or
   fork:yes to include them. No search reads a file over 1 MiB, and
   sego show reads files under 64 MiB; index:no searches files skipped for
-  too many distinct trigrams.
+  too many distinct trigrams. A query that names NOT-INDEXED, such as
+  'repo:^REPO$ NOT-INDEXED count:all', lists the files the index skipped.
 
 text:
   N UNIT  R repos  T s      UNIT is matches, commits, files,
@@ -76,24 +77,25 @@ text:
   query  QUERY              the query as sent
   widen  FILTER (N repos)   repositories in scope left out by default
   REPO@COMMIT:PATH          a file with results, then "N:text" for a
-                            matching line and "N-text" for context
+                            matching line and "N-text" for context, or
+                            "NOT-INDEXED: REASON" for a file the index
+                            skipped
   A match is one matched range; a line can hold several.
   A diff result previews at most 5 files and 3 hunks a file.
   Text prints the first 100 matches; --json carries every result fetched.
-  A note names the files a search skipped, when the search can list them,
-  and what reads them. Sourcegraph doesn't report a search backend that
-  fails to answer, so a 0 can come from one, and a search over several
-  repositories can miss a backend's share.
+  Sourcegraph doesn't report a search backend that fails to answer, so a
+  0 can come from one, and a search over several repositories can miss a
+  backend's share.
 
 json:
   query pattern_type unit count at_least stopped elapsed_ms limit_ms
-  widen[{filter repos}] unindexed[{repo commit path bytes}], null when
-  the files skipped are unknown; alert
-  results[]: kind (line, path, binary, symbol, commit or repo) and repo;
-    file kinds add commit rev path; line adds line text match ranges
-    chunk, with match false on a context line; symbol adds line name
-    symbol_kind container; commit adds commit date author subject lines
-    highlights preview_limited; date is the UTC day of the author date
+  widen[{filter repos}] alert
+  results[]: kind (line, path, binary, unindexed, symbol, commit or repo)
+    and repo; file kinds add commit rev path; unindexed adds reason; line
+    adds line text match ranges chunk, with match false on a context
+    line; symbol adds line name symbol_kind container; commit adds commit
+    date author subject lines highlights preview_limited; date is the UTC
+    day of the author date
   server notes
 
 examples:
@@ -255,16 +257,30 @@ examples:
   sego diff github.com/gorilla/mux@v1.7.4...v1.8.0 mux.go
 "#;
 
-/// A command's help: its usage, then `operands`, `options` and `facts`,
-/// one blank line apart.
-const ERRORS: &str = "\
-errors:
+/// The sections every command's help ends with.
+const EVERY_COMMAND: &str = r"errors:
   An error's indented lines state facts, such as the default branch, and
   can name the sego command or filter that finds what it couldn't.
+
+exit codes:
+  0  answered, even when the answer is empty or a lower bound
+  1  not found: what the command line names doesn't exist on
+     Sourcegraph; asking again won't help, a different address may
+  2  usage error: the command line is malformed, names what no mirror
+     can hold, or is ambiguous, and must change
+  3  failure: Sourcegraph or the network didn't answer, or the answer
+     couldn't be written; asking again later may help
+
+escapes:
+  Text from Sourcegraph prints a control, separator or invisible
+  character as \u{h}, and a byte that isn't UTF-8 as \x{hh}; a word
+  printed for pasting is quoted for bash. --json keeps the exact text.
 ";
 
+/// A command's help: its usage, then `operands`, `options` and `facts`,
+/// one blank line apart.
 fn command_help(synopsis: &str, operands: &str, options: &str, facts: &str) -> String {
-    format!("{}\n\n{operands}\n{options}\n{facts}\n{ERRORS}", usage_block(synopsis))
+    format!("{}\n\n{operands}\n{options}\n{facts}\n{EVERY_COMMAND}", usage_block(synopsis))
 }
 
 pub fn search() -> String {
@@ -340,12 +356,6 @@ exit codes: 0 answered, 1 not found, 2 usage error, 3 failure
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn the_read_limit_help_states_is_the_one_sego_keeps() {
-        let mib = crate::sourcegraph::LARGEST_READ >> 20;
-        assert!(SEARCH_FACTS.contains(&format!("files under {mib} MiB")));
-    }
 
     fn topics() -> impl Iterator<Item = Option<&'static str>> {
         std::iter::once(None).chain(COMMANDS.iter().map(|entry| Some(entry.name)))

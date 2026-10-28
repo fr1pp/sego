@@ -13,7 +13,8 @@ use crate::pointer;
 
 /// A revision's commit, the changes against its first parent in a wrapper
 /// whose error nulls only the wrapper, and whether each path `#` exists in
-/// the commit and its parents.
+/// the commit and its parents. The changes' count has its own `first: 0`
+/// alias, since `fileDiffs(first: N)` gives a null `totalCount`.
 const COMMIT: &str = "\
 query Commit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, \
 $paths: [String!], $first: Int, $patch: Boolean!{declared}) {
@@ -47,6 +48,7 @@ fragment Changes on RepositoryComparison {
 
 /// The comparison of two commits named by their full IDs, which never
 /// fetch, with the merge base, and whether each path `#` exists at each.
+/// The count has its own `first: 0` alias, as in `COMMIT`.
 const COMPARISON: &str = "\
 query Comparison($repo: String!, $a: String!, $b: String!, $paths: [String!], $first: Int, \
 $patch: Boolean!{declared}) {

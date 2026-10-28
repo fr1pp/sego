@@ -15,8 +15,12 @@ The rules every change to sego follows. Where an ADR holds the reason, the rule 
 - A module's unit tests sit inline, as a `#[cfg(test)] mod tests { use super::*; … }` at the end of
   its file, whatever the file's size.
 - What an agent sees on the command line is pinned by a case
-  ([ADR 0011](docs/adr/0011-tests-replay-recorded-responses.md)). A module test is kept only where
-  [ADR 0012](docs/adr/0012-tests-sit-inline-or-go-through-run.md) allows one.
+  ([ADR 0011](docs/adr/0011-tests-replay-recorded-responses.md)). A help text is pinned only by its
+  case.
+- A module test is kept only where a case can't pin the behaviour well: a pure function with a large
+  input space (query reading, argument parsing, addresses, escaping), the reading of server
+  responses with their combinations of errors, and what the command line can't reach (the cache's
+  file handling, the HTTP transport). A module test that repeats a case is deleted.
 - A test's name is a sentence that states the behaviour: `a_hit_needs_the_exact_size`.
 
 ## Names
@@ -35,8 +39,21 @@ The rules every change to sego follows. Where an ADR holds the reason, the rule 
   reads, goes in the help.
 - A pointer gives the command or filter itself, worked out from the answer, and appears only where
   it holds for that answer.
+- The help states the action to take, never the wrong form to avoid.
 - Every string from the server is escaped before it is printed
   ([ADR 0006](docs/adr/0006-escape-server-text.md)).
+
+## JSON
+
+- Every fact a note states is also in the document's `notes` array
+  ([ADR 0015](docs/adr/0015-json-carries-every-fact-text-prints.md)).
+- A list that can be cut carries `X_total`, `null` when the server doesn't give it, and `X_more`,
+  whether more exists than the list holds. `X_more` reports what the server sent, so where JSON
+  asks for the whole list it is `false` unless the server sent less than its total. A search
+  keeps `count`, `at_least` and `stopped`, its own form of the rule.
+- A field name means one thing in every command's document. An `ls` entry's `kind` is the word its
+  text row prints (`dir`, `file` or `submodule`), while a document's `kind` names what the address
+  named (`directory`, `file`, `submodule` or `commit`).
 
 ## Errors
 
@@ -45,8 +62,9 @@ The rules every change to sego follows. Where an ADR holds the reason, the rule 
 
 ## Visibility
 
-- An item is private, or `pub` inside a private module. The crate's public items are the ones
-  [ADR 0012](docs/adr/0012-tests-sit-inline-or-go-through-run.md) lists.
+- An item is private, or `pub` inside a private module. The crate's public items are `run`, what it
+  takes (`Env`, `Endpoint`, `Transport`, `Response`, `TransportError`) and `connect`
+  ([ADR 0012](docs/adr/0012-library-exports-only-run.md)).
 - `pub(crate)` and `pub(super)` aren't used, and no item is made public for a test.
 
 ## Comments

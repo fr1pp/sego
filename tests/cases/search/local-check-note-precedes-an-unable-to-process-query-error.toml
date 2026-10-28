@@ -1,15 +1,15 @@
 # The note on the query is printed before the error that ends the search.
-args = ["search", "lang:go lang:rust foo"]
+args = ["search", "lnag:go foo"]
 status.code = 3
 stderr = '''
-sego: note: lang: filters intersect: a file must match both
+sego: note: 'lnag:' is not a filter; the server searches `lnag:go` as text
 sego: error: bad query
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":false,"query":"lang:go lang:rust foo","unindexed":""}'
-document = "Search-328cc8ec"
+variables = '{"query":"lnag:go foo"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''

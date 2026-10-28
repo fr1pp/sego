@@ -24,8 +24,8 @@ github.com/gorilla/mux@98cb6bf42e08:old_test.go
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":false,"query":"repo:^github\\.com/gorilla/mux$@v1.8.0 Route count:5","unindexed":""}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:^github\\.com/gorilla/mux$@v1.8.0 Route count:5"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com" }

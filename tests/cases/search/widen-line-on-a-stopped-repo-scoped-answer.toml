@@ -15,8 +15,8 @@ sego: note: timeout:60s raises its 20 s deadline to 60 s, the most sourcegraph.c
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":true,"query":"repo:example.com/acme/widget foo","unindexed":"repo:example.com/acme/widget type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:example.com/acme/widget foo"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''
@@ -77,15 +77,6 @@ response = '''
             "name": "example.com/acme/widget"
           }
         ]
-      }
-    },
-    "unindexed": {
-      "results": {
-        "alert": null,
-        "elapsedMilliseconds": 21300,
-        "limitHit": false,
-        "results": [],
-        "timedout": []
       }
     }
   }

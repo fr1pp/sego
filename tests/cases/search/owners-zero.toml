@@ -11,8 +11,8 @@ sego: note: Some results have no owners: For some results, no ownership data was
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":false,"query":"repo:^github\\.com/gorilla/mux$@v1.8.0 select:file.owners NewRouter","unindexed":""}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:^github\\.com/gorilla/mux$@v1.8.0 select:file.owners NewRouter"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }

@@ -6,11 +6,9 @@ mod json;
 mod notes;
 mod text;
 
-use super::query::{NOT_INDEXED, Query, Unit};
+use super::query::{Query, Unit};
 use crate::escape::strip_cr;
-use crate::sourcegraph::{
-    self, CommitResult, FileMatch, Item, Range, Results, Symbol, UnindexedFile,
-};
+use crate::sourcegraph::{self, CommitResult, FileMatch, Item, Range, Results, Symbol};
 
 /// An answer: the facts sego derives, then the results it holds.
 pub struct Answer {
@@ -25,8 +23,6 @@ pub struct Answer {
     /// The distinct repositories among `groups`.
     repos: u64,
     widen: Vec<Widen>,
-    /// `None` when it isn't known which files the index skipped.
-    unindexed: Option<Vec<UnindexedFile>>,
     select_cut: Option<u64>,
     alert: Option<Alert>,
     /// The `__typename` of each result of a kind sego doesn't read; they
@@ -66,13 +62,22 @@ pub struct Proposed {
     pub query: String,
 }
 
+/// What a file group prints in place of lines.
+pub enum Marker {
+    /// The file is binary.
+    Binary,
+    /// The file is unindexed, for this reason; only a query that names
+    /// `NOT-INDEXED` keeps such a file.
+    Unindexed(String),
+}
+
 pub enum Group {
     File {
         repo: String,
         commit: String,
         rev: Option<String>,
         path: String,
-        binary: bool,
+        marker: Option<Marker>,
         chunks: Vec<Chunk>,
         symbols: Vec<SymbolRow>,
     },
@@ -126,7 +131,7 @@ struct FileAcc {
     commit: String,
     rev: Option<String>,
     path: String,
-    binary: bool,
+    marker: Option<Marker>,
     raw: Vec<RawChunk>,
     symbols: Vec<SymbolRow>,
 }
@@ -183,7 +188,7 @@ impl FileAcc {
             commit: file.file.commit.oid.clone(),
             rev: None,
             path: file.file.path.clone(),
-            binary: false,
+            marker: None,
             raw: Vec::new(),
             symbols: Vec::new(),
         }
@@ -191,11 +196,15 @@ impl FileAcc {
 
     fn add(&mut self, file: FileMatch) {
         if self.rev.is_none() {
-            self.rev = file.rev_spec.and_then(|r| r.expr);
+            self.rev = file.rev_spec.as_ref().and_then(|r| r.expr.clone());
+        }
+        if let Some(reason) = file.placeholder_reason() {
+            self.marker = Some(Marker::Unindexed(reason.to_owned()));
+            return;
         }
         for chunk in &file.chunk_matches {
-            if chunk.content.contains('\0') {
-                self.binary = true;
+            if chunk.content.contains('\0') && self.marker.is_none() {
+                self.marker = Some(Marker::Binary);
             }
             self.raw.push(raw_chunk(chunk.content_start.line, &chunk.content, &chunk.ranges));
         }
@@ -204,7 +213,7 @@ impl FileAcc {
 
     fn finish(mut self) -> Group {
         self.symbols.sort_by_key(|s| (s.line.is_none(), s.line));
-        let chunks = if self.binary {
+        let chunks = if self.marker.is_some() {
             Vec::new()
         } else {
             merge(self.raw).into_iter().map(build_chunk).collect()
@@ -214,7 +223,7 @@ impl FileAcc {
             commit: self.commit,
             rev: self.rev,
             path: self.path,
-            binary: self.binary,
+            marker: self.marker,
             chunks,
             symbols: self.symbols,
         }
@@ -387,6 +396,8 @@ fn commit_group(result: CommitResult) -> Group {
 pub enum FileItem<'a> {
     /// The file is binary: its header is followed by a note.
     Binary,
+    /// The file is unindexed: its header is followed by the reason.
+    Unindexed(&'a str),
     /// The file matched by path alone: its header is the whole result.
     Path,
     Chunk(usize, &'a Chunk),
@@ -397,37 +408,41 @@ impl FileItem<'_> {
     pub fn units(&self) -> u32 {
         match self {
             FileItem::Chunk(_, chunk) => chunk.units,
-            FileItem::Binary | FileItem::Path | FileItem::Symbol(_) => 1,
+            FileItem::Binary | FileItem::Unindexed(_) | FileItem::Path | FileItem::Symbol(_) => 1,
         }
     }
 }
 
-/// The items of a file in print order: a binary or path marker first, then
-/// chunks and symbols that have a line, ordered by line with a chunk before a
-/// symbol that starts on the same line. A symbol with no line is not an item.
-pub fn file_items<'a>(
-    binary: bool,
-    chunks: &'a [Chunk],
-    symbols: &'a [SymbolRow],
-) -> Vec<FileItem<'a>> {
-    let mut items: Vec<(u32, u8, FileItem)> = chunks
-        .iter()
-        .enumerate()
-        .map(|(i, c)| {
-            let first = c.lines.first().map_or(0, |l| l.number);
-            (first, 0, FileItem::Chunk(i, c))
-        })
-        .collect();
-    items.extend(symbols.iter().filter_map(|s| s.line.map(|l| (l, 1, FileItem::Symbol(s)))));
-    items.sort_by_key(|(line, rank, _)| (*line, *rank));
-    let mut out = Vec::new();
-    if binary {
-        out.push(FileItem::Binary);
-    } else if chunks.is_empty() && items.is_empty() {
-        out.push(FileItem::Path);
+impl Group {
+    /// The items of a file group in print order: its marker, or a path
+    /// marker for a file matched by path alone, first; then chunks and
+    /// symbols that have a line, ordered by line with a chunk before a symbol
+    /// that starts on the same line. A symbol with no line is not an item,
+    /// and a group of another kind has none.
+    pub fn file_items(&self) -> Vec<FileItem<'_>> {
+        let Group::File { marker, chunks, symbols, .. } = self else {
+            return Vec::new();
+        };
+        let mut items: Vec<(u32, u8, FileItem)> = chunks
+            .iter()
+            .enumerate()
+            .map(|(i, c)| {
+                let first = c.lines.first().map_or(0, |l| l.number);
+                (first, 0, FileItem::Chunk(i, c))
+            })
+            .collect();
+        items.extend(symbols.iter().filter_map(|s| s.line.map(|l| (l, 1, FileItem::Symbol(s)))));
+        items.sort_by_key(|(line, rank, _)| (*line, *rank));
+        let mut out = Vec::new();
+        match marker {
+            Some(Marker::Unindexed(reason)) => out.push(FileItem::Unindexed(reason)),
+            Some(Marker::Binary) => out.push(FileItem::Binary),
+            None if items.is_empty() => out.push(FileItem::Path),
+            None => {}
+        }
+        out.extend(items.into_iter().map(|(.., item)| item));
+        out
     }
-    out.extend(items.into_iter().map(|(.., item)| item));
-    out
 }
 
 /// One printed line of a file: a chunk line (with its chunk's index) or a
@@ -467,9 +482,7 @@ impl Group {
     /// are measured in.
     pub fn units(&self) -> u32 {
         match self {
-            Group::File { binary, chunks, symbols, .. } => {
-                file_items(*binary, chunks, symbols).iter().map(FileItem::units).sum()
-            }
+            Group::File { .. } => self.file_items().iter().map(FileItem::units).sum(),
             Group::Commit { highlights, .. } => count(highlights.len()).max(1),
             Group::Repo { .. } => 1,
         }
@@ -491,20 +504,17 @@ fn unit_of(query: &Query, groups: &[Group]) -> Unit {
 }
 
 impl Answer {
-    /// The answer to `query`: its results, and the side query's listing of
-    /// the files the index skipped, when it is complete.
-    pub fn new(
-        query: Query,
-        mut results: Results,
-        unindexed: Option<Vec<UnindexedFile>>,
-    ) -> Answer {
+    /// The answer to `query` from its results.
+    pub fn new(query: Query, mut results: Results) -> Answer {
         let mut slots: Vec<Slot> = Vec::new();
         let mut unshown = Vec::new();
         let mut placeholder_ranges = 0;
         let mut index: HashMap<(String, String, String), usize> = HashMap::new();
         for item in std::mem::take(&mut results.items) {
             match item {
-                Item::FileMatch(file) if is_placeholder(&file) => {
+                Item::FileMatch(file)
+                    if !query.lists_placeholders && file.placeholder_reason().is_some() =>
+                {
                     placeholder_ranges += file
                         .chunk_matches
                         .iter()
@@ -561,7 +571,6 @@ impl Answer {
             elapsed_ms: results.elapsed_milliseconds,
             repos: repos.len() as u64,
             widen,
-            unindexed,
             select_cut: answer.select_cut,
             alert: results.alert.map(alert),
             unshown,
@@ -596,17 +605,6 @@ pub fn symbol_kind(server: &str) -> String {
         "TYPEPARAMETER" => "type_parameter".to_owned(),
         other => other.to_lowercase(),
     }
-}
-
-/// The server's stand-in for a file the index skipped, listed as if it were
-/// a match.
-pub fn is_placeholder(file: &FileMatch) -> bool {
-    file.symbols.is_empty()
-        && matches!(
-            file.chunk_matches.as_slice(),
-            [chunk] if chunk.content_start.line == 0
-                && chunk.content.strip_prefix(NOT_INDEXED).is_some_and(|rest| rest.starts_with(' '))
-        )
 }
 
 /// What the answer holds, from the request and the response alone.
@@ -665,7 +663,6 @@ mod tests {
 
     use super::*;
     use crate::output::{Notes, print};
-    use crate::sourcegraph::Item;
 
     fn searched(items: &Value) -> Answer {
         searched_for("foo", items)
@@ -687,7 +684,7 @@ mod tests {
         })) else {
             panic!("results do not parse")
         };
-        Answer::new(Query::new(query), results, None)
+        Answer::new(Query::new(query), results)
     }
 
     fn chunk(content: &str, start: u32, ranges: &Value) -> Value {
@@ -851,7 +848,7 @@ mod tests {
         })) else {
             panic!("results do not parse")
         };
-        let s = Answer::new(Query::new("repo:x select:file.directory"), none, None);
+        let s = Answer::new(Query::new("repo:x select:file.directory"), none);
         assert_eq!((s.unit, s.count), (Unit::Directories, 0));
         assert!(json_of(&s).contains(r#""unit":"directories","count":0,"#));
     }
@@ -1089,7 +1086,7 @@ mod tests {
             (r"repo:^github\.com/gorilla/ repo:^github\.com/gorilla/mux$ foo select:repo", false),
             (
                 r"(repo:^github\.com/gorilla/mux$ foo) or (repo:^github\.com/gorilla/mux$ bar) select:repo",
-                false,
+                true,
             ),
             ("foo -select:repo", false),
             ("foo select:file", false),
@@ -1119,14 +1116,11 @@ mod tests {
     }
 
     #[test]
-    fn a_repo_select_with_more_branches_than_read_is_a_lower_bound() {
+    fn a_repo_select_with_or_is_a_lower_bound() {
         let branch = r"(repo:^a/b$ x)";
-        let mut query = [branch; 65].join(" or ");
-        query.push_str(" select:repo");
-        assert_eq!(at(2, &query), (2, true, false));
         let mut query = [branch; 3].join(" or ");
         query.push_str(" select:repo");
-        assert_eq!(at(2, &query), (2, false, false));
+        assert_eq!(at(2, &query), (2, true, false));
     }
 
     #[test]
@@ -1162,49 +1156,5 @@ mod tests {
         for (query, at_least) in rows {
             assert_eq!(at(0, query), (0, at_least, false), "{query}");
         }
-    }
-
-    fn placeholder_file(chunks: &Value, symbols: &Value) -> Value {
-        json!({
-            "__typename": "FileMatch",
-            "repository": {"name": "r/a"},
-            "file": {"path": "big.bin", "commit": {"oid": "c1"}},
-            "revSpec": null,
-            "chunkMatches": chunks,
-            "symbols": symbols,
-        })
-    }
-
-    fn placeholder_chunk(content: &str, line: u32) -> Value {
-        json!({"content": content, "contentStart": {"line": line},
-           "ranges": []})
-    }
-
-    fn is(value: &Value) -> bool {
-        let item: Item =
-            serde_json::from_value(value.clone()).unwrap_or_else(|e| panic!("bad fixture: {e}"));
-        match item {
-            Item::FileMatch(file) => is_placeholder(&file),
-            _ => panic!("not a file match"),
-        }
-    }
-
-    #[test]
-    fn a_placeholder_is_one_not_indexed_line_at_line_zero_with_no_symbols() {
-        let text = "NOT-INDEXED: exceeds the maximum size limit";
-        assert!(is(&placeholder_file(&json!([placeholder_chunk(text, 0)]), &json!([]))));
-        assert!(!is(&placeholder_file(&json!([placeholder_chunk(text, 3)]), &json!([]))));
-        assert!(!is(&placeholder_file(
-            &json!([placeholder_chunk("not-indexed: x", 0)]),
-            &json!([])
-        )));
-        assert!(!is(&placeholder_file(&json!([]), &json!([]))));
-        assert!(!is(&placeholder_file(
-            &json!([placeholder_chunk(text, 0), placeholder_chunk(text, 0)]),
-            &json!([])
-        )));
-        let symbol = json!({"name": "S", "kind": "FUNCTION",
-        "containerName": null, "location": null});
-        assert!(!is(&placeholder_file(&json!([placeholder_chunk(text, 0)]), &json!([symbol]))));
     }
 }

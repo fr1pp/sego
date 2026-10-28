@@ -57,8 +57,8 @@ example.com/app@080808080808  2024-05-06  Ann  change 8
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":false,"query":"repo:example.com/app type:diff skipClean count:all","unindexed":""}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:example.com/app type:diff skipClean count:all"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''

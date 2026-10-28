@@ -8,8 +8,8 @@ query  repo:^github\.com/gorilla/mux$ not repo:fd@v1 zqxv
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":false,"query":"repo:^github\\.com/gorilla/mux$ not repo:fd@v1 zqxv","unindexed":""}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:^github\\.com/gorilla/mux$ not repo:fd@v1 zqxv"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com" }

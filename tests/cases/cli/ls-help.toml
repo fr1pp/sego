@@ -36,4 +36,18 @@ examples:
 errors:
   An error's indented lines state facts, such as the default branch, and
   can name the sego command or filter that finds what it couldn't.
+
+exit codes:
+  0  answered, even when the answer is empty or a lower bound
+  1  not found: what the command line names doesn't exist on
+     Sourcegraph; asking again won't help, a different address may
+  2  usage error: the command line is malformed, names what no mirror
+     can hold, or is ambiguous, and must change
+  3  failure: Sourcegraph or the network didn't answer, or the answer
+     couldn't be written; asking again later may help
+
+escapes:
+  Text from Sourcegraph prints a control, separator or invisible
+  character as \u{h}, and a byte that isn't UTF-8 as \x{hh}; a word
+  printed for pasting is quoted for bash. --json keeps the exact text.
 '''

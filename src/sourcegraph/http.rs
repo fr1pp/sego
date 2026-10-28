@@ -4,7 +4,7 @@ use std::time::{Duration, Instant};
 use super::{Endpoint, Response, Transport, TransportError};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
-pub const BODY_LIMIT: u64 = 64 * 1024 * 1024;
+const BODY_LIMIT: u64 = 64 * 1024 * 1024;
 
 pub struct Ureq {
     agent: ureq::Agent,

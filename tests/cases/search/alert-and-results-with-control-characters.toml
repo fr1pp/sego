@@ -33,8 +33,8 @@ sego: note: timeout:60s raises its 20 s deadline to 60 s, the most sourcegraph.c
 
 [[exchange]]
 operation = "Search"
-variables = "{\"listed\":false,\"query\":\"a\\u001bb\u202Ec\u200Bd\\ne\\rf\\u0000g\u2028h\u007Fi ok\",\"unindexed\":\"\"}"
-document = "Search-328cc8ec"
+variables = "{\"query\":\"a\\u001bb\u202Ec\u200Bd\\ne\\rf\\u0000g\u2028h\u007Fi ok\"}"
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''

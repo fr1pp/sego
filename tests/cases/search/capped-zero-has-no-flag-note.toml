@@ -1,18 +1,15 @@
-# A lower bound says nothing about the files the search skipped.
-args = ["search", "repo:example.com/acme/router a or b"]
+# A zero whose placeholders used up the cap is at least, so it has no flag note.
+args = ["search", "repo:example.com/acme/widget lang:javascript /msie/i count:2"]
 status.code = 0
 stdout = '''
-5+ matches  1 repo  0.1 s
-query  repo:example.com/acme/router a or b
-
-example.com/acme/router@0123456789ab:main.go
-1:a
+0+ matches  0.1 s
+query  repo:example.com/acme/widget lang:javascript /msie/i count:2
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":false,"query":"repo:example.com/acme/router a or b","unindexed":""}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:example.com/acme/widget lang:javascript /msie/i count:2"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''
@@ -21,24 +18,34 @@ response = '''
     "search": {
       "results": {
         "alert": null,
-        "approximateResultCount": "5",
+        "approximateResultCount": "2",
         "dynamicFilters": [],
         "elapsedMilliseconds": 100,
         "limitHit": true,
-        "matchCount": 5,
+        "matchCount": 2,
         "results": [
           {
             "__typename": "FileMatch",
             "chunkMatches": [
               {
-                "content": "a",
+                "content": "NOT-INDEXED: exceeds the maximum size limit",
                 "contentStart": {
                   "line": 0
                 },
                 "ranges": [
                   {
                     "end": {
-                      "character": 1,
+                      "character": 3,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 0,
+                      "line": 0
+                    }
+                  },
+                  {
+                    "end": {
+                      "character": 3,
                       "line": 0
                     },
                     "start": {
@@ -53,10 +60,10 @@ response = '''
               "commit": {
                 "oid": "0123456789abcdef0123456789abcdef01234567"
               },
-              "path": "main.go"
+              "path": "big.js"
             },
             "repository": {
-              "name": "example.com/acme/router"
+              "name": "example.com/acme/widget"
             },
             "revSpec": null,
             "symbols": []

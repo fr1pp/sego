@@ -57,17 +57,48 @@ To add a case, write its `args` and `status.code`, then:
 
 Read the blessed diff before committing it.
 
-A response sourcegraph.com can't be made to give on demand, such as a stopped search, is written by
+A search is recorded only when it ran to completion, because cut results vary from run to run. A
+response sourcegraph.com can't be made to give on demand, such as a stopped search, is written by
 hand: an `[[exchange]]` with its `status`, `content-type` and `response`, whose request bless fills
 in. A hand-written response with a located GraphQL error names its `evidence`: a recorded case with
 the same kind of error at the same kind of path (`evidence = "show/binary-file-over-content-limit"`),
 `evidence = "GqlError::kind table: …"`, or `evidence = "none: REASON"`.
+
+Every case is also checked for:
+
+- the exact sequence of requests its exchanges hold, with none left unused
+- no request on a usage error, except the three found from a response
+- no note or error line that ends in a period
+- every request under the one client deadline
+- the endpoint `connect` is given: the case's `SEGO_ENDPOINT`, or the default
+- a cache directory left untouched unless a raw read was sent
+
+Every case served a GraphQL response runs a second time with a hostile corpus in the strings of its
+response ([ADR 0006](docs/adr/0006-escape-server-text.md)). It fails if an unsafe character reaches
+the output as itself, a line starts with the corpus, or a JSON value carries only part of it. Cases
+made for the purpose cover what that can't reach, such as alert titles, file contents and raw reads.
+
+## Other tests
+
+The case runner lives in `tests/it/support`, inside the one test binary `tests/it`, with its own
+tests inline. Faults below HTTP, such as a dropped connection or a passed deadline, aren't cases:
+they are module tests of the transport and of the `sourcegraph` module. Besides the cases, two tests
+go through `run`: one runs the built binary, for what `main` adds, and one runs the cache across two
+runs.
 
 ## Live checks
 
 `just live` re-sends every recorded request to sourcegraph.com and fails when a response's shape
 has changed. A response marked `live = "values"` also fails when its values change. Run it after any
 change to a request, and before a release.
+
+A difference counts only when a second answer shows it too, since sourcegraph.com now and then
+leaves out part of a search's answer. Three differences never count:
+
+- a "revision not found after waiting for a fetch" error at a revision lookup that one answer has
+  and the other doesn't, which another client's fetch can cause
+- which of two missing names waited for the fetch they share
+- the mirror's `updatedAt`, which moves on its own
 
 `just live e2e [COMMAND…]` runs sego itself against sourcegraph.com for each case whose exchanges are
 all recorded with `live = "values"`, and compares the exit code, stdout and stderr with the case,
@@ -80,11 +111,8 @@ that a second run confirms.
 - `just escape-table` regenerates `src/escape/table.rs` from the pinned Unicode data.
 - `just schema` fetches the live GraphQL schema into `target/schema.json`, for reading.
 
-## Decisions and terms
+## Terms and standards
 
-- **An ADR in `docs/adr/`** is needed for a decision that is hard to reverse, surprising without
-  its context, and the result of a real trade-off. A change that goes against an ADR rewrites the
-  ADR in the same change.
 - **A GLOSSARY.md entry** is needed for a new domain term, in the same change that names it.
 - The rules for code are in [CODING_STANDARDS.md](CODING_STANDARDS.md).
 

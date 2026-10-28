@@ -15,8 +15,8 @@ sego: note: at a pinned revision, select: keeps only what each repository's firs
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":false,"query":"repo:example.com/acme/router@v1 Router select:file","unindexed":""}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:example.com/acme/router@v1 Router select:file"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''

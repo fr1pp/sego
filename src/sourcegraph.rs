@@ -1,4 +1,9 @@
 //! Everything sego asks Sourcegraph, and the HTTP seam it asks through.
+//!
+//! A document never selects a field that needs a token, such as
+//! `Repository.externalServices`, `recordedCommands` or `codeIntelSummary`,
+//! or `Usage.dataSource`: asked for anonymously, one nulls the whole
+//! repository.
 
 mod commits;
 mod files;
@@ -26,11 +31,8 @@ pub use http::Ureq;
 pub use refs::{RefList, Refs};
 pub use resolve::Resolved;
 pub use search::{
-    Alert, CommitResult, FileMatch, Item, Listing, Range, Results, Search, Symbol, UnindexedFile,
+    Alert, CommitResult, FileMatch, Item, NOT_INDEXED, Range, Results, Search, Symbol,
 };
-
-/// The most bytes of a file a read can return: a response holds no more.
-pub const LARGEST_READ: u64 = http::BODY_LIMIT;
 
 /// What a history covers: a revision, or the default branch for `None`; or
 /// a range, its head's commits that aren't its base's.
@@ -192,10 +194,9 @@ impl<'a> Client<'a> {
         resolve::read_range(&self.exchange(&request)?, repo, base, head)
     }
 
-    /// The results of `query`, and the listing of the side query
-    /// `unindexed` when given.
-    pub fn search(self, query: &str, unindexed: Option<&str>) -> Result<Search, Error> {
-        search::read(&self.exchange(&search::request(query, unindexed))?, unindexed.is_some())
+    /// The results of `query`.
+    pub fn search(self, query: &str) -> Result<Search, Error> {
+        search::read(&self.exchange(&search::request(query))?)
     }
 
     /// The branches and tags of `repo` that match `text`, at most `first` of

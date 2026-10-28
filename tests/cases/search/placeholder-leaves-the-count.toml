@@ -1,5 +1,4 @@
-# A NOT-INDEXED placeholder is dropped and its range leaves the count. Its file
-# is binary, which the unindexed list leaves out, so the side alias is empty.
+# A NOT-INDEXED placeholder is dropped and its range leaves the count.
 args = ["search", "repo:example.com/acme/widget binary"]
 status.code = 0
 stdout = '''
@@ -13,8 +12,8 @@ example.com/acme/widget@0123456789ab:src/real.txt
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":true,"query":"repo:example.com/acme/widget binary","unindexed":"repo:example.com/acme/widget type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:example.com/acme/widget binary"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''
@@ -108,15 +107,6 @@ response = '''
             "symbols": []
           }
         ],
-        "timedout": []
-      }
-    },
-    "unindexed": {
-      "results": {
-        "alert": null,
-        "elapsedMilliseconds": 10,
-        "limitHit": false,
-        "results": [],
         "timedout": []
       }
     }

@@ -12,8 +12,8 @@ sego: note: type:symbol with select:symbol and no pattern returns nothing; /./ m
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":false,"query":"repo:example.com/acme/widget@a..b type:symbol select:symbol.method","unindexed":""}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:example.com/acme/widget@a..b type:symbol select:symbol.method"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''

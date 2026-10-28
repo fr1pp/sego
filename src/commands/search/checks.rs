@@ -1,33 +1,20 @@
-use super::plan::{
-    self, Filter as Planned, KNOWN, PatternType, Plan, Written, WrittenFilter as Filter, chosen,
-    has_pattern, unquoted,
+use super::read::{
+    KNOWN, PatternType, Written, WrittenFilter as Filter, chosen, has_pattern, unquoted,
 };
 
 const GUESSED: &[&str] = &["repogroup", "ext", "extension", "filename", "branch", "org"];
 const RESULT_TYPES: &[&str] = &["file", "path", "repo", "symbol", "commit", "diff", "structural"];
 const PATTERN_FIELDS: &[&str] = &["file", "f", "path", "lang", "l", "language", "content"];
 
-/// The notes for a query, in check order. Checks 1-7 and 10 fire only on a
-/// query that can't be meant as written; checks 8 and 9 fire on a
-/// structural search whose answer the server can cut without saying so.
-/// Checks 4, 8 and 9 read the query's plan, and skip a query the server
-/// rejects while reading it.
-pub fn check(written: &[Written], plan: &Plan, ty: PatternType) -> Vec<String> {
+/// The notes for a query, in check order. Each fires only on a query that
+/// can't be meant as written.
+pub fn check(written: &[Written], ty: PatternType) -> Vec<String> {
     let mut notes = Vec::new();
     unknown_filters(written, &mut notes);
-    if let Plan::Read(basic_queries) = plan {
-        different_languages(basic_queries, &mut notes);
-    }
     regex_in_keyword_mode(written, ty, &mut notes);
-    if let Plan::Read(basic_queries) = plan {
-        escaped_or(basic_queries, &mut notes);
-    }
     unknown_types(written, &mut notes);
     path_without_pattern(written, &mut notes);
     revision_ranges(written, &mut notes);
-    if let Plan::Read(basic_queries) = plan {
-        structural_scope(basic_queries, &mut notes);
-    }
     symbol_select_without_pattern(written, ty, &mut notes);
     symbols_of_content(written, &mut notes);
     notes
@@ -101,27 +88,6 @@ fn drops_one(long: &[char], short: &[char]) -> bool {
     (0..long.len()).any(|i| long[..i].iter().chain(&long[i + 1..]).eq(short.iter()))
 }
 
-/// Check 2: a basic query of the plan with two different `lang:` filters, which
-/// a file must both match.
-fn different_languages(basic_queries: &plan::BasicQueries, notes: &mut Vec<String>) {
-    let ends = basic_queries.reach((None, false), |(first, differ): (Option<String>, bool), f| {
-        if f.field != "lang" || f.negated {
-            return (first, differ);
-        }
-        let lang = f.value.to_ascii_lowercase();
-        match first {
-            Some(first) => {
-                let differ = differ || first != lang;
-                (Some(first), differ)
-            }
-            None => (Some(lang), differ),
-        }
-    });
-    if ends.iter().any(|(_, differ)| *differ) {
-        notes.push("lang: filters intersect: a file must match both".to_owned());
-    }
-}
-
 fn regex_in_keyword_mode(written: &[Written], ty: PatternType, notes: &mut Vec<String>) {
     if ty != PatternType::Keyword {
         return;
@@ -190,23 +156,6 @@ fn class_of_ranges(rest: &[char]) -> bool {
     ranges >= 2 || (ranges == 1 && matches!(rest.get(end + 1), Some('+' | '*' | '?' | '{')))
 }
 
-/// Check 4: some basic query is scoped by a positive `repo:` filter and another
-/// has no `repo:` filter at all, as when a filter sits beside one operand
-/// of OR.
-fn escaped_or(basic_queries: &plan::BasicQueries, notes: &mut Vec<String>) {
-    let ends = basic_queries.reach((false, false), |(positive, any), f| {
-        let repo = f.field == "repo";
-        (positive || (repo && !f.negated), any || repo)
-    });
-    if ends.iter().any(|end| end.0) && ends.iter().any(|end| !end.1) {
-        notes.push(
-            "filters outside parentheses apply only to the operand of OR \
-             they sit in; the other operands search every repository"
-                .to_owned(),
-        );
-    }
-}
-
 fn unknown_types(written: &[Written], notes: &mut Vec<String>) {
     let mut seen: Vec<&str> = Vec::new();
     for filter in filters(written).filter(|f| !f.negated && is_field(f, &["type"])) {
@@ -243,41 +192,6 @@ fn revision_ranges(written: &[Written], notes: &mut Vec<String>) {
                 notes.push(note);
             }
         }
-    }
-}
-
-const STRUCTURAL_SCOPE: &str = "a structural search over more than one file \
-can miss matches without a +; file:^PATH$ makes it complete, and a regex \
-search marks a cut with +";
-const STRUCTURAL_LANGUAGE: &str = "with no lang: and no file: extension, a \
-structural search can parse files as the wrong language and miss matches; \
-lang: names the language";
-
-/// The server runs a structural search only on the candidate files its
-/// literals select, up to a cap, and reports no cut; it picks the matcher
-/// from the first `lang:`, or with no `lang:` from the first `file:`
-/// path's extension, and a generic one when Comby has none for either.
-/// Each basic query of the plan is checked with its own filters. The server
-/// rejects a structural search with `type:`, so that query gets neither
-/// note.
-fn structural_scope(basic_queries: &plan::BasicQueries, notes: &mut Vec<String>) {
-    if basic_queries.pattern_type != PatternType::Structural
-        || basic_queries.reach(false, |t, f| t || f.field == "type").contains(&true)
-    {
-        return;
-    }
-    let path = |f: &Planned| f.field == "file" && !f.negated && !f.predicate;
-    let one_file =
-        basic_queries.reach(false, |one, f| one || (path(f) && one_literal_path(&f.value)));
-    let language = basic_queries.reach((false, None), |(lang, ext), f| {
-        let named = lang || (f.field == "lang" && !f.negated);
-        (named, ext.or_else(|| path(f).then(|| ends_in_extension(&f.value))))
-    });
-    if one_file.contains(&false) {
-        notes.push(STRUCTURAL_SCOPE.to_owned());
-    }
-    if language.iter().any(|&(lang, ext)| !lang && ext != Some(true)) {
-        notes.push(STRUCTURAL_LANGUAGE.to_owned());
     }
 }
 
@@ -384,60 +298,14 @@ pub fn flag_note(written: &[Written], ty: PatternType) -> Option<String> {
     Some(format!("the server searches `{term}` as text; {}", clauses.join(", and ")))
 }
 
-/// `^PATH$`, where PATH is literal text that names a file, not a
-/// directory: `.` and escaped punctuation are allowed, and an escaped
-/// letter or digit (`\d`, `\w`, `\b`) is a pattern.
-fn one_literal_path(value: &str) -> bool {
-    let Some(body) = value.strip_prefix('^').and_then(|v| v.strip_suffix('$')) else {
-        return false;
-    };
-    if body.is_empty() || body.ends_with('/') {
-        return false;
-    }
-    let mut chars = body.chars();
-    while let Some(c) = chars.next() {
-        match c {
-            '\\' => {
-                if chars.next().is_none_or(|n| n.is_ascii_alphanumeric()) {
-                    return false;
-                }
-            }
-            '*' | '+' | '?' | '(' | ')' | '[' | ']' | '{' | '}' | '|' | '^' | '$' => return false,
-            _ => {}
-        }
-    }
-    true
-}
-
-/// Whether the value, less a trailing `$`, ends in `.` or `\.` and an
-/// extension of lower-case letters and digits: the server matches the
-/// extensions it knows, all lower-case, case-sensitively.
-fn ends_in_extension(value: &str) -> bool {
-    let value = value.strip_suffix('$').unwrap_or(value);
-    let stem = value.trim_end_matches(|c: char| c.is_ascii_lowercase() || c.is_ascii_digit());
-    stem.len() < value.len() && stem.ends_with('.')
-}
-
 #[cfg(test)]
 mod tests {
-    use crate::commands::search::plan::WrittenFilter as Filter;
     use crate::commands::search::query::Query;
-
-    #[test]
-    fn raw_gives_the_filter_as_written() {
-        for (negated, raw) in [(false, "file:x"), (true, "-file:x")] {
-            let filter = Filter { negated, field: "file".to_owned(), value: "x".to_owned() };
-            assert_eq!(filter.raw(), raw);
-        }
-    }
 
     fn not_a_filter(field: &str, token: &str) -> String {
         format!("'{field}:' is not a filter; the server searches `{token}` as text")
     }
 
-    const INTERSECT: &str = "lang: filters intersect: a file must match both";
-    const ESCAPES_OR: &str = "filters outside parentheses apply only to the \
-operand of OR they sit in; the other operands search every repository";
     const PATH_ONLY: &str = "type:path with only filters returns nothing";
 
     fn keyword(term: &str) -> String {
@@ -491,17 +359,6 @@ operand of OR they sit in; the other operands search every repository";
     }
 
     #[test]
-    fn filters_of_one_field_intersect() {
-        run(vec![
-            ("lang:go lang:rust", vec![INTERSECT.to_owned()]),
-            ("repo:a or repo:b", vec![]),
-            ("file:^mux file:\\.go$", vec![]),
-            ("repo:^github\\.com/gorilla/ repo:mux$", vec![]),
-            ("lang:go lang:Go", vec![]),
-        ]);
-    }
-
-    #[test]
     fn text_that_reads_as_a_regex_in_keyword_mode_is_noted() {
         run(vec![
             ("\\bfoo\\b", vec![keyword("\\bfoo\\b")]),
@@ -551,44 +408,6 @@ operand of OR they sit in; the other operands search every repository";
     }
 
     #[test]
-    fn a_filter_beside_one_operand_of_or_is_noted_when_another_search_lacks_it() {
-        run(vec![
-            ("repo:x file:mux.go or file:route.go", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x file:y a or (b and c)", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x (a case:yes) or (b case:no)", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x router or lang:markdown", vec![ESCAPES_OR.to_owned()]),
-            ("foo or bar repo:x", vec![ESCAPES_OR.to_owned()]),
-            ("a repo:x or b", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x foo or bar", vec![]),
-            ("repo:x a or b lang:go", vec![]),
-            ("repo:x a or b or c file:y", vec![]),
-            ("repo:a x or repo:b y", vec![]),
-            ("repo:x file:y (a or (b and c))", vec![]),
-            ("(repo:x or repo:y) (\"a\" or \"b\")", vec![]),
-            ("repo:a x or (repo:b y)", vec![]),
-            ("repo:a x or -repo:b y", vec![]),
-            ("a -repo:x or b", vec![]),
-            ("repo:x not file:y foo or bar", vec![]),
-            ("repo:x -file:y foo or bar", vec![]),
-            ("repo:x foo or bar file:y", vec![]),
-            ("repo:x file:y (a and b) or c", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x (foo bar) or baz", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x foo or (bar baz)", vec![ESCAPES_OR.to_owned()]),
-            // a leading space, other modes, and parentheses around the query
-            (" foo or bar repo:x", vec![]),
-            (" repo:x foo or bar", vec![]),
-            ("repo:x patterntype:regexp (foo bar) or baz", vec![]),
-            ("repo:x patterntype:regexp (foo and bar) or baz", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x patterntype:literal (foo bar) or baz", vec![]),
-            ("(repo:x foo or bar)", vec![]),
-            ("(foo or bar repo:x)", vec![]),
-            ("(foo or repo:x bar)", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x (a or file:y b) c", vec![]),
-            ("repo:x (foo or bar) file:y", vec![]),
-        ]);
-    }
-
-    #[test]
     fn a_result_type_that_is_not_one_is_noted() {
         run(vec![
             ("type:File", vec![bad_type("File")]),
@@ -628,176 +447,11 @@ operand of OR they sit in; the other operands search every repository";
     }
 
     #[test]
-    fn or_inside_quoted_and_slash_text_in_parentheses_is_read_as_the_server_reads_it() {
-        run(vec![
-            // quoted and slash text inside parentheses, read as the server does
-            ("repo:x patterntype:regexp (\"a or b\") or baz", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x patterntype:standard (\"a or b\") or baz", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x patterntype:literal (\"a or b\") or baz", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x patterntype:regexp ('a or b') or baz", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x patterntype:standard ('a or b') or baz", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x patterntype:literal ('a or b') or baz", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x patterntype:regexp (\"foo repo:y\") or baz", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x patterntype:regexp (foo \"a and b\") or baz", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x patterntype:standard (\"x not y\") or baz", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x patterntype:standard (\"foo)\" bar) or baz", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x patterntype:regexp foo or (\"a or b\")", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x patterntype:regexp (/a or b/) or baz", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x patterntype:standard (/a or b/) or baz", vec![ESCAPES_OR.to_owned()]),
-            ("repo:x patterntype:regexp (foo or) or baz", vec![]),
-            ("repo:x patterntype:regexp (foo and) or baz", vec![]),
-            ("repo:x patterntype:regexp (foo\\ or bar) or baz", vec![]),
-            ("repo:x (foo or) or baz", vec![ESCAPES_OR.to_owned()]),
-        ]);
-    }
-
-    #[test]
     fn several_notes_come_in_check_order() {
         run(vec![(
-            "lnag:go lang:go lang:rust foo\\.rs",
-            vec![not_a_filter("lnag", "lnag:go"), INTERSECT.to_owned(), keyword("foo\\.rs")],
+            "lnag:go lang:go foo\\.rs",
+            vec![not_a_filter("lnag", "lnag:go"), keyword("foo\\.rs")],
         )]);
-    }
-
-    const STRUCTURAL_SCOPE: &str = "a structural search over more than one file \
-can miss matches without a +; file:^PATH$ makes it complete, and a regex \
-search marks a cut with +";
-    const STRUCTURAL_LANGUAGE: &str = "with no lang: and no file: extension, a \
-structural search can parse files as the wrong language and miss matches; \
-lang: names the language";
-
-    #[test]
-    fn a_structural_search_is_noted_for_its_scope_and_language() {
-        let both = || vec![STRUCTURAL_SCOPE.to_owned(), STRUCTURAL_LANGUAGE.to_owned()];
-        let scope = || vec![STRUCTURAL_SCOPE.to_owned()];
-        let language = || vec![STRUCTURAL_LANGUAGE.to_owned()];
-        run(vec![
-            ("repo:x patterntype:structural foo(...)", both()),
-            ("repo:x file:^src/ patterntype:structural foo(...)", both()),
-            ("repo:x lang:go patterntype:structural foo(...)", scope()),
-            ("repo:x file:\\.go$ patterntype:structural foo(...)", scope()),
-            ("repo:x file:^pkg/a\\.go patterntype:structural foo(...)", scope()),
-            ("repo:x file:a.go patterntype:structural foo(...)", scope()),
-            ("repo:x file:^pkg/(a|b)\\.go$ patterntype:structural foo(...)", scope()),
-            ("repo:x file:^pkg/.*\\.go$ patterntype:structural foo(...)", scope()),
-            ("repo:x file:^src/a\\.go$|^b\\.go$ patterntype:structural foo(...)", scope()),
-            ("repo:x file:^Makefile$ patterntype:structural foo(...)", language()),
-            ("repo:x file:a\\. patterntype:structural foo(...)", both()),
-            ("repo:x file:^pkg/a\\.go$ patterntype:structural foo(...)", vec![]),
-            ("repo:x file:\"^pkg/a.go$\" patterntype:structural foo(...)", vec![]),
-            ("repo:x -file:^src/ file:^pkg/a\\.go$ patterntype:structural foo(...)", vec![]),
-            ("repo:x lang:go file:^Makefile$ patterntype:structural foo(...)", vec![]),
-            ("repo:x foo(...)", vec![]),
-            ("repo:x patterntype:regexp foo", vec![]),
-            ("repo:x patterntype:structural patterntype:keyword foo", vec![]),
-            ("repo:x -lang:go file:^Makefile$ patterntype:structural foo(...)", language()),
-            ("repo:x file:^pkg/ file:\\.go$ patterntype:structural foo(...)", both()),
-            ("repo:x file:\\.go$ file:^pkg/ patterntype:structural foo(...)", scope()),
-            ("repo:x file:^pkg/$ patterntype:structural foo(...)", both()),
-            ("repo:x file:^$ patterntype:structural foo(...)", both()),
-            ("repo:x file:^a\\+\\.go$ patterntype:structural foo(...)", vec![]),
-            ("repo:x path:^pkg/a\\.go$ PatternType:structural foo(...)", vec![]),
-            ("repo:x f:^pkg/a\\.go$ patterntype:structural foo(...)", vec![]),
-            // class escapes are patterns
-            ("repo:x file:^a\\d\\.go$ patterntype:structural foo(...)", scope()),
-            ("repo:x file:^\\w+\\.go$ patterntype:structural foo(...)", scope()),
-            // predicates aren't paths
-            ("repo:x file:has.content(x) file:\\.go$ patterntype:structural foo(...)", scope()),
-            (
-                "repo:x file:contains.content(x) file:^pkg/a\\.go$ patterntype:structural foo(...)",
-                vec![],
-            ),
-            // the server's extensions are lower-case
-            ("repo:x file:\\.GO$ patterntype:structural foo(...)", both()),
-        ]);
-    }
-
-    #[test]
-    fn each_search_of_a_structural_plan_is_noted_with_its_own_filters() {
-        let both = || vec![STRUCTURAL_SCOPE.to_owned(), STRUCTURAL_LANGUAGE.to_owned()];
-        run(vec![
-            // each basic query of the plan, with its own filters
-            ("patterntype:structural file:^a\\.go$", vec![]),
-            // parentheses as the server parses them, per mode and around the query
-            ("file:^a\\.go$ patterntype:structural (:[x]) or bar(...)", vec![]),
-            ("file:^a\\.go$ patterntype:structural (foo(...) bar(...)) or baz(...)", vec![]),
-            (
-                "repo:x patterntype:structural (foo(...) bar(...)) or baz(...)",
-                vec![STRUCTURAL_SCOPE.to_owned(), STRUCTURAL_LANGUAGE.to_owned()],
-            ),
-            (
-                "repo:x patterntype:structural (foo(...) and bar(...)) or baz(...)",
-                vec![
-                    ESCAPES_OR.to_owned(),
-                    STRUCTURAL_SCOPE.to_owned(),
-                    STRUCTURAL_LANGUAGE.to_owned(),
-                ],
-            ),
-            (
-                "repo:x patterntype:structural (foo(...) x:y) or baz(...)",
-                vec![STRUCTURAL_SCOPE.to_owned(), STRUCTURAL_LANGUAGE.to_owned()],
-            ),
-            (
-                "repo:x patterntype:structural (foo(...)) bar(...) or baz(...)",
-                vec![STRUCTURAL_SCOPE.to_owned(), STRUCTURAL_LANGUAGE.to_owned()],
-            ),
-            ("(file:^a\\.go$ foo(...) or bar(...)) patterntype:structural", vec![]),
-            ("(file:^a\\.go$ patterntype:structural foo(...) or bar(...))", vec![]),
-            ("((file:^a\\.go$ patterntype:structural foo(...) or bar(...)))", vec![]),
-            ("patterntype:structural ((file:^a\\.go$ foo(...) or bar(...)))", vec![]),
-            ("repo:x file:^a\\.go$ patterntype:structural ((foo(...) or bar(...)))", vec![]),
-            ("  foo(...) or bar(...) file:^a\\.go$ patterntype:structural", vec![]),
-            ("repo:x patterntype:structural (file:^a\\.go$ foo(...) or bar(...))", vec![]),
-            (
-                "repo:x patterntype:structural (file:^a\\.go$ foo(...) or file:^b\\.go$ bar(...))",
-                vec![],
-            ),
-            ("repo:x file:^a\\.go$ patterntype:structural (foo(...) or bar(...))", vec![]),
-            ("repo:x patterntype:structural (foo(...) or bar(...)) file:^a\\.go$", vec![]),
-            ("repo:x file:^a\\.go$ patterntype:structural foo(...) or bar(...)", vec![]),
-            ("repo:x not file:y file:^a\\.go$ patterntype:structural foo(...) or bar(...)", vec![]),
-            ("foo(...) or bar(...) file:^a\\.go$ patterntype:structural", both()),
-            ("file:^a\\.go$ patterntype:structural (foo(...) and bar(...)) or baz(...)", both()),
-            ("patterntype:structural foo(...) or file:^a\\.go$ bar(...)", both()),
-            (
-                "file:^a\\.go$ patterntype:structural foo(...) or (lang:go bar(...)) or baz(...)",
-                both(),
-            ),
-            // lang: aliases, and not before a filter
-            ("repo:x l:go file:^Makefile$ patterntype:structural foo(...)", vec![]),
-            ("repo:x language:go file:^Makefile$ patterntype:structural foo(...)", vec![]),
-            ("repo:x patterntype:structural foo(...) not file:^a\\.go$", both()),
-            // the server rejects structural search with type:
-            ("repo:x type:file patterntype:structural foo(...)", vec![]),
-            ("repo:x -type:diff patterntype:structural foo(...)", vec![]),
-        ]);
-    }
-
-    #[test]
-    fn structural_groups_with_quotes_empty_fields_and_deep_parentheses_are_noted() {
-        let both = || vec![STRUCTURAL_SCOPE.to_owned(), STRUCTURAL_LANGUAGE.to_owned()];
-        run(vec![
-            // quoted text, an empty field and deep parentheses inside a group
-            ("file:^a\\.go$ patterntype:structural (\"a or b\") or bar(...)", both()),
-            ("file:^a\\.go$ patterntype:structural (foo(...) \"x or y\") or bar(...)", both()),
-            ("patterntype:structural (foo(...) repo:) or baz(...)", both()),
-            ("file:^a\\.go$ patterntype:structural (foo(...) repo:) or baz(...)", both()),
-            (
-                "repo:x patterntype:structural (foo(...) repo:) or baz(...)",
-                vec![
-                    ESCAPES_OR.to_owned(),
-                    STRUCTURAL_SCOPE.to_owned(),
-                    STRUCTURAL_LANGUAGE.to_owned(),
-                ],
-            ),
-            ("patterntype:structural repo:x (((file:^a\\.go$ foo(...) or bar(...))))", vec![]),
-            // a stray ) makes the server search in keyword mode
-            ("patterntype:structural (\"foo)\" bar(...)) or baz(...)", vec![]),
-            (
-                "repo:x file:^a\\.go$ patterntype:structural (\"foo)\" bar(...)) or baz(...)",
-                vec![ESCAPES_OR.to_owned()],
-            ),
-        ]);
     }
 
     const SYMBOL_SELECT: &str = "type:symbol with select:symbol and no pattern \
@@ -1049,15 +703,6 @@ on sourcegraph.com; type:symbol searches symbols";
         assert!(!Query::new(&query(64)).lower_bound);
         assert!(!Query::new(&query(65)).lower_bound);
         assert!(!Query::new(&query(100_000)).lower_bound);
-
-        let structural = |depth| format!("patterntype:structural {}", nested(depth, "file:y foo"));
-        assert_eq!(Query::new(&structural(64)).notes, [STRUCTURAL_SCOPE, STRUCTURAL_LANGUAGE]);
-        for depth in [65, 100_000] {
-            assert_eq!(
-                Query::new(&structural(depth)).notes,
-                [STRUCTURAL_SCOPE, STRUCTURAL_LANGUAGE]
-            );
-        }
     }
 
     #[test]

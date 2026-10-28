@@ -3,7 +3,7 @@
 args = ["search", "--json", "repo:example.com/app foo"]
 status.code = 0
 stdout = '''
-{"query":"repo:example.com/app foo","pattern_type":"keyword","unit":"matches","count":5,"at_least":true,"stopped":true,"elapsed_ms":12,"limit_ms":20000,"widen":[{"filter":"fork:yes","repos":4},{"filter":"archived:yes","repos":9}],"unindexed":null,"alert":{"title":"T","description":null,"kind":"k","proposed":[{"description":null,"query":"q"}]},"results":[{"kind":"line","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":"main","path":"a.go","line":5,"text":"x","match":false,"ranges":[],"chunk":1},{"kind":"symbol","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":"main","path":"a.go","line":5,"name":"Foo","symbol_kind":"function","container":null},{"kind":"line","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":"main","path":"a.go","line":6,"text":"foo","match":true,"ranges":[[0,3]],"chunk":1},{"kind":"path","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"b.go"},{"kind":"binary","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"bin"},{"kind":"commit","repo":"example.com/other","commit":"c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2","date":"2024-05-06","author":"Ann","subject":"fix","lines":["x","+y"],"highlights":[[1,1,3]],"preview_limited":false},{"kind":"repo","repo":"example.com/third"}],"server":{"match_count":5,"approximate_count":"5","limit_hit":false,"timedout":["example.com/slow"]},"notes":["T","the server proposes: q","timeout:60s raises its 20 s deadline to 60 s, the most sourcegraph.com allows"]}
+{"query":"repo:example.com/app foo","pattern_type":"keyword","unit":"matches","count":5,"at_least":true,"stopped":true,"elapsed_ms":12,"limit_ms":20000,"widen":[{"filter":"fork:yes","repos":4},{"filter":"archived:yes","repos":9}],"alert":{"title":"T","description":null,"kind":"k","proposed":[{"description":null,"query":"q"}]},"results":[{"kind":"line","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":"main","path":"a.go","line":5,"text":"x","match":false,"ranges":[],"chunk":1},{"kind":"symbol","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":"main","path":"a.go","line":5,"name":"Foo","symbol_kind":"function","container":null},{"kind":"line","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":"main","path":"a.go","line":6,"text":"foo","match":true,"ranges":[[0,3]],"chunk":1},{"kind":"path","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"b.go"},{"kind":"binary","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"bin"},{"kind":"commit","repo":"example.com/other","commit":"c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2","date":"2024-05-06","author":"Ann","subject":"fix","lines":["x","+y"],"highlights":[[1,1,3]],"preview_limited":false},{"kind":"repo","repo":"example.com/third"}],"server":{"match_count":5,"approximate_count":"5","limit_hit":false,"timedout":["example.com/slow"]},"notes":["T","the server proposes: q","timeout:60s raises its 20 s deadline to 60 s, the most sourcegraph.com allows"]}
 '''
 stderr = '''
 sego: note: T
@@ -13,8 +13,8 @@ sego: note: timeout:60s raises its 20 s deadline to 60 s, the most sourcegraph.c
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":true,"query":"repo:example.com/app foo","unindexed":"repo:example.com/app type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:example.com/app foo"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''
@@ -182,15 +182,6 @@ response = '''
             "name": "example.com/slow"
           }
         ]
-      }
-    },
-    "unindexed": {
-      "results": {
-        "alert": null,
-        "elapsedMilliseconds": 10,
-        "limitHit": false,
-        "results": [],
-        "timedout": []
       }
     }
   }

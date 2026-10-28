@@ -8,8 +8,8 @@ sego: error: Unable To Process Query
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":false,"query":"lang:nosuchlang foo","unindexed":""}'
-document = "Search-328cc8ec"
+variables = '{"query":"lang:nosuchlang foo"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''

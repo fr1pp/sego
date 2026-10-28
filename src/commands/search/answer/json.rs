@@ -1,9 +1,6 @@
 use serde::{Serialize, Serializer};
 
-use super::{
-    Alert, Answer, Chunk, FileItem, Group, Row, Server, SymbolRow, Widen, file_items, rows,
-};
-use crate::sourcegraph::UnindexedFile;
+use super::{Alert, Answer, Chunk, FileItem, Group, Row, Server, SymbolRow, Widen, rows};
 
 impl Serialize for Answer {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
@@ -23,7 +20,6 @@ impl Answer {
             elapsed_ms: self.elapsed_ms,
             limit_ms: self.query.deadline_ms,
             widen: &self.widen,
-            unindexed: self.unindexed.as_deref(),
             alert: self.alert.as_ref(),
             results: self.groups.iter().flat_map(records).collect(),
             server: &self.server,
@@ -42,7 +38,6 @@ struct Document<'a> {
     elapsed_ms: u64,
     limit_ms: u64,
     widen: &'a [Widen],
-    unindexed: Option<&'a [UnindexedFile]>,
     alert: Option<&'a Alert>,
     results: Vec<Record<'a>>,
     server: &'a Server,
@@ -54,9 +49,17 @@ enum Record<'a> {
     Line(LineRecord<'a>),
     Path(PathRecord<'a>),
     Binary(PathRecord<'a>),
+    Unindexed(UnindexedRecord<'a>),
     Symbol(SymbolRecord<'a>),
     Commit(CommitRecord<'a>),
     Repo { repo: &'a str },
+}
+
+#[derive(Serialize)]
+struct UnindexedRecord<'a> {
+    #[serde(flatten)]
+    file: PathRecord<'a>,
+    reason: &'a str,
 }
 
 #[derive(Serialize)]
@@ -107,11 +110,14 @@ struct CommitRecord<'a> {
 
 fn records<'a>(group: &'a Group) -> Vec<Record<'a>> {
     match group {
-        Group::File { repo, commit, rev, path, binary, chunks, symbols } => {
+        Group::File { repo, commit, rev, path, chunks, symbols, .. } => {
             let rev = rev.as_deref();
             let file = || PathRecord { repo, commit, rev, path };
             let mut out = Vec::new();
-            match file_items(*binary, chunks, symbols).first() {
+            match group.file_items().first() {
+                Some(FileItem::Unindexed(reason)) => {
+                    out.push(Record::Unindexed(UnindexedRecord { file: file(), reason }));
+                }
                 Some(FileItem::Binary) => out.push(Record::Binary(file())),
                 Some(FileItem::Path) => out.push(Record::Path(file())),
                 _ => {}

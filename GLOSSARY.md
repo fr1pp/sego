@@ -90,14 +90,6 @@ given to `diff`), so no default limit cuts what is fetched.
 **Query**:
 The text an agent passes to `sego search`, sent to the server exactly as written.
 
-**Plan**:
-The basic queries the server runs for a query, as Sourcegraph reads the query.
-
-**Basic query**:
-One of the queries in a query's plan: one set of filters, with a pattern that may hold `and` or
-`or`. An `or` with a filter beside an operand splits a query into several.
-_Avoid_: search, subquery
-
 **Search**:
 The server's run of a query, and what it answers.
 _Avoid_: request (one request can carry more than one search)
@@ -146,6 +138,10 @@ The part of Sourcegraph that reads a revision the index doesn't hold, file by fi
 **Unindexed file**:
 A file in a search's scope whose contents the index skipped, because it is over 1 MiB or holds too
 many distinct trigrams. No search of the index reaches its contents.
+
+**Placeholder**:
+What the index holds in place of an unindexed file's contents: one line, `NOT-INDEXED: REASON`,
+which a search can match as if it were the file's text.
 
 **Pinned search**:
 A search at a revision other than `HEAD`, which the searcher reads rather than the index.

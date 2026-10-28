@@ -11,8 +11,8 @@ sego: note: the server searches `/cloudflare/i` as text; it ignores case by defa
 
 [[exchange]]
 operation = "Search"
-variables = '{"listed":true,"query":"repo:example.com/acme/widget /cloudflare/i","unindexed":"repo:example.com/acme/widget type:file select:file index:only patterntype:regexp ^NOT-INDEXED:\\ (exceeds\\ the\\ maximum\\ size\\ limit|contains\\ too\\ many\\ trigrams)$ count:all timeout:20s"}'
-document = "Search-328cc8ec"
+variables = '{"query":"repo:example.com/acme/widget /cloudflare/i"}'
+document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
 response = '''
@@ -26,15 +26,6 @@ response = '''
         "elapsedMilliseconds": 100,
         "limitHit": false,
         "matchCount": 0,
-        "results": [],
-        "timedout": []
-      }
-    },
-    "unindexed": {
-      "results": {
-        "alert": null,
-        "elapsedMilliseconds": 10,
-        "limitHit": false,
         "results": [],
         "timedout": []
       }
