@@ -6,5 +6,5 @@ server's errors by where they sit and what kind they are. Commands get typed ans
 from it, never a document, an alias, a JSON path or a raw GraphQL error. Sourcegraph's quirks stay
 in one place, and commands own only sego's own rules: windows, notes, headers and wording. Its
 response types are written by hand with serde rather than generated from the schema. That keeps
-dependencies light (ADR 0017), and handles selections that repeat at run time, such as one per path
+dependencies light (ADR 0016), and handles selections that repeat at run time, such as one per path
 given to `diff`, which code generators handle poorly.

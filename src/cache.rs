@@ -15,7 +15,7 @@ mod trim;
 
 use store::{init_root, read_entry, refresh, write_entry};
 
-/// Where sego keeps the files of raw reads (ADR 0010).
+/// Where sego keeps the files of raw reads (ADR 0009).
 pub struct Cache {
     root: Result<Root, Unavailable>,
     endpoint: String,

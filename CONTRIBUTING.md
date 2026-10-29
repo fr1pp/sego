@@ -12,7 +12,7 @@ just check              # rustfmt, clippy with warnings denied, and every offlin
 ## Cases
 
 Behaviour an agent can see is tested by cases
-([ADR 0011](docs/adr/0011-tests-replay-recorded-responses.md)). A case is one TOML file in
+([ADR 0010](docs/adr/0010-tests-replay-recorded-responses.md)). A case is one TOML file in
 `tests/cases/<command>/`:
 
 ```toml
@@ -58,7 +58,7 @@ Read that diff before committing it.
 
 `just record` refuses a search that sego reports as stopped, because cut results vary from run to
 run: run it again. A search can also come back silently short when a search backend fails to answer
-([ADR 0016](docs/adr/0016-failed-search-backends-are-not-detected.md)), and only the blessed diff
+([ADR 0015](docs/adr/0015-failed-search-backends-are-not-detected.md)), and only the blessed diff
 shows that. A response sourcegraph.com can't be made to give on demand, such as a stopped search, is
 written by hand: an `[[exchange]]` with its `status`, `content-type` and `response`, whose request
 bless fills in. A hand-written response with a located GraphQL error names its `evidence`: a

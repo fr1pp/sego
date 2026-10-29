@@ -51,7 +51,7 @@ pub fn closing_fields(
 }
 
 /// An answer as JSON prints it: its fields, then the notes stderr carries
-/// too (ADR 0015).
+/// too (ADR 0014).
 #[derive(Serialize)]
 struct Document<'a, A> {
     #[serde(flatten)]

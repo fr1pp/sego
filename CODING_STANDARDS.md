@@ -8,14 +8,14 @@ The rules every change to sego follows. Where an ADR holds the reason, the rule 
   exists only for a module that has child modules. `clippy::mod_module_files` enforces this.
 - Each subcommand is one module under `src/commands/`.
 - Everything sego asks Sourcegraph goes through `src/sourcegraph.rs` and its children
-  ([ADR 0013](docs/adr/0013-sourcegraph-module-owns-every-graphql-document.md)).
+  ([ADR 0012](docs/adr/0012-sourcegraph-module-owns-every-graphql-document.md)).
 
 ## Tests
 
 - A module's unit tests sit inline, as a `#[cfg(test)] mod tests { use super::*; … }` at the end of
   its file, whatever the file's size.
 - What an agent sees on the command line is pinned by a case
-  ([ADR 0011](docs/adr/0011-tests-replay-recorded-responses.md)). A help text is pinned only by its
+  ([ADR 0010](docs/adr/0010-tests-replay-recorded-responses.md)). A help text is pinned only by its
   case.
 - A module test is kept only where a case can't pin the behaviour well: a pure function with a large
   input space (query reading, argument parsing, addresses, escaping), the reading of server
@@ -46,7 +46,7 @@ The rules every change to sego follows. Where an ADR holds the reason, the rule 
 ## JSON
 
 - Every fact a note states is also in the document's `notes` array
-  ([ADR 0015](docs/adr/0015-json-carries-every-fact-text-prints.md)).
+  ([ADR 0014](docs/adr/0014-json-carries-every-fact-text-prints.md)).
 - A list that can be cut carries `X_total`, `null` when the server doesn't give it, and `X_more`,
   whether more exists than the list holds. `X_more` reports what the server sent, so where JSON
   asks for the whole list it is `false` unless the server sent less than its total. A search
@@ -64,7 +64,7 @@ The rules every change to sego follows. Where an ADR holds the reason, the rule 
 
 - An item is private, or `pub` inside a private module. The crate's public items are `run`, what it
   takes (`Env`, `Endpoint`, `Transport`, `Response`, `TransportError`) and `connect`
-  ([ADR 0012](docs/adr/0012-library-exports-only-run.md)).
+  ([ADR 0011](docs/adr/0011-library-exports-only-run.md)).
 - `pub(crate)` and `pub(super)` aren't used, and no item is made public for a test.
 
 ## Comments
