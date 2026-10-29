@@ -8,12 +8,10 @@ license = "MIT OR Apache-2.0"
 publish = false
 
 [lib]
-path = "src/lib.rs"
 doctest = false
 
 [[bin]]
 name = "sego"
-path = "src/main.rs"
 test = false
 
 [dependencies]
