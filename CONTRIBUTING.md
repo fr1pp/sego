@@ -49,7 +49,7 @@ Each case is a test in `tests/it/cases.rs`, so `cargo test --test it show::empty
 To add a case, write its `args` and `status.code`, then:
 
 - **Record its responses** with `just record`. It sends sourcegraph.com each request that no
-  exchange answers, and each whose recorded request changed, one a second.
+  exchange answers, and each whose recorded request changed, two a second.
 - **Bless it** with `just bless`. Bless writes the list of cases, then what each case expects from
   what sego printed and the request of each exchange that isn't recorded, with its document, and
   deletes the documents no case names. It prints the diff of what it wrote, new files included.

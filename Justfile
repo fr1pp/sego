@@ -10,7 +10,7 @@ check:
 bless:
     scripts/bless
 
-# Record the responses that cases lack, and those whose request changed, one request a second.
+# Record the responses that cases lack, and those whose request changed, two requests a second.
 record:
     cargo test --test it -- --ignored --exact missing_and_stale_responses_are_recorded
 

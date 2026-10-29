@@ -22,7 +22,7 @@ const DEADLINE: Duration = Duration::from_secs(90);
 type Connect<'a> = &'a dyn Fn(&str) -> Result<Rc<dyn Transport>, String>;
 
 /// Sends every recorded request of each case under the paths in `under`, or
-/// of every case given none, again, one a second, and returns the ways the
+/// of every case given none, again, two a second, and returns the ways the
 /// responses have drifted.
 pub fn check_cases(under: &[String]) -> Vec<String> {
     let servers: RefCell<HashMap<String, Rc<dyn Transport>>> = RefCell::default();

@@ -478,10 +478,10 @@ fn name(path: &Path) -> Result<String, String> {
     }
 }
 
-const PAUSE: Duration = Duration::from_secs(1);
+const PAUSE: Duration = Duration::from_millis(500);
 
-/// The transport to a live server for `just record` and `just live`: one
-/// request a second, and none once the server has refused one with HTTP 429
+/// The transport to a live server for `just record` and `just live`: two
+/// requests a second, and none once the server has refused one with HTTP 429
 /// or a Cloudflare challenge.
 pub struct Paced {
     inner: Box<dyn Transport>,

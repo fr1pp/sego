@@ -13,7 +13,7 @@ use super::case::{Body, Case, Exchange, Recorded, Request};
 use super::replay::{Sent, graphql, response};
 use super::{Logged, Paced, case_paths, documents_dir, run};
 
-/// Records every case against sourcegraph.com, one request a second, and
+/// Records every case against sourcegraph.com, two requests a second, and
 /// stops at the first refusal. Returns why each case that failed to record
 /// failed.
 pub fn every_case() -> Vec<String> {

@@ -68,7 +68,7 @@ mod tests {
     use crate::error::{Error, report};
     use crate::sourcegraph::{DEADLINE, Endpoint, Item, Results};
 
-    const PAUSE: Duration = Duration::from_secs(1);
+    const PAUSE: Duration = Duration::from_millis(500);
 
     type Rule = fn() -> Result<(), String>;
 
