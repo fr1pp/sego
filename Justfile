@@ -8,25 +8,7 @@ check:
 
 # Rewrite the case list, what each case expects and the stored documents from what sego does now, and print the diff.
 bless:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    # The working tree, untracked files included, as a tree. It's built in an
-    # index of its own, so what's staged is left alone.
-    snapshot() { GIT_INDEX_FILE=target/bless.index git add -A && GIT_INDEX_FILE=target/bless.index git write-tree; }
-    mkdir -p target
-    if [[ -e target/bless.index.lock ]]; then
-        echo "error: target/bless.index.lock exists: a bless is running, or one was stopped; if none is running, delete it" >&2
-        exit 1
-    fi
-    before=$(snapshot)
-    export SEGO_BLESS=1
-    # A new case is a test only once the list names it, so the list is blessed first.
-    status=0
-    cargo test -q --test it -- --exact the_case_list_matches_tests_cases || status=$?
-    if [[ $status -eq 0 ]]; then cargo test -q --test it || status=$?; fi
-    after=$(snapshot)
-    if git diff --quiet "$before" "$after"; then echo "bless changed nothing"; else git diff --stat --patch "$before" "$after"; fi
-    exit "$status"
+    scripts/bless
 
 # Record the responses that cases lack, and those whose request changed, one request a second.
 record:

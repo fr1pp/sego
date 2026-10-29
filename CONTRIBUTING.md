@@ -110,6 +110,8 @@ leaves out part of a search's answer. Three differences never count:
 
 ## Generated files
 
+- `just bless` regenerates `tests/it/cases.rs` from `tests/cases`, and what each case expects and
+  the stored documents from what sego does now; see [Cases](#cases).
 - `just escape-table` regenerates `src/escape/table.rs` from the pinned Unicode data.
 - `just schema` fetches the live GraphQL schema into `target/schema.json`, for reading.
 
