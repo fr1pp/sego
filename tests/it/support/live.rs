@@ -3,7 +3,7 @@ use std::collections::hash_map::DefaultHasher;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fs;
 use std::hash::{Hash, Hasher};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::time::{Duration, Instant};
 
@@ -11,9 +11,8 @@ use serde_json::{Value, json};
 
 use sego::{Endpoint, Response, Transport};
 
-use super::case::{self, Body, Case, Exchange, Request, Stream};
-use super::replay::Sent;
-use super::{Logged, Paced, case_paths, documents_dir, run};
+use super::case::{self, Body, Case, Exchange, Request};
+use super::{Paced, case_paths, cases_dir, documents_dir};
 
 const GRAPHQL_PATH: &str = "/.api/graphql";
 const DEADLINE: Duration = Duration::from_secs(90);
@@ -22,9 +21,10 @@ const DEADLINE: Duration = Duration::from_secs(90);
 /// endpoint it was recorded from.
 type Connect<'a> = &'a dyn Fn(&str) -> Result<Rc<dyn Transport>, String>;
 
-/// Sends every recorded request of every case again, one a second, and
-/// returns the ways the responses have drifted.
-pub fn every_case() -> Vec<String> {
+/// Sends every recorded request of each case under the paths in `under`, or
+/// of every case given none, again, one a second, and returns the ways the
+/// responses have drifted.
+pub fn check_cases(under: &[String]) -> Vec<String> {
     let servers: RefCell<HashMap<String, Rc<dyn Transport>>> = RefCell::default();
     let connect = |endpoint: &str| -> Result<Rc<dyn Transport>, String> {
         if let Some(server) = servers.borrow().get(endpoint) {
@@ -35,159 +35,38 @@ pub fn every_case() -> Vec<String> {
         servers.borrow_mut().insert(endpoint.to_owned(), server.clone());
         Ok(server)
     };
-    let (cases, mut failures) = every_loaded_case();
-    for (_, case) in &cases {
-        failures.extend(check(case, &connect));
-    }
-    failures
-}
-
-/// Every case, each with its path, and the reasons any case couldn't be
-/// loaded.
-fn every_loaded_case() -> (Vec<(PathBuf, Case)>, Vec<String>) {
     let paths = match case_paths() {
         Ok(paths) => paths,
-        Err(e) => return (Vec::new(), vec![e]),
+        Err(e) => return vec![e],
     };
-    let mut cases = Vec::new();
-    let mut failures = Vec::new();
+    let (paths, mut failures) = cases_under(&cases_dir(), paths, under);
     for path in paths {
         match Case::load(&path, &documents_dir()) {
-            Ok(case) => cases.push((path, case)),
+            Ok(case) => failures.extend(check(&case, &connect)),
             Err(e) => failures.push(e),
         }
     }
-    (cases, failures)
-}
-
-/// Runs sego against sourcegraph.com for each case of `commands`, or of every
-/// command but search for none, whose exchanges are all recorded with their
-/// values checked, and returns how its exit code, stdout or stderr differ
-/// from what the case expects. A difference counts only if a second run
-/// shows it too. Search cases keep the response check.
-pub fn every_answer(commands: &[String]) -> Vec<String> {
-    let server = Live(Rc::new(Paced::new(sego::connect(Endpoint::default()))));
-    let (cases, mut failures) = every_loaded_case();
-    for (path, case) in cases {
-        if server.0.blocked() {
-            failures.push("stopped after sourcegraph.com refused a request".to_owned());
-            break;
-        }
-        let command = case.args.first().map_or("", String::as_str);
-        let chosen = if commands.is_empty() {
-            command != "search"
-        } else {
-            commands.iter().any(|c| c == command)
-        };
-        if !chosen || !value_checked(&case) {
-            continue;
-        }
-        let answer = || answer_difference(&case, &server);
-        if let Err(found) = answer().or_else(|first| answer().map_err(|_| first)) {
-            failures.push(format!("{}: {found}", path.display()));
-        }
-    }
     failures
 }
 
-/// Whether every exchange of `case` is recorded from sourcegraph.com with its
-/// values checked; a case with none isn't.
-fn value_checked(case: &Case) -> bool {
-    !case.exchanges.is_empty()
-        && case.exchanges.iter().all(|e| {
-            e.recorded
-                .as_ref()
-                .is_some_and(|r| r.live_values && r.endpoint == Endpoint::default().url(""))
-        })
-}
-
-/// How one run of `case` against `server` differs from what it expects.
-fn answer_difference(case: &Case, server: &Live) -> Result<(), String> {
-    let outcome = run(case, server)?;
-    let mut found = Vec::new();
-    if outcome.code != case.code {
-        found.push(format!("exit {}, expected {}", outcome.code, case.code));
+/// The cases of `cases` under each path in `under`, a case or a directory
+/// relative to `root`, or every case given no path; and a failure for each
+/// path that names no case, so a mistyped one can't pass unchecked.
+fn cases_under(root: &Path, cases: Vec<PathBuf>, under: &[String]) -> (Vec<PathBuf>, Vec<String>) {
+    if under.is_empty() {
+        return (cases, Vec::new());
     }
-    for (name, expected, actual) in
-        [("stdout", &case.stdout, &outcome.stdout), ("stderr", &case.stderr, &outcome.stderr)]
-    {
-        if let Stream::Text(expected) = expected
-            && unmirrored(expected) != unmirrored(actual)
-        {
-            let (expected, actual) = (unmirrored(expected), unmirrored(actual));
-            let diff = similar::TextDiff::from_lines(expected.as_str(), actual.as_str())
-                .unified_diff()
-                .header("expected", "live")
-                .to_string();
-            found.push(format!("{name}:\n{diff}"));
-        }
-    }
-    if found.is_empty() { Ok(()) } else { Err(found.join("\n")) }
-}
-
-/// `text` without the mirror's update time, which moves on its own: the
-/// header field `  mirrored TIME` and the JSON member `"mirrored_at":VALUE`.
-fn unmirrored(text: &str) -> String {
-    let mut out = String::with_capacity(text.len());
-    let mut rest = text;
-    loop {
-        let field = rest.find("  mirrored ");
-        let member = rest.find("\"mirrored_at\":");
-        let Some(at) = field.into_iter().chain(member).min() else { break };
-        let (mut keep, from) = rest.split_at(at);
-        let skip = if Some(at) == field {
-            let start = "  mirrored ".len();
-            start + from[start..].find(char::is_whitespace).unwrap_or(from.len() - start)
-        } else {
-            let start = "\"mirrored_at\":".len();
-            let value = &from[start..];
-            let len = if let Some(quoted) = value.strip_prefix('"') {
-                quoted.find('"').map_or(value.len(), |n| n + 2)
-            } else {
-                value.find([',', '}']).unwrap_or(value.len())
-            };
-            let mut end = start + len;
-            if from[end..].starts_with(',') {
-                end += 1;
-            } else if let Some(before) = keep.strip_suffix(',') {
-                keep = before;
-            }
-            end
-        };
-        out.push_str(keep);
-        rest = &from[skip..];
-    }
-    out.push_str(rest);
-    out
-}
-
-/// sourcegraph.com, paced, as the transport a case runs through.
-#[derive(Clone)]
-struct Live(Rc<Paced>);
-
-impl Transport for Live {
-    fn post(
-        &self,
-        path: &str,
-        body: &[u8],
-        deadline: Instant,
-    ) -> Result<Response, sego::TransportError> {
-        self.0.post(path, body, deadline)
-    }
-
-    fn get(&self, path: &str, deadline: Instant) -> Result<Response, sego::TransportError> {
-        self.0.get(path, deadline)
-    }
-}
-
-impl Logged for Live {
-    fn sent(&self) -> Vec<Sent> {
-        Vec::new()
-    }
-
-    fn problems(&self) -> Vec<String> {
-        Vec::new()
-    }
+    let is_under = |case: &Path, path: &str| {
+        case.strip_prefix(root).is_ok_and(|c| c.with_extension("").starts_with(path))
+    };
+    let failures = under
+        .iter()
+        .filter(|path| !cases.iter().any(|case| is_under(case, path)))
+        .map(|path| format!("{path} names no case in tests/cases"))
+        .collect();
+    let cases =
+        cases.into_iter().filter(|case| under.iter().any(|path| is_under(case, path))).collect();
+    (cases, failures)
 }
 
 /// What differs between the case's recorded responses and what the server
@@ -686,13 +565,32 @@ mod tests {
         assert_eq!(values(&at("2026-10-27T04:17:00Z"), &at("2026-10-27T05:01:12Z")), None);
     }
 
+    fn case_path(name: &str) -> PathBuf {
+        Path::new("/c").join(format!("{name}.toml"))
+    }
+
+    fn under(paths: &[&str]) -> (Vec<PathBuf>, Vec<String>) {
+        let cases = ["show/empty-file", "show/raw-read", "refs/tags", "refs/tags-missing"];
+        let paths: Vec<String> = paths.iter().map(|&p| p.to_owned()).collect();
+        cases_under(Path::new("/c"), cases.map(case_path).to_vec(), &paths)
+    }
+
     #[test]
-    fn an_answer_is_compared_without_the_mirrors_time() {
-        assert_eq!(unmirrored("a  rev main  mirrored 2026-10-27T04:17Z\nb"), "a  rev main\nb");
-        assert_eq!(unmirrored("a  mirrored 2026-10-27T04:17Z  rev main\n"), "a  rev main\n");
-        assert_eq!(unmirrored(r#"{"a":1,"mirrored_at":"2026-10-27T04:17:00Z"}"#), r#"{"a":1}"#);
-        assert_eq!(unmirrored(r#"{"mirrored_at":null,"a":1}"#), r#"{"a":1}"#);
-        assert_eq!(unmirrored(r#"{"a":1,"mirrored_at":null,"b":2}"#), r#"{"a":1,"b":2}"#);
+    fn no_path_chooses_every_case() {
+        assert_eq!(under(&[]).0.len(), 4);
+    }
+
+    #[test]
+    fn a_path_names_a_directory_or_a_case_by_whole_components() {
+        assert_eq!(under(&["show"]).0, ["show/empty-file", "show/raw-read"].map(case_path));
+        assert_eq!(under(&["refs/tags"]).0, [case_path("refs/tags")]);
+    }
+
+    #[test]
+    fn a_path_that_names_no_case_fails() {
+        let (chosen, failures) = under(&["refs", "show/empty"]);
+        assert_eq!(chosen, ["refs/tags", "refs/tags-missing"].map(case_path));
+        assert_eq!(failures, ["show/empty names no case in tests/cases"]);
     }
 
     /// A server that answers each request with the next response and keeps what

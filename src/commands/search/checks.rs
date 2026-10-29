@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use super::read::{
     KNOWN, PatternType, Written, WrittenFilter as Filter, chosen, has_pattern, unquoted,
 };
@@ -35,7 +37,7 @@ fn is_field(filter: &Filter, names: &[&str]) -> bool {
 /// know, which it searches as text, when the field is a common guess or one
 /// edit from a known field.
 fn unknown_filters(written: &[Written], notes: &mut Vec<String>) {
-    let mut seen = Vec::new();
+    let mut seen = BTreeSet::new();
     for item in written {
         let Written::Pattern { text, delimited: false, .. } = item else { continue };
         let Some(field) = unknown_field(text) else { continue };
@@ -43,11 +45,9 @@ fn unknown_filters(written: &[Written], notes: &mut Vec<String>) {
         if !GUESSED.contains(&lower.as_str()) && !near_known(&lower) {
             continue;
         }
-        if seen.contains(text) {
-            continue;
+        if seen.insert(text) {
+            notes.push(format!("'{field}:' is not a filter; the server searches `{text}` as text"));
         }
-        notes.push(format!("'{field}:' is not a filter; the server searches `{text}` as text"));
-        seen.push(text.clone());
     }
 }
 
@@ -117,6 +117,11 @@ fn looks_like_regex(term: &str) -> bool {
     {
         return true;
     }
+    // A `[` is never part of a range, so the scan from an outer `[` passes over
+    // each `[` in its body and goes on from there as that `[`'s own scan
+    // would. When the outer one holds no class of ranges, no `[` before its
+    // `]` holds one either, and none of them is scanned again.
+    let mut no_class_before = 0;
     (0..c.len()).any(|i| match c[i] {
         '\\' => at(i + 1).is_some_and(|n| {
             (i > 0 && is_word(c[i - 1]) && ".()[]{}|*+?^/".contains(n))
@@ -125,16 +130,21 @@ fn looks_like_regex(term: &str) -> bool {
         '.' => {
             matches!(at(i + 1), Some('*' | '+')) && at(i + 2).is_some_and(|n| n != ';' && n != '.')
         }
-        '[' => class_of_ranges(&c[i + 1..]),
+        '[' if i < no_class_before => false,
+        '[' => {
+            let (holds, end) = class_of_ranges(&c[i + 1..]);
+            no_class_before = i + 1 + end;
+            holds
+        }
         _ => false,
     })
 }
 
 /// Whether the bracket body starting `rest` holds two ranges, or one range
-/// followed by a quantifier.
-fn class_of_ranges(rest: &[char]) -> bool {
+/// followed by a quantifier, and where in `rest` the body ends.
+fn class_of_ranges(rest: &[char]) -> (bool, usize) {
     let Some(end) = rest.iter().position(|&x| x == ']') else {
-        return false;
+        return (false, rest.len());
     };
     let is_range = |x: char, y: char| {
         x < y
@@ -153,19 +163,18 @@ fn class_of_ranges(rest: &[char]) -> bool {
             _ => tail,
         };
     }
-    ranges >= 2 || (ranges == 1 && matches!(rest.get(end + 1), Some('+' | '*' | '?' | '{')))
+    let holds =
+        ranges >= 2 || (ranges == 1 && matches!(rest.get(end + 1), Some('+' | '*' | '?' | '{')));
+    (holds, end)
 }
 
 fn unknown_types(written: &[Written], notes: &mut Vec<String>) {
-    let mut seen: Vec<&str> = Vec::new();
+    let mut seen = BTreeSet::new();
     for filter in filters(written).filter(|f| !f.negated && is_field(f, &["type"])) {
         let value = filter.value.as_str();
-        let bare = unquoted(value);
-        if RESULT_TYPES.contains(&bare) || seen.contains(&value) {
-            continue;
+        if !RESULT_TYPES.contains(&unquoted(value)) && seen.insert(value) {
+            notes.push(format!("type:{value} is not a result type; the server returns nothing"));
         }
-        seen.push(value);
-        notes.push(format!("type:{value} is not a result type; the server returns nothing"));
     }
 }
 
@@ -178,6 +187,7 @@ fn path_without_pattern(written: &[Written], notes: &mut Vec<String>) {
 }
 
 fn revision_ranges(written: &[Written], notes: &mut Vec<String>) {
+    let mut seen = BTreeSet::new();
     for filter in filters(written).filter(|f| is_field(f, &["repo", "r"])) {
         let Some((_, revisions)) = filter.value.split_once('@') else {
             continue;
@@ -188,7 +198,7 @@ fn revision_ranges(written: &[Written], notes: &mut Vec<String>) {
             .and_then(|rev| rev.rsplit_once("..").map(|(_, end)| end));
         if let Some(end) = end.filter(|end| !end.is_empty()) {
             let note = format!("{} searches {end} only", filter.raw());
-            if !notes.contains(&note) {
+            if seen.insert(note.clone()) {
                 notes.push(note);
             }
         }

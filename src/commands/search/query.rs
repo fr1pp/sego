@@ -469,8 +469,6 @@ fn exact_repository(value: &str) -> Option<&str> {
 mod tests {
     use super::*;
 
-    use std::time::{Duration, Instant};
-
     const OVERFLOW: &str = "340282366920938463463374607431.9s";
 
     #[test]
@@ -868,61 +866,6 @@ mod tests {
             let query = Query::new(quoted);
             assert_eq!(query.notes, Vec::<String>::new(), "{line}");
             assert_eq!(query.cap, None, "{line}");
-        }
-    }
-
-    /// The least time of three that `Query::new` takes for a query of `bytes`:
-    /// `head`, then repeats of `unit`, then `tail` repeated as often.
-    fn reading(head: &str, unit: &str, tail: &str, bytes: usize) -> Duration {
-        let units = bytes / (unit.len() + tail.len());
-        let query = format!("{head}{}{}", unit.repeat(units), tail.repeat(units));
-        let time = || {
-            let started = Instant::now();
-            Query::new(&query);
-            started.elapsed()
-        };
-        (0..3).map(|_| time()).min().unwrap_or_default()
-    }
-
-    /// 64 KiB of each shape takes at most a few times sixteen times what 4 KiB
-    /// does: time that grows with the square of the length would take some 256
-    /// times as long. The ratio, not the time, is checked, so a loaded machine
-    /// doesn't fail it.
-    #[test]
-    fn a_query_is_read_in_linear_time() {
-        let nests = ["(f:x a ", "(a f:x ", "(f:x a b ", "(-f:x a ", "(not f:x a ", "(content:x a "];
-        let mut shapes: Vec<(&str, &str, &str)> = vec![
-            ("", "f:a ", ""),
-            ("", "\"a ", ""),
-            ("", "a(b ", ""),
-            ("", "foo or ", ""),
-            ("", "repo:x foo or bar ", ""),
-            ("", "(repo:a or repo:b) ", ""),
-            ("patterntype:standard ", "( a", ""),
-            ("", "(a)or x ", ""),
-            ("", "(a b ", ""),
-            ("", "a or (", ""),
-            ("", "x and (a ", ""),
-            ("", "(", ""),
-        ];
-        for unit in nests {
-            shapes.push(("", unit, ")"));
-        }
-        for head in [
-            "patterntype:regexp ",
-            "patterntype:literal ",
-            "patterntype:standard ",
-            "patterntype:structural ",
-        ] {
-            shapes.push((head, "(f:x a ", ")"));
-        }
-        for (head, unit, tail) in shapes {
-            let small = reading(head, unit, tail, 4 << 10);
-            let large = reading(head, unit, tail, 64 << 10);
-            assert!(
-                large < small * 48 + Duration::from_millis(20),
-                "{head}{unit:?}: {large:?}, against {small:?} for a sixteenth"
-            );
         }
     }
 }

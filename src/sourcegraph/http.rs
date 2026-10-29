@@ -453,9 +453,9 @@ mod tests {
         let server =
             Server::start(|_| Response::new(200).delay(Duration::from_secs(3)).body("late"));
         let started = Instant::now();
-        let slow = client(&server).post(GRAPHQL_PATH, b"{}", started + Duration::from_secs(1));
+        let slow = client(&server).post(GRAPHQL_PATH, b"{}", started + Duration::from_millis(100));
         assert!(matches!(slow, Err(TransportError::Deadline)), "{slow:?}");
-        assert!(started.elapsed() < Duration::from_secs(2));
+        assert!(started.elapsed() < Duration::from_secs(1));
 
         let before = server.requests().len();
         let past = Instant::now();

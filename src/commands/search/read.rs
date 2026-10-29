@@ -182,6 +182,7 @@ pub fn read(query: &str) -> Reading {
     let mut ty = PatternType::Keyword;
     if let Ok(literal) = groups_or_flat(&text, PatternType::Literal) {
         for item in &literal {
+            steps(1);
             if let Written::Filter(f) = item
                 && f.field.eq_ignore_ascii_case("patterntype")
             {
@@ -194,6 +195,22 @@ pub fn read(query: &str) -> Reading {
         Err(Halt::Reject | Halt::Missing) => rejected,
     }
 }
+
+#[cfg(test)]
+thread_local! {
+    static STEPS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
+/// Counts `n` steps of reading, for the test that reading is linear: one for
+/// each pass of a loop through the query or through the items read, and one
+/// for each character copied out of it.
+#[cfg(test)]
+fn steps(n: usize) {
+    STEPS.with(|steps| steps.set(steps.get() + n));
+}
+
+#[cfg(not(test))]
+fn steps(_: usize) {}
 
 fn ascii_space(c: char) -> bool {
     matches!(c, '\t' | '\n' | '\x0B' | '\x0C' | '\r' | ' ')
@@ -251,6 +268,7 @@ impl Text {
         let mut escaped = vec![false; n];
         let mut i = 0;
         while i < n {
+            steps(1);
             if c[i] == '\\' && i + 1 < n {
                 escaped[i + 1] = true;
                 i += 1;
@@ -266,11 +284,13 @@ impl Text {
         };
         let (mut d, mut low, mut high) = (0i64, 0i64, 0i64);
         for i in 0..n {
+            steps(1);
             d += i64::from(change(i));
             (low, high) = (low.min(d), high.max(d));
         }
         let mut depth = vec![u32::try_from(-low).ok()?; n + 1];
         for i in 0..n {
+            steps(1);
             depth[i + 1] = depth[i].checked_add_signed(change(i))?;
         }
         // The counts run from 0 to `high - low`, one entry each; a `(`
@@ -283,6 +303,7 @@ impl Text {
         let mut close = vec![NONE; n];
         let (mut near, mut near_close) = (vec![ix(n); levels], vec![NONE; levels]);
         for i in (0..n).rev() {
+            steps(1);
             letters[i] = if c[i].is_ascii_alphabetic() { letters[i + 1] } else { ix(i) };
             let j = i + usize::from(c[i] == '-');
             let end = letters[j] as usize;
@@ -323,6 +344,7 @@ impl Text {
     fn plain(&self, s: usize, parens: bool, escapes: bool) -> usize {
         let mut i = s;
         while let Some(&c) = self.c.get(i) {
+            steps(1);
             if escapes && c == '\\' {
                 i += 2;
                 continue;
@@ -340,6 +362,7 @@ impl Text {
     fn closing(&self, open: usize) -> Option<usize> {
         let mut i = open + 1;
         while let Some(&c) = self.c.get(i) {
+            steps(1);
             if c == '\\' {
                 i += 2;
             } else if c == self.c[open] {
@@ -360,14 +383,17 @@ impl Text {
     fn predicate(&self, field: &str, s: usize) -> Option<usize> {
         let (_, names) =
             PREDICATES.iter().find(|(fields, _)| fields.split(' ').any(|f| f == field))?;
-        let open =
-            (s..self.c.len()).find(|&i| !(self.c[i].is_ascii_alphabetic() || self.c[i] == '.'))?;
+        let open = (s..self.c.len()).find(|&i| {
+            steps(1);
+            !(self.c[i].is_ascii_alphabetic() || self.c[i] == '.')
+        })?;
         let name = self.text(s, open);
         let close = self.close[open];
         (close != NONE && names.split_whitespace().any(|n| n == name)).then(|| close as usize + 1)
     }
 
     fn text(&self, start: usize, end: usize) -> String {
+        steps(end - start);
         self.c[start..end].iter().collect()
     }
 }
@@ -411,6 +437,7 @@ const PATTERN: Item = Item { filters: false, operator: false };
 /// Several items read as one, `and` or `or` when `operator`; one item is
 /// itself.
 fn combine(items: &[Item], operator: bool) -> Option<Item> {
+    steps(items.len());
     match items {
         [] => None,
         [one] => Some(*one),
@@ -434,6 +461,7 @@ impl Frame {
         if self.items.is_empty() {
             return Err(Halt::Missing);
         }
+        steps(self.items.len());
         let (mut level, patterns): (Vec<Item>, Vec<Item>) =
             self.items.drain(..).partition(|i| i.filters);
         if patterns.len() > 1 {
@@ -485,13 +513,16 @@ impl<'t> Reader<'t> {
         let t = self.t;
         let mut frames = vec![Frame::default()];
         loop {
+            steps(1);
             while t.c.get(self.pos).is_some_and(|c| c.is_whitespace()) {
+                steps(1);
                 self.pos += 1;
             }
             let Some(frame) = frames.last_mut() else { unreachable!() };
             let Some(&c) = t.c.get(self.pos) else {
                 let mut child = None;
                 while let Some(mut frame) = frames.pop() {
+                    steps(1);
                     frame.items.extend(child);
                     child = Some(frame.end(&mut self.mixed)?);
                 }
@@ -571,6 +602,7 @@ impl<'t> Reader<'t> {
         if not {
             self.pos += 3;
             while c.get(self.pos).is_some_and(|c| c.is_whitespace()) {
+                steps(1);
                 self.pos += 1;
             }
             if c.get(self.pos) == Some(&'(') {
@@ -644,5 +676,63 @@ impl<'t> Reader<'t> {
             None => t.plain(s, false, false),
         };
         self.write_pattern(s, self.pos, negated, false);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The steps `read` takes through `head`, then `units` repeats of `unit`,
+    /// then `tail` as often, and the query's length in characters.
+    fn steps_reading(head: &str, unit: &str, tail: &str, units: usize) -> (usize, usize) {
+        let query = format!("{head}{}{}", unit.repeat(units), tail.repeat(units));
+        STEPS.with(|steps| steps.set(0));
+        read(&query);
+        (STEPS.with(std::cell::Cell::get), query.chars().count())
+    }
+
+    /// A query sixteen times as long takes at most sixteen times the steps:
+    /// steps that grow with the square of the length would number some 256
+    /// times as many. Every shape takes at least a step a character, so a
+    /// count that stopped counting couldn't pass. The count covers `read`, not
+    /// the checks `Query::new` then runs on what it read.
+    #[test]
+    fn a_query_is_read_in_linear_time() {
+        let nests = ["(f:x a ", "(a f:x ", "(f:x a b ", "(-f:x a ", "(not f:x a ", "(content:x a "];
+        let mut shapes: Vec<(&str, &str, &str)> = vec![
+            ("", "f:a ", ""),
+            ("", "\"a ", ""),
+            ("", "a(b ", ""),
+            ("", "foo or ", ""),
+            ("", "repo:x foo or bar ", ""),
+            ("", "(repo:a or repo:b) ", ""),
+            ("patterntype:standard ", "( a", ""),
+            ("", "(a)or x ", ""),
+            ("", "(a b ", ""),
+            ("", "a or (", ""),
+            ("", "x and (a ", ""),
+            ("", "(", ""),
+        ];
+        for unit in nests {
+            shapes.push(("", unit, ")"));
+        }
+        for head in [
+            "patterntype:regexp ",
+            "patterntype:literal ",
+            "patterntype:standard ",
+            "patterntype:structural ",
+        ] {
+            shapes.push((head, "(f:x a ", ")"));
+        }
+        for (head, unit, tail) in shapes {
+            let (small, chars) = steps_reading(head, unit, tail, 64);
+            let (large, _) = steps_reading(head, unit, tail, 16 * 64);
+            assert!(small >= chars, "{head}{unit:?}: {small} steps for {chars} characters");
+            assert!(
+                large <= 16 * small,
+                "{head}{unit:?}: {large} steps, against {small} for a sixteenth"
+            );
+        }
     }
 }

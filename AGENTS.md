@@ -11,11 +11,14 @@ cases, bless, recording and live checks.
 ## Commands
 
 - `just check`: rustfmt, clippy and the offline tests. Run it before every commit.
-- `just ci`: `just check` on a clean tree, failing if a tracked file changed.
-- `SEGO_BLESS=1 cargo test --test it`: rewrite what the cases expect and the list of cases, then
-  read the diff.
-- `just record` and `just live` talk to sourcegraph.com, one request a second. Run one at a time;
-  sourcegraph.com blocks bursts.
+- `just bless`: rewrite the case list, what cases expect and the documents; read the diff it prints.
+- `just record`: record from sourcegraph.com the responses cases lack or whose request changed.
+- `just live [PATH…]`: re-send recorded requests and fail on drift; PATH as in `show/lfs-pointer`.
+- `just escape-table`: regenerate `src/escape/table.rs` from the pinned Unicode data.
+- `just schema`: fetch sourcegraph.com's full GraphQL schema into `target/schema.json`.
+
+`record`, `live` and `schema` talk to sourcegraph.com, one request a second. Run one at a time;
+sourcegraph.com blocks bursts.
 
 ## Agent skills
 

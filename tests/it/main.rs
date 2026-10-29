@@ -17,7 +17,7 @@ fn the_case_list_matches_tests_cases() {
         fs::write(&path, &list).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
     } else {
         let written = fs::read_to_string(&path).unwrap_or_default();
-        assert!(written == list, "tests/it/cases.rs is out of date; run with SEGO_BLESS=1");
+        assert!(written == list, "tests/it/cases.rs is out of date; run `just bless`");
     }
 }
 
@@ -26,7 +26,7 @@ fn every_document_is_named_by_a_case() {
     let unnamed = support::unnamed_documents().unwrap_or_else(|e| panic!("{e}"));
     assert!(
         unnamed.is_empty() || support::blessing(),
-        "no case names {}; run with SEGO_BLESS=1",
+        "no case names {}; run `just bless`",
         unnamed.join(", ")
     );
 }
@@ -41,18 +41,11 @@ fn missing_and_stale_responses_are_recorded() {
 #[test]
 #[ignore = "sends requests to sourcegraph.com; run with `just live`"]
 fn recorded_responses_still_match_sourcegraph_com() {
-    let failures = support::live::every_case();
-    assert!(failures.is_empty(), "{}", failures.join("\n"));
-}
-
-#[test]
-#[ignore = "runs sego against sourcegraph.com; run with `just live e2e`"]
-fn answers_still_match_sourcegraph_com() {
-    let commands: Vec<String> = std::env::var("SEGO_E2E_COMMANDS")
+    let under: Vec<String> = std::env::var("SEGO_LIVE_PATHS")
         .unwrap_or_default()
         .split_whitespace()
         .map(str::to_owned)
         .collect();
-    let failures = support::live::every_answer(&commands);
+    let failures = support::live::check_cases(&under);
     assert!(failures.is_empty(), "{}", failures.join("\n"));
 }

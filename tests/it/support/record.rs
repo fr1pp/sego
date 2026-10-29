@@ -41,7 +41,8 @@ pub fn every_case() -> Vec<String> {
 /// Runs the case, forwarding to `upstream` each request that has no exchange,
 /// or whose recorded exchange answered a different request, and writes what
 /// was recorded into the case file, with a raw read's body beside it. Nothing
-/// is written if any request was refused.
+/// is written if any request was refused, or if a search it recorded stopped
+/// at its deadline, since a cut search varies from run to run.
 fn record_case(
     path: &Path,
     documents: &Path,
@@ -50,13 +51,22 @@ fn record_case(
 ) -> Result<(), String> {
     let mut case = Case::load(path, documents)?;
     let recording = Recording::new(&case, upstream, stamp.clone());
-    run(&case, &recording)?;
+    let outcome = run(&case, &recording)?;
     let state = recording.state.borrow();
     if !state.problems.is_empty() {
         return Err(state.problems.join("\n"));
     }
     if state.recorded.is_empty() {
         return Ok(());
+    }
+    let searched = state.recorded.iter().any(|(_, exchange, _)| {
+        matches!(&exchange.request, Some(Request::Graphql { operation, .. }) if operation == "Search")
+    });
+    if searched && stopped(&outcome.stdout, &outcome.stderr) {
+        return Err(format!(
+            "{}: recording failed: the search stopped at its deadline; run `just record` again",
+            path.display()
+        ));
     }
     for (at, exchange, _) in &state.recorded {
         case.set_exchange(*at, exchange)?;
@@ -67,6 +77,14 @@ fn record_case(
         }
     }
     write(&case.path, case.to_text().as_bytes())
+}
+
+/// Whether sego's output says the search stopped: the text summary line or the
+/// error for a stopped search with no results, or `"stopped": true` in JSON.
+fn stopped(stdout: &str, stderr: &str) -> bool {
+    stdout.lines().next().is_some_and(|summary| summary.contains("  stopped at "))
+        || stderr.contains("sego: error: the search stopped at ")
+        || serde_json::from_str::<Value>(stdout).is_ok_and(|json| json["stopped"] == true)
 }
 
 fn write(path: &Path, bytes: &[u8]) -> Result<(), String> {
@@ -131,13 +149,13 @@ impl Recording {
                 .push(format!("{}: recording failed: {message}", state.case.path.display()));
             TransportError::Network("recording failed")
         };
-        let answer = match forward(&*state.upstream) {
-            Ok(answer) => answer,
+        let response = match forward(&*state.upstream) {
+            Ok(response) => response,
             Err(e) => return Err(refusal(&mut state, failure(&e).to_owned())),
         };
-        if refused(&answer) {
-            let mut message = format!("upstream answered HTTP {}", answer.status);
-            if let Some(value) = &answer.cf_mitigated {
+        if refused(&response) {
+            let mut message = format!("upstream answered HTTP {}", response.status);
+            if let Some(value) = &response.cf_mitigated {
                 let _ = write!(message, " (cf-mitigated: {value})");
             }
             return Err(refusal(&mut state, message));
@@ -145,7 +163,7 @@ impl Recording {
         let live_values =
             written.as_ref().and_then(|w| w.recorded.as_ref()).is_some_and(|r| r.live_values);
         let (body, raw) = match &request {
-            Request::Graphql { .. } => match graphql_body(&answer.body) {
+            Request::Graphql { .. } => match graphql_body(&response.body) {
                 Ok(text) => (Body::Text(text), None),
                 Err(message) => return Err(refusal(&mut state, message)),
             },
@@ -157,19 +175,19 @@ impl Recording {
                         state.case.path.file_stem().and_then(|s| s.to_str()).unwrap_or("case")
                     ),
                 };
-                (Body::File(name), Some(answer.body.clone()))
+                (Body::File(name), Some(response.body.clone()))
             }
         };
         let exchange = Exchange {
             request: Some(request),
-            status: answer.status,
-            content_type: answer.content_type.clone(),
+            status: response.status,
+            content_type: response.content_type.clone(),
             recorded: Some(Recorded { live_values, ..state.stamp.clone() }),
             body,
             evidence: None,
         };
         state.recorded.push((at, exchange, raw));
-        Ok(answer)
+        Ok(response)
     }
 }
 
@@ -447,5 +465,47 @@ mod tests {
         assert_eq!(at(11_017), "2000-03-01");
         assert_eq!(at(19_782), "2024-02-29");
         assert_eq!(at(20_733), "2026-10-07");
+    }
+
+    #[test]
+    fn a_search_that_stopped_at_its_deadline_is_not_written() {
+        let text = "# Stopped.\nargs = [\"search\", \"repo:example.com/a func timeout:1ms\"]\nstatus.code = 3\n";
+        let stopped = r#"{"data": {"search": {"results": {"alert": null, "approximateResultCount": "0",
+            "dynamicFilters": [], "elapsedMilliseconds": 15, "limitHit": false, "matchCount": 0,
+            "results": [], "timedout": []}}}}"#;
+        let written = Written::new(text);
+        let (result, _) = written.record(vec![response_of(200, JSON, stopped)]);
+        let error = result.err().unwrap_or_else(|| panic!("recorded: {}", written.text()));
+        assert!(error.contains("the search stopped at its deadline"), "{error}");
+        assert_eq!(written.text(), text);
+    }
+
+    /// sego's output for the case at `name` under `tests/cases`, replayed.
+    fn output(name: &str) -> (String, String) {
+        let path = crate::support::cases_dir().join(name);
+        let case = Case::load(&path, &documents_dir()).unwrap_or_else(|e| panic!("{e}"));
+        let outcome = run(&case, &crate::support::replay::Replay::new(&case))
+            .unwrap_or_else(|e| panic!("{e}"));
+        (outcome.stdout, outcome.stderr)
+    }
+
+    #[test]
+    fn stopped_output_from_sego_is_seen_in_text_in_an_error_and_in_json() {
+        for name in [
+            "search/answer-at-its-deadline-is-stopped.toml",
+            "search/clean-zero-past-a-short-deadline-is-stopped.toml",
+            "search/alert-and-results-with-control-characters-json.toml",
+        ] {
+            let (stdout, stderr) = output(name);
+            assert!(stopped(&stdout, &stderr), "{name}:\n{stdout}\n{stderr}");
+        }
+        let (stdout, stderr) =
+            output("search/select-directory-returns-directories-and-the-root.toml");
+        assert!(!stopped(&stdout, &stderr), "{stdout}\n{stderr}");
+    }
+
+    #[test]
+    fn a_result_line_that_says_stopped_at_is_not_a_stopped_search() {
+        assert!(!stopped("4+ matches  1 repo  2.8 s\na.go\n3:  stopped at 20 s\n", ""));
     }
 }

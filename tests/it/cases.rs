@@ -1,4 +1,4 @@
-// Generated from tests/cases by `SEGO_BLESS=1 cargo test --test it`. Do not edit.
+// Generated from tests/cases by `just bless`. Do not edit.
 
 mod cli {
     use crate::support::case;

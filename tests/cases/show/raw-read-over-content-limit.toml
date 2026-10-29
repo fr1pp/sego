@@ -1,22 +1,22 @@
 # A file over the content limit is read from the raw route.
-args = ["show", "github.com/azadkuh/sqlite-amalgamation@15d0ff10ebc7e7225eced1de84bb52137000899b:sqlite3.c", "1-5"]
+args = ["show", "github.com/torvalds/linux@c339f4010dea8b0d754f84ace70cd1b089878ef8:drivers/gpu/drm/amd/include/asic_reg/nbif/nbif_7_10_0_offset.h", "1-5"]
 status.code = 0
 stdout = '''
-github.com/azadkuh/sqlite-amalgamation@15d0ff10ebc7:sqlite3.c  lines 1-5 of 239379
-1:/******************************************************************************
-2:** This file is an amalgamation of many separate C source files from SQLite
-3:** version 3.38.2.  By combining all the individual C code files into this
-4:** single large file, the entire code can be compiled as a single translation
-5:** unit.  This allows many compilers to do optimizations that would not be
+github.com/torvalds/linux@c339f4010dea:drivers/gpu/drm/amd/include/asic_reg/nbif/nbif_7_10_0_offset.h  lines 1-5 of 15938
+1:/*
+2: * Copyright 2026 Advanced Micro Devices, Inc.
+3: *
+4: * Permission is hereby granted, free of charge, to any person obtaining a
+5: * copy of this software and associated documentation files (the "Software"),
 '''
 
 [[exchange]]
 operation = "File"
-variables = '{"content":true,"end":5,"gitlab":false,"path":"sqlite3.c","recursive":false,"repo0":"github.com/azadkuh/sqlite-amalgamation","repo1":"","rev":"15d0ff10ebc7e7225eced1de84bb52137000899b","start":1}'
+variables = '{"content":true,"end":5,"gitlab":false,"path":"drivers/gpu/drm/amd/include/asic_reg/nbif/nbif_7_10_0_offset.h","recursive":false,"repo0":"github.com/torvalds/linux","repo1":"","rev":"c339f4010dea8b0d754f84ace70cd1b089878ef8","start":1}'
 document = "File-d6d96d2c"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-29, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -27,22 +27,22 @@ response = '''
         "meta": {
           "__typename": "GitBlob",
           "binary": false,
-          "byteSize": 8462111,
+          "byteSize": 1585814,
           "lfs": null,
-          "path": "sqlite3.c",
-          "rawURL": "/r/github.com/azadkuh/sqlite-amalgamation@15d0ff10ebc7e7225eced1de84bb52137000899b/-/raw/sqlite3.c",
+          "path": "drivers/gpu/drm/amd/include/asic_reg/nbif/nbif_7_10_0_offset.h",
+          "rawURL": "/r/github.com/torvalds/linux@c339f4010dea8b0d754f84ace70cd1b089878ef8/-/raw/drivers/gpu/drm/amd/include/asic_reg/nbif/nbif_7_10_0_offset.h",
           "submodule": null,
-          "totalLines": 239379
+          "totalLines": 15938
         },
-        "oid": "15d0ff10ebc7e7225eced1de84bb52137000899b"
+        "oid": "c339f4010dea8b0d754f84ace70cd1b089878ef8"
       },
       "defaultBranch": {
         "displayName": "master"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T00:06:19Z"
+        "updatedAt": "2026-10-29T00:28:03Z"
       },
-      "name": "github.com/azadkuh/sqlite-amalgamation"
+      "name": "github.com/torvalds/linux"
     }
   },
   "errors": [
@@ -69,8 +69,8 @@ response = '''
 '''
 
 [[exchange]]
-get = "/r/github.com/azadkuh/sqlite-amalgamation@15d0ff10ebc7e7225eced1de84bb52137000899b/-/raw/sqlite3.c"
+get = "/r/github.com/torvalds/linux@c339f4010dea8b0d754f84ace70cd1b089878ef8/-/raw/drivers/gpu/drm/amd/include/asic_reg/nbif/nbif_7_10_0_offset.h"
 status = 200
 content-type = "text/plain; charset=utf-8"
-recorded = { date = 2026-10-07, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-29, endpoint = "https://sourcegraph.com", live = "values" }
 body = "raw-read-over-content-limit.body"

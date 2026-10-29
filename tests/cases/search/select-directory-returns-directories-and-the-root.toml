@@ -2,7 +2,7 @@
 args = ["search", 'repo:^github\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade']
 status.code = 0
 stdout = '''
-4+ directories  1 repo  4.4 s
+4+ directories  1 repo  2.8 s
 query  repo:^github\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade
 
 github.com/gorilla/websocket@ce903f6d1d96:examples/chat/
@@ -20,7 +20,7 @@ variables = '{"query":"repo:^github\\.com/gorilla/websocket$@v1.5.3 select:file.
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-29, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -45,7 +45,7 @@ response = '''
             "value": "repo:^github\\.com/gorilla/websocket$@v1.5.3"
           }
         ],
-        "elapsedMilliseconds": 4352,
+        "elapsedMilliseconds": 2801,
         "limitHit": false,
         "matchCount": 4,
         "results": [

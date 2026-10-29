@@ -1,0 +1,29 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install the toolchain named by rust-version
+        run: |
+          toolchain=$(sed -n 's/^rust-version = "\(.*\)"$/\1/p' Cargo.toml)
+          rustup toolchain install "$toolchain" --profile minimal --component rustfmt,clippy
+          rustup default "$toolchain"
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just
+      - run: just check
+      - name: Fail if the check changed a file
+        run: |
+          git status --porcelain
+          test -z "$(git status --porcelain)"
