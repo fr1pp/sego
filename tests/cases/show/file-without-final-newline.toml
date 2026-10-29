@@ -4,9 +4,6 @@ status.code = 0
 stdout = '''
 github.com/evilmartians/lefthook@cc9969c2e219:.typos.toml  no lines 5-6; the file has 4
 '''
-stderr = '''
-sego: note: no lines 5-6; the file has 4
-'''
 
 [[exchange]]
 operation = "File"

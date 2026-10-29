@@ -1,11 +1,8 @@
-# A range past the end of an empty file is noted, with no lines.
+# A range on an empty file prints no lines and exits 0.
 args = ["show", "github.com/django/django@8c34887b1ad8bb3ec61c6e713442dab3c643d557:tests/str/__init__.py", "1-5"]
 status.code = 0
 stdout = '''
 github.com/django/django@8c34887b1ad8:tests/str/__init__.py  lines 0 of 0
-'''
-stderr = '''
-sego: note: no lines 1-5; the file has 0
 '''
 
 [[exchange]]

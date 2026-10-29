@@ -2187,8 +2187,8 @@ mod show {
     }
 
     #[test]
-    fn empty_file_with_range_has_past_end_note() {
-        case("show/empty-file-with-range-has-past-end-note.toml");
+    fn empty_file_with_range() {
+        case("show/empty-file-with-range.toml");
     }
 
     #[test]

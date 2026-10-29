@@ -165,7 +165,7 @@ pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Shown, Erro
     if let Some(content) = blob.content {
         shown.read(content, asked.window.start, notes);
     }
-    describe(&mut shown, &asked, notes);
+    describe(&mut shown, &asked);
     if shown.crlf {
         shown.fields.push("CRLF".to_owned());
     }
@@ -237,33 +237,19 @@ impl Answer {
     }
 }
 
-/// The header's range field and the notes about a range that was cut.
-fn describe(shown: &mut Answer, asked: &Asked, notes: &mut Notes) {
+/// The header's range field.
+fn describe(shown: &mut Answer, asked: &Asked) {
     let total = shown.total_lines;
     if let (Some(start), Some(end)) = (shown.start, shown.end) {
         let range = if start == end { start.to_string() } else { format!("{start}-{end}") };
         let rest = if asked.shown.is_none() && end < total { " (1- for all)" } else { "" };
         shown.fields.push(format!("lines {range} of {total}{rest}"));
-        if let Some(wanted) = &asked.shown
-            && let End::Line(wanted_end) = wanted.end
-            && wanted_end > end
-        {
-            notes.push(format!(
-                "lines {} clamped to {range}; the file has {total} lines",
-                wanted.display()
-            ));
-        }
         return;
     }
     if total == 0 {
         shown.fields.push("lines 0 of 0".to_owned());
-    }
-    if let Some(wanted) = asked.shown.as_ref().map(LineRange::display) {
-        let message = format!("no lines {wanted}; the file has {total}");
-        if total > 0 {
-            shown.fields.push(message.clone());
-        }
-        notes.push(message);
+    } else if let Some(wanted) = asked.shown.as_ref().map(LineRange::display) {
+        shown.fields.push(format!("no lines {wanted}; the file has {total}"));
     }
 }
 
