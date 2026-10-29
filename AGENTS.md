@@ -17,9 +17,6 @@ cases, bless, recording and live checks.
 - `just escape-table`: regenerate `src/escape/table.rs` from the pinned Unicode data.
 - `just schema`: fetch sourcegraph.com's full GraphQL schema into `target/schema.json`.
 
-`record`, `live` and `schema` talk to sourcegraph.com, one request a second. Run one at a time;
-sourcegraph.com blocks bursts.
-
 ## Agent skills
 
 ### Issue tracker
