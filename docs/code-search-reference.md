@@ -36,14 +36,24 @@ A query is a search pattern plus filters. Filters are `name:value` tokens such a
 
 ### Limits and timeouts
 
+The sources and measurements behind this section are in [research/count-and-timeout.md](research/count-and-timeout.md).
+
 - **Default limit.** With no `count:`, a search stops after 30 matches and sets `limitHit`.
-- **What counts as a match.** A match is a line range, a path hit, a symbol, a commit or a repository, not a file. 30 matches can come from just two files.
-- **`count:`.** `count:N` raises the limit to N, and `count:all` removes it.
-- **Default timeout.** A search has a 20 s deadline by default. A large indexed search can still take longer than that to respond.
+- **What counts as a match.** A match is a line range, a path match, a symbol, a commit or a repository, not a file. 30 matches can come from just two files.
+  - In `type:commit` and `type:diff`, each highlighted range in a message or diff counts, so `count:3` can return one commit.
+  - With `select:`, each result after conversion and deduplication counts once.
+- **`count:`.** `count:N` raises the limit to N. `count:all` sets it to 99,999,999.
+  - A limit ends a search early: the server cancels it once it has that many matches, so a common pattern under the default 30 answers fast.
+  - `count:all` cancels nothing. The search waits for every index replica to search everything it holds, and returns all it found: 9,549 matches for `lang:go mux.NewRouter` came to 3.3 MB.
+- **Default timeout.** A search has a 20 s deadline by default. Sourcegraph's own docs say 10 s, which is wrong for sourcegraph.com.
 - **Maximum timeout.** The server maximum is 60 s.
-  - Setting `count:` without `timeout:` raises the deadline to the 60 s maximum.
-  - `timeout:` sets the deadline directly. Values above 60 s, such as `timeout:2m`, are accepted without error but capped at 60 s.
-- **Timed-out searches.** When the deadline passes, the search returns what it has; `limitHit` can be false and the result set can be empty. Usually the `timedout` list is non-empty, but not always: an empty result after about 20 s with an empty `timedout` list can still be a timeout.
+  - Setting `count:` without `timeout:` raises the deadline to the 60 s maximum, whatever the count: `count:30` gets 60 s where the default 30 gets 20 s.
+  - `timeout:` sets the deadline directly, and wins over `count:`. Values above 60 s, such as `timeout:2m`, are accepted without error but capped at 60 s.
+- **The deadline is only an upper bound.** A search that finishes in 50 ms answers in 50 ms whatever its deadline. A longer deadline costs time only for a search that would otherwise have been cut, or, under load, shed (below). Any `timeout:`, or any `count:`, also makes a search of several repositories at past revisions wait for each one's archive instead of skipping it after 500 ms; in 16 such searches on 2026-10-30 that cost no measurable time.
+- **Timed-out searches.** When the deadline passes, the search returns what it has, and the answer arrives after the deadline, up to about 10 s later.
+  - **At the default branch** (the index), the answer holds what was found, with `limitHit: true` and an empty `timedout` list.
+  - **At other revisions** (read file by file), `timedout` names the repository, `limitHit` is false, and the results are usually empty.
+- **Shed searches.** Under load, an index replica rejects a search it can't start within half its deadline: 10 s at the default 20 s, 30 s at 60 s. The answer holds only what the other replicas found, often nothing, with an empty `timedout` list and no alert, and it arrives at or after half the deadline. A longer deadline makes this rarer: on 2026-10-28, searches of one repository came back wrong 44–56% of the time at 20 s and 10–11% at 60 s.
 
 ### Errors
 
@@ -202,8 +212,8 @@ A predicate goes in a filter value and selects repos or files by something other
 |---|---|---|---|
 | `type:` | | `file`, `path`, `symbol`, `repo`, `commit`, `diff` | Choose what is searched (§6). Unknown values return nothing. |
 | `select:` | | a select path (§6) | Convert results to that type and deduplicate them. An invalid path returns an alert. |
-| `count:` | | integer or `all` | Maximum number of matches, 30 by default. Also raises the deadline to 60 s. |
-| `timeout:` | | Go duration (`500ms`, `15s`, `1m`) | Overrides the 20 s default, up to the 60 s cap. A bad value returns an alert. |
+| `count:` | | integer or `all` | Maximum number of matches, 30 by default. Without `timeout:`, also raises the deadline to 60 s. |
+| `timeout:` | | Go duration (`500ms`, `15s`, `1m`) | Overrides the 20 s default, up to 60 s. A bad value returns an alert. |
 | `case:` | | `yes`, `no` | Case-sensitive pattern and `file:` matching. |
 | `patterntype:` | `patternType:` | `keyword`, `regexp`, `structural` | Sets the pattern type (§2). |
 | `rule:` | | quoted Comby rule | Structural search only (§2). |
@@ -242,7 +252,7 @@ An `or` splits the query into branches, and each branch runs as its own search.
   - `repo:X a or (b and c)`: the parenthesised branch is unscoped.
 - **To scope a whole expression, put the filters first and parenthesise the patterns.** `repo:X file:Y (a or (b and c))`.
 - **Filters distribute into parenthesised groups.** `(repo:A or repo:B) file:\.go$ term` runs as `(repo:A file:\.go$ term) or (repo:B file:\.go$ term)`.
-- **Each branch gets its own `count:`.** `count:20` across a two-branch `or` can return 40 matches.
+- **A branch with its own filters is its own search.** It gets its own `count:` and its own deadline, and the branches run in parallel: `count:20` across `(repo:A x) or (repo:B y)` can return 40 matches. An `or` of patterns alone, as in `count:5 (a or b)`, is one search with one `count:`.
 - **Each branch is checked on its own.** `case:yes (a or (case:no b))` gives `case` twice in one branch and is rejected. `((a case:yes) or (b case:no))` is valid and mixes case rules per branch.
 - **The exact-repository exemption applies per branch.**
 
@@ -352,7 +362,7 @@ Any other kind returns an alert. `UNKNOWN` symbols cannot be selected.
 - **Default scope.** With no `repo:` filter, a query searches every repo on sourcegraph.com and stops at 30 matches.
 - **Unanchored repo regexes.** `repo:gorilla/mux` also matches `gorilla/muxy` and any `.../gorilla-mux`. Anchor with `^...$` and escape the dots.
 - **Unanchored file regexes.** `file:route\.go` matches vendored files too. Use `^` to start at the repo root.
-- **The limit counts matches, not files.** `limitHit: true` with two files means more matches exist; raise `count:`.
+- **The limit counts matches, not files.** 30 matches can come from two files. `limitHit: true` usually means more matches exist, but it is also set when the count lands exactly on the limit, and when the deadline cuts a search that had already found everything.
 - **Pattern negation.** `-term` is a literal search for `-term`. Use `not term`.
 - **Anchors and wildcards need a regex.** In keyword mode, `^NewRouter$` and `foo.*bar` are literal text, in symbol search too. Wrap them in `/.../`.
 - **Inline case flags.** `(?i)` and `(?-i)` are ignored. Use `case:yes`.
@@ -361,7 +371,7 @@ Any other kind returns an alert. `UNKNOWN` symbols cannot be selected.
 - **Phrases stay on one line.** A `"phrase"` never matches across a line break; use `/a\s+b/`.
 - **Filter binding across `or`.** A filter does not automatically cover the whole query. Put shared filters first and parenthesise the `or` (§4). A filter written after the patterns, as in `a or b repo:X`, scopes only the last branch.
 - **Repeated filters intersect.** `repo:a repo:b` means both must match, not either.
-- **Singleton filters.** `case:`, `rev:` and `count:` may appear only once per `or` branch, and `repo:R@x` cannot be mixed with `rev:y`.
+- **Singleton filters.** `case:`, `rev:`, `count:` and `timeout:` may appear only once per `or` branch, and `repo:R@x` cannot be mixed with `rev:y`.
 - **Silent unknown values.** `type:bogus` returns nothing, and `visibility:bogus` and `patterntype:bogus` are ignored, all without an alert. Check spelling.
 - **Commit-only filters.** `author:`, `committer:`, `before:`, `after:` and `message:` need `type:commit` or `type:diff`; otherwise the query returns an alert.
 - **Author regexes.** They test the name and the email separately, never `Name <email>` as one string. `author:example\.com>$` matches nothing; use `author:example\.com$`.
@@ -370,9 +380,9 @@ Any other kind returns an alert. `UNKNOWN` symbols cannot be selected.
 - **No quotes inside predicate parentheses.** `repo:has.commit.after("2 years ago")` is rejected; write `repo:has.commit.after(2 years ago)`.
 - **Timeouts.**
   - A diff or commit search over many repos with a rare term can hit the 20 s deadline and return zero results with `limitHit: false`. The only sign is a non-empty `timedout` list. Narrow `repo:`, add `after:`, or set `count:` or `timeout:` to get the full 60 s.
-  - Nothing runs longer than 60 s, however long the `timeout:` value.
+  - No search works longer than 60 s, however long the `timeout:` value, but its answer can arrive up to about 10 s later.
   - A tiny `timeout:` such as `1ms` can return zero results with no `timedout` entry.
-  - A broad search can occasionally return nothing after about 20 s with no `timedout` entry, then succeed on a retry. Treat an empty result that took about 20 s as suspect: retry it, or narrow it.
+  - Under load, a search can return nothing, or too little, after 10 s or more with no `timedout` entry, then succeed on a retry: the index shed it (§1, Shed searches). Treat an empty result that took at least half its deadline as suspect: retry it, or narrow it.
 - **Forks and archived repos.** Both are silently missing from every search unless you add `fork:yes` or `archived:yes`, or name exactly one repo as `repo:^literal$`. With 69,000 archived repos on sourcegraph.com, an org-wide `repo:^github\.com/org/` search can quietly skip some of the org's repos.
 - **The exact-repository exemption is fragile.** It stops applying with an unescaped dot, a regex group, a missing anchor or a second `repo:` filter.
 - **Unindexed files.**

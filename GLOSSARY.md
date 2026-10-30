@@ -106,7 +106,8 @@ _Avoid_: hit, match (a match is one matched range)
 What a search answer counts: matches, commits, symbols, files, directories or repositories.
 
 **Cap**:
-The most units a search returns: the query's `count:`, or 30.
+The most units a search returns: the query's `count:`, or 30. A commit or diff search counts each
+highlighted range toward it, so fewer commits than the cap can reach it.
 _Avoid_: limit
 
 **Deadline**:

@@ -115,6 +115,22 @@ leaves out part of a search's answer. Three differences never count:
 - `just escape-table` regenerates `src/escape/table.rs` from the pinned Unicode data.
 - `just schema` fetches the live GraphQL schema into `target/schema.json`, for reading.
 
+## Research
+
+`docs/research/` holds what has been established about how sourcegraph.com behaves, one file per
+topic.
+
+- A new finding goes into its topic's file, or starts a new topic; a file is never dated or
+  duplicated.
+- Each claim carries its own evidence: a citation to source code at a commit
+  (`repo@commit:path:line`), a docs path, or a live check written out as its query, its UTC date
+  and the values that came back.
+- Nothing but the Markdown files lives there: no scripts, logs or raw responses. A claim checked
+  again gets its new date and values in place.
+
+What the research means for how to search well goes in
+[docs/search-strategy.md](docs/search-strategy.md).
+
 ## Terms and standards
 
 - **A GLOSSARY.md entry** is needed for a new domain term, in the same change that names it.

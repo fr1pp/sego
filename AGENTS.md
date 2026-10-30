@@ -6,7 +6,8 @@ A code search CLI for agents, built on Sourcegraph.
 
 Read [GLOSSARY.md](GLOSSARY.md) for the domain's terms, the ADRs in `docs/adr/` that touch the
 area, and [CODING_STANDARDS.md](CODING_STANDARDS.md). [CONTRIBUTING.md](CONTRIBUTING.md) covers
-cases, bless, recording and live checks.
+cases, bless, recording and live checks. Before relying on how sourcegraph.com behaves, check
+`docs/research/`, which holds what has been established, with its sources.
 
 ## Commands
 

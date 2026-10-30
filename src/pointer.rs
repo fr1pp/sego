@@ -23,8 +23,8 @@ pub fn missing_path(at: At<'_>, path: &str) -> [String; 2] {
 }
 
 /// The search for the files named like `path`'s last segment, or under a
-/// directory so named. `count:all` makes its count exact, and raises its
-/// deadline to the most, which a pinned search can need.
+/// directory so named. `count:all` lifts the cap, so its count is exact
+/// unless the search stops.
 pub fn files_named(at: At<'_>, path: &str) -> String {
     let path = path.trim_end_matches('/');
     let name = path.rsplit('/').next().unwrap_or(path);
