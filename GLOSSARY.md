@@ -1,6 +1,6 @@
 # sego
 
-sego is a code search CLI for agents, built on Sourcegraph's API.
+sego is code search for agents, built on Sourcegraph.
 
 A term takes Sourcegraph's name where it means what Sourcegraph means. Where Sourcegraph's word
 would say something untrue, the term is sego's own, and its _Avoid_ names Sourcegraph's word.

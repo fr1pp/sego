@@ -1,9 +1,16 @@
 # sego
 
-A code search CLI for agents, built on Sourcegraph.
+Code search for agents, built on Sourcegraph.
 
-sego searches and reads code in the repositories Sourcegraph serves, at any branch, tag or commit,
-with no clone. It talks only to Sourcegraph's public GraphQL API, so it needs no account or token.
+sego searches and reads code on Sourcegraph: millions of public repositories, at any branch, tag or
+commit, with no clone and no account or token. It gives an agent the actual code where it would
+otherwise recall or guess.
+
+It answers the questions an agent can name but can't answer from what it has: where something is
+defined, who calls an API, where an error message comes from, what a dependency does at the version
+in use, which commit changed a behaviour and why, what differs between two releases. Answers are
+exact, say when they're cut short, and come as plain text or JSON that the agent's own tools take
+straight in.
 
 ## Install
 

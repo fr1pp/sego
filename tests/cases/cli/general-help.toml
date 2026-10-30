@@ -3,7 +3,7 @@
 args = ["--help"]
 status.code = 0
 stdout = '''
-sego searches code through Sourcegraph, for agents.
+sego searches and reads code on Sourcegraph, for agents.
 
 usage: sego COMMAND [--json] ...
 

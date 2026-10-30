@@ -3,7 +3,7 @@ name = "sego"
 version = "0.3.0"
 edition = "2024"
 rust-version = "1.99"
-description = "Code search for agents, through Sourcegraph"
+description = "Code search for agents, built on Sourcegraph"
 license = "MIT OR Apache-2.0"
 publish = false
 

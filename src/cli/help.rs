@@ -323,7 +323,7 @@ pub fn text(topic: Option<&str>) -> String {
     }
     format!(
         "\
-sego searches code through Sourcegraph, for agents.
+sego searches and reads code on Sourcegraph, for agents.
 
 usage: {SYNOPSIS}
 
