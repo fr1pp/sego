@@ -5,13 +5,13 @@ use serde::Serialize;
 use crate::address::{End, LineRange, Repo, Target, pinned, rev_field, short};
 use crate::commands::{AddressKind, ls};
 use crate::error::Error;
-use crate::escape::{render_line, strip_cr, utf8_escaped};
+use crate::escape::{one_line, render_line, strip_cr, utf8_escaped};
 use crate::output::{
-    FileRow, Marker, Notes, base64, closing_fields, code_line, date, file_row, files_field, header,
-    row_text, rows_asked, submodule_address, submodule_text,
+    FileRow, Marker, Notes, base64, closing_fields, code_line, count, date, file_row, files_field,
+    header, row_text, rows_asked, submodule_address, submodule_text,
 };
 use crate::pointer;
-use crate::sourcegraph::{Client, Comparison, Content, File, Resolved, Revisions, Window};
+use crate::sourcegraph::{Client, Comparison, Content, File, Resolved, Window};
 
 const DEFAULT_WINDOW: u32 = 500;
 const TEXT_ROWS: usize = 200;
@@ -255,6 +255,8 @@ fn describe(shown: &mut Answer, asked: &Asked) {
 
 const MESSAGE_INDENT: &str = "    ";
 const ROOT_NOTE: &str = "root commit: Sourcegraph has no diff for it";
+const TAGS_NOTE: &str = "tags not listed";
+const TAG_ROWS: usize = 100;
 
 #[derive(Serialize)]
 pub struct CommitAnswer {
@@ -274,6 +276,10 @@ pub struct CommitAnswer {
     files_more: bool,
     added: Option<u64>,
     deleted: Option<u64>,
+    /// The tags that hold the commit, newest created first; `None` when they
+    /// couldn't be read.
+    tags: Option<Vec<String>>,
+    tags_total: Option<u64>,
     mirrored_at: Option<String>,
 }
 
@@ -297,6 +303,13 @@ impl CommitAnswer {
         }
         if self.parents.len() > 1 {
             fields.push("diff against first parent".to_owned());
+        }
+        if let Some(total) = self.tags_total {
+            fields.push(match total {
+                0 => "no tags".to_owned(),
+                total if total > TAG_ROWS as u64 => format!("{TAG_ROWS} of {total} tags shown"),
+                total => count(total, "tag", "tags"),
+            });
         }
         let rev = rev_field(Some(&self.rev), &self.commit);
         fields.extend(closing_fields(rev, self.mirrored_at.as_deref()));
@@ -326,6 +339,12 @@ impl fmt::Display for CommitAnswer {
                 writeln!(f, "{}", row_text(row))?;
             }
         }
+        if let Some(tags) = self.tags.as_ref().filter(|tags| !tags.is_empty()) {
+            writeln!(f)?;
+            for tag in tags.iter().take(TAG_ROWS) {
+                writeln!(f, "tag  {}", one_line(tag))?;
+            }
+        }
         Ok(())
     }
 }
@@ -337,15 +356,15 @@ pub struct CommitArgs {
     pub json: bool,
 }
 
-/// `show REPO@REV`: the commit, its message and the files it changed.
+/// `show REPO@REV`: the commit, its message, the files it changed and the
+/// tags that hold it.
 pub fn run_commit(
     args: &CommitArgs,
     client: Client,
     notes: &mut Notes,
 ) -> Result<CommitAnswer, Error> {
     let first = rows_asked(args.json, TEXT_ROWS);
-    let revisions = Revisions::One(Some(&args.rev));
-    let comparison = client.comparison(&args.repo, revisions, &[], first)?;
+    let comparison = client.commit(&args.repo, &args.rev, first)?;
     Ok(commit_answer(comparison, &args.rev, notes))
 }
 
@@ -366,6 +385,14 @@ fn commit_answer(comparison: Comparison, rev: &str, notes: &mut Notes) -> Commit
         None => (Vec::new(), None, false, None, None),
     };
     let commit = comparison.commit.unwrap_or_default();
+    let tags = match commit.tags {
+        Some(Ok(tags)) => Some(tags),
+        Some(Err(error)) => {
+            notes.push(format!("{TAGS_NOTE}: {error}"));
+            None
+        }
+        None => None,
+    };
     CommitAnswer {
         repo: comparison.head.repo,
         rev: rev.to_owned(),
@@ -383,6 +410,8 @@ fn commit_answer(comparison: Comparison, rev: &str, notes: &mut Notes) -> Commit
         files_more,
         added,
         deleted,
+        tags_total: tags.as_ref().map(|tags| tags.len() as u64),
+        tags,
         mirrored_at,
     }
 }

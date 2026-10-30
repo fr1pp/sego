@@ -2,7 +2,7 @@
 args = ["show", "--json", "github.com/gorilla/mux@abccd7e4d7c117370b7908f51e48decb38b6835b"]
 status.code = 0
 stdout = '''
-{"repo":"github.com/gorilla/mux","rev":"abccd7e4d7c117370b7908f51e48decb38b6835b","commit":"abccd7e4d7c117370b7908f51e48decb38b6835b","kind":"commit","author":"Corey Daley","author_date":"2023-07-15","committer":"GitHub","committer_date":"2023-07-15","parents":["eb99d7a67714bbab6db27f896a8c8c947b51b610","7456b4e9ae7b67e27ffaa2e497941e77d39bc884"],"subject":"Merge pull request #713 from gorilla/coreydaley-patch-1","message":"Merge pull request #713 from gorilla/coreydaley-patch-1\n\nUpdate README.md","files":[{"status":"M","old_path":"README.md","new_path":"README.md","added":0,"deleted":6}],"files_total":1,"files_more":false,"added":0,"deleted":6,"mirrored_at":null,"notes":[]}
+{"repo":"github.com/gorilla/mux","rev":"abccd7e4d7c117370b7908f51e48decb38b6835b","commit":"abccd7e4d7c117370b7908f51e48decb38b6835b","kind":"commit","author":"Corey Daley","author_date":"2023-07-15","committer":"GitHub","committer_date":"2023-07-15","parents":["eb99d7a67714bbab6db27f896a8c8c947b51b610","7456b4e9ae7b67e27ffaa2e497941e77d39bc884"],"subject":"Merge pull request #713 from gorilla/coreydaley-patch-1","message":"Merge pull request #713 from gorilla/coreydaley-patch-1\n\nUpdate README.md","files":[{"status":"M","old_path":"README.md","new_path":"README.md","added":0,"deleted":6}],"files_total":1,"files_more":false,"added":0,"deleted":6,"tags":["v1.8.1"],"tags_total":1,"mirrored_at":null,"notes":[]}
 '''
 
 [[exchange]]
@@ -81,6 +81,31 @@ response = '''
         "updatedAt": "2026-10-27T07:13:23Z"
       },
       "name": "github.com/gorilla/mux"
+    }
+  }
+}
+'''
+
+[[exchange]]
+operation = "CommitTags"
+variables = '{"commit":"abccd7e4d7c117370b7908f51e48decb38b6835b","repo":"github.com/gorilla/mux"}'
+document = "CommitTags-66680674"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "repository": {
+      "commit": {
+        "tags": {
+          "nodes": [
+            {
+              "displayName": "v1.8.1"
+            }
+          ]
+        }
+      }
     }
   }
 }

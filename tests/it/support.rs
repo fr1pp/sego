@@ -323,11 +323,13 @@ fn ends_in_a_period(line: &str) -> Option<String> {
         .then(|| format!("a note or error line ends with a period: {line}"))
 }
 
-/// Every request carries the one client deadline, set while `run` ran.
+/// The first request carries the client deadline, set while `run` ran, and
+/// no request carries a later one: a request with a deadline of its own
+/// ends before it.
 fn deadline(outcome: &Outcome) -> Option<String> {
     let first = outcome.sent.first()?.deadline;
-    if outcome.sent.iter().any(|s| s.deadline != first) {
-        return Some("the requests carry different deadlines".to_owned());
+    if outcome.sent.iter().any(|s| s.deadline > first) {
+        return Some("a request carries a deadline after the client deadline".to_owned());
     }
     let window = outcome.started + DEADLINE..=outcome.ended + DEADLINE;
     (!window.contains(&first)).then(|| {
@@ -645,11 +647,13 @@ mod tests {
     }
 
     #[test]
-    fn every_request_carries_one_deadline_set_while_run_ran() {
+    fn no_request_outlasts_the_client_deadline_set_while_run_ran() {
         let mut two = outcome(vec![refs("example.com/a/b", QUERY), raw()]);
         assert_eq!(checked(&two), [""; 0]);
-        two.sent[1].deadline += Duration::from_millis(1);
-        assert_eq!(checked(&two), ["the requests carry different deadlines"]);
+        two.sent[1].deadline -= Duration::from_secs(80);
+        assert_eq!(checked(&two), [""; 0]);
+        two.sent[1].deadline += Duration::from_secs(80) + Duration::from_millis(1);
+        assert_eq!(checked(&two), ["a request carries a deadline after the client deadline"]);
         let mut late = outcome(vec![raw()]);
         late.sent[0].deadline += Duration::from_secs(1);
         assert_eq!(checked(&late), ["the deadline is not 90 s after the invocation started"]);

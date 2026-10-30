@@ -1,0 +1,132 @@
+# A commit that no tag holds says so, though a tag was created after its author date.
+args = ["show", "github.com/gorilla/mux@374bd703c990"]
+status.code = 0
+stdout = '''
+github.com/gorilla/mux@374bd703c990  2023-08-24  Tit Petric  parents 976b536446a7  3 files  +73 -3  no tags
+    Add RegexpCompileFunc to override regexp.Compile
+
+M  +5 -1  mux.go
+M  +2 -2  regexp.go
+A  +66 -0  route_test.go
+'''
+
+[[exchange]]
+operation = "Commit"
+variables = '{"first":200,"gitlab":false,"patch":false,"paths":null,"repo0":"github.com/gorilla/mux","repo1":"","rev":"374bd703c990"}'
+document = "Commit-50a06158"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "r0": {
+      "commit": {
+        "author": {
+          "date": "2023-08-24T12:11:44Z",
+          "person": {
+            "displayName": "Tit Petric"
+          }
+        },
+        "committer": {
+          "date": "2024-04-02T03:14:54Z",
+          "person": {
+            "displayName": "Alex Vulaj"
+          }
+        },
+        "message": "Add RegexpCompileFunc to override regexp.Compile",
+        "oid": "374bd703c9905868a6eb75292e72d136ea5b8d75",
+        "parents": [
+          {
+            "oid": "976b536446a77de8de2d5559c78f612970fb5e37"
+          }
+        ],
+        "subject": "Add RegexpCompileFunc to override regexp.Compile",
+        "w": {
+          "commit": {
+            "diff": {
+              "all": {
+                "diffStat": {
+                  "added": 73,
+                  "deleted": 3
+                },
+                "totalCount": 3
+              },
+              "page": {
+                "nodes": [
+                  {
+                    "newPath": "mux.go",
+                    "oldFile": {
+                      "commit": {
+                        "oid": "976b536446a77de8de2d5559c78f612970fb5e37"
+                      }
+                    },
+                    "oldPath": "mux.go",
+                    "stat": {
+                      "added": 5,
+                      "deleted": 1
+                    }
+                  },
+                  {
+                    "newPath": "regexp.go",
+                    "oldFile": {
+                      "commit": {
+                        "oid": "976b536446a77de8de2d5559c78f612970fb5e37"
+                      }
+                    },
+                    "oldPath": "regexp.go",
+                    "stat": {
+                      "added": 2,
+                      "deleted": 2
+                    }
+                  },
+                  {
+                    "newPath": "route_test.go",
+                    "oldFile": null,
+                    "oldPath": null,
+                    "stat": {
+                      "added": 66,
+                      "deleted": 0
+                    }
+                  }
+                ],
+                "pageInfo": {
+                  "hasNextPage": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-30T05:17:26Z"
+      },
+      "name": "github.com/gorilla/mux"
+    }
+  }
+}
+'''
+
+[[exchange]]
+operation = "CommitTags"
+variables = '{"commit":"374bd703c9905868a6eb75292e72d136ea5b8d75","repo":"github.com/gorilla/mux"}'
+document = "CommitTags-66680674"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "repository": {
+      "commit": {
+        "tags": {
+          "nodes": []
+        }
+      }
+    }
+  }
+}
+'''

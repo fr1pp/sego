@@ -2,7 +2,7 @@
 args = ["show", "example.com/acme/widget@v2.0.0"]
 status.code = 0
 stdout = '''
-example.com/acme/widget@89abcdef0123  a\u{1b}b\u{202e}c\u{200b}d e\u{d}  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i  parents fedcba987654  4 files  +7 -7  rev v2.0.0
+example.com/acme/widget@89abcdef0123  a\u{1b}b\u{202e}c\u{200b}d e\u{d}  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i  parents fedcba987654  4 files  +7 -7  no tags  rev v2.0.0
     a\u{1b}b
     c\u{202e}d
     e\u{200b}f
@@ -107,6 +107,26 @@ response = '''
       },
       "mirrorInfo": null,
       "name": "example.com/acme/widget"
+    }
+  }
+}
+'''
+
+[[exchange]]
+operation = "CommitTags"
+variables = '{"commit":"89abcdef0123456789abcdef0123456789abcdef","repo":"example.com/acme/widget"}'
+document = "CommitTags-66680674"
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "repository": {
+      "commit": {
+        "tags": {
+          "nodes": []
+        }
+      }
     }
   }
 }

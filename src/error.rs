@@ -98,7 +98,12 @@ impl Error {
     }
 
     pub fn deadline(host: &str) -> Error {
-        Error::new(Kind::Deadline, format!("no answer from {host} within 90 s"))
+        Error::deadline_within(host, 90)
+    }
+
+    /// No answer from `host` within a request's own deadline of `seconds`.
+    pub fn deadline_within(host: &str, seconds: u64) -> Error {
+        Error::new(Kind::Deadline, format!("no answer from {host} within {seconds} s"))
     }
 
     #[must_use]

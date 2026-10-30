@@ -303,6 +303,11 @@ mod commit {
     }
 
     #[test]
+    fn no_tag_holds_the_commit() {
+        case("commit/no-tag-holds-the-commit.toml");
+    }
+
+    #[test]
     fn rejected_request_with_control_characters() {
         case("commit/rejected-request-with-control-characters.toml");
     }
@@ -355,6 +360,26 @@ mod commit {
     #[test]
     fn root_commit() {
         case("commit/root-commit.toml");
+    }
+
+    #[test]
+    fn tag_list_error_leaves_the_tags_out() {
+        case("commit/tag-list-error-leaves-the-tags-out.toml");
+    }
+
+    #[test]
+    fn tags_past_the_default_limit() {
+        case("commit/tags-past-the-default-limit.toml");
+    }
+
+    #[test]
+    fn tags_that_hold_the_commit_json() {
+        case("commit/tags-that-hold-the-commit-json.toml");
+    }
+
+    #[test]
+    fn tags_that_hold_the_commit() {
+        case("commit/tags-that-hold-the-commit.toml");
     }
 }
 

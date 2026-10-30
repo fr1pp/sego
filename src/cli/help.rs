@@ -115,9 +115,11 @@ const SHOW_FACTS: &str = r#"text:
   binary N bytes: Sourcegraph's classification, not git's. A symlink is a
   file that shows its target; file modes aren't available.
   A directory or the root prints the ls answer; LINES for one is an error.
-  A commit: REPO@COMMIT  DATE  AUTHOR  parents P  N files  +A -D, then
-  the message, indented, and a row per file, "STATUS  +A -D  PATH". A
-  root commit has no file list: Sourcegraph has no diff for it.
+  A commit: REPO@COMMIT  DATE  AUTHOR  parents P  N files  +A -D  T tags,
+  then the message, indented, a row per file, "STATUS  +A -D  PATH", and
+  a row per tag that holds the commit, "tag  NAME", newest created first.
+  A root commit has no file list: Sourcegraph has no diff for it. Text
+  prints 100 tags; --json carries every tag.
 
 json:
   A file: repo rev commit path kind (file or submodule) total_lines
@@ -127,7 +129,7 @@ json:
   A commit: repo rev commit kind author author_date committer
   committer_date parents subject message
   files[{status old_path new_path added deleted}] files_total files_more
-  added deleted
+  added deleted tags tags_total, both null when the tags couldn't be read
   Each adds mirrored_at notes.
 
 examples:

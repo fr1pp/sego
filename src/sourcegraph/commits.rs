@@ -46,6 +46,13 @@ fragment Changes on RepositoryComparison {
 }
 ";
 
+/// The tags that hold a commit named by its full ID, which never fetches.
+const COMMIT_TAGS: &str = "\
+query CommitTags($repo: String!, $commit: String!) {
+  repository(name: $repo) { commit(rev: $commit) { tags { nodes { displayName } } } }
+}
+";
+
 /// The comparison of two commits named by their full IDs, which never
 /// fetch, with the merge base, and whether each path `#` exists at each.
 /// The count has its own `first: 0` alias, as in `COMMIT`.
@@ -84,6 +91,9 @@ pub struct Commit {
     /// The committer's timestamp.
     pub committer_date: Option<String>,
     pub parents: Vec<String>,
+    /// The tags that hold the commit, newest created first, when asked for;
+    /// the error when they couldn't be read.
+    pub tags: Option<Result<Vec<String>, Error>>,
 }
 
 /// The files that changed between two commits: a revision and its first
@@ -374,6 +384,7 @@ pub fn read_commit(
         committer,
         committer_date,
         parents,
+        tags: None,
     };
     let Some(parent) = commit.parents.first().cloned() else {
         return Ok(Comparison {
@@ -447,6 +458,39 @@ pub fn read_comparison(
         return Err(failed());
     }
     Ok(Comparison { head, base: Some(base), commit: None, from, changes: Some(changes), patch })
+}
+
+/// The tags that hold the resolved commit `at`.
+pub fn commit_tags_request(at: &Resolved) -> Request {
+    let mut variables = serde_json::Map::new();
+    variables.insert("repo".to_owned(), json!(at.repo));
+    variables.insert("commit".to_owned(), json!(at.commit));
+    Request::new("CommitTags", COMMIT_TAGS.to_owned(), variables)
+}
+
+#[derive(Deserialize)]
+struct Holding {
+    nodes: Vec<HoldingTag>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct HoldingTag {
+    display_name: Option<String>,
+}
+
+/// The tags that hold the commit, from the response to
+/// `commit_tags_request`.
+pub fn read_commit_tags(envelope: &Envelope) -> Result<Vec<String>, Error> {
+    let failed = || Error::failed("the tag list");
+    if envelope.error_beneath(&["repository"]).is_some() {
+        return Err(failed());
+    }
+    let list = envelope
+        .get(&["repository", "commit", "tags"])
+        .and_then(|value| Holding::deserialize(value).ok())
+        .ok_or_else(failed)?;
+    Ok(list.nodes.into_iter().filter_map(|node| node.display_name).collect())
 }
 
 /// The roots of `HISTORY`'s tag lists, one per candidate of the address.

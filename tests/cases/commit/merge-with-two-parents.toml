@@ -2,12 +2,14 @@
 args = ["show", "github.com/gorilla/mux@abccd7e4d7c117370b7908f51e48decb38b6835b"]
 status.code = 0
 stdout = '''
-github.com/gorilla/mux@abccd7e4d7c1  2023-07-15  Corey Daley  parents eb99d7a67714 7456b4e9ae7b  1 file  +0 -6  diff against first parent
+github.com/gorilla/mux@abccd7e4d7c1  2023-07-15  Corey Daley  parents eb99d7a67714 7456b4e9ae7b  1 file  +0 -6  diff against first parent  1 tag
     Merge pull request #713 from gorilla/coreydaley-patch-1
 
     Update README.md
 
 M  +0 -6  README.md
+
+tag  v1.8.1
 '''
 
 [[exchange]]
@@ -86,6 +88,31 @@ response = '''
         "updatedAt": "2026-10-27T07:22:54Z"
       },
       "name": "github.com/gorilla/mux"
+    }
+  }
+}
+'''
+
+[[exchange]]
+operation = "CommitTags"
+variables = '{"commit":"abccd7e4d7c117370b7908f51e48decb38b6835b","repo":"github.com/gorilla/mux"}'
+document = "CommitTags-66680674"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "repository": {
+      "commit": {
+        "tags": {
+          "nodes": [
+            {
+              "displayName": "v1.8.1"
+            }
+          ]
+        }
+      }
     }
   }
 }

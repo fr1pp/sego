@@ -2,7 +2,7 @@
 args = ["show", "example.com/acme/widget@v1"]
 status.code = 0
 stdout = '''
-example.com/acme/widget@affe2b9b7c60  2026-09-09  Jonathan Davies  parents 6b668aa526af  200 files  +200 -0  rev v1
+example.com/acme/widget@affe2b9b7c60  2026-09-09  Jonathan Davies  parents 6b668aa526af  200 files  +200 -0  no tags  rev v1
     big
 
 M  +1 -0  f000.go
@@ -1864,6 +1864,26 @@ response = '''
       },
       "mirrorInfo": null,
       "name": "example.com/acme/widget"
+    }
+  }
+}
+'''
+
+[[exchange]]
+operation = "CommitTags"
+variables = '{"commit":"affe2b9b7c608f4e354d7e83d0583ed35e845650","repo":"example.com/acme/widget"}'
+document = "CommitTags-66680674"
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "repository": {
+      "commit": {
+        "tags": {
+          "nodes": []
+        }
+      }
     }
   }
 }

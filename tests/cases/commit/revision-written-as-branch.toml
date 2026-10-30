@@ -2,7 +2,7 @@
 args = ["show", "github.com/gorilla/mux@main"]
 status.code = 0
 stdout = '''
-github.com/gorilla/mux@db9d1d0073d2  2024-05-31  Corné de Jong  parents fe14465e5077  1 file  +64 -1  rev main  mirrored 2026-10-27T07:34Z
+github.com/gorilla/mux@db9d1d0073d2  2024-05-31  Corné de Jong  parents fe14465e5077  1 file  +64 -1  no tags  rev main  mirrored 2026-10-27T07:34Z
     added test for router in context
 
 M  +64 -1  mux_test.go
@@ -81,6 +81,27 @@ response = '''
         "updatedAt": "2026-10-27T07:34:45Z"
       },
       "name": "github.com/gorilla/mux"
+    }
+  }
+}
+'''
+
+[[exchange]]
+operation = "CommitTags"
+variables = '{"commit":"db9d1d0073d27a0a2d9a8c1bc52aa0af4374d265","repo":"github.com/gorilla/mux"}'
+document = "CommitTags-66680674"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "repository": {
+      "commit": {
+        "tags": {
+          "nodes": []
+        }
+      }
     }
   }
 }

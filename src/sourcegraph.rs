@@ -21,7 +21,7 @@ use std::time::{Duration, Instant};
 
 use crate::address::{Repo, Target};
 use crate::cache::{Cache, Entry};
-use crate::error::Error;
+use crate::error::{Error, Kind};
 use graphql::{Envelope, Request};
 
 pub use commits::{Change, CommitSummary, Comparison, History, Tag};
@@ -52,8 +52,8 @@ pub struct Page<T> {
 }
 
 /// What a command asks Sourcegraph through: the transport to `endpoint`, the
-/// cache of raw reads, and the one client deadline every request of the
-/// invocation shares (ADR 0004).
+/// cache of raw reads, and the client deadline, which no request of the
+/// invocation outlasts.
 pub struct Client<'a> {
     transport: Box<dyn Transport>,
     endpoint: Endpoint,
@@ -89,6 +89,20 @@ impl<'a> Client<'a> {
         let response =
             self.send(|transport| transport.post(GRAPHQL_PATH, &request.body(), self.deadline))?;
         graphql::classify(response, &self.endpoint.host())
+    }
+
+    /// `exchange` with a deadline of its own, `within` from now, for a fact
+    /// sego adds that can take long enough to cost the answer.
+    fn exchange_within(&self, request: &Request, within: Duration) -> Result<Envelope, Error> {
+        let deadline = self.deadline.min(Instant::now() + within);
+        let host = self.endpoint.host();
+        let response = self
+            .send(|transport| transport.post(GRAPHQL_PATH, &request.body(), deadline))
+            .map_err(|error| match error.kind() {
+                Kind::Deadline => Error::deadline_within(&host, within.as_secs()),
+                _ => error,
+            })?;
+        graphql::classify(response, &host)
     }
 
     /// The whole file at `route`, a site path from a file's details: `None`
@@ -165,6 +179,24 @@ impl<'a> Client<'a> {
         commits::read_comparison(&self.exchange(&request)?, ends, paths)
     }
 
+    /// The commit `rev` names, its changes against its first parent, listing
+    /// at most `first` files or all for `None`, and the tags that hold it.
+    /// The tags are asked for once the commit resolves, under
+    /// `TAGS_DEADLINE`: on an old commit of a repository with thousands of
+    /// tags they can take over a minute.
+    pub fn commit(self, repo: &Repo, rev: &str, first: Option<u32>) -> Result<Comparison, Error> {
+        let request = commits::commit_request(repo, rev, &[], first);
+        let mut comparison = commits::read_commit(&self.exchange(&request)?, repo, rev, &[])?;
+        let request = commits::commit_tags_request(&comparison.head);
+        let tags = self
+            .exchange_within(&request, TAGS_DEADLINE)
+            .and_then(|envelope| commits::read_commit_tags(&envelope));
+        if let Some(commit) = comparison.commit.as_mut() {
+            commit.tags = Some(tags);
+        }
+        Ok(comparison)
+    }
+
     /// The commits `revisions` covers touching `path`, across renames when
     /// `follow`: the first `first`, or all for `None`. A
     /// range is read by its commits' IDs once both ends resolve.
@@ -210,6 +242,9 @@ impl<'a> Client<'a> {
 const DEFAULT_ENDPOINT: &str = "https://sourcegraph.com";
 
 pub const DEADLINE: Duration = Duration::from_secs(90);
+
+/// The deadline of the request for the tags that hold a commit.
+const TAGS_DEADLINE: Duration = Duration::from_secs(10);
 
 pub const GRAPHQL_PATH: &str = "/.api/graphql";
 
@@ -370,11 +405,13 @@ mod tests {
     use crate::error::{Kind, report};
 
     /// A transport that answers each request with the next of its responses,
-    /// after `delay`, and keeps the paths it was asked.
+    /// after `delay`, and keeps the paths it was asked and the deadline of
+    /// each post.
     #[derive(Clone, Default)]
     struct Script {
         responses: Rc<RefCell<VecDeque<Result<Response, TransportError>>>>,
         asked: Rc<RefCell<Vec<String>>>,
+        deadlines: Rc<RefCell<Vec<Instant>>>,
         delay: Duration,
     }
 
@@ -398,7 +435,13 @@ mod tests {
     }
 
     impl Transport for Script {
-        fn post(&self, path: &str, _: &[u8], _: Instant) -> Result<Response, TransportError> {
+        fn post(
+            &self,
+            path: &str,
+            _: &[u8],
+            deadline: Instant,
+        ) -> Result<Response, TransportError> {
+            self.deadlines.borrow_mut().push(deadline);
             self.answer(format!("POST {path}"))
         }
 
@@ -419,6 +462,23 @@ mod tests {
             "mirrorInfo": null,
             "a": {"oid": "a".repeat(40)},
             "b": {"oid": "b".repeat(40)}
+        }}})
+    }
+
+    /// The first request of `show gorilla/mux@a`: a root commit.
+    fn root_commit() -> serde_json::Value {
+        json!({"data": {"r0": {
+            "name": "github.com/gorilla/mux",
+            "defaultBranch": {"displayName": "main"},
+            "mirrorInfo": null,
+            "commit": {
+                "oid": "a".repeat(40),
+                "subject": "Start",
+                "message": "Start",
+                "author": {"date": "2012-01-01T00:00:00Z", "person": {"displayName": "Ada"}},
+                "committer": null,
+                "parents": []
+            }
         }}})
     }
 
@@ -514,6 +574,22 @@ mod tests {
             assert_eq!(run(&second, DEADLINE, range).map_err(|e| e.kind()).err(), Some(kind));
             assert_eq!(second.asked.borrow().len(), 2);
         }
+    }
+
+    #[test]
+    fn tags_past_their_own_deadline_leave_the_commit_answered() {
+        let script = Script::new(
+            vec![Ok(json(&root_commit())), Err(TransportError::Deadline)],
+            Duration::ZERO,
+        );
+        let repo = Repo::Exact("github.com/gorilla/mux".to_owned());
+        let comparison = run(&script, DEADLINE, |client| client.commit(&repo, "a", None))
+            .unwrap_or_else(|e| panic!("{e}"));
+        let tags = comparison.commit.and_then(|commit| commit.tags);
+        assert_eq!(tags, Some(Err(Error::deadline_within("sourcegraph.com", 10))));
+        let deadlines = script.deadlines.borrow();
+        let gap = deadlines[0].saturating_duration_since(deadlines[1]);
+        assert!(gap + TAGS_DEADLINE + Duration::from_secs(1) > DEADLINE, "{gap:?}");
     }
 
     #[test]
