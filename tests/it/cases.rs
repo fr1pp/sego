@@ -1598,6 +1598,11 @@ mod search {
     }
 
     #[test]
+    fn longest_deadline_goes_in_front_of_an_or() {
+        case("search/longest-deadline-goes-in-front-of-an-or.toml");
+    }
+
+    #[test]
     fn no_repositories_for_query_with_control_characters() {
         case("search/no-repositories-for-query-with-control-characters.toml");
     }

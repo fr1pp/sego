@@ -111,7 +111,8 @@ highlighted range toward it, so fewer commits than the cap can reach it.
 _Avoid_: limit
 
 **Deadline**:
-How long the server searches before it stops: the query's `timeout:`, or the server's default.
+How long the server searches before it stops: the query's `timeout:`, which sego sets to the most
+the server allows when the query sets none.
 sego's own deadline for the whole invocation is the **client deadline**.
 _Avoid_: timeout
 

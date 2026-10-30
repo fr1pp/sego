@@ -3,14 +3,14 @@ args = ["search", "repo:example.com/acme/router@HEAD Router select:file"]
 status.code = 0
 stdout = '''
 1 file  1 repo  0.1 s
-query  repo:example.com/acme/router@HEAD Router select:file
+query  timeout:60s repo:example.com/acme/router@HEAD Router select:file
 
 example.com/acme/router@0123456789ab:main.go
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/router@HEAD Router select:file"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/router@HEAD Router select:file"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

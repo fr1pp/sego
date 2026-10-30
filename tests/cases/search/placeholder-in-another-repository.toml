@@ -4,7 +4,7 @@ args = ["search", "repo:example.com/ binary"]
 status.code = 0
 stdout = '''
 1 match  1 repo  0.1 s
-query  repo:example.com/ binary
+query  timeout:60s repo:example.com/ binary
 
 example.com/b@0123456789ab:a.go
 5:a binary
@@ -12,7 +12,7 @@ example.com/b@0123456789ab:a.go
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/ binary"}'
+variables = '{"query":"timeout:60s repo:example.com/ binary"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

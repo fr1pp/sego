@@ -60,8 +60,9 @@ query:
 
 const SEARCH_FACTS: &str = r#"defaults:
   A search covers each repository's default branch, and stops after 30
-  results or at its 20 s deadline, though the answer can arrive later;
-  count:N and timeout:60s raise them. By default,
+  results, or count:N, or at its deadline: sego puts timeout:60s, the
+  most sourcegraph.com allows, in front of a query with no timeout:. The
+  answer can arrive after the deadline. By default,
   Sourcegraph excludes archived repositories and forks; add archived:yes or
   fork:yes to include them. No search reads a file over 1 MiB, and
   sego show reads files under 64 MiB; index:no searches files skipped for

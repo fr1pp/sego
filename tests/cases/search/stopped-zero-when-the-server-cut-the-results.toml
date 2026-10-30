@@ -2,13 +2,13 @@
 args = ["search", "repo:example.com/acme/widget foo"]
 status.code = 3
 stderr = '''
-sego: error: the search stopped at 21.3 s with no results
-  timeout:60s raises its 20 s deadline to 60 s, the most sourcegraph.com allows
+sego: error: the search stopped at 61.3 s with no results
+  repo:, lang: or file: narrows what the search reads
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/widget foo"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/widget foo"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
@@ -20,7 +20,7 @@ response = '''
         "alert": null,
         "approximateResultCount": "0",
         "dynamicFilters": [],
-        "elapsedMilliseconds": 21300,
+        "elapsedMilliseconds": 61300,
         "limitHit": true,
         "matchCount": 0,
         "results": [],

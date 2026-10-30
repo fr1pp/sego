@@ -3,7 +3,7 @@ args = ["search", "repo:example.com/acme/widget binary"]
 status.code = 0
 stdout = '''
 2 matches  1 repo  0.3 s
-query  repo:example.com/acme/widget binary
+query  timeout:60s repo:example.com/acme/widget binary
 
 example.com/acme/widget@0123456789ab:src/real.txt
 10:a binary value
@@ -12,7 +12,7 @@ example.com/acme/widget@0123456789ab:src/real.txt
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/widget binary"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/widget binary"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

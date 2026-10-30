@@ -9,7 +9,7 @@ sego: error: No repositories found
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"lang:go foo"}'
+variables = '{"query":"timeout:60s lang:go foo"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

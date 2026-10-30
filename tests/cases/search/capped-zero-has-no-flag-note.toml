@@ -3,12 +3,12 @@ args = ["search", "repo:example.com/acme/widget lang:javascript /msie/i count:2"
 status.code = 0
 stdout = '''
 0+ matches  0.1 s
-query  repo:example.com/acme/widget lang:javascript /msie/i count:2
+query  timeout:60s repo:example.com/acme/widget lang:javascript /msie/i count:2
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/widget lang:javascript /msie/i count:2"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/widget lang:javascript /msie/i count:2"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

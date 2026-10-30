@@ -4,7 +4,7 @@ args = ["search", "repo:example.com/app type:commit fix count:30"]
 status.code = 0
 stdout = '''
 2 commits  1 repo  0.1 s
-query  repo:example.com/app type:commit fix count:30
+query  timeout:60s repo:example.com/app type:commit fix count:30
 
 example.com/app@aaaaaaaaaaaa  2024-05-06  Ann  fix the parser
     fix the parser
@@ -18,7 +18,7 @@ example.com/app@bbbbbbbbbbbb  2024-05-06  Ann  fix the printer
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/app type:commit fix count:30"}'
+variables = '{"query":"timeout:60s repo:example.com/app type:commit fix count:30"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

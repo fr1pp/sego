@@ -4,7 +4,7 @@ args = ["search", "repo:example.com/acme/widget type:diff line count:4"]
 status.code = 0
 stdout = '''
 3 of 4+ commits  1 repo  0.7 s
-query  repo:example.com/acme/widget type:diff line count:4
+query  timeout:60s repo:example.com/acme/widget type:diff line count:4
 
 example.com/acme/widget@aaaaaaaaaaaa  2024-05-06  Ann  Add line 1
     a.go a.go
@@ -135,7 +135,7 @@ example.com/acme/widget@cccccccccccc  2024-05-06  Ann  Add line 3
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/widget type:diff line count:4"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/widget type:diff line count:4"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

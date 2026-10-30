@@ -2,17 +2,17 @@
 args = ["search", '(repo:^github\.com/gorilla/mux$ zqxv)or useState']
 status.code = 0
 stdout = '''
-0 matches  2.0 s
-query  (repo:^github\.com/gorilla/mux$ zqxv)or useState
+0 matches  0.1 s
+query  timeout:60s (repo:^github\.com/gorilla/mux$ zqxv)or useState
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"(repo:^github\\.com/gorilla/mux$ zqxv)or useState"}'
+variables = '{"query":"timeout:60s (repo:^github\\.com/gorilla/mux$ zqxv)or useState"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -21,7 +21,7 @@ response = '''
         "alert": null,
         "approximateResultCount": "0",
         "dynamicFilters": [],
-        "elapsedMilliseconds": 1956,
+        "elapsedMilliseconds": 52,
         "limitHit": false,
         "matchCount": 0,
         "results": [],

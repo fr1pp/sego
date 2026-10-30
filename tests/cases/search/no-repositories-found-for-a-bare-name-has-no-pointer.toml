@@ -7,7 +7,7 @@ sego: error: No repositories found
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:pgx foo"}'
+variables = '{"query":"timeout:60s repo:pgx foo"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

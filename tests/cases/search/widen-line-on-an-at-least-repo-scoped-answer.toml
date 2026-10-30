@@ -3,7 +3,7 @@ args = ["search", "repo:example.com/acme/widget foo count:1"]
 status.code = 0
 stdout = '''
 1+ matches  1 repo  0.1 s
-query  repo:example.com/acme/widget foo count:1
+query  timeout:60s repo:example.com/acme/widget foo count:1
 widen  archived:yes (3 repos)
 
 example.com/acme/widget@0123456789ab:main.go
@@ -12,7 +12,7 @@ example.com/acme/widget@0123456789ab:main.go
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/widget foo count:1"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/widget foo count:1"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

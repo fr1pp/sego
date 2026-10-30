@@ -3,12 +3,12 @@ args = ["search", "(repo:example.com/app type:diff foo) or (repo:example.com/app
 status.code = 0
 stdout = '''
 0 matches  0.4 s
-query  (repo:example.com/app type:diff foo) or (repo:example.com/app bar)
+query  timeout:60s (repo:example.com/app type:diff foo) or (repo:example.com/app bar)
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"(repo:example.com/app type:diff foo) or (repo:example.com/app bar)"}'
+variables = '{"query":"timeout:60s (repo:example.com/app type:diff foo) or (repo:example.com/app bar)"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

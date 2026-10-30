@@ -4,7 +4,7 @@ args = ["search", "repo:example.com/app type:diff skipClean count:all"]
 status.code = 0
 stdout = '''
 8 commits  1 repo  0.4 s
-query  repo:example.com/app type:diff skipClean count:all
+query  timeout:60s repo:example.com/app type:diff skipClean count:all
 
 example.com/app@010101010101  2024-05-06  Ann  change 1
     f1.go f1.go
@@ -57,7 +57,7 @@ example.com/app@080808080808  2024-05-06  Ann  change 8
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/app type:diff skipClean count:all"}'
+variables = '{"query":"timeout:60s repo:example.com/app type:diff skipClean count:all"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

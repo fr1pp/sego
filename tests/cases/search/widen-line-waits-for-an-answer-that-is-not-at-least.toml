@@ -4,12 +4,12 @@ args = ["search", "lang:javascript Foo count:2"]
 status.code = 0
 stdout = '''
 0+ matches  0.1 s
-query  lang:javascript Foo count:2
+query  timeout:60s lang:javascript Foo count:2
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"lang:javascript Foo count:2"}'
+variables = '{"query":"timeout:60s lang:javascript Foo count:2"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

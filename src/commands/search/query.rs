@@ -51,7 +51,8 @@ impl Unit {
     reason = "independent facts about one query, not a state machine"
 )]
 pub struct Query {
-    /// The query as written, sent to the server as it is.
+    /// The query as sent: as written, with the longest deadline in front
+    /// when it sets none (ADR 0017).
     pub text: String,
     pub pattern_type: PatternType,
     /// The query names `lucky`, which the server reads as `standard`.
@@ -84,13 +85,14 @@ impl Query {
     /// The facts about `text` that what it writes gives, and the notes of
     /// the local checks. A query the server rejects while reading it gives
     /// none.
-    pub fn new(text: &str) -> Query {
-        let reading = read(text);
+    pub fn new(written: &str) -> Query {
+        let text = sent(written);
+        let reading = read(&text);
         let written = reading.written.as_slice();
         let deadline_ms = deadline_ms(written);
         let pattern_type = reading.pattern_type;
         Query {
-            text: text.to_owned(),
+            text,
             pattern_type,
             lucky: pattern_type == PatternType::Standard && written_type(written) == Some("lucky"),
             notes: check(written, pattern_type),
@@ -117,6 +119,30 @@ impl Query {
     /// query names it.
     pub fn pattern_type_name(&self) -> &'static str {
         if self.lucky { "lucky" } else { self.pattern_type.name() }
+    }
+}
+
+/// `text` with `timeout:60s` in front when it sets no `timeout:`, where the
+/// filter binds every branch of an `or`. A query the server rejects while
+/// reading it, one that writes nothing, or one the filter would read
+/// differently goes as written.
+fn sent(text: &str) -> String {
+    let written = read(text).written;
+    if written.is_empty() || written.iter().any(|item| field(item, "timeout")) {
+        return text.to_owned();
+    }
+    let timeout = format!("timeout:{}s", MAX_DEADLINE_MS / 1000);
+    let with = format!("{timeout} {text}");
+    let filter = Written::Filter(Filter {
+        negated: false,
+        field: "timeout".to_owned(),
+        value: timeout["timeout:".len()..].to_owned(),
+    });
+    let read_with = read(&with).written;
+    if read_with.split_first() == Some((&filter, written.as_slice())) {
+        with
+    } else {
+        text.to_owned()
     }
 }
 
@@ -472,19 +498,35 @@ mod tests {
     const OVERFLOW: &str = "340282366920938463463374607431.9s";
 
     #[test]
-    fn the_cap_and_deadline_follow_the_count_filter() {
+    fn the_cap_follows_the_count_filter() {
         let rows = [
-            ("NewRouter", Some(30), 20_000),
-            ("\"count:5\" foo", Some(30), 20_000),
-            ("COUNT:5 foo", Some(5), 60_000),
-            ("foo (bar count:all)", None, 60_000),
-            ("-count:5 x", Some(5), 60_000),
+            ("NewRouter", Some(30)),
+            ("\"count:5\" foo", Some(30)),
+            ("COUNT:5 foo", Some(5)),
+            ("foo (bar count:all)", None),
+            ("-count:5 x", Some(5)),
         ];
-        for (text, cap, deadline) in rows {
-            let query = Query::new(text);
-            assert_eq!(query.text, text);
-            assert_eq!(query.cap, cap, "{text}");
-            assert_eq!(query.deadline_ms, deadline, "{text}");
+        for (text, cap) in rows {
+            assert_eq!(Query::new(text).cap, cap, "{text}");
+        }
+    }
+
+    #[test]
+    fn a_query_with_no_timeout_is_sent_with_the_longest_deadline() {
+        let rows = [
+            ("NewRouter", "timeout:60s NewRouter"),
+            ("foo count:5", "timeout:60s foo count:5"),
+            ("(repo:a x) or (repo:b y)", "timeout:60s (repo:a x) or (repo:b y)"),
+            ("\"timeout:5s\" foo", "timeout:60s \"timeout:5s\" foo"),
+            ("foo timeout:5s", "foo timeout:5s"),
+            ("(a timeout:5s) or b", "(a timeout:5s) or b"),
+            ("foo TIMEOUT:5s", "foo TIMEOUT:5s"),
+            ("or foo", "or foo"),
+            ("not (foo)", "not (foo)"),
+            ("", ""),
+        ];
+        for (written, sent) in rows {
+            assert_eq!(Query::new(written).text, sent, "{written}");
         }
     }
 
@@ -511,10 +553,11 @@ mod tests {
     }
 
     #[test]
-    fn the_deadline_is_the_timeout_filter_else_20_s_or_60_s_with_a_count() {
+    fn the_deadline_is_the_timeout_filter_else_60_s() {
         let rows = [
-            ("foo", 20_000),
+            ("foo", 60_000),
             ("foo count:5", 60_000),
+            ("or foo", 20_000),
             ("foo timeout:5s", 5_000),
             ("foo timeout:1m30s", 60_000),
             ("foo timeout:1.5s", 1_500),
@@ -581,8 +624,8 @@ mod tests {
     }
 
     #[test]
-    fn the_deadline_is_20_s_unless_a_count_or_timeout_changes_it() {
-        assert_eq!(Query::new("foo").deadline_ms, 20_000);
+    fn the_deadline_is_60_s_unless_a_timeout_changes_it() {
+        assert_eq!(Query::new("foo").deadline_ms, 60_000);
         assert_eq!(Query::new("foo count:5").deadline_ms, 60_000);
         assert_eq!(Query::new("foo timeout:90s").deadline_ms, 60_000);
         assert_eq!(Query::new("foo count:all timeout:5s").deadline_ms, 5_000);
@@ -745,12 +788,12 @@ mod tests {
     #[test]
     fn a_query_carries_every_fact() {
         let query = Query::new("repo:x type:diff foo");
-        assert_eq!(query.text, "repo:x type:diff foo");
+        assert_eq!(query.text, "timeout:60s repo:x type:diff foo");
         assert_eq!(query.cap, Some(30));
         assert_eq!(query.unit, Unit::Commits);
         assert!(!query.lower_bound);
         assert!(query.diff);
-        assert_eq!(query.deadline_ms, 20_000);
+        assert_eq!(query.deadline_ms, 60_000);
 
         let query = Query::new("repo:x foo select:file count:all");
         assert_eq!(query.cap, None);
@@ -850,9 +893,8 @@ mod tests {
     #[test]
     fn a_stopped_search_at_the_most_or_of_several_deadlines_is_pointed_to_a_narrower_scope() {
         let pointer = |q| Query::new(q).stopped_pointer;
-        assert_ne!(pointer("repo:x foo"), pointer::NARROWS);
         assert_ne!(pointer("repo:x foo timeout:5s"), pointer::NARROWS);
-        for q in ["repo:x foo count:5", "repo:x foo timeout:90s", "(a count:5) or (b repo:x)"] {
+        for q in ["repo:x foo", "repo:x foo timeout:90s", "(a timeout:5s) or (b repo:x)"] {
             assert_eq!(pointer(q), pointer::NARROWS, "{q}");
         }
     }

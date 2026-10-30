@@ -2,8 +2,8 @@
 args = ["search", "repo:^github\\.com/gorilla/mux$@v1.8.0 NewRouter select:symbol"]
 status.code = 0
 stdout = '''
-0 matches  3.4 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter select:symbol
+0 matches  0.9 s
+query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter select:symbol
 '''
 stderr = '''
 sego: note: select:symbol over a content search returns nothing on sourcegraph.com; type:symbol searches symbols
@@ -11,11 +11,11 @@ sego: note: select:symbol over a content search returns nothing on sourcegraph.c
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:^github\\.com/gorilla/mux$@v1.8.0 NewRouter select:symbol"}'
+variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 NewRouter select:symbol"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -24,7 +24,7 @@ response = '''
         "alert": null,
         "approximateResultCount": "0+",
         "dynamicFilters": [],
-        "elapsedMilliseconds": 3397,
+        "elapsedMilliseconds": 945,
         "limitHit": true,
         "matchCount": 0,
         "results": [],

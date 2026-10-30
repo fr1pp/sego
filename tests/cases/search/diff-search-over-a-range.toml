@@ -2,8 +2,8 @@
 args = ["search", 'repo:^github\.com/gorilla/mux$@v1.8.0:^v1.7.4 type:diff count:3 route']
 status.code = 0
 stdout = '''
-1+ commits  1 repo  0.0 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0:^v1.7.4 type:diff count:3 route
+1+ commits  1 repo  0.1 s
+query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0:^v1.7.4 type:diff count:3 route
 
 github.com/gorilla/mux@98cb6bf42e08  2020-07-11  Harshavardhana  fix: regression in vars extract for wildcard host (#579)
     old_test.go old_test.go
@@ -24,11 +24,11 @@ github.com/gorilla/mux@98cb6bf42e08  2020-07-11  Harshavardhana  fix: regression
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:^github\\.com/gorilla/mux$@v1.8.0:^v1.7.4 type:diff count:3 route"}'
+variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0:^v1.7.4 type:diff count:3 route"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -58,7 +58,7 @@ response = '''
             "value": "before:\"2 months ago\""
           }
         ],
-        "elapsedMilliseconds": 18,
+        "elapsedMilliseconds": 140,
         "limitHit": true,
         "matchCount": 3,
         "results": [

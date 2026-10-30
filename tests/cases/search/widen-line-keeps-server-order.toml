@@ -4,13 +4,13 @@ args = ["search", "repo:example.com/widen foo"]
 status.code = 0
 stdout = '''
 0 matches  0.1 s
-query  repo:example.com/widen foo
+query  timeout:60s repo:example.com/widen foo
 widen  fork:yes (4 repos)  archived:yes (68912 repos)
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/widen foo"}'
+variables = '{"query":"timeout:60s repo:example.com/widen foo"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

@@ -7,7 +7,7 @@ sego: error: Sourcegraph failed to answer the search
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/widget@v1 /f/"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/widget@v1 /f/"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

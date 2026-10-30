@@ -3,17 +3,17 @@ args = ["search", "repo:example.com/acme/widget foo"]
 status.code = 0
 stdout = '''
 1+ matches  1 repo  stopped at 60.0 s
-query  repo:example.com/acme/widget foo
+query  timeout:60s repo:example.com/acme/widget foo
 
 example.com/acme/widget
 '''
 stderr = '''
-sego: note: timeout:60s raises its 20 s deadline to 60 s, the most sourcegraph.com allows
+sego: note: repo:, lang: or file: narrows what the search reads
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/widget foo"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/widget foo"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

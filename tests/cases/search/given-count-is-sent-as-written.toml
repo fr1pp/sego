@@ -2,8 +2,8 @@
 args = ["search", 'repo:^github\.com/gorilla/mux$@v1.8.0 Route count:5']
 status.code = 0
 stdout = '''
-5+ matches  1 repo  13.8 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0 Route count:5
+5+ matches  1 repo  0.1 s
+query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0 Route count:5
 
 github.com/gorilla/mux@98cb6bf42e08:old_test.go
 66-
@@ -24,11 +24,11 @@ github.com/gorilla/mux@98cb6bf42e08:old_test.go
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:^github\\.com/gorilla/mux$@v1.8.0 Route count:5"}'
+variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 Route count:5"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -58,7 +58,7 @@ response = '''
             "value": "repo:^github\\.com/gorilla/mux$@v1.8.0"
           }
         ],
-        "elapsedMilliseconds": 13828,
+        "elapsedMilliseconds": 78,
         "limitHit": true,
         "matchCount": 5,
         "results": [

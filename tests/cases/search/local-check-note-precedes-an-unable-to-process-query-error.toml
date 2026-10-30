@@ -8,7 +8,7 @@ sego: error: bad query
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"lnag:go foo"}'
+variables = '{"query":"timeout:60s lnag:go foo"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

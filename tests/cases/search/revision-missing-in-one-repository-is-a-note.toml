@@ -3,8 +3,8 @@
 args = ["search", 'repo:^github\.com/gorilla/(mux|handlers)$@v1.8.0 "func NewRouter" count:5']
 status.code = 0
 stdout = '''
-2 matches  1 repo  1.2 s
-query  repo:^github\.com/gorilla/(mux|handlers)$@v1.8.0 "func NewRouter" count:5
+2 matches  1 repo  0.1 s
+query  timeout:60s repo:^github\.com/gorilla/(mux|handlers)$@v1.8.0 "func NewRouter" count:5
 
 github.com/gorilla/mux@98cb6bf42e08:mux.go
 24-// NewRouter returns a new router instance.
@@ -22,11 +22,11 @@ sego: note: Some revisions could not be searched: These repository revisions do 
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:^github\\.com/gorilla/(mux|handlers)$@v1.8.0 \"func NewRouter\" count:5"}'
+variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/(mux|handlers)$@v1.8.0 \"func NewRouter\" count:5"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -56,7 +56,7 @@ response = '''
             "value": "repo:^github\\.com/gorilla/mux$@v1.8.0"
           }
         ],
-        "elapsedMilliseconds": 1173,
+        "elapsedMilliseconds": 132,
         "limitHit": false,
         "matchCount": 2,
         "results": [

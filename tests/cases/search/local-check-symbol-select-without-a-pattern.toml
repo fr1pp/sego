@@ -3,7 +3,7 @@ args = ["search", "repo:example.com/acme/widget@a..b type:symbol select:symbol.m
 status.code = 0
 stdout = '''
 0 symbols  0.1 s
-query  repo:example.com/acme/widget@a..b type:symbol select:symbol.method
+query  timeout:60s repo:example.com/acme/widget@a..b type:symbol select:symbol.method
 '''
 stderr = '''
 sego: note: repo:example.com/acme/widget@a..b searches b only
@@ -12,7 +12,7 @@ sego: note: type:symbol with select:symbol and no pattern returns nothing; /./ m
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/widget@a..b type:symbol select:symbol.method"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/widget@a..b type:symbol select:symbol.method"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

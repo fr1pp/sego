@@ -3,59 +3,59 @@
 args = ["search", 'repo:^github\.com/sharkdp/bat$ NOT-INDEXED count:all']
 status.code = 0
 stdout = '''
-14 matches  1 repo  11.2 s
-query  repo:^github\.com/sharkdp/bat$ NOT-INDEXED count:all
+14 matches  1 repo  2.4 s
+query  timeout:60s repo:^github\.com/sharkdp/bat$ NOT-INDEXED count:all
 
-github.com/sharkdp/bat@a9aa73d21545:assets/themes.bin
+github.com/sharkdp/bat@8f5727ea3869:assets/themes.bin
 NOT-INDEXED: contains binary content
 
-github.com/sharkdp/bat@a9aa73d21545:assets/syntaxes.bin
+github.com/sharkdp/bat@8f5727ea3869:assets/syntaxes.bin
 NOT-INDEXED: contains binary content
 
-github.com/sharkdp/bat@a9aa73d21545:tests/examples/test.binary
+github.com/sharkdp/bat@8f5727ea3869:tests/examples/test.binary
 NOT-INDEXED: contains binary content
 
-github.com/sharkdp/bat@a9aa73d21545:assets/acknowledgements.bin
+github.com/sharkdp/bat@8f5727ea3869:assets/acknowledgements.bin
 NOT-INDEXED: contains binary content
 
-github.com/sharkdp/bat@a9aa73d21545:tests/examples/nonprintable.txt
+github.com/sharkdp/bat@8f5727ea3869:tests/examples/nonprintable.txt
 NOT-INDEXED: contains binary content
 
-github.com/sharkdp/bat@a9aa73d21545:tests/examples/test_UTF-16BE.txt
+github.com/sharkdp/bat@8f5727ea3869:tests/examples/test_UTF-16BE.txt
 NOT-INDEXED: contains binary content
 
-github.com/sharkdp/bat@a9aa73d21545:tests/examples/test_UTF-16LE.txt
+github.com/sharkdp/bat@8f5727ea3869:tests/examples/test_UTF-16LE.txt
 NOT-INDEXED: contains binary content
 
-github.com/sharkdp/bat@a9aa73d21545:tests/examples/control_characters.txt
+github.com/sharkdp/bat@8f5727ea3869:tests/examples/control_characters.txt
 NOT-INDEXED: contains binary content
 
-github.com/sharkdp/bat@a9aa73d21545:tests/examples/test_UTF-16BE-complicated.txt
+github.com/sharkdp/bat@8f5727ea3869:tests/examples/test_UTF-16BE-complicated.txt
 NOT-INDEXED: contains binary content
 
-github.com/sharkdp/bat@a9aa73d21545:tests/examples/test_UTF-16LE-complicated.txt
+github.com/sharkdp/bat@8f5727ea3869:tests/examples/test_UTF-16LE-complicated.txt
 NOT-INDEXED: contains binary content
 
-github.com/sharkdp/bat@a9aa73d21545:tests/syntax-tests/source/PowerShell/test.ps1
+github.com/sharkdp/bat@8f5727ea3869:tests/syntax-tests/source/PowerShell/test.ps1
 NOT-INDEXED: contains binary content
 
-github.com/sharkdp/bat@a9aa73d21545:tests/examples/regression_tests/issue_3631.txt
+github.com/sharkdp/bat@8f5727ea3869:tests/examples/regression_tests/issue_3631.txt
 NOT-INDEXED: contains binary content
 
-github.com/sharkdp/bat@a9aa73d21545:tests/syntax-tests/source/Plaintext/plaintext.txt
+github.com/sharkdp/bat@8f5727ea3869:tests/syntax-tests/source/Plaintext/plaintext.txt
 NOT-INDEXED: contains binary content
 
-github.com/sharkdp/bat@a9aa73d21545:tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt
+github.com/sharkdp/bat@8f5727ea3869:tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt
 NOT-INDEXED: contains too many trigrams
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:^github\\.com/sharkdp/bat$ NOT-INDEXED count:all"}'
+variables = '{"query":"timeout:60s repo:^github\\.com/sharkdp/bat$ NOT-INDEXED count:all"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-28, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -85,7 +85,7 @@ response = '''
             "value": "lang:powershell"
           }
         ],
-        "elapsedMilliseconds": 11212,
+        "elapsedMilliseconds": 2360,
         "limitHit": false,
         "matchCount": 14,
         "results": [
@@ -113,7 +113,7 @@ response = '''
             ],
             "file": {
               "commit": {
-                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+                "oid": "8f5727ea3869a71c65c0f4f4a42ed18bdb26ae7b"
               },
               "path": "assets/themes.bin"
             },
@@ -147,7 +147,7 @@ response = '''
             ],
             "file": {
               "commit": {
-                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+                "oid": "8f5727ea3869a71c65c0f4f4a42ed18bdb26ae7b"
               },
               "path": "assets/syntaxes.bin"
             },
@@ -181,7 +181,7 @@ response = '''
             ],
             "file": {
               "commit": {
-                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+                "oid": "8f5727ea3869a71c65c0f4f4a42ed18bdb26ae7b"
               },
               "path": "tests/examples/test.binary"
             },
@@ -215,7 +215,7 @@ response = '''
             ],
             "file": {
               "commit": {
-                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+                "oid": "8f5727ea3869a71c65c0f4f4a42ed18bdb26ae7b"
               },
               "path": "assets/acknowledgements.bin"
             },
@@ -249,7 +249,7 @@ response = '''
             ],
             "file": {
               "commit": {
-                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+                "oid": "8f5727ea3869a71c65c0f4f4a42ed18bdb26ae7b"
               },
               "path": "tests/examples/nonprintable.txt"
             },
@@ -283,7 +283,7 @@ response = '''
             ],
             "file": {
               "commit": {
-                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+                "oid": "8f5727ea3869a71c65c0f4f4a42ed18bdb26ae7b"
               },
               "path": "tests/examples/test_UTF-16BE.txt"
             },
@@ -317,7 +317,7 @@ response = '''
             ],
             "file": {
               "commit": {
-                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+                "oid": "8f5727ea3869a71c65c0f4f4a42ed18bdb26ae7b"
               },
               "path": "tests/examples/test_UTF-16LE.txt"
             },
@@ -351,7 +351,7 @@ response = '''
             ],
             "file": {
               "commit": {
-                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+                "oid": "8f5727ea3869a71c65c0f4f4a42ed18bdb26ae7b"
               },
               "path": "tests/examples/control_characters.txt"
             },
@@ -385,7 +385,7 @@ response = '''
             ],
             "file": {
               "commit": {
-                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+                "oid": "8f5727ea3869a71c65c0f4f4a42ed18bdb26ae7b"
               },
               "path": "tests/examples/test_UTF-16BE-complicated.txt"
             },
@@ -419,7 +419,7 @@ response = '''
             ],
             "file": {
               "commit": {
-                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+                "oid": "8f5727ea3869a71c65c0f4f4a42ed18bdb26ae7b"
               },
               "path": "tests/examples/test_UTF-16LE-complicated.txt"
             },
@@ -453,7 +453,7 @@ response = '''
             ],
             "file": {
               "commit": {
-                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+                "oid": "8f5727ea3869a71c65c0f4f4a42ed18bdb26ae7b"
               },
               "path": "tests/syntax-tests/source/PowerShell/test.ps1"
             },
@@ -487,7 +487,7 @@ response = '''
             ],
             "file": {
               "commit": {
-                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+                "oid": "8f5727ea3869a71c65c0f4f4a42ed18bdb26ae7b"
               },
               "path": "tests/examples/regression_tests/issue_3631.txt"
             },
@@ -521,7 +521,7 @@ response = '''
             ],
             "file": {
               "commit": {
-                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+                "oid": "8f5727ea3869a71c65c0f4f4a42ed18bdb26ae7b"
               },
               "path": "tests/syntax-tests/source/Plaintext/plaintext.txt"
             },
@@ -555,7 +555,7 @@ response = '''
             ],
             "file": {
               "commit": {
-                "oid": "a9aa73d215455a479f072da75dd39f19826acfea"
+                "oid": "8f5727ea3869a71c65c0f4f4a42ed18bdb26ae7b"
               },
               "path": "tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt"
             },

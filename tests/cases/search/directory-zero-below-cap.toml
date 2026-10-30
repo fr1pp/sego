@@ -3,12 +3,12 @@ args = ["search", "repo:example.com/app select:file.directory foo count:30"]
 status.code = 0
 stdout = '''
 0 directories  0.4 s
-query  repo:example.com/app select:file.directory foo count:30
+query  timeout:60s repo:example.com/app select:file.directory foo count:30
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/app select:file.directory foo count:30"}'
+variables = '{"query":"timeout:60s repo:example.com/app select:file.directory foo count:30"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

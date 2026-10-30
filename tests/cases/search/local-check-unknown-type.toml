@@ -3,7 +3,7 @@ args = ["search", 'repo:^github\.com/gorilla/mux$@v1.8.0 type:bogus NewRouter']
 status.code = 0
 stdout = '''
 0 matches  0.0 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0 type:bogus NewRouter
+query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0 type:bogus NewRouter
 '''
 stderr = '''
 sego: note: type:bogus is not a result type; the server returns nothing
@@ -11,11 +11,11 @@ sego: note: type:bogus is not a result type; the server returns nothing
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:^github\\.com/gorilla/mux$@v1.8.0 type:bogus NewRouter"}'
+variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 type:bogus NewRouter"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -24,7 +24,7 @@ response = '''
         "alert": null,
         "approximateResultCount": "0",
         "dynamicFilters": [],
-        "elapsedMilliseconds": 9,
+        "elapsedMilliseconds": 4,
         "limitHit": false,
         "matchCount": 0,
         "results": [],

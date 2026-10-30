@@ -4,7 +4,7 @@ args = ["search", "(repo:example.com/acme/widget foo) or (repo:example.com/acme/
 status.code = 0
 stdout = '''
 6 files  3 repos  0.7 s
-query  (repo:example.com/acme/widget foo) or (repo:example.com/acme/widget type:path foo) or (repo:example.com/acme/widget type:commit foo)
+query  timeout:60s (repo:example.com/acme/widget foo) or (repo:example.com/acme/widget type:path foo) or (repo:example.com/acme/widget type:commit foo)
 
 example.com/acme/widget@0123456789ab:a.go
 10:x
@@ -26,7 +26,7 @@ example.com/acme/lib
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"(repo:example.com/acme/widget foo) or (repo:example.com/acme/widget type:path foo) or (repo:example.com/acme/widget type:commit foo)"}'
+variables = '{"query":"timeout:60s (repo:example.com/acme/widget foo) or (repo:example.com/acme/widget type:path foo) or (repo:example.com/acme/widget type:commit foo)"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

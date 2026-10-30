@@ -4,7 +4,7 @@ args = ["search", "repo:example.com/app foo count:all"]
 status.code = 0
 stdout = '''
 3472+ matches  1 repo  stopped at 62.2 s
-query  repo:example.com/app foo count:all
+query  timeout:60s repo:example.com/app foo count:all
 
 example.com/app@0123456789ab:a.go
 1:foo 0
@@ -21,7 +21,7 @@ sego: note: repo:, lang: or file: narrows what the search reads
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/app foo count:all"}'
+variables = '{"query":"timeout:60s repo:example.com/app foo count:all"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

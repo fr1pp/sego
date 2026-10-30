@@ -4,7 +4,7 @@ args = ["search", "repo:example.com/acme/ type:repo"]
 status.code = 0
 stdout = '''
 3 repos  0.7 s
-query  repo:example.com/acme/ type:repo
+query  timeout:60s repo:example.com/acme/ type:repo
 
 example.com/acme/widget
 example.com/acme/gadget
@@ -13,7 +13,7 @@ example.com/acme/lib
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/ type:repo"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/ type:repo"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

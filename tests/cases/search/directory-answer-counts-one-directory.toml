@@ -3,14 +3,14 @@ args = ["search", "repo:example.com/acme/widget select:file.directory foo count:
 status.code = 0
 stdout = '''
 1 directory  1 repo  0.7 s
-query  repo:example.com/acme/widget select:file.directory foo count:all
+query  timeout:60s repo:example.com/acme/widget select:file.directory foo count:all
 
 example.com/acme/widget@0123456789ab:src/
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/widget select:file.directory foo count:all"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/widget select:file.directory foo count:all"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

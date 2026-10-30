@@ -4,7 +4,7 @@ args = ["search", 'repo:^github\.com/gorilla/mux$@v1.8.0 type:commit wildcard']
 status.code = 0
 stdout = '''
 1 commit  1 repo  0.0 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0 type:commit wildcard
+query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0 type:commit wildcard
 
 github.com/gorilla/mux@98cb6bf42e08  2020-07-11  Harshavardhana  fix: regression in vars extract for wildcard host (#579)
     fix: regression in vars extract for wildcard host (#579)
@@ -13,11 +13,11 @@ github.com/gorilla/mux@98cb6bf42e08  2020-07-11  Harshavardhana  fix: regression
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:^github\\.com/gorilla/mux$@v1.8.0 type:commit wildcard"}'
+variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 type:commit wildcard"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -47,7 +47,7 @@ response = '''
             "value": "repo:^github\\.com/gorilla/mux$"
           }
         ],
-        "elapsedMilliseconds": 16,
+        "elapsedMilliseconds": 26,
         "limitHit": false,
         "matchCount": 1,
         "results": [

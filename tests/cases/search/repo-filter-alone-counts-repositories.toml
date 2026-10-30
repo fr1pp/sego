@@ -4,18 +4,18 @@ args = ["search", 'repo:^github\.com/gorilla/mux$']
 status.code = 0
 stdout = '''
 1 repo  0.0 s
-query  repo:^github\.com/gorilla/mux$
+query  timeout:60s repo:^github\.com/gorilla/mux$
 
 github.com/gorilla/mux
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:^github\\.com/gorilla/mux$"}'
+variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -30,7 +30,7 @@ response = '''
             "value": "type:repo"
           }
         ],
-        "elapsedMilliseconds": 13,
+        "elapsedMilliseconds": 6,
         "limitHit": false,
         "matchCount": 1,
         "results": [

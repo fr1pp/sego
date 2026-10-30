@@ -3,7 +3,7 @@ args = ["search", "repo:example.com/acme/widget type:commit m"]
 status.code = 0
 stdout = '''
 1 commit  1 repo  0.7 s
-query  repo:example.com/acme/widget type:commit m
+query  timeout:60s repo:example.com/acme/widget type:commit m
 
 example.com/acme/widget@aaaaaaaaaaaa  2024-05-06  Ann  Fix it
     m1
@@ -15,7 +15,7 @@ example.com/acme/widget@aaaaaaaaaaaa  2024-05-06  Ann  Fix it
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/widget type:commit m"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/widget type:commit m"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

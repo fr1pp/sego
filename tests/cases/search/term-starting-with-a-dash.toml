@@ -2,8 +2,8 @@
 args = ["search", 'repo:^github\.com/gorilla/mux$@v1.8.0', '-file:_test\.go', "NewRouter"]
 status.code = 0
 stdout = '''
-30+ matches  1 repo  6.7 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0 -file:_test\.go NewRouter
+30+ matches  1 repo  0.2 s
+query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0 -file:_test\.go NewRouter
 
 github.com/gorilla/mux@98cb6bf42e08:README.md
 52-func main() {
@@ -130,11 +130,11 @@ github.com/gorilla/mux@98cb6bf42e08:doc.go
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:^github\\.com/gorilla/mux$@v1.8.0 -file:_test\\.go NewRouter"}'
+variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 -file:_test\\.go NewRouter"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -164,7 +164,7 @@ response = '''
             "value": "lang:go"
           }
         ],
-        "elapsedMilliseconds": 6667,
+        "elapsedMilliseconds": 155,
         "limitHit": true,
         "matchCount": 30,
         "results": [

@@ -7,7 +7,7 @@ sego: error: Sourcegraph failed to answer the search
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:^github\\.com/gorilla/mux$@v1.8.0:^v1.7.4 NewRouter"}'
+variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0:^v1.7.4 NewRouter"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

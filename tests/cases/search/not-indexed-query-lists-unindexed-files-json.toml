@@ -2,12 +2,12 @@
 args = ["search", "--json", "repo:example.com/acme/widget NOT-INDEXED count:all"]
 status.code = 0
 stdout = '''
-{"query":"repo:example.com/acme/widget NOT-INDEXED count:all","pattern_type":"keyword","unit":"matches","count":2,"at_least":false,"stopped":false,"elapsed_ms":300,"limit_ms":60000,"widen":[],"alert":null,"results":[{"kind":"unindexed","repo":"example.com/acme/widget","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"vendor/sqlite3.c","reason":"exceeds the maximum size limit"},{"kind":"unindexed","repo":"example.com/acme/widget","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"testdata/words.txt","reason":"contains too many trigrams"}],"server":{"match_count":2,"approximate_count":"2","limit_hit":false,"timedout":[]},"notes":[]}
+{"query":"timeout:60s repo:example.com/acme/widget NOT-INDEXED count:all","pattern_type":"keyword","unit":"matches","count":2,"at_least":false,"stopped":false,"elapsed_ms":300,"limit_ms":60000,"widen":[],"alert":null,"results":[{"kind":"unindexed","repo":"example.com/acme/widget","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"vendor/sqlite3.c","reason":"exceeds the maximum size limit"},{"kind":"unindexed","repo":"example.com/acme/widget","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"testdata/words.txt","reason":"contains too many trigrams"}],"server":{"match_count":2,"approximate_count":"2","limit_hit":false,"timedout":[]},"notes":[]}
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/widget NOT-INDEXED count:all"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/widget NOT-INDEXED count:all"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

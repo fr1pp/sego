@@ -4,7 +4,7 @@ args = ["search", "lang:javascript /msie/i"]
 status.code = 0
 stdout = '''
 3+ matches  1 repo  0.1 s
-query  lang:javascript /msie/i
+query  timeout:60s lang:javascript /msie/i
 
 example.com/acme/widget@0123456789ab:ie.js
 1:msie
@@ -12,7 +12,7 @@ example.com/acme/widget@0123456789ab:ie.js
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"lang:javascript /msie/i"}'
+variables = '{"query":"timeout:60s lang:javascript /msie/i"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

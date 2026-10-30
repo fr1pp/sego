@@ -3,7 +3,7 @@ args = ["search", 'repo:example.com/acme/widget type:path file:\.go$ count:all']
 status.code = 0
 stdout = '''
 100 of 101 files  1 repo  0.7 s
-query  repo:example.com/acme/widget type:path file:\.go$ count:all
+query  timeout:60s repo:example.com/acme/widget type:path file:\.go$ count:all
 
 example.com/acme/widget@0123456789ab:src/file001.go
 example.com/acme/widget@0123456789ab:src/file002.go
@@ -109,7 +109,7 @@ example.com/acme/widget@0123456789ab:src/file100.go
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/widget type:path file:\\.go$ count:all"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/widget type:path file:\\.go$ count:all"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

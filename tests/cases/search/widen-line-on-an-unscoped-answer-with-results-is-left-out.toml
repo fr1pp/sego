@@ -3,7 +3,7 @@ args = ["search", "lang:go Foo"]
 status.code = 0
 stdout = '''
 1 match  1 repo  0.1 s
-query  lang:go Foo
+query  timeout:60s lang:go Foo
 
 example.com/acme/widget@0123456789ab:main.go
 1:Foo
@@ -11,7 +11,7 @@ example.com/acme/widget@0123456789ab:main.go
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"lang:go Foo"}'
+variables = '{"query":"timeout:60s lang:go Foo"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

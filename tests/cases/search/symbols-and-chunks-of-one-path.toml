@@ -4,7 +4,7 @@ args = ["search", "(repo:example.com/app type:symbol foo) or (repo:example.com/a
 status.code = 0
 stdout = '''
 2 matches  1 repo  0.1 s
-query  (repo:example.com/app type:symbol foo) or (repo:example.com/app foo)
+query  timeout:60s (repo:example.com/app type:symbol foo) or (repo:example.com/app foo)
 
 example.com/app@0123456789ab:a.go
 2:function  E
@@ -16,7 +16,7 @@ example.com/app@0123456789ab:b.go
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"(repo:example.com/app type:symbol foo) or (repo:example.com/app foo)"}'
+variables = '{"query":"timeout:60s (repo:example.com/app type:symbol foo) or (repo:example.com/app foo)"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

@@ -3,7 +3,7 @@ args = ["search", "repo:example.com/acme/widget foo"]
 status.code = 0
 stdout = '''
 1 match  0.1 s
-query  repo:example.com/acme/widget foo
+query  timeout:60s repo:example.com/acme/widget foo
 '''
 stderr = '''
 sego: note: 1 result of kind Weird not shown
@@ -11,7 +11,7 @@ sego: note: 1 result of kind Weird not shown
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/widget foo"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/widget foo"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

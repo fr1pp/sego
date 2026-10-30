@@ -2,12 +2,12 @@
 args = ["search", "--json", "repo:example.com/acme/widget binary"]
 status.code = 0
 stdout = '''
-{"query":"repo:example.com/acme/widget binary","pattern_type":"keyword","unit":"matches","count":2,"at_least":false,"stopped":false,"elapsed_ms":300,"limit_ms":20000,"widen":[],"alert":null,"results":[{"kind":"line","repo":"example.com/acme/widget","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"src/real.txt","line":10,"text":"a binary value","match":true,"ranges":[[2,8]],"chunk":1},{"kind":"line","repo":"example.com/acme/widget","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"src/real.txt","line":11,"text":"another binary","match":true,"ranges":[[8,14]],"chunk":1}],"server":{"match_count":3,"approximate_count":"3","limit_hit":false,"timedout":[]},"notes":[]}
+{"query":"timeout:60s repo:example.com/acme/widget binary","pattern_type":"keyword","unit":"matches","count":2,"at_least":false,"stopped":false,"elapsed_ms":300,"limit_ms":60000,"widen":[],"alert":null,"results":[{"kind":"line","repo":"example.com/acme/widget","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"src/real.txt","line":10,"text":"a binary value","match":true,"ranges":[[2,8]],"chunk":1},{"kind":"line","repo":"example.com/acme/widget","commit":"0123456789abcdef0123456789abcdef01234567","rev":null,"path":"src/real.txt","line":11,"text":"another binary","match":true,"ranges":[[8,14]],"chunk":1}],"server":{"match_count":3,"approximate_count":"3","limit_hit":false,"timedout":[]},"notes":[]}
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/widget binary"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/widget binary"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

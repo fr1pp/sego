@@ -4,7 +4,7 @@ args = ["search", "repo:example.com/acme/widget LEFT_ RIGHT"]
 status.code = 0
 stdout = '''
 1 match  1 repo  0.7 s
-query  repo:example.com/acme/widget LEFT_ RIGHT
+query  timeout:60s repo:example.com/acme/widget LEFT_ RIGHT
 
 example.com/acme/widget@0123456789ab:wide.txt
 1:aaaaaaaaaaLEFT_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa… (+200 more columns; --json has the full line)
@@ -12,7 +12,7 @@ example.com/acme/widget@0123456789ab:wide.txt
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:example.com/acme/widget LEFT_ RIGHT"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/widget LEFT_ RIGHT"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

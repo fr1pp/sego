@@ -3,7 +3,7 @@ args = ["search", "a\u001Bb\u202Ec\u200Bd\ne\rf\u0000g\u2028h\u007Fi ok"]
 status.code = 0
 stdout = '''
 10+ matches  1 repo  stopped at 0.1 s
-query  a\u{1b}b\u{202e}c\u{200b}d\u{a}e\u{d}f\u{0}g\u{2028}h\u{7f}i ok
+query  timeout:60s a\u{1b}b\u{202e}c\u{200b}d\u{a}e\u{d}f\u{0}g\u{2028}h\u{7f}i ok
 
 $'example.com/acme/widget@0123456789ab:a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i'
 3:a\u{1b}b
@@ -28,12 +28,12 @@ example.com/acme/widget
 stderr = '''
 sego: note: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
 sego: note: the server proposes: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
-sego: note: timeout:60s raises its 20 s deadline to 60 s, the most sourcegraph.com allows
+sego: note: repo:, lang: or file: narrows what the search reads
 '''
 
 [[exchange]]
 operation = "Search"
-variables = "{\"query\":\"a\\u001bb\u202Ec\u200Bd\\ne\\rf\\u0000g\u2028h\u007Fi ok\"}"
+variables = "{\"query\":\"timeout:60s a\\u001bb\u202Ec\u200Bd\\ne\\rf\\u0000g\u2028h\u007Fi ok\"}"
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"

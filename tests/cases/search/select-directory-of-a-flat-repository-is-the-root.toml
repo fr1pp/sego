@@ -2,8 +2,8 @@
 args = ["search", 'repo:^github\.com/gorilla/mux$@v1.8.0 select:file.directory NewRouter']
 status.code = 0
 stdout = '''
-1+ directories  1 repo  0.6 s
-query  repo:^github\.com/gorilla/mux$@v1.8.0 select:file.directory NewRouter
+1+ directories  1 repo  0.1 s
+query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0 select:file.directory NewRouter
 
 github.com/gorilla/mux@98cb6bf42e08:./
 '''
@@ -13,11 +13,11 @@ sego: note: at a pinned revision, select: keeps only what each repository's firs
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"repo:^github\\.com/gorilla/mux$@v1.8.0 select:file.directory NewRouter"}'
+variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 select:file.directory NewRouter"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-26, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -42,7 +42,7 @@ response = '''
             "value": "repo:^github\\.com/gorilla/mux$@v1.8.0"
           }
         ],
-        "elapsedMilliseconds": 565,
+        "elapsedMilliseconds": 124,
         "limitHit": true,
         "matchCount": 1,
         "results": [
