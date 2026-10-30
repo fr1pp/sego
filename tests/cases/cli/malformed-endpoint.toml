@@ -1,8 +1,0 @@
-# A malformed SEGO_ENDPOINT is a usage error and nothing connects.
-args = ["show", "example.com/acme/widget:a.go"]
-env = { SEGO_ENDPOINT = "ftp://x" }
-status.code = 2
-stderr = '''
-sego: error: SEGO_ENDPOINT must be an http:// or https:// URL with a host and no query or fragment: ftp://x
-usage: sego COMMAND [--json] ...
-'''

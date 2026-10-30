@@ -552,11 +552,11 @@ response = '''
     #[test]
     fn a_case_file_parses() {
         let case = parse(
-            "# a comment\nargs = [\"show\", \"a b\"]\nenv = { SEGO_ENDPOINT = \"http://x\" }\n\
+            "# a comment\nargs = [\"show\", \"a b\"]\nenv = { SEGO_CACHE_DIR = \"off\" }\n\
              status.code = 2\nstdout.closed = true\nstderr = '''\nerr\n'''\n",
         );
         assert_eq!(case.args, ["show", "a b"]);
-        assert_eq!(case.env, [("SEGO_ENDPOINT".to_owned(), "http://x".to_owned())]);
+        assert_eq!(case.env, [("SEGO_CACHE_DIR".to_owned(), "off".to_owned())]);
         assert_eq!(case.code, 2);
         assert_eq!(case.stdout, Stream::Closed);
         assert_eq!(case.stderr, Stream::Text("err\n".to_owned()));

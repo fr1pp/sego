@@ -343,8 +343,6 @@ addresses:
 {GENERAL_OUTPUT_AND_EXAMPLES}
 {OPTIONS}
 environment:
-  SEGO_ENDPOINT    the Sourcegraph instance (default
-                   https://sourcegraph.com)
   SEGO_CACHE_DIR   where sego caches large files, or off (default
                    $XDG_CACHE_HOME/sego or ~/.cache/sego)
 

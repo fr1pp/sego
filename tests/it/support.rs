@@ -72,7 +72,7 @@ pub fn case(name: &str) {
 fn check_case(path: &Path) -> Result<Vec<String>, String> {
     let mut case = Case::load(path, &documents_dir())?;
     let outcome = run(&case, &Replay::new(&case))?;
-    let mut failures = every_case(&case, &outcome);
+    let mut failures = every_case(&outcome);
     failures.extend(exchanges_used(&case, &outcome));
     if blessing() {
         let before = case.to_text();
@@ -179,7 +179,7 @@ pub struct Ran {
 /// Runs `sego` with `args` and `cache_dir` as `SEGO_CACHE_DIR`, connecting
 /// through `transport`.
 pub fn sego(args: &[&str], cache_dir: &OsStr, transport: &replay::Answers) -> Ran {
-    let env = Env { endpoint: None, cache_dir: Some(cache_dir.to_owned()) };
+    let env = Env { cache_dir: Some(cache_dir.to_owned()) };
     let handle = transport.clone();
     let connect = move |_: Endpoint| -> Box<dyn Transport> { Box::new(handle.clone()) };
     let (mut stdout, mut stderr) = (Vec::new(), Vec::new());
@@ -233,20 +233,16 @@ pub fn run<T: Transport + Logged + Clone + 'static>(
     transport: &T,
 ) -> Result<Outcome, String> {
     let cache = TempDir::new().map_err(|e| format!("cache directory: {e}"))?;
-    let mut endpoint = None;
     let mut cache_dir = None;
     for (name, value) in &case.env {
         match name.as_str() {
-            "SEGO_ENDPOINT" => endpoint = Some(OsString::from(value)),
             "SEGO_CACHE_DIR" => cache_dir = Some(OsString::from(value)),
             _ => return Err(format!("env: {name} is not read by run")),
         }
     }
     let own_cache = cache_dir.is_none();
-    let env = Env {
-        endpoint,
-        cache_dir: Some(cache_dir.unwrap_or_else(|| cache.path().as_os_str().to_owned())),
-    };
+    let env =
+        Env { cache_dir: Some(cache_dir.unwrap_or_else(|| cache.path().as_os_str().to_owned())) };
     let connected = RefCell::new(Vec::new());
     let connect = |endpoint: Endpoint| -> Box<dyn Transport> {
         connected.borrow_mut().push(endpoint.url(""));
@@ -287,7 +283,7 @@ pub trait Logged {
 }
 
 /// The checks every case gets, whatever it expects.
-fn every_case(case: &Case, outcome: &Outcome) -> Vec<String> {
+fn every_case(outcome: &Outcome) -> Vec<String> {
     let mut failures = Vec::new();
     let from_a_response = |line: &str| FOUND_FROM_A_RESPONSE.iter().any(|m| line.contains(m));
     let first = outcome.stderr.lines().find(|line| line.starts_with("sego: error: "));
@@ -298,7 +294,7 @@ fn every_case(case: &Case, outcome: &Outcome) -> Vec<String> {
     failures.extend(outcome.stderr.lines().filter_map(ends_in_a_period));
     failures.extend(outcome.problems.iter().cloned());
     failures.extend(deadline(outcome));
-    failures.extend(endpoint(case, outcome));
+    failures.extend(endpoint(outcome));
     let raw = outcome.sent.iter().any(|s| matches!(s.request, Request::Raw { .. }));
     if outcome.cache_entries.is_some_and(|n| n > 0) && !raw {
         failures.push("the cache directory was written with no raw read sent".to_owned());
@@ -339,20 +335,14 @@ fn deadline(outcome: &Outcome) -> Option<String> {
     })
 }
 
-/// `connect` is called at most once, with the case's `SEGO_ENDPOINT` or the
-/// default.
-fn endpoint(case: &Case, outcome: &Outcome) -> Option<String> {
-    let value = case.env.iter().find(|(name, _)| name == "SEGO_ENDPOINT").map(|(_, v)| v);
-    let expected = match value.filter(|value| !value.is_empty()) {
-        Some(value) => value.parse::<Endpoint>().map(|e| e.url("")),
-        None => Ok(Endpoint::default().url("")),
-    };
-    match (&outcome.connected[..], expected) {
-        ([], _) => None,
-        ([got], Ok(expected)) if *got == expected => None,
-        ([got], Ok(expected)) => Some(format!("connect was given {got}, not {expected}")),
-        ([got], Err(_)) => Some(format!("connect was given {got} for an invalid SEGO_ENDPOINT")),
-        (all, _) => Some(format!("connect was called {} times", all.len())),
+/// `connect` is called at most once, with sourcegraph.com.
+fn endpoint(outcome: &Outcome) -> Option<String> {
+    let expected = Endpoint::default().url("");
+    match &outcome.connected[..] {
+        [] => None,
+        [got] if *got == expected => None,
+        [got] => Some(format!("connect was given {got}, not {expected}")),
+        all => Some(format!("connect was called {} times", all.len())),
     }
 }
 
@@ -539,9 +529,9 @@ mod tests {
     const QUERY: &str =
         "query Refs($repo0: String!) {\n  r0: repository(name: $repo0) { name }\n}\n";
 
-    fn case(env: &str) -> Case {
+    fn case() -> Case {
         let text = format!(
-            "args = [\"refs\", \"example.com/a/b\"]\n{env}status.code = 0\n\n[[exchange]]\n\
+            "args = [\"refs\", \"example.com/a/b\"]\nstatus.code = 0\n\n[[exchange]]\n\
              operation = \"Refs\"\nvariables = '{{\"repo0\":\"example.com/a/b\"}}'\n\
              document = \"{}\"\nstatus = 200\nresponse = \"{{}}\"\n",
             case::scratch("Refs", QUERY)
@@ -579,7 +569,7 @@ mod tests {
     }
 
     fn checked(outcome: &Outcome) -> Vec<String> {
-        every_case(&case(""), outcome)
+        every_case(outcome)
     }
 
     #[test]
@@ -666,14 +656,12 @@ mod tests {
     }
 
     #[test]
-    fn connect_is_given_the_cases_endpoint_or_the_default() {
-        let custom = case("env = { SEGO_ENDPOINT = \"http://127.0.0.1:9/\" }\n");
+    fn connect_is_given_sourcegraph_com_once() {
+        let other = vec!["http://127.0.0.1:9".to_owned()];
         assert_eq!(
-            every_case(&custom, &outcome(Vec::new())),
-            ["connect was given https://sourcegraph.com, not http://127.0.0.1:9"]
+            checked(&Outcome { connected: other, ..outcome(Vec::new()) }),
+            ["connect was given http://127.0.0.1:9, not https://sourcegraph.com"]
         );
-        let connected = vec!["http://127.0.0.1:9".to_owned()];
-        assert_eq!(every_case(&custom, &Outcome { connected, ..outcome(Vec::new()) }), [""; 0]);
         let twice = vec!["https://sourcegraph.com".to_owned(); 2];
         assert_eq!(
             checked(&Outcome { connected: twice, ..outcome(Vec::new()) }),
@@ -692,26 +680,26 @@ mod tests {
     #[test]
     fn a_request_that_differs_from_its_exchange_fails_with_both_texts() {
         let changed = "query Refs($repo0: String!) { r0: repository(name: $repo0) { id } }";
-        let failures = requests_match(&case(""), &outcome(vec![refs("example.com/a/b", changed)]));
+        let failures = requests_match(&case(), &outcome(vec![refs("example.com/a/b", changed)]));
         let [failure] = &failures[..] else { panic!("{failures:?}") };
         assert!(failure.contains("--- written\nRefs") && failure.contains("--- sent\nRefs"));
         let spaced = refs("example.com/a/b", &QUERY.replace('\n', " "));
-        assert_eq!(requests_match(&case(""), &outcome(vec![spaced])), [""; 0]);
+        assert_eq!(requests_match(&case(), &outcome(vec![spaced])), [""; 0]);
     }
 
     #[test]
     fn a_request_with_no_exchange_left_or_an_unused_exchange_fails_the_case() {
-        let failures = exchanges_used(&case(""), &outcome(Vec::new()));
+        let failures = exchanges_used(&case(), &outcome(Vec::new()));
         assert_eq!(failures, ["refs/x.toml: 1 of 1 exchanges went unused; sego sent 0 request(s)"]);
         let two = outcome(vec![refs("example.com/a/b", QUERY), raw()]);
-        let failures = exchanges_used(&case(""), &two);
+        let failures = exchanges_used(&case(), &two);
         assert!(failures[0].contains("sent request 2 with no exchange left"), "{failures:?}");
     }
 
     #[test]
     fn a_stream_that_differs_fails_with_a_diff() {
         let failures =
-            expectations(&case(""), &Outcome { stdout: "one\n".to_owned(), ..outcome(Vec::new()) });
+            expectations(&case(), &Outcome { stdout: "one\n".to_owned(), ..outcome(Vec::new()) });
         assert_eq!(failures, ["stdout:\n--- expected\n+++ actual\n@@ -0,0 +1 @@\n+one\n"]);
     }
 

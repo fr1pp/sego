@@ -38,7 +38,7 @@ response = '''
 - `document` names the query's text, stored once in `tests/documents/` as
   `<operation>-<hash>.graphql`. Bless and record write new documents; bless deletes those no case
   names.
-- `env` sets `SEGO_ENDPOINT` or `SEGO_CACHE_DIR`.
+- `env` sets `SEGO_CACHE_DIR`.
 - `stdout.closed = true` or `stderr.closed = true` runs the case with that pipe's reader gone.
 - A raw read has `get = "<path>"` in place of the GraphQL request, and names its body with
   `body = "<file>.body"`, relative to the case's directory. Cases may share a body file.
@@ -72,7 +72,7 @@ Every case is also checked for:
 - no request on a usage error, except the three found from a response
 - no note or error line that ends in a period
 - every request under the one client deadline
-- the endpoint `connect` is given: the case's `SEGO_ENDPOINT`, or the default
+- `connect` given sourcegraph.com, at most once
 - a cache directory left untouched unless a raw read was sent
 
 Every case served a GraphQL response runs a second time with a hostile corpus in the strings of its

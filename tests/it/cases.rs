@@ -39,11 +39,6 @@ mod cli {
     }
 
     #[test]
-    fn endpoint_from_environment() {
-        case("cli/endpoint-from-environment.toml");
-    }
-
-    #[test]
     fn general_help() {
         case("cli/general-help.toml");
     }
@@ -51,11 +46,6 @@ mod cli {
     #[test]
     fn help_flag_before_command() {
         case("cli/help-flag-before-command.toml");
-    }
-
-    #[test]
-    fn help_with_bad_endpoint() {
-        case("cli/help-with-bad-endpoint.toml");
     }
 
     #[test]
@@ -106,11 +96,6 @@ mod cli {
     #[test]
     fn ls_range() {
         case("cli/ls-range.toml");
-    }
-
-    #[test]
-    fn malformed_endpoint() {
-        case("cli/malformed-endpoint.toml");
     }
 
     #[test]

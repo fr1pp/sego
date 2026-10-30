@@ -15,12 +15,12 @@ mod output;
 mod pointer;
 mod sourcegraph;
 
-use std::ffi::{OsStr, OsString};
+use std::ffi::OsString;
 use std::io::{self, Write};
 use std::time::Instant;
 
-use cli::{Invocation, SYNOPSIS};
-use error::{Error, Failure};
+use cli::Invocation;
+use error::Failure;
 use output::Notes;
 use sourcegraph::Client;
 
@@ -34,8 +34,6 @@ pub fn connect(endpoint: Endpoint) -> Box<dyn Transport> {
 
 /// The process environment that `run` reads.
 pub struct Env {
-    /// `SEGO_ENDPOINT`, the server to read from; `None` for sourcegraph.com.
-    pub endpoint: Option<OsString>,
     /// `SEGO_CACHE_DIR`, the root of the cache; `None` for the
     /// default location.
     pub cache_dir: Option<OsString>,
@@ -72,18 +70,6 @@ pub fn run(
     }
 }
 
-/// The endpoint `SEGO_ENDPOINT` names: sourcegraph.com when it is unset or
-/// empty.
-fn endpoint(value: Option<&OsStr>) -> Result<Endpoint, Error> {
-    let Some(value) = value.filter(|value| !value.is_empty()) else {
-        return Ok(Endpoint::default());
-    };
-    let Some(text) = value.to_str() else {
-        return Err(Error::usage("SEGO_ENDPOINT is not valid UTF-8", SYNOPSIS));
-    };
-    text.parse().map_err(|reason| Error::usage(format!("SEGO_ENDPOINT {reason}: {text}"), SYNOPSIS))
-}
-
 fn attempt(
     args: &[OsString],
     env: &Env,
@@ -97,7 +83,7 @@ fn attempt(
         Invocation::Version => return Ok(writeln!(out, "sego {}", env!("CARGO_PKG_VERSION"))?),
         Invocation::Command(command) => command,
     };
-    let endpoint = endpoint(env.endpoint.as_deref())?;
+    let endpoint = Endpoint::default();
     let cache = endpoint.cache(env.cache_dir.as_deref());
     let deadline = Instant::now() + sourcegraph::DEADLINE;
     let client = Client::new(connect(endpoint.clone()), endpoint, &cache, deadline);
@@ -107,32 +93,4 @@ fn attempt(
     out.flush()?;
     cache.trim();
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn usage(value: &OsStr) -> String {
-        let Err(error) = endpoint(Some(value)) else { panic!("{value:?} was accepted") };
-        error::report(&error)
-    }
-
-    #[test]
-    fn an_unset_or_empty_sego_endpoint_is_sourcegraph_com() {
-        for value in [None, Some(OsStr::new(""))] {
-            let endpoint = endpoint(value).unwrap_or_else(|e| panic!("{e}"));
-            assert_eq!(endpoint.url(""), "https://sourcegraph.com");
-        }
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn a_sego_endpoint_that_isnt_utf8_is_a_usage_error() {
-        use std::os::unix::ffi::OsStrExt;
-        assert_eq!(
-            usage(OsStr::from_bytes(b"http://\xff")),
-            "sego: error: SEGO_ENDPOINT is not valid UTF-8\nusage: sego COMMAND [--json] ...\n"
-        );
-    }
 }

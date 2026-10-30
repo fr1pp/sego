@@ -97,7 +97,7 @@ cd "$(dirname "$0")/.."
 mkdir -p target
 body=$(jq -n --arg q "$document" '{query: $q}')
 curl -sSf --remove-on-error -A "sego-dev/0" -H 'Content-Type: application/json' \
-    --data-binary "$body" "${SEGO_ENDPOINT:-https://sourcegraph.com}/.api/graphql" \
+    --data-binary "$body" "https://sourcegraph.com/.api/graphql" \
     -o target/schema.json.part
 if ! jq 'if .errors then error(.errors | tostring)
     else (.data.__schema.types // error("the response holds no schema")) | length end' target/schema.json.part
