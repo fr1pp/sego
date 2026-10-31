@@ -64,7 +64,6 @@ pub struct Query {
     /// sourcegraph.com allows one, otherwise a narrower scope.
     pub stopped_pointer: String,
     pub repo_scoped: bool,
-    pub repo_names: Option<String>,
     /// A pattern names `NOT-INDEXED`, so the placeholders of unindexed
     /// files are results, not matches to drop.
     pub lists_placeholders: bool,
@@ -87,7 +86,6 @@ impl Query {
             by_results: stated_unit(written).is_none(),
             stopped_pointer: stopped_pointer(written, deadline_ms),
             repo_scoped: repo_scoped(written),
-            repo_names: repo_names(written),
             lists_placeholders: written.iter().any(|item| {
                 matches!(item, Written::Pattern { text, negated: false, .. }
                     if text.to_ascii_uppercase().contains(NOT_INDEXED))
@@ -185,47 +183,6 @@ fn stopped_pointer(written: &[Written], deadline_ms: u64) -> String {
 /// `or` can sit beside no `repo:` filter at all.
 fn repo_scoped(written: &[Written]) -> bool {
     !written.contains(&Written::Or) && filters(written).any(|f| is_repo(f) && !f.negated)
-}
-
-/// A `type:repo` search for the name in the query's one positive `repo:`
-/// value: the segment after the owner (`pgx` in `^github\.com/jackc/pgx/v5$`),
-/// or the owner when there is none. A first segment that holds a `.` is the
-/// host. `None` when there is no such value, the name isn't literal, or the
-/// name is the value as written.
-fn repo_names(written: &[Written]) -> Option<String> {
-    let mut repos = filters(written).filter(|f| is_repo(f) && !f.negated);
-    let (Some(repo), None) = (repos.next(), repos.next()) else {
-        return None;
-    };
-    let value = unquoted(&repo.value);
-    let value = value.split_once('@').map_or(value, |(name, _)| name);
-    if value.starts_with("has.") || value.starts_with("contains.") {
-        return None;
-    }
-    let path = value.strip_prefix('^').unwrap_or(value);
-    let path = path.strip_suffix('$').unwrap_or(path);
-    let mut segments: Vec<&str> = path.split('/').collect();
-    if segments.len() > 1 && segments[0].contains('.') {
-        segments.remove(0);
-    }
-    let name = segments.get(1).filter(|segment| !segment.is_empty()).or(segments.first())?;
-    (literal_name(name) && *name != value).then(|| format!("repo:{name} type:repo"))
-}
-
-/// Letters, digits, `_`, `-` and `.`, each `.` or `-` escaped or not.
-fn literal_name(name: &str) -> bool {
-    let mut chars = name.chars();
-    while let Some(c) = chars.next() {
-        let literal = if c == '\\' {
-            matches!(chars.next(), Some('.' | '-'))
-        } else {
-            c.is_ascii_alphanumeric() || "_-.".contains(c)
-        };
-        if !literal {
-            return false;
-        }
-    }
-    !name.is_empty()
 }
 
 fn filters(written: &[Written]) -> impl Iterator<Item = &Filter> {
@@ -533,49 +490,6 @@ mod tests {
         }
         for q in ["foo", "-repo:x foo", "file:x foo", "lang:go foo", "repo:x a or b"] {
             assert!(!Query::new(q).repo_scoped, "{q}");
-        }
-    }
-
-    #[test]
-    fn a_query_naming_one_repository_gets_a_repository_lookup_by_its_last_name_segment() {
-        let rows = [
-            (
-                r#"repo:^github\.com/jackc/pgx/v5$@v5.5.5 -file:_test\.go$ "conn busy" timeout:60s"#,
-                Some("repo:pgx type:repo"),
-            ),
-            (r"repo:^github.com/jackc/pgconn$ foo", Some("repo:pgconn type:repo")),
-            (r"repo:^github\.com/expressjs/security-wg$ foo", Some("repo:security-wg type:repo")),
-            ("repo:github.com/jackc/pgx/v5 foo", Some("repo:pgx type:repo")),
-            ("repo:jackc/pgx/v5 foo", Some("repo:pgx type:repo")),
-            ("r:jackc/pgx foo", Some("repo:pgx type:repo")),
-            ("REPO:jackc/pgx foo", Some("repo:pgx type:repo")),
-            (r#"repo:"^github\.com/jackc/pgx$" foo"#, Some("repo:pgx type:repo")),
-            (r"repo:^github\.com/jackc/ foo", Some("repo:jackc type:repo")),
-            ("repo:^pgx$ foo", Some("repo:pgx type:repo")),
-            (r"repo:^github\.com/a/b\.js$ foo", Some(r"repo:b\.js type:repo")),
-            (r"repo:^b\.js$ foo", Some(r"repo:b\.js type:repo")),
-            ("repo:a/b -repo:c/d foo", Some("repo:b type:repo")),
-            ("repo:jackc/pgx@v5.5.5 foo", Some("repo:pgx type:repo")),
-            (r"repo:^github\.com/a/b\-c$ foo", Some(r"repo:b\-c type:repo")),
-            (r"repo:^github\.com/jackc/pgx$ type:repo", Some("repo:pgx type:repo")),
-            // the search would be the value itself
-            ("repo:pgx foo", None),
-            ("repo:pgx@v1 foo", None),
-            ("repo:pgx type:repo", None),
-            // no one positive repo: value
-            ("foo", None),
-            ("-repo:a/b foo", None),
-            ("repo:a/b repo:c/d foo", None),
-            ("repo:a/b foo or repo:c/d bar", None),
-            // the name isn't literal
-            (r"repo:^github\.com/gorilla/(mux|handlers)$ foo", None),
-            (r"repo:^github\.com/ foo", None),
-            ("repo:has.file(path:go.mod) foo", None),
-            ("repo:contains.file(path:a/b) foo", None),
-            ("repo:has.file(path:src/a/b/c.go) foo", None),
-        ];
-        for (q, expected) in rows {
-            assert_eq!(Query::new(q).repo_names.as_deref(), expected, "{q}");
         }
     }
 

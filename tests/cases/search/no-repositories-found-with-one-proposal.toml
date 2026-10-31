@@ -1,13 +1,14 @@
-# A repo: value that is already the bare name gets no pointer.
-args = ["search", "repo:pgx foo"]
+# A single proposal from the server follows the error.
+args = ["search", "repo:example.com/acme/widget foo"]
 status.code = 1
 stderr = '''
 sego: error: No repositories found
+  the server proposes: q1
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"timeout:60s repo:pgx foo"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/widget foo"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
@@ -17,9 +18,14 @@ response = '''
     "search": {
       "results": {
         "alert": {
-          "description": "Try using a different filter",
+          "description": "advice",
           "kind": null,
-          "proposedQueries": null,
+          "proposedQueries": [
+            {
+              "description": "d1",
+              "query": "q1"
+            }
+          ],
           "title": "No repositories found"
         },
         "approximateResultCount": "0",

@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use crate::error::Error;
-use crate::escape::shell_word;
 use crate::output::Notes;
 use crate::pointer;
 
@@ -30,14 +29,7 @@ impl Answer {
                     return Err(revisions(alert));
                 }
                 if alert.title == NO_REPOSITORIES {
-                    let error = proposals(alert, Error::not_found(&alert.title));
-                    return Err(match &self.query.repo_names {
-                        Some(names) => error.fact(format!(
-                            "sego search {} lists the matching repositories",
-                            shell_word(names)
-                        )),
-                        None => error,
-                    });
+                    return Err(proposals(alert, Error::not_found(&alert.title)));
                 }
             }
         }

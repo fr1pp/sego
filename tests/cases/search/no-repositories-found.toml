@@ -4,7 +4,6 @@ args = ["search", 'repo:^github\.com/sego-nonexistent-0/nope$ foo']
 status.code = 1
 stderr = '''
 sego: error: No repositories found
-  sego search 'repo:nope type:repo' lists the matching repositories
 '''
 
 [[exchange]]

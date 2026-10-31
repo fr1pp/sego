@@ -1568,18 +1568,8 @@ mod search {
     }
 
     #[test]
-    fn no_repositories_found_for_a_bare_name_has_no_pointer() {
-        case("search/no-repositories-found-for-a-bare-name-has-no-pointer.toml");
-    }
-
-    #[test]
-    fn no_repositories_found_for_a_go_module_path() {
-        case("search/no-repositories-found-for-a-go-module-path.toml");
-    }
-
-    #[test]
-    fn no_repositories_found_with_one_proposal_then_pointer() {
-        case("search/no-repositories-found-with-one-proposal-then-pointer.toml");
+    fn no_repositories_found_with_one_proposal() {
+        case("search/no-repositories-found-with-one-proposal.toml");
     }
 
     #[test]
