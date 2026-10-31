@@ -19,7 +19,7 @@ A query is a search pattern plus filters. Filters are `name:value` tokens such a
   - Quoting also turns reserved words into text: `"router or one"` is a phrase, not an `or`.
 - **`/.../` is an RE2 regular expression** inside a keyword query, as in `/func New\w+\(\)/`.
   - Spaces inside the slashes are part of the regex.
-  - A regex can span lines with `\n` or `\s+`: `/NewRouter\(\)\n\s*r\.Host/`.
+  - A regex can span lines with `\n` or `\s+`: `/NewRouter\(\)\n\s*r\.Host/`. So `/^\s*#define/` also starts on any blank line above the `#define`, and that line is marked as a match; `[ \t]` in place of `\s` stays on one line.
   - Anchors and wildcards only work inside slashes. In keyword mode, `^NewRouter$` and `foo.*bar` written bare are literal text.
   - Flags go inside the slashes, as in `/(?s)func \(r \*Router\) Match\(.*?\n\}/`. Letters after the closing slash, as in `/cloudflare/i`, make the whole term literal text, which usually matches nothing.
 - **`content:"..."` sets the pattern explicitly.** Use it when the text looks like query syntax, for example `content:"repo:foo"`, `content:"SkipClean("` or `content:"a or b"`.
