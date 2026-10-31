@@ -90,9 +90,6 @@ pub enum Group {
         highlights: Vec<[u32; 3]>,
         /// The match body is a diff, not a commit message.
         diff: bool,
-        /// The diff preview reaches a server limit, so it may be cut: it
-        /// shows 5 files, or 3 hunks of one file.
-        limited: bool,
     },
     Repo {
         repo: String,
@@ -288,65 +285,12 @@ fn build_chunk(raw: RawChunk) -> Chunk {
     Chunk { lines, units }
 }
 
-/// Sourcegraph's gitserver previews at most this many files of a diff, and
-/// this many hunks of each file. The response doesn't say when it cut a
-/// preview.
-pub const PREVIEW_FILES: u32 = 5;
-pub const PREVIEW_HUNKS: u32 = 3;
-
-/// The preview reaches a server limit. A hunk's body is the lines after its
-/// header that start with `+`, `-` or a space, until its old and new line
-/// counts are spent; any other line that isn't a hunk header names a file.
-/// A body can hold fewer lines than its counts, so a header ends it early.
-fn preview_limited(body: &[&str]) -> bool {
-    let (mut files, mut hunks) = (0, 0);
-    let (mut old, mut new) = (0_u32, 0_u32);
-    for line in body {
-        if let Some(counts) = hunk_counts(line) {
-            (old, new) = counts;
-            hunks += 1;
-            if hunks >= PREVIEW_HUNKS {
-                return true;
-            }
-            continue;
-        }
-        let in_body = old > 0 || new > 0;
-        match line.as_bytes().first() {
-            Some(b'+') if in_body => new = new.saturating_sub(1),
-            Some(b'-') if in_body => old = old.saturating_sub(1),
-            Some(b' ') if in_body => {
-                old = old.saturating_sub(1);
-                new = new.saturating_sub(1);
-            }
-            _ => {
-                (old, new) = (0, 0);
-                hunks = 0;
-                files += 1;
-                if files >= PREVIEW_FILES {
-                    return true;
-                }
-            }
-        }
-    }
-    false
-}
-
-/// The old and new line counts of a hunk header, `@@ -A,B +C,D @@ ...`,
-/// the form the server always writes.
-fn hunk_counts(line: &str) -> Option<(u32, u32)> {
-    let (ranges, _) = line.strip_prefix("@@ -")?.split_once(" @@")?;
-    let (old, new) = ranges.split_once(" +")?;
-    let lines = |range: &str| range.split_once(',')?.1.parse().ok();
-    Some((lines(old)?, lines(new)?))
-}
-
 /// The body of each match without its fence lines, and the highlights that
 /// land in it, indexed into the pooled `lines`.
 fn commit_group(result: CommitResult) -> Group {
     let mut lines: Vec<String> = Vec::new();
     let mut highlights: Vec<[u32; 3]> = Vec::new();
     let mut diff = false;
-    let mut limited = false;
     for found in &result.matches {
         let is_diff =
             found.body.text.split('\n').next().is_some_and(|fence| strip_cr(fence).0 == "```diff");
@@ -359,7 +303,6 @@ fn commit_group(result: CommitResult) -> Group {
         if body.last() == Some(&"") {
             body.pop();
         }
-        limited |= is_diff && preview_limited(&body);
         let offset = lines.len();
         for h in &found.highlights {
             let Some(index) = (h.line as usize).checked_sub(1) else {
@@ -386,7 +329,6 @@ fn commit_group(result: CommitResult) -> Group {
         lines,
         highlights,
         diff,
-        limited,
     }
 }
 
@@ -634,7 +576,6 @@ pub fn counted(
 
 #[cfg(test)]
 mod tests {
-    use std::fmt::Write as _;
 
     use serde_json::{Value, json};
 
@@ -863,77 +804,6 @@ mod tests {
         let s = searched_for("repo:x type:diff y", &json!([]));
         assert_eq!((s.unit, s.count), (Unit::Commits, 0));
         assert!(json_of(&s).contains(r#""unit":"commits","count":0,"#));
-    }
-
-    /// A diff body of `hunks.len()` files, file `i` with `hunks[i]` hunks.
-    fn diff_body(hunks: &[usize]) -> String {
-        let hunk = "@@ -1,2 +1,2 @@ x\n ctx\n-old\n+new\n";
-        let mut body = "```diff\n".to_owned();
-        for (i, &n) in hunks.iter().enumerate() {
-            let _ = writeln!(body, "f{i}.go f{i}.go");
-            body.push_str(&hunk.repeat(n));
-        }
-        body.push_str("```");
-        body
-    }
-
-    fn limited(body: &str) -> bool {
-        let s = searched_for("type:diff x", &json!([commit(body, &json!([]))]));
-        match &s.groups[0] {
-            Group::Commit { limited, .. } => *limited,
-            _ => panic!("not a commit"),
-        }
-    }
-
-    #[test]
-    fn a_diff_of_five_files_is_limited() {
-        assert!(limited(&diff_body(&[1, 1, 1, 1, 1])));
-    }
-
-    #[test]
-    fn a_diff_of_four_files_of_two_hunks_is_not_limited() {
-        assert!(!limited(&diff_body(&[2, 2, 1, 2])));
-    }
-
-    #[test]
-    fn files_are_told_from_hunk_lines_by_the_hunk_counts() {
-        let hunk = "@@ -1,1 +1,1 @@\n-o\n+n\n";
-        let body = format!("```diff\na a\n{hunk}+b +b\n{hunk}-c -c\n{hunk}```");
-        assert!(!limited(&body));
-        let body =
-            format!("```diff\na a\n{hunk}+b +b\n{hunk}-c -c\n{hunk}d d\n{hunk}+e +e\n{hunk}```");
-        assert!(limited(&body));
-        let body =
-            format!("```diff\na a\n{hunk}+b +b\n{hunk}-c -c\n{hunk}d d\n{hunk} e  e\n{hunk}```");
-        assert!(limited(&body));
-    }
-
-    #[test]
-    fn the_lines_of_a_hunk_that_only_deletes_are_not_file_names() {
-        let deleted = "a a\n@@ -1,4 +0,0 @@\n-1\n-2\n-3\n-4\n";
-        assert!(!limited(&format!("```diff\n{deleted}```")));
-    }
-
-    #[test]
-    fn a_hunk_counting_more_lines_than_it_shows_ends_at_the_next_header() {
-        let short = "@@ -1,9 +1,9 @@\n ctx\n-o\n";
-        let hunk = "@@ -1,1 +1,1 @@\n-o\n+n\n";
-        assert!(limited(&format!("```diff\na a\n{short}{hunk}{hunk}```")));
-        let files = format!("b b\n{hunk}c c\n{hunk}d d\n{hunk}e e\n{hunk}");
-        assert!(limited(&format!("```diff\na a\n{short}{files}```")));
-        assert!(!limited(&format!("```diff\na a\n{short}b b\n{hunk}```")));
-    }
-
-    #[test]
-    fn a_hunk_header_has_both_counts() {
-        let lines = "@@ -1 +1 @@\n".repeat(3);
-        assert!(!limited(&format!("```diff\na a\n{lines}```")));
-    }
-
-    #[test]
-    fn a_commit_message_is_not_limited() {
-        let lines = "@@ a\n@@ b\n@@ c\n".repeat(2);
-        assert!(!limited(&format!("```\na\n{lines}b\nc\nd\ne\n```")));
     }
 
     #[test]

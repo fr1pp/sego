@@ -19,7 +19,6 @@ github.com/gorilla/mux@98cb6bf42e08  2020-07-11  Harshavardhana  fix: regression
     +	{
     +		route: new(Route).Host("{subdomain}.domain.com:{port:.*}"),
     +		vars:  []string{"subdomain", "bar", "port", "65535"},
-    preview limited to 5 files and 3 hunks a file; sego diff github.com/gorilla/mux@98cb6bf42e08 lists every changed file
 '''
 
 [[exchange]]

@@ -105,7 +105,6 @@ struct CommitRecord<'a> {
     subject: &'a str,
     lines: &'a [String],
     highlights: &'a [[u32; 3]],
-    preview_limited: bool,
 }
 
 fn records<'a>(group: &'a Group) -> Vec<Record<'a>> {
@@ -154,18 +153,17 @@ fn records<'a>(group: &'a Group) -> Vec<Record<'a>> {
             }
             out
         }
-        Group::Commit {
-            repo, commit, date, author, subject, lines, highlights, limited, ..
-        } => vec![Record::Commit(CommitRecord {
-            repo,
-            commit,
-            date,
-            author,
-            subject,
-            lines,
-            highlights,
-            preview_limited: *limited,
-        })],
+        Group::Commit { repo, commit, date, author, subject, lines, highlights, .. } => {
+            vec![Record::Commit(CommitRecord {
+                repo,
+                commit,
+                date,
+                author,
+                subject,
+                lines,
+                highlights,
+            })]
+        }
         Group::Repo { repo } => vec![Record::Repo { repo }],
     }
 }

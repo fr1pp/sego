@@ -95,7 +95,7 @@ json:
     and repo; file kinds add commit rev path; unindexed adds reason; line
     adds line text match ranges chunk, with match false on a context
     line; symbol adds line name symbol_kind container; commit adds commit
-    date author subject lines highlights preview_limited; date is the UTC
+    date author subject lines highlights; date is the UTC
     day of the author date
   server notes
 

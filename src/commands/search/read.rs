@@ -115,7 +115,6 @@ impl WrittenFilter {
     pub fn raw(&self) -> String {
         format!("{}{}:{}", if self.negated { "-" } else { "" }, self.field, self.value)
     }
-
 }
 
 /// The values of the non-negated `name:` filters; a negated `type:` or

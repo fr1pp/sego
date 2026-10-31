@@ -3,7 +3,7 @@
 args = ["search", "--json", "repo:example.com/app type:diff foo"]
 status.code = 0
 stdout = '''
-{"query":"timeout:60s repo:example.com/app type:diff foo","pattern_type":"keyword","unit":"commits","count":1,"at_least":false,"stopped":false,"elapsed_ms":100,"limit_ms":60000,"widen":[],"alert":null,"results":[{"kind":"commit","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","date":"2024-05-06","author":"Ann","subject":"fix","lines":["x","+y"],"highlights":[],"preview_limited":false}],"server":{"match_count":1,"approximate_count":"1","limit_hit":false,"timedout":[]},"notes":[]}
+{"query":"timeout:60s repo:example.com/app type:diff foo","pattern_type":"keyword","unit":"commits","count":1,"at_least":false,"stopped":false,"elapsed_ms":100,"limit_ms":60000,"widen":[],"alert":null,"results":[{"kind":"commit","repo":"example.com/app","commit":"0123456789abcdef0123456789abcdef01234567","date":"2024-05-06","author":"Ann","subject":"fix","lines":["x","+y"],"highlights":[]}],"server":{"match_count":1,"approximate_count":"1","limit_hit":false,"timedout":[]},"notes":[]}
 '''
 
 [[exchange]]

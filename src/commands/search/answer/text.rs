@@ -1,6 +1,6 @@
 use std::fmt::{self, Write as _};
 
-use super::{Answer, Chunk, FileItem, Group, PREVIEW_FILES, PREVIEW_HUNKS, Row, SymbolRow, rows};
+use super::{Answer, Chunk, FileItem, Group, Row, SymbolRow, rows};
 use crate::address::pinned;
 use crate::commands::search::query::Unit;
 use crate::escape::{escape, one_line, render_line};
@@ -95,17 +95,7 @@ impl Answer {
                     header_end = out.len();
                     printed += file_body(&mut out, &group.file_items(), printed);
                 }
-                Group::Commit {
-                    repo,
-                    commit,
-                    date,
-                    author,
-                    subject,
-                    lines,
-                    highlights,
-                    diff,
-                    limited,
-                } => {
+                Group::Commit { repo, commit, date, author, subject, lines, highlights, diff } => {
                     let address = pinned(repo, commit, None);
                     out.push_str(&header(
                         &address,
@@ -113,14 +103,6 @@ impl Answer {
                     ));
                     header_end = out.len();
                     commit_body(&mut out, lines, highlights, *diff);
-                    if *limited {
-                        let _ = writeln!(
-                            out,
-                            "    preview limited to {PREVIEW_FILES} files and \
-                             {PREVIEW_HUNKS} hunks a file; sego diff \
-                             {address} lists every changed file"
-                        );
-                    }
                     printed += group.units();
                 }
                 Group::Repo { repo } => {

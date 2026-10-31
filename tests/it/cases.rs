@@ -1688,11 +1688,6 @@ mod search {
     }
 
     #[test]
-    fn preview_limited_json() {
-        case("search/preview-limited-json.toml");
-    }
-
-    #[test]
     fn range_end_beyond_chunk_json() {
         case("search/range-end-beyond-chunk-json.toml");
     }
