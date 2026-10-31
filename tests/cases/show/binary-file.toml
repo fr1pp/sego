@@ -2,16 +2,16 @@
 args = ["show", "github.com/BurntSushi/ripgrep@14.1.0:tests/data/sherlock.gz"]
 status.code = 0
 stdout = '''
-github.com/BurntSushi/ripgrep@e50df40a1967:tests/data/sherlock.gz  binary  263 bytes  rev 14.1.0  mirrored 2026-10-27T05:26Z
+github.com/BurntSushi/ripgrep@e50df40a1967:tests/data/sherlock.gz  binary  263 bytes  rev 14.1.0  mirrored 2026-10-31T00:33Z
 '''
 
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":500,"gitlab":false,"path":"tests/data/sherlock.gz","recursive":false,"repo0":"github.com/BurntSushi/ripgrep","repo1":"","rev":"14.1.0","start":1}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -21,7 +21,6 @@ response = '''
           "__typename": "GitBlob",
           "content": ""
         },
-        "gm": null,
         "meta": {
           "__typename": "GitBlob",
           "binary": true,
@@ -38,7 +37,7 @@ response = '''
         "displayName": "master"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T05:26:14Z"
+        "updatedAt": "2026-10-31T00:33:28Z"
       },
       "name": "github.com/BurntSushi/ripgrep"
     }

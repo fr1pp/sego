@@ -2,24 +2,21 @@
 args = ["ls", "--json", "github.com/akinomyoga/ble.sh@d81fd54feb0d996fdff20dca27eaf0201f7015cc:contrib"]
 status.code = 0
 stdout = '''
-{"repo":"github.com/akinomyoga/ble.sh","rev":"d81fd54feb0d996fdff20dca27eaf0201f7015cc","commit":"d81fd54feb0d996fdff20dca27eaf0201f7015cc","path":"contrib","kind":"submodule","recursive":false,"entries":[{"path":"contrib","kind":"submodule","submodule_url":"../blesh-contrib","submodule_address":"github.com/akinomyoga/blesh-contrib@d2109203480a","submodule_commit":"d2109203480a7dfe1dead5f5f8f9f15a9146c90d"}],"entries_total":1,"entries_more":false,"mirrored_at":null,"notes":[]}
+{"repo":"github.com/akinomyoga/ble.sh","rev":"d81fd54feb0d996fdff20dca27eaf0201f7015cc","commit":"d81fd54feb0d996fdff20dca27eaf0201f7015cc","path":"contrib","kind":"submodule","recursive":false,"entries":[{"path":"contrib","kind":"submodule","submodule_commit":"d2109203480a7dfe1dead5f5f8f9f15a9146c90d"}],"entries_total":1,"entries_more":false,"mirrored_at":null,"notes":[]}
 '''
 
 [[exchange]]
 operation = "File"
 variables = '{"content":false,"gitlab":false,"path":"contrib","recursive":false,"repo0":"github.com/akinomyoga/ble.sh","repo1":"","rev":"d81fd54feb0d996fdff20dca27eaf0201f7015cc"}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
     "r0": {
       "commit": {
-        "gm": {
-          "content": "[submodule \"contrib\"]\n\tpath = contrib\n\turl = ../blesh-contrib\n"
-        },
         "meta": {
           "__typename": "GitBlob",
           "binary": false,
@@ -38,7 +35,7 @@ response = '''
         "displayName": "master"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T00:07:47Z"
+        "updatedAt": "2026-10-30T22:14:05Z"
       },
       "name": "github.com/akinomyoga/ble.sh"
     }

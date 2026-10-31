@@ -13,7 +13,6 @@ g0: repository(name: $repo) {
             __typename
             ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }
           }
-          gm: blob(path: ".gitmodules") { content }
       } } } }
     }
   }
@@ -30,7 +29,6 @@ g1: repository(name: $repo) {
             __typename
             ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }
           }
-          gm: blob(path: ".gitmodules") { content }
       } } } }
     }
   }
@@ -47,7 +45,6 @@ g2: repository(name: $repo) {
             __typename
             ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }
           }
-          gm: blob(path: ".gitmodules") { content }
       } } } }
     }
   }

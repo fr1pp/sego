@@ -8,7 +8,7 @@ use crate::error::Error;
 use crate::escape::{one_line, render_line, strip_cr, utf8_escaped};
 use crate::output::{
     FileRow, Marker, Notes, base64, closing_fields, code_line, count, date, file_row, files_field,
-    header, row_text, rows_asked, submodule_address, submodule_text,
+    header, row_text, rows_asked, submodule_text,
 };
 use crate::pointer;
 use crate::sourcegraph::{Client, Comparison, Content, File, Resolved, Window};
@@ -33,8 +33,6 @@ pub struct Line {
 /// A submodule, as the answer gives it.
 #[derive(Serialize)]
 pub struct Submodule {
-    url: Option<String>,
-    address: Option<String>,
     commit: String,
 }
 
@@ -135,17 +133,11 @@ pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Shown, Erro
             )));
         }
         File::Directory(_) => return Ok(Shown::Listing(ls::answer(at, file, false, notes))),
-        File::Submodule { submodule, gitmodules } => {
-            let url = submodule.url.as_deref().unwrap_or_default();
-            let address = submodule_address(url, &submodule.commit, &at.repo);
+        File::Submodule(submodule) => {
             let mut shown = Answer::new(at, path, AddressKind::Submodule, notes);
-            if let Err(error) = gitmodules {
-                notes.push(format!("{}: {error}", ls::GITMODULES_NOTE));
-            }
-            shown.fields.push(format!("submodule  {}", submodule_text(address.as_deref(), url)));
+            shown.fields.push(format!("submodule  {}", submodule_text(&submodule.commit)));
             shown.finish_fields();
-            shown.submodule =
-                Some(Submodule { url: submodule.url, address, commit: submodule.commit });
+            shown.submodule = Some(Submodule { commit: submodule.commit });
             return Ok(Shown::File(shown));
         }
     };

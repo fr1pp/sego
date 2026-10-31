@@ -10,17 +10,16 @@ sego: error: nope.go not found in github.com/gorilla/mux@98cb6bf42e08
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":500,"gitlab":false,"path":"nope.go","recursive":false,"repo0":"github.com/gorilla/mux","repo1":"","rev":"v1.8.0","start":1}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
     "r0": {
       "commit": {
         "body": null,
-        "gm": null,
         "meta": null,
         "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
       },
@@ -28,7 +27,7 @@ response = '''
         "displayName": "main"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T06:58:09Z"
+        "updatedAt": "2026-10-31T00:34:59Z"
       },
       "name": "github.com/gorilla/mux"
     }

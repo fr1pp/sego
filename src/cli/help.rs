@@ -125,7 +125,7 @@ const SHOW_FACTS: &str = r#"text:
 json:
   A file: repo rev commit path kind (file or submodule) total_lines
   byte_size binary crlf utf8 (null when unknown) lfs_size
-  submodule{url address commit} start
+  submodule{commit} start
   end lines[{line text bytes}], bytes the line in base64 when not UTF-8
   A commit: repo rev commit kind author author_date committer
   committer_date parents subject message
@@ -150,13 +150,12 @@ const LS_FACTS: &str = r#"text:
   REPO@COMMIT[:PATH]  N entries  D dirs  F files  S submodules  rev REV
   mirrored T, then a row per entry, "KIND  PATH", with KIND dir, file or
   submodule. A file or a submodule is its own one row. Paths are from the
-  repository root, sorted segment by segment. A submodule's URL comes
-  from .gitmodules; "?" when it has none. Text prints 200 entries; --json
-  carries every entry.
+  repository root, sorted segment by segment. A submodule's row ends in
+  its commit. Text prints 200 entries; --json carries every entry.
 
 json:
   repo rev commit path kind (directory, file or submodule) recursive
-  entries[{path kind submodule_url submodule_address submodule_commit}]
+  entries[{path kind submodule_commit}]
   entries_total entries_more mirrored_at notes
 
 examples:

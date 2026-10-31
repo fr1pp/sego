@@ -3,13 +3,13 @@ args = ["ls", "example.com/acme/shell@d81fd54feb0d996fdff20dca27eaf0201f7015cc:c
 status.code = 0
 stdout = '''
 example.com/acme/shell@d81fd54feb0d:contrib  1 entry  1 submodule
-submodule  contrib  example.com/acme/contrib
+submodule  contrib  ?
 '''
 
 [[exchange]]
 operation = "File"
 variables = '{"content":false,"gitlab":false,"path":"contrib","recursive":false,"repo0":"example.com/acme/shell","repo1":"","rev":"d81fd54feb0d996fdff20dca27eaf0201f7015cc"}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
 response = '''

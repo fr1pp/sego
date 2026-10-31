@@ -2,7 +2,7 @@
 args = ["show", "github.com/gorilla/mux@v1.8.0:.github"]
 status.code = 0
 stdout = '''
-github.com/gorilla/mux@98cb6bf42e08:.github  2 entries  2 files  rev v1.8.0  mirrored 2026-10-27T06:58Z
+github.com/gorilla/mux@98cb6bf42e08:.github  2 entries  2 files  rev v1.8.0  mirrored 2026-10-31T00:34Z
 file       .github/release-drafter.yml
 file       .github/stale.yml
 '''
@@ -10,10 +10,10 @@ file       .github/stale.yml
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":500,"gitlab":false,"path":".github","recursive":false,"repo0":"github.com/gorilla/mux","repo1":"","rev":"v1.8.0","start":1}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -22,7 +22,6 @@ response = '''
         "body": {
           "__typename": "GitTree"
         },
-        "gm": null,
         "meta": {
           "__typename": "GitTree",
           "entries": [
@@ -45,7 +44,7 @@ response = '''
         "displayName": "main"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T06:58:09Z"
+        "updatedAt": "2026-10-31T00:34:59Z"
       },
       "name": "github.com/gorilla/mux"
     }

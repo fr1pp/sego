@@ -2,13 +2,13 @@
 args = ["ls", "--json", "example.com/acme/widget@v1.0.0:."]
 status.code = 0
 stdout = '''
-{"repo":"example.com/acme/widget","rev":"v1.0.0","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","path":null,"kind":"directory","recursive":false,"entries":[{"path":"docs","kind":"dir","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"mux.go","kind":"file","submodule_url":null,"submodule_address":null,"submodule_commit":null}],"entries_total":2,"entries_more":false,"mirrored_at":null,"notes":[]}
+{"repo":"example.com/acme/widget","rev":"v1.0.0","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","path":null,"kind":"directory","recursive":false,"entries":[{"path":"docs","kind":"dir","submodule_commit":null},{"path":"mux.go","kind":"file","submodule_commit":null}],"entries_total":2,"entries_more":false,"mirrored_at":null,"notes":[]}
 '''
 
 [[exchange]]
 operation = "File"
 variables = '{"content":false,"gitlab":false,"path":"","recursive":false,"repo0":"example.com/acme/widget","repo1":"","rev":"v1.0.0"}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
 response = '''

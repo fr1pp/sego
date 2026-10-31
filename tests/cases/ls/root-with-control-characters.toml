@@ -5,14 +5,14 @@ stdout = '''
 example.com/acme/widget@0123456789ab  4 entries  1 dir  1 file  2 submodules
 file       $'a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i'
 dir        $'a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i-dir'/
-submodule  mod  example.com/acme/lib@a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}
-submodule  sub  https://example.com/a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+submodule  mod  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}
+submodule  sub  0123456789ab
 '''
 
 [[exchange]]
 operation = "File"
 variables = '{"content":false,"gitlab":false,"path":"","recursive":false,"repo0":"example.com/acme/widget","repo1":"","rev":"HEAD"}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
 response = '''

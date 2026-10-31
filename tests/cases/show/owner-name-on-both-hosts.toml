@@ -10,10 +10,10 @@ usage: sego show [--json] REPO[@REV]:PATH [LINES]
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":3,"gitlab":true,"path":"README.md","recursive":false,"repo0":"github.com/wireshark/wireshark","repo1":"gitlab.com/wireshark/wireshark","rev":"HEAD","start":1}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -23,24 +23,23 @@ response = '''
           "__typename": "GitBlob",
           "content": "General Information\n-------------------\n\n"
         },
-        "gm": null,
         "meta": {
           "__typename": "GitBlob",
           "binary": false,
           "byteSize": 10429,
           "lfs": null,
           "path": "README.md",
-          "rawURL": "/r/github.com/wireshark/wireshark@eb6fdfd82527d9ef6755d204262fa297610e8c38/-/raw/README.md",
+          "rawURL": "/r/github.com/wireshark/wireshark@2286b15b4596927004b4161d9be9809b6eff2434/-/raw/README.md",
           "submodule": null,
           "totalLines": 259
         },
-        "oid": "eb6fdfd82527d9ef6755d204262fa297610e8c38"
+        "oid": "2286b15b4596927004b4161d9be9809b6eff2434"
       },
       "defaultBranch": {
         "displayName": "master"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T06:46:39Z"
+        "updatedAt": "2026-10-30T23:51:20Z"
       },
       "name": "github.com/wireshark/wireshark"
     },
@@ -50,24 +49,23 @@ response = '''
           "__typename": "GitBlob",
           "content": "General Information\n-------------------\n\n"
         },
-        "gm": null,
         "meta": {
           "__typename": "GitBlob",
           "binary": false,
           "byteSize": 10429,
           "lfs": null,
           "path": "README.md",
-          "rawURL": "/r/gitlab.com/wireshark/wireshark@eb6fdfd82527d9ef6755d204262fa297610e8c38/-/raw/README.md",
+          "rawURL": "/r/gitlab.com/wireshark/wireshark@3acdc50c677e4a0dc3055cb8e771950621e7ae1b/-/raw/README.md",
           "submodule": null,
           "totalLines": 259
         },
-        "oid": "eb6fdfd82527d9ef6755d204262fa297610e8c38"
+        "oid": "3acdc50c677e4a0dc3055cb8e771950621e7ae1b"
       },
       "defaultBranch": {
         "displayName": "master"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T06:55:12Z"
+        "updatedAt": "2026-10-31T00:33:30Z"
       },
       "name": "gitlab.com/wireshark/wireshark"
     }

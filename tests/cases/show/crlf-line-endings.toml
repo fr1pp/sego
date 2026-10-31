@@ -13,10 +13,10 @@ github.com/golang/go@e3c3d2f9e7ca:src/cmd/go/testdata/script/go_version.txt  lin
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":5,"gitlab":false,"path":"src/cmd/go/testdata/script/go_version.txt","recursive":false,"repo0":"github.com/golang/go","repo1":"","rev":"e3c3d2f9e7ca88e6f240fe00faa67efb03d851a1","start":1}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -26,7 +26,6 @@ response = '''
           "__typename": "GitBlob",
           "content": "# test that go version doesn't panic on non-go binaries\r\n# See Issue #49181\r\n\r\n[exec:/bin/true] cp /bin/true true\r\n[exec:C:\\windows\\system32\\help.exe] cp C:\\windows\\system32\\help.exe help.exe\r\n"
         },
-        "gm": null,
         "meta": {
           "__typename": "GitBlob",
           "binary": false,
@@ -43,7 +42,7 @@ response = '''
         "displayName": "master"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T06:56:43Z"
+        "updatedAt": "2026-10-30T23:46:21Z"
       },
       "name": "github.com/golang/go"
     }

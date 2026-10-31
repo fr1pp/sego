@@ -13,7 +13,7 @@ sego: note: Sourcegraph failed to answer whether gitlab.com/gorilla/mux exists
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":2,"gitlab":true,"path":"README.md","recursive":false,"repo0":"github.com/gorilla/mux","repo1":"gitlab.com/gorilla/mux","rev":"HEAD","start":1}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
 evidence = "none: a failed lookup of one host sourcegraph.com doesn't give on demand"

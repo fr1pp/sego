@@ -15,7 +15,7 @@ example.com/acme/widget@0123456789ab:big.txt  lines 1-7 of 8
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":7,"gitlab":false,"path":"big.txt","recursive":false,"repo0":"example.com/acme/widget","repo1":"","rev":"0123456789abcdef0123456789abcdef01234567","start":1}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
 evidence = "show/binary-file-over-content-limit"

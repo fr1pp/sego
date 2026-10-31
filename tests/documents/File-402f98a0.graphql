@@ -13,7 +13,6 @@ g0: repository(name: $repo) {
             __typename
             ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }
           }
-          gm: blob(path: ".gitmodules") { content }
       } } } }
     }
   }

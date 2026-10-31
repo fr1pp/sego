@@ -2,7 +2,7 @@
 args = ["show", "github.com/gorilla/mux@v1.8.0:mux.go", "10,20"]
 status.code = 0
 stdout = '''
-github.com/gorilla/mux@98cb6bf42e08:mux.go  lines 10-20 of 606  rev v1.8.0  mirrored 2026-10-27T06:58Z
+github.com/gorilla/mux@98cb6bf42e08:mux.go  lines 10-20 of 606  rev v1.8.0  mirrored 2026-10-31T00:34Z
 10:	"fmt"
 11:	"net/http"
 12:	"path"
@@ -19,10 +19,10 @@ github.com/gorilla/mux@98cb6bf42e08:mux.go  lines 10-20 of 606  rev v1.8.0  mirr
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":20,"gitlab":false,"path":"mux.go","recursive":false,"repo0":"github.com/gorilla/mux","repo1":"","rev":"v1.8.0","start":10}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -32,7 +32,6 @@ response = '''
           "__typename": "GitBlob",
           "content": "\t\"fmt\"\n\t\"net/http\"\n\t\"path\"\n\t\"regexp\"\n)\n\nvar (\n\t// ErrMethodMismatch is returned when the method in the request does not match\n\t// the method defined against the route.\n\tErrMethodMismatch = errors.New(\"method is not allowed\")\n\t// ErrNotFound is returned when no route match is found.\n"
         },
-        "gm": null,
         "meta": {
           "__typename": "GitBlob",
           "binary": false,
@@ -49,7 +48,7 @@ response = '''
         "displayName": "main"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T06:58:09Z"
+        "updatedAt": "2026-10-31T00:34:59Z"
       },
       "name": "github.com/gorilla/mux"
     }

@@ -1,14 +1,12 @@
 //! What a path names at a commit: a file, a directory or a submodule, read
 //! through the `path` union under the one revision lookup.
 
-use std::collections::HashMap;
 use std::fmt::Write as _;
 
 use serde::Deserialize;
 use serde_json::{Map, json};
 
 use super::Page;
-use super::gitmodules;
 use super::graphql::{Envelope, GqlErrorKind, Request, Segment, View, repeated};
 use super::resolve::{self, Repository, Resolved, repository_variables, split_guesses};
 use crate::address::{Repo, Target, pinned};
@@ -18,9 +16,9 @@ use crate::pointer;
 /// How many lines an open-ended window asks for, at most.
 const OPEN_END_SPAN: i64 = 500_000;
 
-/// What a commit holds at `$path`: `meta` says what the path names, `body`
+/// What a commit holds at `$path`: `meta` says what the path names, and `body`
 /// holds a file's lines apart from it, since the content limit's error nulls
-/// its parent, and `gm` holds `.gitmodules`, whose URLs the server gets wrong.
+/// its parent.
 const READ: &str = "\
     oid
     meta: path(path: $path#) {
@@ -31,8 +29,7 @@ const READ: &str = "\
     body: path(path: $path#) @include(if: $content) {
       __typename
       ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }
-    }
-    gm: blob(path: \".gitmodules\") { content }";
+    }";
 
 /// One split guess of a web URL, resolved without fetching unless `$fetch`,
 /// so a wrong guess costs no fetch.
@@ -50,11 +47,7 @@ READ
 pub enum File {
     Blob(Blob),
     Directory(Directory),
-    /// A submodule, and whether `.gitmodules` was read for its URL.
-    Submodule {
-        submodule: Submodule,
-        gitmodules: Result<(), Error>,
-    },
+    Submodule(Submodule),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -97,8 +90,6 @@ pub struct Line {
 pub struct Directory {
     /// Every entry, in the server's order.
     pub entries: Page<Entry>,
-    /// Whether `.gitmodules` was read for the submodules' URLs.
-    pub gitmodules: Result<(), Error>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -110,8 +101,6 @@ pub struct Entry {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Submodule {
-    /// `None` when `.gitmodules` has no URL for its path, or wasn't read.
-    pub url: Option<String>,
     pub commit: String,
 }
 
@@ -377,16 +366,6 @@ fn read_at(
             pointer::missing_path(pointer::At { repo: &found.name, commit: &commit }, path);
         return Err(Error::not_found(format!("{path} not found in {at}")).facts(missing));
     };
-    let (urls, gitmodules) = if view.errors_beneath(&["gm"]).is_empty() {
-        let text: Option<String> = view.read(&["gm", "content"]);
-        (text.as_deref().map(gitmodules::urls).unwrap_or_default(), Ok(()))
-    } else {
-        (HashMap::new(), Err(Error::failed(".gitmodules")))
-    };
-    let submodule = |path: &str, node: SubmoduleNode| Submodule {
-        url: urls.get(path).cloned(),
-        commit: node.commit,
-    };
     let lfs_errors = view.errors_beneath(&["meta", "lfs"]);
     let lfs_failed = lfs_errors.iter().any(|e| e.kind() != GqlErrorKind::OverLimit);
     let other_failed = view.errors_beneath(&["meta"]).len() > lfs_errors.len();
@@ -397,19 +376,19 @@ fn read_at(
                 .entries
                 .into_iter()
                 .map(|node| Entry {
-                    submodule: node.submodule.map(|module| submodule(&node.path, module)),
+                    submodule: node.submodule.map(|module| Submodule { commit: module.commit }),
                     path: node.path,
                     is_directory: node.is_directory,
                 })
                 .collect();
             let total = Some(items.len() as u64);
             let entries = Page { items, total, more: false };
-            (File::Directory(Directory { entries, gitmodules }), tree.path, Body::None)
+            (File::Directory(Directory { entries }), tree.path, Body::None)
         }
         Ok(Meta::GitBlob(blob)) if !other_failed && !lfs_failed => {
             if let Some(module) = blob.submodule {
-                let module = submodule(&blob.path, module);
-                (File::Submodule { submodule: module, gitmodules }, blob.path, Body::None)
+                let module = Submodule { commit: module.commit };
+                (File::Submodule(module), blob.path, Body::None)
             } else {
                 let details_failed = || Error::failed("the file's details");
                 let lfs_size = blob

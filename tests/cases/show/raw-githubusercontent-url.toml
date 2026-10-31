@@ -2,7 +2,7 @@
 args = ["show", "raw.githubusercontent.com/gorilla/mux/v1.8.0/mux.go", "1-3"]
 status.code = 0
 stdout = '''
-github.com/gorilla/mux@98cb6bf42e08:mux.go  lines 1-3 of 606  rev v1.8.0  mirrored 2026-10-27T06:59Z
+github.com/gorilla/mux@98cb6bf42e08:mux.go  lines 1-3 of 606  rev v1.8.0  mirrored 2026-10-31T00:35Z
 1:// Copyright 2012 The Gorilla Authors. All rights reserved.
 2:// Use of this source code is governed by a BSD-style
 3:// license that can be found in the LICENSE file.
@@ -11,10 +11,10 @@ github.com/gorilla/mux@98cb6bf42e08:mux.go  lines 1-3 of 606  rev v1.8.0  mirror
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":3,"fetch":false,"path0":"mux.go","path1":"","recursive":false,"repo":"github.com/gorilla/mux","rev0":"v1.8.0","rev1":"v1.8.0/mux.go","start":1}'
-document = "File-5abb1d75"
+document = "File-7efe5c37"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -28,7 +28,6 @@ response = '''
                   "__typename": "GitBlob",
                   "content": "// Copyright 2012 The Gorilla Authors. All rights reserved.\n// Use of this source code is governed by a BSD-style\n// license that can be found in the LICENSE file.\n"
                 },
-                "gm": null,
                 "meta": {
                   "__typename": "GitBlob",
                   "binary": false,
@@ -52,7 +51,7 @@ response = '''
         "displayName": "main"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T06:59:26Z"
+        "updatedAt": "2026-10-31T00:35:11Z"
       },
       "name": "github.com/gorilla/mux"
     }

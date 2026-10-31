@@ -2,16 +2,16 @@
 args = ["show", "--json", "github.com/akinomyoga/ble.sh@d81fd54feb0d:contrib"]
 status.code = 0
 stdout = '''
-{"repo":"github.com/akinomyoga/ble.sh","rev":"d81fd54feb0d","commit":"d81fd54feb0d996fdff20dca27eaf0201f7015cc","path":"contrib","kind":"submodule","total_lines":0,"byte_size":0,"binary":false,"crlf":false,"utf8":true,"lfs_size":null,"submodule":{"url":"../blesh-contrib","address":"github.com/akinomyoga/blesh-contrib@d2109203480a","commit":"d2109203480a7dfe1dead5f5f8f9f15a9146c90d"},"start":null,"end":null,"lines":[],"mirrored_at":null,"notes":[]}
+{"repo":"github.com/akinomyoga/ble.sh","rev":"d81fd54feb0d","commit":"d81fd54feb0d996fdff20dca27eaf0201f7015cc","path":"contrib","kind":"submodule","total_lines":0,"byte_size":0,"binary":false,"crlf":false,"utf8":true,"lfs_size":null,"submodule":{"commit":"d2109203480a7dfe1dead5f5f8f9f15a9146c90d"},"start":null,"end":null,"lines":[],"mirrored_at":null,"notes":[]}
 '''
 
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":500,"gitlab":false,"path":"contrib","recursive":false,"repo0":"github.com/akinomyoga/ble.sh","repo1":"","rev":"d81fd54feb0d","start":1}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -20,9 +20,6 @@ response = '''
         "body": {
           "__typename": "GitBlob",
           "content": ""
-        },
-        "gm": {
-          "content": "[submodule \"contrib\"]\n\tpath = contrib\n\turl = ../blesh-contrib\n"
         },
         "meta": {
           "__typename": "GitBlob",
@@ -42,7 +39,7 @@ response = '''
         "displayName": "master"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T00:07:47Z"
+        "updatedAt": "2026-10-30T22:14:05Z"
       },
       "name": "github.com/akinomyoga/ble.sh"
     }

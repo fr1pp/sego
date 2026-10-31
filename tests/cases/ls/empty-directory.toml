@@ -8,7 +8,7 @@ example.com/acme/widget@98cb6bf42e08:empty  0 entries  rev v1.0.0
 [[exchange]]
 operation = "File"
 variables = '{"content":false,"gitlab":false,"path":"empty","recursive":false,"repo0":"example.com/acme/widget","repo1":"","rev":"v1.0.0"}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
 response = '''

@@ -2,7 +2,7 @@
 args = ["show", "https://github.com/gorilla/mux/blob/main/x/./../README.md", "1-2"]
 status.code = 0
 stdout = '''
-github.com/gorilla/mux@db9d1d0073d2:README.md  lines 1-2 of 812  rev main  mirrored 2026-10-27T12:47Z
+github.com/gorilla/mux@db9d1d0073d2:README.md  lines 1-2 of 812  rev main  mirrored 2026-10-31T00:35Z
 1:# gorilla/mux
 2:
 '''
@@ -10,10 +10,10 @@ github.com/gorilla/mux@db9d1d0073d2:README.md  lines 1-2 of 812  rev main  mirro
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":2,"fetch":false,"path0":"README.md","path1":"README.md","path2":"","recursive":false,"repo":"github.com/gorilla/mux","rev0":"main","rev1":"main/x/./..","rev2":"main/x/./../README.md","start":1}'
-document = "File-2eaab4fa"
+document = "File-03110e37"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -27,7 +27,6 @@ response = '''
                   "__typename": "GitBlob",
                   "content": "# gorilla/mux\n\n"
                 },
-                "gm": null,
                 "meta": {
                   "__typename": "GitBlob",
                   "binary": false,
@@ -52,7 +51,7 @@ response = '''
         "displayName": "main"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T12:47:18Z"
+        "updatedAt": "2026-10-31T00:35:11Z"
       },
       "name": "github.com/gorilla/mux"
     }

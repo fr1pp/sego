@@ -8,10 +8,10 @@ sego: error: revision 49c0 not found in github.com/gorilla/mux: no ref has that 
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":500,"gitlab":false,"path":"mux.go","recursive":false,"repo0":"github.com/gorilla/mux","repo1":"","rev":"49c0","start":1}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -21,7 +21,7 @@ response = '''
         "displayName": "main"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T06:59:26Z"
+        "updatedAt": "2026-10-30T23:53:32Z"
       },
       "name": "github.com/gorilla/mux"
     }

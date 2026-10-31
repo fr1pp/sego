@@ -1,20 +1,17 @@
-# A .gitmodules that can't be read leaves the submodule's URL unknown, with a note.
+# A submodule gives its commit.
 args = ["show", "github.com/sharkdp/bat@a9aa73d2:assets/syntaxes/01_Packages"]
 status.code = 0
 stdout = '''
-github.com/sharkdp/bat@a9aa73d21545:assets/syntaxes/01_Packages  submodule  ?
-'''
-stderr = '''
-sego: note: submodule URLs unknown: Sourcegraph failed to answer .gitmodules
+github.com/sharkdp/bat@a9aa73d21545:assets/syntaxes/01_Packages  submodule  759d6eed9b4b
 '''
 
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":500,"gitlab":false,"path":"assets/syntaxes/01_Packages","recursive":false,"repo0":"github.com/sharkdp/bat","repo1":"","rev":"a9aa73d2","start":1}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
-evidence = "none: a server failure sourcegraph.com doesn't give on demand"
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -24,7 +21,6 @@ response = '''
           "__typename": "GitBlob",
           "content": ""
         },
-        "gm": null,
         "meta": {
           "__typename": "GitBlob",
           "binary": false,
@@ -43,21 +39,10 @@ response = '''
         "displayName": "master"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T04:50:20Z"
+        "updatedAt": "2026-10-31T00:17:18Z"
       },
       "name": "github.com/sharkdp/bat"
     }
-  },
-  "errors": [
-    {
-      "message": "rpc error: code = Unavailable desc = gitserver unavailable",
-      "path": [
-        "r0",
-        "commit",
-        "gm",
-        "content"
-      ]
-    }
-  ]
+  }
 }
 '''

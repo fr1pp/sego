@@ -11,7 +11,7 @@ sego: note: U+FFFD may stand for bytes that aren't UTF-8: Sourcegraph failed to 
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":14,"gitlab":false,"path":"tests/snapshots/sample.modified.rs","recursive":false,"repo0":"github.com/sharkdp/bat","repo1":"","rev":"a9aa73d2","start":14}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
 response = '''

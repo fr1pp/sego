@@ -8,10 +8,10 @@ sego: error: no revision and path in nosuchbranch/mux.go resolve in github.com/g
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":500,"fetch":false,"path0":"mux.go","path1":"","recursive":false,"repo":"github.com/gorilla/mux","rev0":"nosuchbranch","rev1":"nosuchbranch/mux.go","start":1}'
-document = "File-5abb1d75"
+document = "File-7efe5c37"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -22,23 +22,23 @@ response = '''
         "displayName": "main"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T07:04:29Z"
+        "updatedAt": "2026-10-31T00:34:56Z"
       },
       "name": "github.com/gorilla/mux"
     }
   },
   "errors": [
     {
-      "message": "revision not found: repo 1700 @nosuchbranch/mux.go^0",
+      "message": "revision not found: repo 1700 @nosuchbranch^0",
       "path": [
-        "g1",
+        "g0",
         "comparison"
       ]
     },
     {
-      "message": "revision not found: repo 1700 @nosuchbranch^0",
+      "message": "revision not found: repo 1700 @nosuchbranch/mux.go^0",
       "path": [
-        "g0",
+        "g1",
         "comparison"
       ]
     }
@@ -49,10 +49,10 @@ response = '''
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":500,"fetch":true,"path0":"mux.go","path1":"","recursive":false,"repo":"github.com/gorilla/mux","rev0":"nosuchbranch","rev1":"nosuchbranch/mux.go","start":1}'
-document = "File-5abb1d75"
+document = "File-7efe5c37"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -63,7 +63,7 @@ response = '''
         "displayName": "main"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T07:04:29Z"
+        "updatedAt": "2026-10-31T00:34:56Z"
       },
       "name": "github.com/gorilla/mux"
     }

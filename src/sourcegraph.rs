@@ -7,7 +7,6 @@
 
 mod commits;
 mod files;
-mod gitmodules;
 mod graphql;
 mod http;
 mod raw;

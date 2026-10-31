@@ -3,7 +3,7 @@
 
 use super::{
     Address, AddressError, FULL_OID, LineRange, Repo, Rev, UrlKind, commit_rev, is_bad_char,
-    is_digits, is_oid_like, parse_lines, parse_path, parse_repo, parse_rev, strip_clone_url,
+    is_digits, is_oid_like, parse_lines, parse_path, parse_repo, parse_rev,
 };
 
 fn hex_value(b: u8) -> Option<u8> {
@@ -315,43 +315,9 @@ pub fn parse_web(token: &str) -> Option<Result<Address, AddressError>> {
     }
 }
 
-/// Resolves a submodule's stored URL to `host/owner/name`.
-pub fn submodule_repository(url: &str, parent_repo: &str) -> Option<String> {
-    let url = url.trim();
-    if url.is_empty() || strip_prefix_ignore_case(url, "file:").is_some() {
-        return None;
-    }
-    let location = if url.starts_with("./") || url.starts_with("../") {
-        let mut segments: Vec<&str> = parent_repo.split('/').collect();
-        for part in url.split('/') {
-            match part {
-                "." | "" => {}
-                ".." => {
-                    segments.pop();
-                    if segments.is_empty() {
-                        return None;
-                    }
-                }
-                name => segments.push(name),
-            }
-        }
-        segments.join("/")
-    } else {
-        strip_clone_url(url)
-    };
-    let location = location.trim_end_matches('/');
-    let location = location.strip_suffix(".git").unwrap_or(location);
-    let segments: Vec<&str> = location.split('/').collect();
-    let valid = segments.len() >= 3
-        && segments[0].contains('.')
-        && segments.iter().all(|s| !s.is_empty() && !s.contains(is_bad_char));
-    valid.then(|| location.to_owned())
-}
-
 #[cfg(test)]
 mod tests {
     use super::super::{Address, AddressError, Dots, End, LineRange, Repo, Rev, UrlKind, parse};
-    use super::*;
 
     const SHA: &str = "98cb6bf42e086f6af920b965c38cacc07402d51b";
 
@@ -532,32 +498,6 @@ mod tests {
         for (token, message) in cases {
             let e = parse(token).expect_err(token);
             assert_eq!(e.to_string(), message, "{token}");
-        }
-    }
-
-    #[test]
-    fn a_submodule_url_resolves_against_its_parent_repository() {
-        let cases = [
-            (
-                "../blesh-contrib",
-                "github.com/akinomyoga/ble.sh",
-                Some("github.com/akinomyoga/blesh-contrib"),
-            ),
-            (
-                "https://github.com/rust-lang/cargo.git",
-                "github.com/x/a",
-                Some("github.com/rust-lang/cargo"),
-            ),
-            ("git@github.com:x/y.git", "github.com/x/a", Some("github.com/x/y")),
-            ("ssh://git@github.com/x/y.git", "github.com/x/a", Some("github.com/x/y")),
-            ("", "github.com/x/a", None),
-            ("../../../b", "github.com/x/a", None),
-            ("file:///srv/b.git", "github.com/x/a", None),
-            ("https://github.com/x", "github.com/x/a", None),
-            ("/srv/b", "github.com/x/a", None),
-        ];
-        for (url, parent, want) in cases {
-            assert_eq!(submodule_repository(url, parent).as_deref(), want, "{url} from {parent}");
         }
     }
 

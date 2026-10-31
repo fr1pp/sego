@@ -40,7 +40,7 @@ text:
 json:
   A file: repo rev commit path kind (file or submodule) total_lines
   byte_size binary crlf utf8 (null when unknown) lfs_size
-  submodule{url address commit} start
+  submodule{commit} start
   end lines[{line text bytes}], bytes the line in base64 when not UTF-8
   A commit: repo rev commit kind author author_date committer
   committer_date parents subject message

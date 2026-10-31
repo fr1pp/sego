@@ -13,10 +13,10 @@ github.com/go-gitea/gitea@965d7522e0b3:options/gitignore/macOS  lines 5-9 of 26
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":9,"gitlab":false,"path":"options/gitignore/macOS","recursive":false,"repo0":"github.com/go-gitea/gitea","repo1":"","rev":"965d7522","start":5}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-29, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -26,7 +26,6 @@ response = '''
           "__typename": "GitBlob",
           "content": "\n# Icon must end with two \\r\nIcon\r\r\n\n# Thumbnails\n"
         },
-        "gm": null,
         "meta": {
           "__typename": "GitBlob",
           "binary": false,
@@ -43,7 +42,7 @@ response = '''
         "displayName": "main"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-29T00:44:47Z"
+        "updatedAt": "2026-10-31T00:31:10Z"
       },
       "name": "github.com/go-gitea/gitea"
     }

@@ -17,7 +17,7 @@ sego: note: cache unavailable: SEGO_CACHE_DIR is not an absolute path
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":5,"gitlab":false,"path":"big.c","recursive":false,"repo0":"example.com/acme/widget","repo1":"","rev":"main","start":1}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
 evidence = "show/binary-file-over-content-limit"

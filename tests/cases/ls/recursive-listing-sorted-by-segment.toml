@@ -3,7 +3,7 @@
 args = ["ls", "--recursive", "github.com/gorilla/websocket@v1.5.3:examples"]
 status.code = 0
 stdout = '''
-github.com/gorilla/websocket@ce903f6d1d96:examples  22 entries  6 dirs  16 files  rev v1.5.3  mirrored 2026-10-27T04:48Z
+github.com/gorilla/websocket@ce903f6d1d96:examples  22 entries  6 dirs  16 files  rev v1.5.3  mirrored 2026-10-30T21:27Z
 dir        examples/autobahn/
 file       examples/autobahn/README.md
 dir        examples/autobahn/config/
@@ -31,16 +31,15 @@ file       examples/filewatch/main.go
 [[exchange]]
 operation = "File"
 variables = '{"content":false,"gitlab":false,"path":"examples","recursive":true,"repo0":"github.com/gorilla/websocket","repo1":"","rev":"v1.5.3"}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
     "r0": {
       "commit": {
-        "gm": null,
         "meta": {
           "__typename": "GitTree",
           "entries": [
@@ -163,7 +162,7 @@ response = '''
         "displayName": "main"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T04:48:11Z"
+        "updatedAt": "2026-10-30T21:27:41Z"
       },
       "name": "github.com/gorilla/websocket"
     }

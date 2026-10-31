@@ -7,11 +7,10 @@ use crate::commands::AddressKind;
 use crate::error::Error;
 use crate::escape::one_line;
 use crate::escape::shell_word;
-use crate::output::{Notes, closing_fields, count, header, submodule_address, submodule_text};
+use crate::output::{Notes, closing_fields, count, header, submodule_text};
 use crate::sourcegraph::{Client, File, Resolved, Submodule};
 
 const TEXT_ROWS: usize = 200;
-pub const GITMODULES_NOTE: &str = "submodule URLs unknown";
 
 #[derive(Clone, Copy, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -35,37 +34,17 @@ impl Kind {
 pub struct Entry {
     path: String,
     kind: Kind,
-    submodule_url: Option<String>,
-    submodule_address: Option<String>,
     submodule_commit: Option<String>,
-    #[serde(skip)]
-    address_shown: Option<String>,
 }
 
 impl Entry {
-    fn new(path: &str, is_dir: bool, module: Option<Submodule>, repo: &str) -> Entry {
+    fn new(path: &str, is_dir: bool, module: Option<Submodule>) -> Entry {
         let kind = match (&module, is_dir) {
             (_, true) => Kind::Dir,
             (Some(_), false) => Kind::Submodule,
             (None, false) => Kind::File,
         };
-        let (submodule_url, submodule_address, submodule_commit, address_shown) = match module {
-            Some(module) => {
-                let url = module.url.as_deref().unwrap_or_default();
-                let address = submodule_address(url, &module.commit, repo);
-                let shown = submodule_text(address.as_deref(), url);
-                (module.url, address, Some(module.commit), Some(shown))
-            }
-            None => (None, None, None, None),
-        };
-        Entry {
-            path: path.to_owned(),
-            kind,
-            submodule_url,
-            submodule_address,
-            submodule_commit,
-            address_shown,
-        }
+        Entry { path: path.to_owned(), kind, submodule_commit: module.map(|module| module.commit) }
     }
 
     fn row(&self) -> String {
@@ -73,9 +52,9 @@ impl Entry {
         if matches!(self.kind, Kind::Dir) {
             row.push('/');
         }
-        if let Some(address) = &self.address_shown {
+        if let Some(commit) = &self.submodule_commit {
             row.push_str("  ");
-            row.push_str(&one_line(address));
+            row.push_str(&one_line(&submodule_text(commit)));
         }
         row.push('\n');
         row
@@ -150,31 +129,22 @@ pub fn answer(at: Resolved, file: File, recursive: bool, notes: &mut Notes) -> A
     let mirrored_at = at.lookup.noting_other_host(|note| notes.push(note));
     let path = at.path.clone().filter(|path| !path.is_empty());
     let row_path = path.as_deref().unwrap_or_default();
-    let (kind, entries, gitmodules) = match file {
+    let (kind, entries) = match file {
         File::Directory(directory) => {
             let mut entries: Vec<Entry> = directory
                 .entries
                 .items
                 .into_iter()
-                .map(|entry| Entry::new(&entry.path, entry.is_directory, entry.submodule, &at.repo))
+                .map(|entry| Entry::new(&entry.path, entry.is_directory, entry.submodule))
                 .collect();
             entries.sort_by(|a, b| a.path.split('/').cmp(b.path.split('/')));
-            (AddressKind::Directory, entries, directory.gitmodules)
+            (AddressKind::Directory, entries)
         }
-        File::Submodule { submodule, gitmodules } => (
-            AddressKind::Submodule,
-            vec![Entry::new(row_path, false, Some(submodule), &at.repo)],
-            gitmodules,
-        ),
-        File::Blob(_) => {
-            (AddressKind::File, vec![Entry::new(row_path, false, None, &at.repo)], Ok(()))
+        File::Submodule(submodule) => {
+            (AddressKind::Submodule, vec![Entry::new(row_path, false, Some(submodule))])
         }
+        File::Blob(_) => (AddressKind::File, vec![Entry::new(row_path, false, None)]),
     };
-    if let Err(error) = gitmodules
-        && entries.iter().any(|entry| matches!(entry.kind, Kind::Submodule))
-    {
-        notes.push(format!("{GITMODULES_NOTE}: {error}"));
-    }
     Answer {
         entries_total: Some(entries.len() as u64),
         entries_more: false,

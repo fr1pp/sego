@@ -8,7 +8,7 @@ sego: error: Sourcegraph rejected sego's request: a\u{1b}b\u{202e}c\u{200b}d e\u
 [[exchange]]
 operation = "File"
 variables = '{"content":false,"gitlab":false,"path":"","recursive":false,"repo0":"example.com/acme/widget","repo1":"","rev":"HEAD"}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
 response = '''

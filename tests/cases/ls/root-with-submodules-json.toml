@@ -2,24 +2,21 @@
 args = ["ls", "--json", "github.com/akinomyoga/ble.sh@d81fd54feb0d996fdff20dca27eaf0201f7015cc"]
 status.code = 0
 stdout = '''
-{"repo":"github.com/akinomyoga/ble.sh","rev":"d81fd54feb0d996fdff20dca27eaf0201f7015cc","commit":"d81fd54feb0d996fdff20dca27eaf0201f7015cc","path":null,"kind":"directory","recursive":false,"entries":[{"path":".gitattributes","kind":"file","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":".github","kind":"dir","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":".gitignore","kind":"file","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":".gitmodules","kind":"file","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":".srcoption","kind":"file","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"GNUmakefile","kind":"file","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"LICENSE.md","kind":"file","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"Makefile","kind":"file","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"README-ja_JP.md","kind":"file","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"README.md","kind":"file","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"archive","kind":"dir","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"ble.pp","kind":"file","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"blerc.template","kind":"file","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"contrib","kind":"submodule","submodule_url":"../blesh-contrib","submodule_address":"github.com/akinomyoga/blesh-contrib@d2109203480a","submodule_commit":"d2109203480a7dfe1dead5f5f8f9f15a9146c90d"},{"path":"docs","kind":"dir","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"lib","kind":"dir","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"make","kind":"dir","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"make_command.sh","kind":"file","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"memo","kind":"dir","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"note.txt","kind":"file","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"src","kind":"dir","submodule_url":null,"submodule_address":null,"submodule_commit":null},{"path":"test","kind":"dir","submodule_url":null,"submodule_address":null,"submodule_commit":null}],"entries_total":22,"entries_more":false,"mirrored_at":null,"notes":[]}
+{"repo":"github.com/akinomyoga/ble.sh","rev":"d81fd54feb0d996fdff20dca27eaf0201f7015cc","commit":"d81fd54feb0d996fdff20dca27eaf0201f7015cc","path":null,"kind":"directory","recursive":false,"entries":[{"path":".gitattributes","kind":"file","submodule_commit":null},{"path":".github","kind":"dir","submodule_commit":null},{"path":".gitignore","kind":"file","submodule_commit":null},{"path":".gitmodules","kind":"file","submodule_commit":null},{"path":".srcoption","kind":"file","submodule_commit":null},{"path":"GNUmakefile","kind":"file","submodule_commit":null},{"path":"LICENSE.md","kind":"file","submodule_commit":null},{"path":"Makefile","kind":"file","submodule_commit":null},{"path":"README-ja_JP.md","kind":"file","submodule_commit":null},{"path":"README.md","kind":"file","submodule_commit":null},{"path":"archive","kind":"dir","submodule_commit":null},{"path":"ble.pp","kind":"file","submodule_commit":null},{"path":"blerc.template","kind":"file","submodule_commit":null},{"path":"contrib","kind":"submodule","submodule_commit":"d2109203480a7dfe1dead5f5f8f9f15a9146c90d"},{"path":"docs","kind":"dir","submodule_commit":null},{"path":"lib","kind":"dir","submodule_commit":null},{"path":"make","kind":"dir","submodule_commit":null},{"path":"make_command.sh","kind":"file","submodule_commit":null},{"path":"memo","kind":"dir","submodule_commit":null},{"path":"note.txt","kind":"file","submodule_commit":null},{"path":"src","kind":"dir","submodule_commit":null},{"path":"test","kind":"dir","submodule_commit":null}],"entries_total":22,"entries_more":false,"mirrored_at":null,"notes":[]}
 '''
 
 [[exchange]]
 operation = "File"
 variables = '{"content":false,"gitlab":false,"path":"","recursive":false,"repo0":"github.com/akinomyoga/ble.sh","repo1":"","rev":"d81fd54feb0d996fdff20dca27eaf0201f7015cc"}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
     "r0": {
       "commit": {
-        "gm": {
-          "content": "[submodule \"contrib\"]\n\tpath = contrib\n\turl = ../blesh-contrib\n"
-        },
         "meta": {
           "__typename": "GitTree",
           "entries": [
@@ -144,7 +141,7 @@ response = '''
         "displayName": "master"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T00:07:47Z"
+        "updatedAt": "2026-10-30T22:14:05Z"
       },
       "name": "github.com/akinomyoga/ble.sh"
     }

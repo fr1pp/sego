@@ -1115,21 +1115,6 @@ mod ls {
     }
 
     #[test]
-    fn submodule_urls_come_from_gitmodules() {
-        case("ls/submodule-urls-come-from-gitmodules.toml");
-    }
-
-    #[test]
-    fn submodule_urls_relative_ssh_and_empty() {
-        case("ls/submodule-urls-relative-ssh-and-empty.toml");
-    }
-
-    #[test]
-    fn submodule_with_file_url() {
-        case("ls/submodule-with-file-url.toml");
-    }
-
-    #[test]
     fn submodule_without_commit() {
         case("ls/submodule-without-commit.toml");
     }
@@ -2292,43 +2277,13 @@ mod show {
     }
 
     #[test]
+    fn submodule_gives_its_commit() {
+        case("show/submodule-gives-its-commit.toml");
+    }
+
+    #[test]
     fn submodule_in_json() {
         case("show/submodule-in-json.toml");
-    }
-
-    #[test]
-    fn submodule_target_relative_url() {
-        case("show/submodule-target-relative-url.toml");
-    }
-
-    #[test]
-    fn submodule_url_comes_from_gitmodules() {
-        case("show/submodule-url-comes-from-gitmodules.toml");
-    }
-
-    #[test]
-    fn submodule_url_unknown_when_gitmodules_fails() {
-        case("show/submodule-url-unknown-when-gitmodules-fails.toml");
-    }
-
-    #[test]
-    fn submodule_url_with_control_characters_json() {
-        case("show/submodule-url-with-control-characters-json.toml");
-    }
-
-    #[test]
-    fn submodule_url_with_control_characters() {
-        case("show/submodule-url-with-control-characters.toml");
-    }
-
-    #[test]
-    fn submodule_with_empty_url() {
-        case("show/submodule-with-empty-url.toml");
-    }
-
-    #[test]
-    fn submodule_with_file_url() {
-        case("show/submodule-with-file-url.toml");
     }
 
     #[test]

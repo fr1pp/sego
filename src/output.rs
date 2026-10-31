@@ -5,7 +5,7 @@ use serde::Serialize;
 use serde_json::Serializer;
 use serde_json::ser::{CompactFormatter, Formatter};
 
-use crate::address::{self, Pinned, short};
+use crate::address::{Pinned, short};
 use crate::escape::{self, shell_word};
 use crate::sourcegraph::Change;
 
@@ -171,20 +171,9 @@ pub fn header_line(lead: &str, fields: &[String]) -> String {
     line
 }
 
-/// Where a submodule points, as an address with 12 hex digits of its commit
-/// when the commit is known; `None` when its URL names no repository.
-pub fn submodule_address(url: &str, commit: &str, repo: &str) -> Option<String> {
-    let repository = address::submodule_repository(url, repo)?;
-    Some(if commit.is_empty() { repository } else { format!("{repository}@{}", short(commit)) })
-}
-
-/// A submodule as text: its address, else its stored URL, else `?`.
-pub fn submodule_text(address: Option<&str>, url: &str) -> String {
-    match address {
-        Some(address) => address.to_owned(),
-        None if url.is_empty() => "?".to_owned(),
-        None => url.to_owned(),
-    }
+/// A submodule's commit as text: 12 hex digits, or `?` when it isn't known.
+pub fn submodule_text(commit: &str) -> String {
+    if commit.is_empty() { "?".to_owned() } else { short(commit) }
 }
 
 pub fn code_line(number: u32, marker: Marker, text: &str, focus: Option<usize>) -> String {

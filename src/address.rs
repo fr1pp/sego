@@ -5,7 +5,6 @@ use std::fmt;
 use crate::escape::shell_word;
 
 use url::parse_web;
-pub use url::submodule_repository;
 
 const MIN_ABBREVIATION: usize = 4;
 pub const FULL_OID: usize = 40;

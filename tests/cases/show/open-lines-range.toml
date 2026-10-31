@@ -2,7 +2,7 @@
 args = ["show", "github.com/gorilla/mux@v1.8.0:mux.go", "600-"]
 status.code = 0
 stdout = '''
-github.com/gorilla/mux@98cb6bf42e08:mux.go  lines 600-606 of 606  rev v1.8.0  mirrored 2026-10-27T06:59Z
+github.com/gorilla/mux@98cb6bf42e08:mux.go  lines 600-606 of 606  rev v1.8.0  mirrored 2026-10-31T00:35Z
 600:func methodNotAllowed(w http.ResponseWriter, r *http.Request) {
 601:	w.WriteHeader(http.StatusMethodNotAllowed)
 602:}
@@ -15,10 +15,10 @@ github.com/gorilla/mux@98cb6bf42e08:mux.go  lines 600-606 of 606  rev v1.8.0  mi
 [[exchange]]
 operation = "File"
 variables = '{"content":true,"end":500600,"gitlab":false,"path":"mux.go","recursive":false,"repo0":"github.com/gorilla/mux","repo1":"","rev":"v1.8.0","start":600}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -28,7 +28,6 @@ response = '''
           "__typename": "GitBlob",
           "content": "func methodNotAllowed(w http.ResponseWriter, r *http.Request) {\n\tw.WriteHeader(http.StatusMethodNotAllowed)\n}\n\n// methodNotAllowedHandler returns a simple request handler\n// that replies to each request with a status code 405.\nfunc methodNotAllowedHandler() http.Handler { return http.HandlerFunc(methodNotAllowed) }\n"
         },
-        "gm": null,
         "meta": {
           "__typename": "GitBlob",
           "binary": false,
@@ -45,7 +44,7 @@ response = '''
         "displayName": "main"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T06:59:26Z"
+        "updatedAt": "2026-10-31T00:35:11Z"
       },
       "name": "github.com/gorilla/mux"
     }

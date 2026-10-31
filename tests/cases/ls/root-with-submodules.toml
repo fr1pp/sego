@@ -16,7 +16,7 @@ file       README.md
 dir        archive/
 file       ble.pp
 file       blerc.template
-submodule  contrib  github.com/akinomyoga/blesh-contrib@d2109203480a
+submodule  contrib  d2109203480a
 dir        docs/
 dir        lib/
 dir        make/
@@ -30,18 +30,15 @@ dir        test/
 [[exchange]]
 operation = "File"
 variables = '{"content":false,"gitlab":false,"path":"","recursive":false,"repo0":"github.com/akinomyoga/ble.sh","repo1":"","rev":"d81fd54feb0d996fdff20dca27eaf0201f7015cc"}'
-document = "File-d6d96d2c"
+document = "File-f4700c66"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-27, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
     "r0": {
       "commit": {
-        "gm": {
-          "content": "[submodule \"contrib\"]\n\tpath = contrib\n\turl = ../blesh-contrib\n"
-        },
         "meta": {
           "__typename": "GitTree",
           "entries": [
@@ -166,7 +163,7 @@ response = '''
         "displayName": "master"
       },
       "mirrorInfo": {
-        "updatedAt": "2026-10-27T00:07:47Z"
+        "updatedAt": "2026-10-30T22:14:05Z"
       },
       "name": "github.com/akinomyoga/ble.sh"
     }
