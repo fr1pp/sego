@@ -30,7 +30,7 @@ A query is a search pattern plus filters. Filters are `name:value` tokens such a
 ### Case
 
 - **Matching is case-insensitive by default.** This applies to terms, phrases and regexes, and to the regexes in `file:`, `repo:` and the predicates.
-- **`case:yes` makes the pattern case-sensitive.** It also makes `file:` case-sensitive, but `repo:` stays case-insensitive. `case:` accepts boolean-style values such as `yes`, `no` and `YES`; `case:maybe` returns the alert "Invalid boolean".
+- **`case:yes` makes the pattern case-sensitive.** It also makes `file:`, `author:`, `committer:`, `message:`, `repohasfile:` and the text of predicates such as `repo:has.file()` case-sensitive, though not the dates of predicates such as `rev:at.time()`, but `repo:` and `lang:` stay case-insensitive. `(?i)` at the start of a value keeps that filter case-insensitive, except that on an indexed search a `file:` value that parses to plain text is searched in uppercase: `file:(?i)mux_test` misses `mux_test.go`, and `-file:(?i)mux_test` excludes nothing. A trailing `.*` avoids that, as in `file:(?i)mux_test.*` ([research/case.md](research/case.md)). `case:` accepts boolean-style values such as `yes`, `no` and `YES`; `case:maybe` returns the alert "Invalid boolean".
 - **Inline case flags have no effect.** `(?i)` and `(?-i)` inside `/.../` are ignored; only `case:` controls case. Other flags work: `(?s)` lets `.` cross lines.
 - **Field names are case-insensitive.** `REPO:`, `File:` and `patternType:` all work.
 
@@ -113,7 +113,10 @@ Literal terms are ANDed at file level, `"..."` gives phrases, `/.../` gives rege
 The whole pattern is RE2.
 
 - **Spaces become a lazy wildcard within one line.** A space between terms becomes `.*?`, so `func Router` matches `func NewRouter() *Router`. `StrictSlash SkipClean` matches nothing in a file where the two words sit on different lines.
-- **Literal spaces.** Write a space as `\ ` (`skipClean\ bool`) or wrap the regex in `/.../`.
+  - Quoted and `/.../` terms join too, and a filter between terms doesn't stop it: `^func lang:go Test` joins `^func` and `Test`.
+  - `and`, `or` and `not` end a join. A sequence that opens with `not` joins nothing: `not Router ^func Test` searches `^func` and `Test` apart.
+- **Literal spaces.** Write a space as `\ ` (`skipClean\ bool`) or wrap the regex in `/.../`. A space inside balanced parentheses is literal too, as in `^(func Test)\(`. Inside brackets it isn't: `[ ]` splits the term and usually matches nothing, so write `[\ ]`.
+- **A group beside a pattern can drop the mode.** An `or` group, or a group of a filter and a pattern, beside another pattern makes the server ignore `patterntype:`, in any mode, and search in keyword mode without a word: in `patterntype:regexp rout.r (mux or Mux)`, `rout.r` is searched as text. `and` between them keeps the mode: `patterntype:regexp rout.r and (mux or Mux)` ([research/regexp-spaces.md](research/regexp-spaces.md)).
 - **Phrases.** `"..."` is still an exact literal, for example `"func (r"`.
 - **Alternation and line breaks.** `skipClean|strictSlash` is alternation. `\n` crosses lines: `NewRouter\(\)\n\s*r\.Host`.
 - **Syntax errors.** An invalid regex returns an alert. For example, `(skipClean` gives "missing closing )".
@@ -367,7 +370,7 @@ Any other kind returns an alert. `UNKNOWN` symbols cannot be selected.
 - **Anchors and wildcards need a regex.** In keyword mode, `^NewRouter$` and `foo.*bar` are literal text, in symbol search too. Wrap them in `/.../`.
 - **Inline case flags.** `(?i)` and `(?-i)` are ignored. Use `case:yes`.
 - **Flags after the slash.** `/foo/i` is literal text, not a regex with a flag, and usually matches nothing. Search ignores case by default; other flags go inside the slashes, as `(?s)`.
-- **`case:yes` and filters.** It makes `file:` case-sensitive (`file:^MUX\.go$` stops matching `mux.go`) but leaves `repo:` case-insensitive.
+- **`case:yes` and filters.** It makes `file:` case-sensitive (`file:^MUX\.go$` stops matching `mux.go`) but leaves `repo:` case-insensitive; §1 Case lists the rest.
 - **Phrases stay on one line.** A `"phrase"` never matches across a line break; use `/a\s+b/`.
 - **Filter binding across `or`.** A filter does not automatically cover the whole query. Put shared filters first and parenthesise the `or` (§4). A filter written after the patterns, as in `a or b repo:X`, scopes only the last branch.
 - **Repeated filters intersect.** `repo:a repo:b` means both must match, not either.
