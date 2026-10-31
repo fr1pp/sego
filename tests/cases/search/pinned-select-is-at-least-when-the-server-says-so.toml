@@ -1,16 +1,16 @@
-# With count:all nothing is cut, so select: has no note.
-args = ["search", "repo:example.com/acme/router@v1 Router select:file count:all"]
+# A pinned select answer takes its count and N+ from the server.
+args = ["search", "repo:example.com/acme/router@v1 Router select:file"]
 status.code = 0
 stdout = '''
-1 file  1 repo  0.1 s
-query  timeout:60s repo:example.com/acme/router@v1 Router select:file count:all
+30+ files  1 repo  0.1 s
+query  timeout:60s repo:example.com/acme/router@v1 Router select:file
 
 example.com/acme/router@0123456789ab:main.go
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"timeout:60s repo:example.com/acme/router@v1 Router select:file count:all"}'
+variables = '{"query":"timeout:60s repo:example.com/acme/router@v1 Router select:file"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
@@ -20,11 +20,11 @@ response = '''
     "search": {
       "results": {
         "alert": null,
-        "approximateResultCount": "1",
+        "approximateResultCount": "30",
         "dynamicFilters": [],
         "elapsedMilliseconds": 100,
-        "limitHit": false,
-        "matchCount": 1,
+        "limitHit": true,
+        "matchCount": 30,
         "results": [
           {
             "__typename": "FileMatch",

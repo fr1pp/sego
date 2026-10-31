@@ -117,11 +117,6 @@ fn push_notes(searched: &Answer, notes: &mut Notes) {
             n => notes.push(format!("{n} results of kind {kind} not shown")),
         }
     }
-    if let Some(cap) = searched.select_cut {
-        notes.push(format!(
-            "at a pinned revision, select: keeps only what each repository's first {cap} matches hold; count:all gives every one"
-        ));
-    }
     if searched.stopped {
         notes.push(&searched.query.stopped_pointer);
     }

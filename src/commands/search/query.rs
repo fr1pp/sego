@@ -9,8 +9,6 @@ use super::read::{
 
 const MAX_DEADLINE_MS: u64 = 60_000;
 const DEFAULT_DEADLINE_MS: u64 = 20_000;
-const DEFAULT_CAP: u64 = 30;
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Unit {
     Matches,
@@ -56,18 +54,12 @@ pub struct Query {
     pub pattern_type: PatternType,
     /// The query names `lucky`, which the server reads as `standard`.
     lucky: bool,
-    pub cap: Option<u64>,
     pub unit: Unit,
     /// The query states no unit, so the results decide it: `Repos` when
     /// every result is a repository, `Commits` when every result is a
     /// commit, and `unit` otherwise.
     pub by_results: bool,
-    pub lower_bound: bool,
-    /// The query has a non-negated `type:diff`.
-    pub diff: bool,
     pub deadline_ms: u64,
-    pub select_cut: Option<u64>,
-    pub select_drops: bool,
     /// What reaches further when the search stops: a longer deadline while
     /// sourcegraph.com allows one, otherwise a narrower scope.
     pub stopped_pointer: String,
@@ -91,13 +83,8 @@ impl Query {
             text,
             pattern_type,
             lucky: pattern_type == PatternType::Standard && written_type(written) == Some("lucky"),
-            cap: cap(written),
             unit: unit(written),
             by_results: stated_unit(written).is_none(),
-            lower_bound: lower_bound(written),
-            diff: chosen(written, "type").any(|value| value == "diff"),
-            select_cut: select_cut(written),
-            select_drops: select_drops(written),
             stopped_pointer: stopped_pointer(written, deadline_ms),
             repo_scoped: repo_scoped(written),
             repo_names: repo_names(written),
@@ -144,27 +131,6 @@ fn field(item: &Written, name: &str) -> bool {
     matches!(item, Written::Filter(f) if f.field.eq_ignore_ascii_case(name))
 }
 
-fn values<'a>(written: &'a [Written], name: &'a str) -> impl Iterator<Item = &'a str> {
-    written.iter().filter_map(move |item| match item {
-        Written::Filter(f) if f.field.eq_ignore_ascii_case(name) => Some(f.value.as_str()),
-        _ => None,
-    })
-}
-
-/// How many results the query asks for: the last `count:` value, 30 when
-/// there is none. The server reads a number with an optional `+`; `all`, or
-/// any other value, is no cap.
-fn cap(written: &[Written]) -> Option<u64> {
-    let Some(value) = values(written, "count").last() else {
-        return Some(DEFAULT_CAP);
-    };
-    let digits = value.strip_prefix('+').unwrap_or(value);
-    if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
-        return None;
-    }
-    digits.parse().ok()
-}
-
 /// What the results count, from the query's `select:` and `type:` values.
 /// A query with none of those and no pattern searches for files by name or
 /// for repositories; the results tell which (`Query::by_results`).
@@ -202,36 +168,6 @@ fn repo_select(value: &str) -> bool {
     value.split('.').next() == Some("repo")
 }
 
-/// Whether the count can fall short of the answer without `limitHit`:
-/// - each index replica returns at most the cap in files, and the server
-///   merges them into directories without saying it cut them, at any cap
-///   but `count:all`;
-/// - for a `repo` select the server drops the index's skipped-file and
-///   skipped-shard flags, and reports a cut only once the repositories reach
-///   the cap. Each replica still stops at the cap counted in files, and a
-///   large repository's shards can fill several of those, so fewer
-///   repositories than the cap come back unflagged (#32). Even `count:all`
-///   can meet the index's match limits unflagged. Only a scope of one
-///   repository, which can't be cut short, or a search of commits, which the
-///   index doesn't run, is exact.
-fn lower_bound(written: &[Written]) -> bool {
-    let directories =
-        chosen(written, "select").any(|value| value == "file.directory") && cap(written).is_some();
-    let repos =
-        chosen(written, "select").any(repo_select) && !history(written) && !one_repository(written);
-    directories || repos
-}
-
-/// Whether the query searches only commits: it chooses a `type:`, every one
-/// is `commit` or `diff`, and it has no `or`. The commit search reports its
-/// own cut in `limitHit`, unlike the indexed search behind a `repo` select.
-fn history(written: &[Written]) -> bool {
-    let mut types = chosen(written, "type").peekable();
-    types.peek().is_some()
-        && types.all(|v| v == "commit" || v == "diff")
-        && !written.contains(&Written::Or)
-}
-
 /// The pointer for a search that stopped at `deadline_ms`. A query with
 /// `or` can run as several searches, each with its own deadline, which
 /// `deadline_ms` doesn't hold.
@@ -242,38 +178,6 @@ fn stopped_pointer(written: &[Written], deadline_ms: u64) -> String {
         _ => None,
     });
     pointer::stopped(one.then_some(deadline_ms), MAX_DEADLINE_MS, timeout.as_deref())
-}
-
-/// The cap that can cut a pinned search's `select:` answer: the searcher
-/// caps each repository and revision before `select:`, and the server
-/// doesn't always report the cut. `HEAD` is read from the index instead;
-/// `file.owners` runs through its own select job with no file cap, and a
-/// `repo` select keeps every repository with a match.
-fn select_cut(written: &[Written]) -> Option<u64> {
-    let bounded = chosen(written, "select").any(|v| v != "file.owners" && !repo_select(v));
-    let searcher = filters(written).any(|f| !f.negated && names_unindexed_revision(f));
-    if !bounded || !searcher || !content_search(written) {
-        return None;
-    }
-    cap(written)
-}
-
-/// Whether the `select:` that `select_cut` bounds can drop every result
-/// the cap kept, so that a zero is a lower bound too: `content` drops the
-/// results it can't convert, and a symbol search's `select:symbol.KIND` the
-/// symbols of other kinds. A content search's `select:symbol` returns
-/// nothing at all, which a local check notes.
-fn select_drops(written: &[Written]) -> bool {
-    let symbols = chosen(written, "type").any(|v| v == "symbol");
-    select_cut(written).is_some()
-        && chosen(written, "select")
-            .any(|v| v == "content" || (symbols && v.starts_with("symbol.")))
-}
-
-/// Whether the query has a pattern searched for in file contents or the
-/// symbols read from them: every `type:` it chooses is `file` or `symbol`.
-fn content_search(written: &[Written]) -> bool {
-    has_pattern(written) && chosen(written, "type").all(|v| v == "file" || v == "symbol")
 }
 
 /// Whether the query has a non-negated `repo:` filter and no `or`. A query
@@ -337,24 +241,6 @@ fn is(f: &Filter, names: &[&str]) -> bool {
 
 fn is_repo(f: &Filter) -> bool {
     is(f, &["repo", "r"])
-}
-
-fn is_revision(f: &Filter) -> bool {
-    is(f, &["rev", "revision"])
-}
-
-/// A revision filter that names a revision the searcher reads: one other
-/// than `HEAD`, which the index holds, or the empty revision, which means
-/// `HEAD`.
-fn names_unindexed_revision(f: &Filter) -> bool {
-    let revisions = if is_revision(f) {
-        f.value.as_str()
-    } else if let Some((_, revisions)) = f.value.split_once('@').filter(|_| is_repo(f)) {
-        revisions
-    } else {
-        return false;
-    };
-    revisions.split(':').any(|rev| !rev.is_empty() && rev != "HEAD")
 }
 
 /// The last `patterntype:` value that names a type, unquoted.
@@ -452,58 +338,11 @@ fn digits(text: &str) -> (&str, &str) {
     text.split_at(end)
 }
 
-/// Whether the query can search only one repository: it has no `or`, and a
-/// non-negated `repo:` whose value is one exact name. Two `repo:` filters
-/// intersect, so one exact name among them is enough.
-fn one_repository(written: &[Written]) -> bool {
-    !written.contains(&Written::Or)
-        && filters(written)
-            .filter(|f| is_repo(f) && !f.negated)
-            .any(|f| exact_repository(&f.read_value()).is_some())
-}
-
-/// The name in a `repo:` value that matches one repository: `^NAME$`, with
-/// an optional `@` revision, where NAME is `/`-separated segments that each
-/// hold a letter or digit, made of letters, digits, `_`, `-` and `.`, each
-/// punctuation mark (and `/`) escaped or not.
-fn exact_repository(value: &str) -> Option<&str> {
-    let name = value.split_once('@').map_or(value, |(name, _)| name);
-    let body = name.strip_prefix('^')?.strip_suffix('$')?;
-    let mut chars = body.chars();
-    while let Some(c) = chars.next() {
-        let literal = if c == '\\' {
-            matches!(chars.next(), Some('.' | '-' | '_' | '/'))
-        } else {
-            c.is_ascii_alphanumeric() || "_-./".contains(c)
-        };
-        if !literal {
-            return None;
-        }
-    }
-    body.split('/')
-        .all(|segment| segment.chars().any(|c| c.is_ascii_alphanumeric()))
-        .then_some(body)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     const OVERFLOW: &str = "340282366920938463463374607431.9s";
-
-    #[test]
-    fn the_cap_follows_the_count_filter() {
-        let rows = [
-            ("NewRouter", Some(30)),
-            ("\"count:5\" foo", Some(30)),
-            ("COUNT:5 foo", Some(5)),
-            ("foo (bar count:all)", None),
-            ("-count:5 x", Some(5)),
-        ];
-        for (text, cap) in rows {
-            assert_eq!(Query::new(text).cap, cap, "{text}");
-        }
-    }
 
     #[test]
     fn a_query_with_no_timeout_is_sent_with_the_longest_deadline() {
@@ -607,17 +446,6 @@ mod tests {
     }
 
     #[test]
-    fn the_cap_is_the_last_count_or_30_and_all_has_none() {
-        assert_eq!(Query::new("foo").cap, Some(30));
-        assert_eq!(Query::new("foo count:5").cap, Some(5));
-        assert_eq!(Query::new("foo COUNT:all").cap, None);
-        assert_eq!(Query::new("foo count:5 count:7").cap, Some(7));
-        assert_eq!(Query::new("foo count:5 count:all").cap, None);
-        assert_eq!(Query::new("foo count:many").cap, None);
-        assert_eq!(Query::new("foo count:+5").cap, Some(5));
-    }
-
-    #[test]
     fn the_deadline_is_60_s_unless_a_timeout_changes_it() {
         assert_eq!(Query::new("foo").deadline_ms, 60_000);
         assert_eq!(Query::new("foo count:5").deadline_ms, 60_000);
@@ -688,112 +516,14 @@ mod tests {
     }
 
     #[test]
-    fn a_directory_count_is_a_lower_bound_unless_count_all() {
-        let rows = [
-            ("repo:x type:diff foo", false),
-            ("repo:x SELECT:file.directory foo", true),
-            ("repo:x select:file.directory", true),
-            ("repo:x select:file.directory foo count:30", true),
-            ("repo:x select:file.directory foo count:100", true),
-            ("repo:x select:file.directory foo count:5", true),
-            ("repo:x select:file.directory foo count:all", false),
-            ("repo:x select:file.directory foo COUNT:ALL", false),
-            ("repo:x select:file.directory foo count:all count:30", true),
-            ("repo:x select:file foo", false),
-            ("repo:x select:file.owners foo", false),
-            ("repo:x type:commit foo", false),
-            ("repo:x -type:diff foo", false),
-            ("repo:x -select:file.directory foo", false),
-            ("repo:x foo", false),
-            ("foo select:repo", true),
-            ("repo:x foo select:repo", true),
-            (r"repo:^github\.com/gorilla/ foo select:repo", true),
-            (r"repo:^github\.com/gorilla/mux$ foo select:repo", false),
-            (r"repo:^github\.com/gorilla/mux$ foo -select:repo", false),
-            (r"repo:has.file(path:go\.mod) foo select:repo", true),
-            ("type:repo foo", false),
-            // the server reports a cut history search
-            (r"repo:^github\.com/gorilla/ type:commit select:repo", false),
-            ("repo:x type:diff foo select:repo", false),
-            ("repo:x type:commit type:diff foo select:repo", false),
-            ("repo:x type:commit type:file foo select:repo", true),
-            ("repo:x -type:commit foo select:repo", true),
-            ("repo:x type:commit foo or bar select:repo", true),
-        ];
-        for (query, expected) in rows {
-            assert_eq!(Query::new(query).lower_bound, expected, "{query}");
-        }
-    }
-
-    #[test]
-    fn a_pinned_select_search_gets_its_cut_from_the_cap() {
-        let rows = [
-            ("repo:x@v1 Router select:file", Some(30)),
-            ("repo:x@v1 type:symbol /./ select:symbol.method count:50", Some(50)),
-            ("repo:x rev:v1 foo select:repo", None),
-            ("repo:x@v1 foo select:repo.something", None),
-            ("repo:x@v1 foo select:repo select:file", Some(30)),
-            ("repo:x@HEAD foo select:file", None),
-            ("repo:x rev:HEAD foo select:file", None),
-            ("repo:x revision:HEAD foo select:file", None),
-            ("repo:x@HEAD:v1 foo select:file", Some(30)),
-            ("repo:x@main foo select:file", Some(30)),
-            ("repo:x@head foo select:file", Some(30)),
-            ("repo:x@v1 foo select:file.directory count:5", Some(5)),
-            ("repo:x@v1 foo SELECT:file", Some(30)),
-            ("repo:x@v1 foo select:file count:all", None),
-            ("repo:x foo select:file", None),
-            ("repo:x -rev:v1 foo select:file", None),
-            ("repo:x -r:y@v1 foo select:file", None),
-            ("repo:x@v1 foo -select:file", None),
-            ("repo:x@v1 foo select:file.owners", None),
-            ("repo:x@v1 foo select:file.owners count:50", None),
-            ("repo:x@v1 foo", None),
-            ("repo:x@v1 select:file", None),
-            ("repo:x@v1 type:commit foo select:file", None),
-        ];
-        for (query, expected) in rows {
-            assert_eq!(Query::new(query).select_cut, expected, "{query}");
-        }
-    }
-
-    #[test]
-    fn a_pinned_select_of_content_or_of_a_symbol_kind_drops_results() {
-        let rows = [
-            ("repo:x@v1 type:symbol foo select:symbol", false),
-            ("repo:x@v1 type:symbol foo select:symbol.method", true),
-            ("repo:x@v1 foo select:symbol", false),
-            ("repo:x@v1 foo select:symbol.method", false),
-            ("repo:x@v1 foo select:content", true),
-            ("repo:x@v1 foo select:file", false),
-            ("repo:x@v1 foo select:file.directory", false),
-            ("repo:x@v1 foo select:file.owners", false),
-            ("repo:x@v1 foo select:repo", false),
-            ("repo:x@v1 foo select:content count:all", false),
-            ("repo:x@HEAD foo select:content", false),
-            ("repo:x foo select:content", false),
-            ("repo:x@v1 foo -select:content", false),
-        ];
-        for (query, expected) in rows {
-            assert_eq!(Query::new(query).select_drops, expected, "{query}");
-        }
-    }
-
-    #[test]
     fn a_query_carries_every_fact() {
         let query = Query::new("repo:x type:diff foo");
         assert_eq!(query.text, "timeout:60s repo:x type:diff foo");
-        assert_eq!(query.cap, Some(30));
         assert_eq!(query.unit, Unit::Commits);
-        assert!(!query.lower_bound);
-        assert!(query.diff);
         assert_eq!(query.deadline_ms, 60_000);
 
         let query = Query::new("repo:x foo select:file count:all");
-        assert_eq!(query.cap, None);
         assert_eq!(query.unit, Unit::Files);
-        assert!(!query.lower_bound);
-        assert!(!query.diff);
     }
 
     #[test]
@@ -850,56 +580,11 @@ mod tests {
     }
 
     #[test]
-    fn only_a_pattern_that_searches_contents_or_symbols_makes_a_content_search() {
-        for q in [
-            "foo",
-            "repo:x foo",
-            "repo:x a or b",
-            "repo:x NOT foo",
-            "\"foo bar\"",
-            "/foo/",
-            "repo:x type:file foo",
-            "repo:x -type:symbol foo",
-            "repo:x foo select:repo",
-            "repo:x@v1 (a or b)",
-            "type:symbol foo",
-            "repo:x type:symbol foo",
-            "type:symbol type:file foo",
-            "(type:symbol X) or (Y type:symbol X)",
-        ] {
-            assert!(content_search(&read(q).written), "{q}");
-        }
-        for q in [
-            "repo:x",
-            r"repo:x file:\.go$",
-            "repo:x type:path foo",
-            "repo:x type:symbol type:path foo",
-            "repo:x type:bogus foo",
-            "repo:x type:Symbol foo",
-            "repo:x type:repo foo",
-            "repo:x type:commit foo",
-            "repo:x type:diff foo",
-        ] {
-            assert!(!content_search(&read(q).written), "{q}");
-        }
-    }
-
-    #[test]
     fn a_stopped_search_at_the_most_or_of_several_deadlines_is_pointed_to_a_narrower_scope() {
         let pointer = |q| Query::new(q).stopped_pointer;
         assert_ne!(pointer("repo:x foo timeout:5s"), pointer::NARROWS);
         for q in ["repo:x foo", "repo:x foo timeout:90s", "(a timeout:5s) or (b repo:x)"] {
             assert_eq!(pointer(q), pointer::NARROWS, "{q}");
-        }
-    }
-
-    #[test]
-    fn the_search_a_path_pointer_names_has_no_cap() {
-        for path in ["a/nope.go", "[id].tsx", "c++ x.cc", "docs/a|b(1).md", "x$^{2}"] {
-            let at = pointer::At { repo: "github.com/a/b.c", commit: "0123456789ab" };
-            let line = pointer::files_named(at, path);
-            let quoted = line.split('\'').nth(1).unwrap_or_default();
-            assert_eq!(Query::new(quoted).cap, None, "{line}");
         }
     }
 }

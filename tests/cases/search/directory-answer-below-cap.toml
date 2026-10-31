@@ -1,5 +1,5 @@
-# A limitHit below the cap that came back in time is not a cut: a directory
-# count is a lower bound, and the search is not stopped.
+# A limitHit that came back in time: the count is a lower bound, and the search
+# is not stopped.
 args = ["search", "repo:example.com/app select:file.directory foo count:30"]
 status.code = 0
 stdout = '''

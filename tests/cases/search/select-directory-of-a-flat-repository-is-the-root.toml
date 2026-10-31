@@ -7,9 +7,6 @@ query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0 select:file.directory N
 
 github.com/gorilla/mux@98cb6bf42e08:./
 '''
-stderr = '''
-sego: note: at a pinned revision, select: keeps only what each repository's first 30 matches hold; count:all gives every one
-'''
 
 [[exchange]]
 operation = "Search"

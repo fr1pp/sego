@@ -140,29 +140,6 @@ mod tests {
         }
     }
 
-    /// The `repos` half of `lower_bound`: over these five repositories, a
-    /// capped repo select answers fewer than `count:all`, unflagged (#32).
-    fn repo_select_cut() -> Result<(), String> {
-        const SCOPE: &str = r"repo:^github\.com/(torvalds/linux|chromium/chromium|kubernetes/kubernetes|golang/go|gorilla/mux)$ func select:repo timeout:60s";
-        let capped = searched_live(&format!("{SCOPE} count:10"))?;
-        let every = searched_live(&format!("{SCOPE} count:all"))?;
-        let stopped = |r: &Results| !r.timedout.is_empty() || r.elapsed_milliseconds >= 60_000;
-        if stopped(&capped) || stopped(&every) || every.limit_hit {
-            return Err("a search stopped or count:all was cut; run it again".to_owned());
-        }
-        let (n, all) = (capped.match_count, every.match_count);
-        match (n < all, capped.limit_hit) {
-            (true, false) => Ok(()),
-            (true, true) => Err(format!(
-                "{n} of {all} repositories with limitHit true; the server now reports this cut, \
-                 so the repos half of lower_bound may go"
-            )),
-            (false, _) => Err(format!(
-                "{n} of {all} repositories; no cut happened, so this scope no longer shows one"
-            )),
-        }
-    }
-
     /// `stopped_pointer` says sourcegraph.com allows at most `timeout:60s`:
     /// a search that runs longer stops at 60 s, whatever `timeout:` it asks for.
     fn deadline_ceiling() -> Result<(), String> {
@@ -184,12 +161,11 @@ mod tests {
     #[test]
     #[ignore = "sends requests to sourcegraph.com"]
     fn the_rules_search_relies_on_still_hold_on_the_live_server() {
-        let rules: [(&str, Rule); 6] = [
+        let rules: [(&str, Rule); 5] = [
             ("placeholder format", placeholder_format),
             ("cap and plus", cap_and_plus),
             ("complete answer", complete_answer),
             ("utility counts", utility_counts),
-            ("repo select cut", repo_select_cut),
             ("deadline ceiling", deadline_ceiling),
         ];
         let failures: Vec<String> = rules

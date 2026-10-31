@@ -1363,11 +1363,6 @@ mod search {
     }
 
     #[test]
-    fn capped_zero_has_no_flag_note() {
-        case("search/capped-zero-has-no-flag-note.toml");
-    }
-
-    #[test]
     fn clean_answer_near_deadline() {
         case("search/clean-answer-near-deadline.toml");
     }
@@ -1478,11 +1473,6 @@ mod search {
     }
 
     #[test]
-    fn diff_or_answer_at_least() {
-        case("search/diff-or-answer-at-least.toml");
-    }
-
-    #[test]
     fn diff_or_answer_zero() {
         case("search/diff-or-answer-zero.toml");
     }
@@ -1535,11 +1525,6 @@ mod search {
     #[test]
     fn given_count_is_sent_as_written() {
         case("search/given-count-is-sent-as-written.toml");
-    }
-
-    #[test]
-    fn head_select_has_no_select_note() {
-        case("search/head-select-has-no-select-note.toml");
     }
 
     #[test]
@@ -1668,68 +1653,8 @@ mod search {
     }
 
     #[test]
-    fn pinned_owners_select_has_no_select_note() {
-        case("search/pinned-owners-select-has-no-select-note.toml");
-    }
-
-    #[test]
-    fn pinned_repo_select_has_no_select_note() {
-        case("search/pinned-repo-select-has-no-select-note.toml");
-    }
-
-    #[test]
-    fn pinned_select_at_least_notes_the_cap() {
-        case("search/pinned-select-at-least-notes-the-cap.toml");
-    }
-
-    #[test]
-    fn pinned_select_content_zero_notes_the_cap() {
-        case("search/pinned-select-content-zero-notes-the-cap.toml");
-    }
-
-    #[test]
-    fn pinned_select_directory_zero_has_no_cap_note() {
-        case("search/pinned-select-directory-zero-has-no-cap-note.toml");
-    }
-
-    #[test]
-    fn pinned_select_file_zero_has_no_cap_note() {
-        case("search/pinned-select-file-zero-has-no-cap-note.toml");
-    }
-
-    #[test]
-    fn pinned_select_note_follows_the_alert() {
-        case("search/pinned-select-note-follows-the-alert.toml");
-    }
-
-    #[test]
-    fn pinned_select_note_follows_the_unshown_kinds() {
-        case("search/pinned-select-note-follows-the-unshown-kinds.toml");
-    }
-
-    #[test]
-    fn pinned_select_on_a_branch_notes_the_cap() {
-        case("search/pinned-select-on-a-branch-notes-the-cap.toml");
-    }
-
-    #[test]
-    fn pinned_select_stopped_notes_the_cap() {
-        case("search/pinned-select-stopped-notes-the-cap.toml");
-    }
-
-    #[test]
-    fn pinned_select_symbol_zero_notes_the_cap() {
-        case("search/pinned-select-symbol-zero-notes-the-cap.toml");
-    }
-
-    #[test]
-    fn pinned_select_with_count_all_has_no_select_note() {
-        case("search/pinned-select-with-count-all-has-no-select-note.toml");
-    }
-
-    #[test]
-    fn pinned_select_with_count_notes_the_given_cap() {
-        case("search/pinned-select-with-count-notes-the-given-cap.toml");
+    fn pinned_select_is_at_least_when_the_server_says_so() {
+        case("search/pinned-select-is-at-least-when-the-server-says-so.toml");
     }
 
     #[test]
@@ -1893,11 +1818,6 @@ mod search {
     }
 
     #[test]
-    fn select_of_a_negated_revision_has_no_select_note() {
-        case("search/select-of-a-negated-revision-has-no-select-note.toml");
-    }
-
-    #[test]
     fn stopped_answer_with_a_real_result_among_placeholders() {
         case("search/stopped-answer-with-a-real-result-among-placeholders.toml");
     }
@@ -2005,11 +1925,6 @@ mod search {
     #[test]
     fn unable_to_process_query_without_description() {
         case("search/unable-to-process-query-without-description.toml");
-    }
-
-    #[test]
-    fn unpinned_select_has_no_select_note() {
-        case("search/unpinned-select-has-no-select-note.toml");
     }
 
     #[test]

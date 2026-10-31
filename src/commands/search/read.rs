@@ -116,34 +116,6 @@ impl WrittenFilter {
         format!("{}{}:{}", if self.negated { "-" } else { "" }, self.field, self.value)
     }
 
-    /// The value as the server reads it: a quoted value without its quotes,
-    /// its escapes read. An escape the server doesn't know is kept as
-    /// written, the `\` with it.
-    pub fn read_value(&self) -> String {
-        let quote = self.value.chars().next().filter(|q| matches!(q, '"' | '\''));
-        let Some((quote, body)) =
-            quote.and_then(|q| Some((q, self.value.strip_prefix(q)?.strip_suffix(q)?)))
-        else {
-            return self.value.clone();
-        };
-        let mut out = String::new();
-        let mut chars = body.chars();
-        while let Some(c) = chars.next() {
-            if c != '\\' {
-                out.push(c);
-                continue;
-            }
-            match chars.next() {
-                Some('n') => out.push('\n'),
-                Some('r') => out.push('\r'),
-                Some('t') => out.push('\t'),
-                Some(e) if e == '\\' || e == quote => out.push(e),
-                Some(e) => out.extend(['\\', e]),
-                None => out.push('\\'),
-            }
-        }
-        out
-    }
 }
 
 /// The values of the non-negated `name:` filters; a negated `type:` or

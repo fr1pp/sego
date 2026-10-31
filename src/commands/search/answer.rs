@@ -23,7 +23,6 @@ pub struct Answer {
     /// The distinct repositories among `groups`.
     repos: u64,
     widen: Vec<Widen>,
-    select_cut: Option<u64>,
     alert: Option<Alert>,
     /// The `__typename` of each result of a kind sego doesn't read; they
     /// are not in the JSON.
@@ -571,7 +570,6 @@ impl Answer {
             elapsed_ms: results.elapsed_milliseconds,
             repos: repos.len() as u64,
             widen,
-            select_cut: answer.select_cut,
             alert: results.alert.map(alert),
             unshown,
             groups,
@@ -613,17 +611,12 @@ pub struct Counted {
     pub count: u64,
     pub at_least: bool,
     pub stopped: bool,
-    /// `Query::select_cut`, when it makes the answer a lower bound.
-    pub select_cut: Option<u64>,
 }
 
 /// `placeholder_ranges` is how many ranges the placeholders in `results`
-/// contributed to `matchCount`. The cap is compared with the raw
-/// `matchCount`, since the server counted the placeholders against it.
-/// `commits` is how many commit results there are when the unit is commits:
-/// the count, in place of `matchCount`, which counts highlights in truncated
-/// diff text. An answer to a `type:diff` query in matches counts those
-/// highlights, so its count is a lower bound.
+/// contributed to `matchCount`. `commits` is how many commit results there are
+/// when the unit is commits: the count, in place of `matchCount`, which counts
+/// highlights in truncated diff text.
 pub fn counted(
     results: &Results,
     query: &Query,
@@ -631,28 +624,12 @@ pub fn counted(
     commits: Option<u64>,
 ) -> Counted {
     let count = commits.unwrap_or_else(|| results.match_count.saturating_sub(placeholder_ranges));
-
-    let capped = results.limit_hit
-        && results.match_count > 0
-        && query.cap.is_some_and(|cap| results.match_count >= cap);
-    // `limitHit` below the cap is not a cut: select:symbol, select:file.owners
-    // and select:file.directory set it without one, and a cut by the clock
-    // always lands past the deadline. A search stops at its deadline, so one
-    // answered at or past it was cut.
-    let past = results.elapsed_milliseconds >= query.deadline_ms;
-    let stopped = !capped && (!results.timedout.is_empty() || past);
-    // A zero has nothing to be a lower bound of, unless the placeholders
-    // used up the cap.
-    let short = if count > 0 {
-        results.limit_hit
-            || stopped
-            || query.lower_bound
-            || (query.diff && query.unit == Unit::Matches && commits.is_none())
-    } else {
-        capped
-    };
-    let select_cut = query.select_cut.filter(|_| count > 0 || query.select_drops);
-    Counted { count, at_least: short || select_cut.is_some(), stopped, select_cut }
+    // A search stops at its deadline, so one answered at or past it was cut.
+    let stopped = !results.timedout.is_empty() || results.elapsed_milliseconds >= query.deadline_ms;
+    // The raw `matchCount`, since a cut can leave nothing but placeholders.
+    // A stopped zero says it stopped; agents read `0+` as doubt about the term.
+    let at_least = results.match_count > 0 && (results.limit_hit || (stopped && count > 0));
+    Counted { count, at_least, stopped }
 }
 
 #[cfg(test)]
@@ -1023,10 +1000,6 @@ mod tests {
         (got.count, got.at_least, got.stopped)
     }
 
-    fn at(match_count: u64, query: &str) -> (u64, bool, bool) {
-        counted_as(match_count, false, 400, query, 0)
-    }
-
     #[test]
     fn an_answer_is_stopped_once_its_deadline_has_passed() {
         let query = "repo:x foo timeout:2s";
@@ -1037,124 +1010,47 @@ mod tests {
     }
 
     #[test]
-    fn a_capped_answer_of_only_placeholders_is_at_least_even_at_zero() {
-        let query = "repo:x binary count:30";
-        assert_eq!(counted_as(30, true, 2000, query, 30), (0, true, false));
-        assert_eq!(counted_as(30, false, 2000, query, 30), (0, false, false));
-        assert_eq!(counted_as(29, true, 2000, query, 29), (0, false, false));
-        assert_eq!(counted_as(30, true, 2000, "repo:x binary count:all", 30), (0, false, false));
-        assert_eq!(counted_as(0, true, 2000, "repo:x binary count:0", 0), (0, false, false));
-    }
-
-    #[test]
-    fn a_directory_count_is_a_lower_bound_unless_count_all() {
+    fn an_answer_is_at_least_when_the_server_reports_a_cut() {
         let rows = [
-            ("repo:x select:file.directory foo", 4, true),
-            ("repo:x select:file.directory foo count:30", 30, true),
-            ("repo:x select:file.directory foo count:100", 19, true),
-            ("repo:x select:file.directory foo count:all", 4, false),
+            (17, true, 17, true),
+            (17, false, 17, false),
+            (0, true, 0, false),
+            (0, false, 0, false),
         ];
-        for (query, count, at_least) in rows {
-            assert_eq!(at(count, query), (count, at_least, false), "{query}");
+        for (match_count, limit_hit, count, at_least) in rows {
+            let got = counted_as(match_count, limit_hit, 500, "repo:x foo", 0);
+            assert_eq!(got, (count, at_least, false), "{match_count} {limit_hit}");
         }
     }
 
     #[test]
-    fn a_repo_select_wider_than_one_repository_is_a_lower_bound() {
-        let rows = [
-            ("lang:python foo select:repo count:all timeout:60s", true),
-            ("foo select:repo", true),
-            ("-repo:x foo select:repo", true),
-            ("foo or bar select:repo", true),
-            ("foo select:repo.topics", true),
-            ("repo:x foo select:repo", true),
-            (r"repo:^github\.com/vuejs/ foo select:repo", true),
-            (r"repo:^github\.com/gorilla/(mux|handlers)$ foo select:repo", true),
-            (r"repo:^github\.com/gorilla/mux.*$ foo select:repo", true),
-            (r"repo:^github\.com/gorilla/ repo:mux foo select:repo", true),
-            (r"repo:has.placeholder_file(path:go\.mod) foo select:repo", true),
-            (
-                r"(repo:^github\.com/gorilla/mux$ foo) or (repo:^github\.com/gorilla/handlers$ foo) select:repo",
-                true,
-            ),
-            (r"(repo:^github\.com/gorilla/mux$ foo) or (bar) select:repo", true),
-            (r"repo:^github\.com/gorilla/mux$ foo select:repo", false),
-            (r"r:^github\.com/gorilla/mux$ foo select:repo", false),
-            (r#"repo:"^github\\.com/gorilla/mux$" foo select:repo"#, false),
-            (r"repo:^github\.com/gorilla/mux$@v1.8.0 foo select:repo", false),
-            (r"repo:^github\.com/gorilla/mux$ foo select:repo.topics", false),
-            (r"repo:^github\.com/gorilla/ repo:^github\.com/gorilla/mux$ foo select:repo", false),
-            (
-                r"(repo:^github\.com/gorilla/mux$ foo) or (repo:^github\.com/gorilla/mux$ bar) select:repo",
-                true,
-            ),
-            ("foo -select:repo", false),
-            ("foo select:file", false),
-            (r"-repo:^github\.com/gorilla/mux$ foo select:repo", true),
-            (r"repo:^github\.com/gorilla/mux$@v1:v2 foo select:repo", false),
-            ("repo:^mux$ foo select:repo", false),
-            ("repo:^github.com/gorilla/mux$ foo select:repo", false),
-            (r"repo:^github\.com/gorilla/my\_mux$ foo select:repo", false),
-            (
-                r"repo:^github\.com/gorilla/mux$ repo:has.placeholder_file(path:go\.mod) foo select:repo",
-                false,
-            ),
-            (r"repo:^a/b$ repo:^c/d$ foo select:repo", false),
-            (r"(repo:^a/b$ foo) or (repo:^c/d$ foo) select:repo", true),
-            (r"foo or repo:^a/b$ bar select:repo", true),
-            ("repo:^/$ foo select:repo", true),
-            (r"repo:^github\.com/$ foo select:repo", true),
-            ("repo:^./.$ foo select:repo", true),
-            ("repo:^a//b$ foo select:repo", true),
-            ("type:repo foo", false),
-        ];
-        for (query, at_least) in rows {
-            assert_eq!(at(247, query), (247, at_least, false), "{query}");
-        }
-        assert_eq!(at(0, "foo select:repo"), (0, false, false));
-        assert_eq!(at(0, r"repo:^a/b$ foo select:repo"), (0, false, false));
+    fn a_limit_hit_answer_past_its_deadline_is_stopped() {
+        assert_eq!(counted_as(30, true, 2000, "repo:x foo timeout:2s", 0), (30, true, true));
     }
 
     #[test]
-    fn a_repo_select_with_or_is_a_lower_bound() {
-        let branch = r"(repo:^a/b$ x)";
-        let mut query = [branch; 3].join(" or ");
-        query.push_str(" select:repo");
-        assert_eq!(at(2, &query), (2, true, false));
+    fn an_answer_of_only_placeholders_is_at_least_when_the_server_reports_a_cut() {
+        let query = "repo:x binary";
+        assert_eq!(counted_as(30, true, 500, query, 30), (0, true, false));
+        assert_eq!(counted_as(30, false, 500, query, 30), (0, false, false));
     }
 
     #[test]
-    fn a_pinned_select_answer_is_a_lower_bound_unless_count_all() {
-        let rows = [
-            ("repo:x@v1 Router select:file", true),
-            ("repo:x@v1 type:symbol /./ select:symbol.method count:50", true),
-            ("repo:x@v1 Router select:file count:all", false),
-            ("repo:x Router select:file count:30", false),
-            ("repo:x -rev:v1 Router select:file", false),
-            (r"repo:^github\.com/x/y$@v1 Router select:repo", false),
-            (r"repo:^github\.com/x/y$ rev:v1 Router select:repo.topics", false),
-            ("repo:x@HEAD Router select:file", false),
-            ("repo:x rev:HEAD Router select:file", false),
-            ("repo:x@main Router select:file", true),
-        ];
-        for (query, at_least) in rows {
-            assert_eq!(at(2, query), (2, at_least, false), "{query}");
-        }
+    fn a_stopped_zero_is_not_at_least() {
+        let query = "repo:x binary timeout:2s";
+        assert_eq!(counted_as(3, false, 2000, query, 3), (0, false, true));
     }
 
     #[test]
-    fn a_pinned_zero_is_a_lower_bound_only_when_the_select_drops_results() {
+    fn what_the_query_selects_does_not_change_what_the_server_reported() {
         let rows = [
-            ("repo:x@v1 type:symbol /./ select:symbol.method", true),
-            ("repo:x@v1 type:symbol /./ select:symbol", false),
-            ("repo:x@v1 Router select:content", true),
-            ("repo:x@v1 Router select:file", false),
-            ("repo:x@v1 Router select:file.directory", false),
-            (r"repo:^github\.com/x/y$@v1 Router select:repo", false),
-            ("repo:x@v1 Router select:content count:all", false),
+            "repo:x select:file.directory foo",
+            "foo select:repo",
+            "repo:x@v1 Router select:file",
+            "repo:x type:diff foo",
         ];
-        for (query, at_least) in rows {
-            assert_eq!(at(0, query), (0, at_least, false), "{query}");
+        for query in rows {
+            assert_eq!(counted_as(4, false, 500, query, 0), (4, false, false), "{query}");
         }
     }
 }

@@ -1,5 +1,4 @@
-# select:file.owners runs its own job with no file cap, so a pinned answer is
-# exact.
+# A pinned select:file.owners answer takes its count from the server.
 args = ["search", "repo:example.com/app@v1 select:file.owners NewRouter"]
 status.code = 0
 stdout = '''
