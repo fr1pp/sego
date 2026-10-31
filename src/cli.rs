@@ -4,7 +4,7 @@ use std::ffi::OsString;
 
 use lexopt::Arg;
 
-use crate::address::{self, Address, Dots, Rev, Target, UrlKind};
+use crate::address::{self, Dots, Rev, Target};
 use crate::commands::{Command, Revs, diff, log, ls, refs, search, show};
 use crate::error::Error;
 
@@ -261,9 +261,8 @@ fn parse_show(operands: &[String], json: bool) -> Result<Command, Error> {
         (Rev::Range { base, head, dots }, _) => {
             return Err(usage(range_message(&base, dots, &head)));
         }
-        (Rev::Split(segments), _) => Target::Split(segments),
         (Rev::One(rev), None) => {
-            if !rest.is_empty() || address.lines.is_some() {
+            if !rest.is_empty() {
                 return Err(usage("a commit takes no LINES".to_owned()));
             }
             return Ok(Command::ShowCommit(show::CommitArgs { repo: address.repo, rev, json }));
@@ -275,24 +274,14 @@ fn parse_show(operands: &[String], json: bool) -> Result<Command, Error> {
                     .to_owned(),
             ));
         }
-        (Rev::One(rev), path) => Target::At { rev: Some(rev), path },
-        (Rev::Default, path) => Target::At { rev: None, path },
+        (Rev::One(rev), path) => Target { rev: Some(rev), path },
+        (Rev::Default, path) => Target { rev: None, path },
     };
-    let operand = rest
+    let lines = rest
         .first()
         .map(|text| address::parse_lines(text))
         .transpose()
         .map_err(|e| usage(e.to_string()))?;
-    let lines = match (address.lines, operand) {
-        (Some(url), Some(operand)) if url != operand => {
-            return Err(usage(format!(
-                "the URL's lines {} and the LINES operand {} disagree",
-                url.display(),
-                operand.display()
-            )));
-        }
-        (url, operand) => url.or(operand),
-    };
     Ok(Command::Show(show::Args { repo: address.repo, target, lines, json }))
 }
 
@@ -313,13 +302,9 @@ fn parse_ls(operands: &[String], recursive: bool, json: bool) -> Result<Command,
     let address = address::parse(token).map_err(|e| usage(e.to_string()))?;
     let target = match address.rev {
         Rev::Range { base, head, dots } => return Err(usage(range_message(&base, dots, &head))),
-        Rev::Split(segments) => Target::Split(segments),
-        Rev::One(rev) => Target::At { rev: Some(rev), path: address.path },
-        Rev::Default => Target::At { rev: None, path: address.path },
+        Rev::One(rev) => Target { rev: Some(rev), path: address.path },
+        Rev::Default => Target { rev: None, path: address.path },
     };
-    if address.lines.is_some() {
-        return Err(usage("ls takes no LINES".to_owned()));
-    }
     Ok(Command::Ls(ls::Args { repo: address.repo, target, recursive, json }))
 }
 
@@ -343,27 +328,6 @@ fn parse_refs(operands: &[String], json: bool) -> Result<Command, Error> {
     Ok(Command::Refs(refs::Args { repo: address.repo, text, json }))
 }
 
-/// The checks `log` and `diff` share on their address; `command` names the
-/// command in the messages.
-fn history_address(token: &str, command: &str, synopsis: &'static str) -> Result<Address, Error> {
-    let usage = |message: String| Error::usage(message, synopsis);
-    let address = address::parse(token).map_err(|e| usage(e.to_string()))?;
-    if matches!(address.rev, Rev::Split(_)) {
-        return Err(unsplit(command, synopsis));
-    }
-    if address.lines.is_some() {
-        return Err(usage(format!("{command} takes no LINES")));
-    }
-    Ok(address)
-}
-
-fn unsplit(command: &str, synopsis: &'static str) -> Error {
-    Error::usage(
-        format!("{command} can't split a branch or tag from the path in a tree or blob URL"),
-        synopsis,
-    )
-}
-
 /// The path an operand names, or `None` for the root.
 fn named_path(path: &str, synopsis: &'static str) -> Result<Option<String>, Error> {
     let path = address::parse_operand(path).map_err(|e| Error::usage(e.to_string(), synopsis))?;
@@ -378,15 +342,14 @@ fn parse_log(operands: &[String], follow: bool, json: bool) -> Result<Command, E
     if rest.len() > 1 {
         return Err(usage("log takes an address and at most one PATH"));
     }
-    let address = history_address(token, "log", LOG_SYNOPSIS)?;
+    let address = address::parse(token).map_err(|e| Error::usage(e.to_string(), LOG_SYNOPSIS))?;
     let revs = match address.rev {
-        Rev::Range { dots: Dots::Three, .. } if address.kind != UrlKind::Compare => {
+        Rev::Range { dots: Dots::Three, .. } => {
             return Err(usage("log takes A..B, not A...B"));
         }
         Rev::Range { base, head, .. } => Revs::Range { base, head },
         Rev::One(rev) => Revs::One(Some(rev)),
         Rev::Default => Revs::One(None),
-        Rev::Split(_) => return Err(unsplit("log", LOG_SYNOPSIS)),
     };
     if rest.iter().any(String::is_empty) {
         return Err(usage("log takes no empty path"));
@@ -409,14 +372,13 @@ fn parse_diff(operands: &[String], json: bool) -> Result<Command, Error> {
     let [token, rest @ ..] = operands else {
         return Err(usage("diff needs an address, like REPO@A...B or REPO@REV"));
     };
-    let address = history_address(token, "diff", DIFF_SYNOPSIS)?;
+    let address = address::parse(token).map_err(|e| Error::usage(e.to_string(), DIFF_SYNOPSIS))?;
     let revs = match address.rev {
         Rev::Range { dots: Dots::Two, .. } => {
             return Err(usage("diff takes A...B (Sourcegraph compares from the merge base)"));
         }
         Rev::Range { base, head, .. } => Revs::Range { base, head },
         Rev::One(rev) => Revs::One(Some(rev)),
-        Rev::Split(_) => return Err(unsplit("diff", DIFF_SYNOPSIS)),
         Rev::Default => {
             return Err(usage(
                 "diff needs a revision or a range, like REPO@REV or \
@@ -451,7 +413,6 @@ mod tests {
     use crate::commands::{Command, Revs, diff, log, ls, refs, search, show};
     use crate::error::{Kind, report, usage_block};
 
-    const SHA: &str = "0123456789abcdef0123456789abcdef01234567";
     const COMMAND_LIST: &str = "commands: search, show, ls, refs, log, diff";
     const LIMIT: &str = "sego has no --limit; count: is a query filter";
     const NEEDS_SHOW_ADDRESS: &str = "show needs an address, like REPO[@REV]:PATH";
@@ -477,9 +438,8 @@ mod tests {
     fn target(token: &str) -> (Repo, Target) {
         let address = address(token);
         let target = match address.rev {
-            Rev::Split(segments) => Target::Split(segments),
-            Rev::One(rev) => Target::At { rev: Some(rev), path: address.path },
-            Rev::Default => Target::At { rev: None, path: address.path },
+            Rev::One(rev) => Target { rev: Some(rev), path: address.path },
+            Rev::Default => Target { rev: None, path: address.path },
             Rev::Range { .. } => panic!("{token} is a range"),
         };
         (address.repo, target)
@@ -512,7 +472,6 @@ mod tests {
             Rev::Range { base, head, .. } => Revs::Range { base, head },
             Rev::One(rev) => Revs::One(Some(rev)),
             Rev::Default => Revs::One(None),
-            Rev::Split(_) => panic!("{token} is split"),
         };
         Invocation::Command(Command::Log(log::Args {
             repo: address.repo,
@@ -553,7 +512,7 @@ mod tests {
         let revs = match address.rev {
             Rev::Range { base, head, .. } => Revs::Range { base, head },
             Rev::One(rev) => Revs::One(Some(rev)),
-            _ => panic!("{token} names no revision or range"),
+            Rev::Default => panic!("{token} names no revision or range"),
         };
         let paths = paths.iter().map(|p| (*p).to_owned()).collect();
         Invocation::Command(Command::Diff(diff::Args { repo: address.repo, revs, paths, json }))
@@ -601,15 +560,10 @@ mod tests {
 
     #[test]
     fn show_parses_a_file_address_with_lines_and_options() {
-        let blob = "https://github.com/x/y/blob/main/a.go#L3-L9";
         check_parses(vec![
             (vec!["show", "github.com/x/y:a.go"], show("github.com/x/y:a.go", None, false)),
             (vec!["show", "x/y@v1:"], show("x/y@v1:", None, false)),
             (vec!["show", "x/y:."], show("x/y:.", None, false)),
-            (
-                vec!["show", "sourcegraph.com/github.com/o/r@v1/-/tree/."],
-                show("github.com/o/r@v1:", None, false),
-            ),
             (vec!["show", "--json", "x/y:a.go"], show("x/y:a.go", None, true)),
             (vec!["show", "x/y:a.go", "--json"], show("x/y:a.go", None, true)),
             (vec!["--json", "show", "x/y:a.go"], show("x/y:a.go", None, true)),
@@ -620,26 +574,16 @@ mod tests {
             ),
             (vec!["show", "x/y:a.go", "3,9"], show("x/y:a.go", Some(lines(3, 9)), false)),
             (vec!["show", "--", "x/y:a.go"], show("x/y:a.go", None, false)),
-            (
-                vec!["show", "https://github.com/x/y/tree/main/src"],
-                show("https://github.com/x/y/tree/main/src", None, false),
-            ),
-            (vec!["show", blob], show(blob, Some(lines(3, 9)), false)),
-            (vec!["show", blob, "3-9"], show(blob, Some(lines(3, 9)), false)),
         ]);
     }
 
     #[test]
     fn show_of_a_revision_is_a_commit() {
-        let blob = format!("https://github.com/o/r/commit/{SHA}");
-        let sourcegraph = format!("sourcegraph.com/github.com/o/r@v1/-/commit/{SHA}");
         check_parses(vec![
             (vec!["show", "x/y@v1"], commit("x/y@v1", false)),
             (vec!["show", "--json", "x/y@v1"], commit("x/y@v1", true)),
             (vec!["show", "x/y@v1", "--json"], commit("x/y@v1", true)),
             (vec!["show", "github.com/x/y@HEAD~2"], commit("github.com/x/y@HEAD~2", false)),
-            (vec!["show", &blob], commit(&blob, false)),
-            (vec!["show", &sourcegraph], commit(&sourcegraph, false)),
         ]);
     }
 
@@ -688,14 +632,12 @@ mod tests {
 
     #[test]
     fn ls_parses_an_address_with_recursive_and_json() {
-        let tree = "https://github.com/x/y/tree/main/src";
         check_parses(vec![
             (vec!["ls", "x/y"], ls("x/y", false, false)),
             (vec!["ls", "x/y:src"], ls("x/y:src", false, false)),
             (vec!["ls", "x/y@v1:src"], ls("x/y@v1:src", false, false)),
             (vec!["ls", "x/y:"], ls("x/y:", false, false)),
             (vec!["ls", "x/y:."], ls("x/y:.", false, false)),
-            (vec!["ls", tree], ls(tree, false, false)),
             (vec!["ls", "--json", "x/y"], ls("x/y", false, true)),
             (vec!["ls", "x/y", "--recursive"], ls("x/y", true, false)),
             (vec!["--recursive", "ls", "x/y"], ls("x/y", true, false)),
@@ -710,19 +652,12 @@ mod tests {
             (vec!["refs", "x/y"], refs("x/y", None, false)),
             (vec!["refs", "--json", "x/y"], refs("x/y", None, true)),
             (vec!["refs", "x/y", "v1"], refs("x/y", Some("v1"), false)),
-            (vec!["refs", "https://github.com/x/y"], refs("https://github.com/x/y", None, false)),
             (vec!["refs", "x/y", "a b "], refs("x/y", Some("a b "), false)),
         ]);
     }
 
     #[test]
     fn log_parses_an_address_and_one_path() {
-        let blob = format!("https://github.com/o/r/blob/{SHA}/x.go");
-        let tree = format!("https://github.com/o/r/tree/{SHA}/src");
-        let root = format!("https://github.com/o/r/tree/{SHA}");
-        let commit = format!("https://github.com/o/r/commit/{SHA}");
-        let compare2 = "https://github.com/o/r/compare/a..b";
-        let compare3 = "https://github.com/o/r/compare/a...b";
         check_parses(vec![
             (vec!["log", "x/y"], log("x/y", None, false)),
             (vec!["log", "--json", "x/y"], log("x/y", None, true)),
@@ -741,21 +676,12 @@ mod tests {
             (vec!["log", "x/y@v1", "/"], log("x/y@v1", None, false)),
             (vec!["log", "x/y:.", "src"], log("x/y:.", Some("src"), false)),
             (vec!["log", "x/y:src", "."], log("x/y:src", Some("src"), false)),
-            (vec!["log", &blob], log(&blob, Some("x.go"), false)),
-            (vec!["log", &tree], log(&tree, Some("src"), false)),
-            (vec!["log", &root], log(&root, None, false)),
-            (vec!["log", &commit], log(&commit, None, false)),
-            (vec!["log", compare2], log(compare2, None, false)),
-            (vec!["log", compare3], log(compare2, None, false)),
             (vec!["log", "--", "x/y"], log("x/y", None, false)),
         ]);
     }
 
     #[test]
     fn diff_parses_a_revision_or_three_dot_range_and_paths() {
-        let blob = format!("https://github.com/o/r/blob/{SHA}/x.go");
-        let commit = format!("https://github.com/o/r/commit/{SHA}");
-        let compare = "https://github.com/o/r/compare/a...b";
         check_parses(vec![
             (vec!["diff", "x/y@v1"], diff("x/y@v1", &[], false)),
             (vec!["diff", "--json", "x/y@v1"], diff("x/y@v1", &[], true)),
@@ -769,9 +695,6 @@ mod tests {
             (vec!["diff", "x/y@v1...v2:."], diff("x/y@v1...v2:.", &[], false)),
             (vec!["diff", "x/y@v1...v2", ".", "src", "/"], diff("x/y@v1...v2", &["src"], false)),
             (vec!["diff", "x/y@v1:"], diff("x/y@v1:", &[], false)),
-            (vec!["diff", &blob], diff(&blob, &["x.go"], false)),
-            (vec!["diff", &commit], diff(&commit, &[], false)),
-            (vec!["diff", compare, "x.go"], diff(compare, &["x.go"], false)),
         ]);
     }
 
@@ -869,10 +792,6 @@ mod tests {
                 (&["show", "x/y:f", "0"], "invalid line range 0; lines are numbered from 1"),
                 (&["show", "x/y:f", "5-2"], "invalid line range 5-2; the end is before the start"),
                 (&["show", "x/y@:f"], "the address has an empty revision: x/y@:f"),
-                (
-                    &["show", "https://github.com/x/y/blob/main/a.go#L3", "5-9"],
-                    "the URL's lines 3 and the LINES operand 5-9 disagree",
-                ),
             ],
         );
     }
@@ -881,14 +800,12 @@ mod tests {
     fn usage_errors_in_a_commit_address_of_show() {
         let needs_either = "show needs a file's path or a revision, like \
                         REPO[@REV]:PATH or REPO@REV";
-        let with_lines = format!("https://github.com/o/r/commit/{SHA}#L3");
         check_errors(
             SHOW_SYNOPSIS,
             &[
                 (&["show", "x/y"], needs_either),
                 (&["show", "x/y@v1", "3"], "a commit takes no LINES"),
                 (&["show", "x/y@v1", "abc"], "a commit takes no LINES"),
-                (&["show", &with_lines], "a commit takes no LINES"),
                 (
                     &["show", "x/y@v1", "1", "2"],
                     "show takes an address and at most one LINES operand",
@@ -910,7 +827,6 @@ mod tests {
                 (&["ls", "x/y", "src", "a"], "ls takes one address"),
                 (&["ls", "x/y@a..b"], &range("a..b")),
                 (&["ls", "x/y@a...b:src"], &range("a...b")),
-                (&["ls", "https://github.com/x/y/blob/main/a.go#L3"], "ls takes no LINES"),
                 (&["ls", "x/y@:src"], "the address has an empty revision: x/y@:src"),
             ],
         );
@@ -931,10 +847,6 @@ mod tests {
                 (&["refs", "github.com/x/y@v1"], &names_repo("github.com/x/y@v1")),
                 (&["refs", "x/y:src"], &names_repo("x/y:src")),
                 (&["refs", "x/y@v1:src", "t"], &names_repo("x/y@v1:src")),
-                (
-                    &["refs", "https://github.com/x/y/tree/main/src"],
-                    &names_repo("https://github.com/x/y/tree/main/src"),
-                ),
                 (&["refs", "x/y", ""], "the TEXT operand is empty"),
                 (&["refs", "x/y", "  "], "the TEXT operand is empty"),
                 (&["refs", "x/y@:"], "the address has an empty revision: x/y@:"),
@@ -945,11 +857,6 @@ mod tests {
     #[test]
     fn usage_errors_in_the_operands_of_log() {
         let needs_address = "log needs an address, like REPO[@REV][:PATH]";
-        let blob_main = "https://github.com/o/r/blob/main/x.go";
-        let tree_main = "https://github.com/o/r/tree/main/src";
-        let split = "log can't split a branch or tag from the path in a tree \
-                 or blob URL";
-        let with_lines = format!("https://github.com/o/r/blob/{SHA}/x.go#L3");
         check_errors(
             LOG_SYNOPSIS,
             &[
@@ -964,9 +871,6 @@ mod tests {
                 (&["log", "x/y:src", ""], "log takes no empty path"),
                 (&["log", "x/y:src", "lib"], "log takes one path"),
                 (&["log", "x/y@a..b:src", "lib"], "log takes one path"),
-                (&["log", blob_main], split),
-                (&["log", tree_main], split),
-                (&["log", &with_lines], "log takes no LINES"),
                 (&["log", "x/y@:src"], "the address has an empty revision: x/y@:src"),
             ],
         );
@@ -974,10 +878,6 @@ mod tests {
 
     #[test]
     fn usage_errors_in_the_operands_of_diff() {
-        let blob_main = "https://github.com/o/r/blob/main/x.go";
-        let split = "diff can't split a branch or tag from the path in a tree \
-                 or blob URL";
-        let with_lines = format!("https://github.com/o/r/blob/{SHA}/x.go#L3");
         let needs_revision = "diff needs a revision or a range, like REPO@REV or \
                           REPO@A...B";
         let two_dots = "diff takes A...B (Sourcegraph compares from the merge base)";
@@ -991,8 +891,6 @@ mod tests {
                 (&["diff", "x/y@a..b:src", "lib"], two_dots),
                 (&["diff", "x/y@v1", ""], "diff takes no empty path"),
                 (&["diff", "x/y@v1", "src", ""], "diff takes no empty path"),
-                (&["diff", blob_main], split),
-                (&["diff", &with_lines], "diff takes no LINES"),
                 (&["diff", "x/y@a....b"], "invalid range a....b; a range is A..B or A...B"),
             ],
         );

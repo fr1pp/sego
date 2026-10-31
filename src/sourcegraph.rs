@@ -113,8 +113,6 @@ impl<'a> Client<'a> {
 
     /// What `target` names in `repo`: a file with the lines of `window` when
     /// given, or a directory, with every entry beneath it when `recursive`.
-    /// A web URL's split guesses are resolved without fetching first, and
-    /// only when none resolves, once more with fetching.
     pub fn file(
         self,
         repo: &Repo,
@@ -122,20 +120,9 @@ impl<'a> Client<'a> {
         window: Option<Window>,
         recursive: bool,
     ) -> Result<(Resolved, File), Error> {
-        if let Target::Split(segments) = target
-            && resolve::split_guesses(segments).is_empty()
-        {
-            return Err(files::unresolved(target, &repo.candidates()[0]));
-        }
-        let read = |fetch: bool| {
-            let request = files::request(repo, target, window, recursive, fetch);
-            files::read(&self.exchange(&request)?, repo, target, fetch)
-        };
-        let read = match read(false)? {
-            Some(read) => read,
-            None => read(true)?.ok_or_else(|| Error::failed("the revision lookup"))?,
-        };
-        let files::Read { resolved, mut file, body, raw } = read;
+        let request = files::request(repo, target, window, recursive);
+        let files::Read { resolved, mut file, body, raw } =
+            files::read(&self.exchange(&request)?, repo, target)?;
         if let (File::Blob(blob), Some(window)) = (&mut file, window) {
             let download = || {
                 let route = raw.as_deref().ok_or_else(|| Error::failed("the file's details"))?;
@@ -277,13 +264,6 @@ impl Response {
             body: body.into(),
         }
     }
-}
-
-/// The envelope of a 200 JSON response with `body`.
-#[cfg(test)]
-fn parsed(body: &serde_json::Value) -> Envelope {
-    let response = Response::of(200, Some("application/json"), body.to_string());
-    graphql::classify(response, "sourcegraph.com").unwrap_or_else(|e| panic!("{e}"))
 }
 
 /// Why a request got no response.
@@ -481,15 +461,6 @@ mod tests {
         }}})
     }
 
-    /// The first request of a web URL with one split guess, which doesn't
-    /// resolve without fetching.
-    fn no_guess() -> serde_json::Value {
-        json!({"data": {
-            "r": {"name": "github.com/gorilla/mux", "defaultBranch": {"displayName": "main"}, "mirrorInfo": null},
-            "g0": null
-        }})
-    }
-
     fn run<T>(
         script: &Script,
         deadline: Duration,
@@ -509,11 +480,6 @@ mod tests {
             &[],
             None,
         )
-    }
-
-    fn split(client: Client<'_>) -> Result<(Resolved, File), Error> {
-        let target = Target::Split(vec!["main".to_owned()]);
-        client.file(&Repo::Exact("github.com/gorilla/mux".to_owned()), &target, None, false)
     }
 
     /// A text file at `big.c` with `content` as its window, or over the content
@@ -540,7 +506,7 @@ mod tests {
     }
 
     fn show(client: Client<'_>) -> Result<(Resolved, File), Error> {
-        let target = Target::At { rev: None, path: Some("big.c".to_owned()) };
+        let target = Target { rev: None, path: Some("big.c".to_owned()) };
         let window = Some(Window { start: 1, end: None });
         client.file(&Repo::Exact("github.com/gorilla/mux".to_owned()), &target, window, false)
     }
@@ -601,21 +567,5 @@ mod tests {
             Some("sego: error: no answer from sourcegraph.com within 90 s\n")
         );
         assert_eq!(script.asked.borrow().len(), 1);
-    }
-
-    #[test]
-    fn a_split_guess_fetches_only_when_none_resolves_and_time_is_left() {
-        let script =
-            Script::new(vec![Ok(json(&no_guess())), Ok(json(&no_guess()))], Duration::ZERO);
-        let error = run(&script, DEADLINE, split).err().map(|e| report(&e));
-        assert_eq!(
-            error.as_deref(),
-            Some("sego: error: no revision and path in main resolve in github.com/gorilla/mux\n")
-        );
-        assert_eq!(*script.asked.borrow(), ["POST /.api/graphql", "POST /.api/graphql"]);
-        let late = Script::new(vec![Ok(json(&no_guess()))], Duration::from_millis(100));
-        let error = run(&late, Duration::from_millis(50), split).err().map(|e| e.kind());
-        assert_eq!(error, Some(Kind::Deadline));
-        assert_eq!(late.asked.borrow().len(), 1);
     }
 }

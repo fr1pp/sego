@@ -198,8 +198,8 @@ mod commit {
     use crate::support::case;
 
     #[test]
-    fn commit_url_with_crlf_message() {
-        case("commit/commit-url-with-crlf-message.toml");
+    fn commit_with_crlf_message() {
+        case("commit/commit-with-crlf-message.toml");
     }
 
     #[test]
@@ -417,8 +417,8 @@ mod diff {
     }
 
     #[test]
-    fn compare_url_with_path() {
-        case("diff/compare-url-with-path.toml");
+    fn compare_url_is_not_an_address() {
+        case("diff/compare-url-is-not-an-address.toml");
     }
 
     #[test]
@@ -741,8 +741,8 @@ mod log {
     }
 
     #[test]
-    fn compare_url() {
-        case("log/compare-url.toml");
+    fn compare_url_is_not_an_address() {
+        case("log/compare-url-is-not-an-address.toml");
     }
 
     #[test]
@@ -955,6 +955,11 @@ mod ls {
     use crate::support::case;
 
     #[test]
+    fn clone_url_is_not_an_address() {
+        case("ls/clone-url-is-not-an-address.toml");
+    }
+
+    #[test]
     fn default_branch_json() {
         case("ls/default-branch-json.toml");
     }
@@ -1120,13 +1125,8 @@ mod ls {
     }
 
     #[test]
-    fn tree_url_at_the_root() {
-        case("ls/tree-url-at-the-root.toml");
-    }
-
-    #[test]
-    fn tree_url_with_path() {
-        case("ls/tree-url-with-path.toml");
+    fn tree_url_is_not_an_address() {
+        case("ls/tree-url-is-not-an-address.toml");
     }
 }
 
@@ -1184,8 +1184,8 @@ mod refs {
     }
 
     #[test]
-    fn github_url() {
-        case("refs/github-url.toml");
+    fn github_url_is_not_an_address() {
+        case("refs/github-url-is-not-an-address.toml");
     }
 
     #[test]
@@ -1967,21 +1967,6 @@ mod show {
     }
 
     #[test]
-    fn blob_url_pinned_to_a_commit() {
-        case("show/blob-url-pinned-to-a-commit.toml");
-    }
-
-    #[test]
-    fn blob_url_whose_guesses_all_miss() {
-        case("show/blob-url-whose-guesses-all-miss.toml");
-    }
-
-    #[test]
-    fn blob_url_with_line_fragment() {
-        case("show/blob-url-with-line-fragment.toml");
-    }
-
-    #[test]
     fn bytes_that_arent_utf8_are_read_raw_json() {
         case("show/bytes-that-arent-utf8-are-read-raw-json.toml");
     }
@@ -2182,11 +2167,6 @@ mod show {
     }
 
     #[test]
-    fn raw_githubusercontent_url() {
-        case("show/raw-githubusercontent-url.toml");
-    }
-
-    #[test]
     fn raw_read_challenge() {
         case("show/raw-read-challenge.toml");
     }
@@ -2272,8 +2252,8 @@ mod show {
     }
 
     #[test]
-    fn slashed_branch_in_blob_url() {
-        case("show/slashed-branch-in-blob-url.toml");
+    fn slashed_branch_in_an_address() {
+        case("show/slashed-branch-in-an-address.toml");
     }
 
     #[test]
@@ -2292,18 +2272,8 @@ mod show {
     }
 
     #[test]
-    fn tree_url_of_root_is_a_directory() {
-        case("show/tree-url-of-root-is-a-directory.toml");
-    }
-
-    #[test]
     fn upstream_revision() {
         case("show/upstream-revision.toml");
-    }
-
-    #[test]
-    fn url_invalid_revision() {
-        case("show/url-invalid-revision.toml");
     }
 
     #[test]
@@ -2312,7 +2282,7 @@ mod show {
     }
 
     #[test]
-    fn web_url_path_with_dot_segments() {
-        case("show/web-url-path-with-dot-segments.toml");
+    fn web_url_is_not_an_address() {
+        case("show/web-url-is-not-an-address.toml");
     }
 }

@@ -6,10 +6,7 @@ use crate::error::usage_block;
 
 // A string continued with `\` drops the next line's leading spaces, so a
 // block whose first line is indented is joined with `concat!`.
-const REPO: &str = concat!(
-    "  REPO     host/owner/name, owner/name, or a GitHub, GitLab or\n",
-    "           Sourcegraph URL\n",
-);
+const REPO: &str = "  REPO     host/owner/name or owner/name\n";
 
 const REV: &str = "  @REV     a branch, tag or commit; the default branch without it\n";
 
@@ -190,8 +187,7 @@ examples:
 
 const LOG_OPERANDS: &str = "\
 operands:
-  REPO       host/owner/name, owner/name, or a GitHub, GitLab or
-             Sourcegraph URL
+  REPO       host/owner/name or owner/name
   REPO@REV   commits reachable from REV, in git log order; the default
              branch without @REV
   REPO@A..B  commits reachable from B and not from A, as git log A..B
@@ -228,8 +224,7 @@ examples:
 
 const DIFF_OPERANDS: &str = "\
 operands:
-  REPO        host/owner/name, owner/name, or a GitHub, GitLab or
-              Sourcegraph URL
+  REPO        host/owner/name or owner/name
   REPO@A...B  changes from the merge base of A and B to B, as git
               diff A...B
   REPO@REV    the change REV made, against its first parent; a root

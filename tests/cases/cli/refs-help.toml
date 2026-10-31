@@ -5,8 +5,7 @@ stdout = '''
 usage: sego refs [--json] REPO [TEXT]
 
 operands:
-  REPO     host/owner/name, owner/name, or a GitHub, GitLab or
-           Sourcegraph URL
+  REPO     host/owner/name or owner/name
   TEXT     only refs whose name contains TEXT, in any case: 1.8
            matches v1.8.0, 1.8.0 and release-1.8 alike
 

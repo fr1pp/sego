@@ -1,0 +1,49 @@
+# A branch name with a slash, in an address.
+args = ["show", "github.com/bminor/glibc@release/2.34/master:NEWS", "1-3"]
+status.code = 0
+stdout = '''
+github.com/bminor/glibc@2b656ff94d72:NEWS  lines 1-3 of 6916  rev release/2.34/master  mirrored 2026-10-31T00:28Z
+1:GNU C Library NEWS -- history of user-visible changes.
+2:Copyright (C) 1992-2021 Free Software Foundation, Inc.
+3:See the end for copying conditions.
+'''
+
+[[exchange]]
+operation = "File"
+variables = '{"content":true,"end":3,"gitlab":false,"path":"NEWS","recursive":false,"repo0":"github.com/bminor/glibc","repo1":"","rev":"release/2.34/master","start":1}'
+document = "File-f4700c66"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "r0": {
+      "commit": {
+        "body": {
+          "__typename": "GitBlob",
+          "content": "GNU C Library NEWS -- history of user-visible changes.\nCopyright (C) 1992-2021 Free Software Foundation, Inc.\nSee the end for copying conditions.\n"
+        },
+        "meta": {
+          "__typename": "GitBlob",
+          "binary": false,
+          "byteSize": 327353,
+          "lfs": null,
+          "path": "NEWS",
+          "rawURL": "/r/github.com/bminor/glibc@2b656ff94d72f93c84d8da2e7c76456c1994f02e/-/raw/NEWS",
+          "submodule": null,
+          "totalLines": 6916
+        },
+        "oid": "2b656ff94d72f93c84d8da2e7c76456c1994f02e"
+      },
+      "defaultBranch": {
+        "displayName": "master"
+      },
+      "mirrorInfo": {
+        "updatedAt": "2026-10-31T00:28:07Z"
+      },
+      "name": "github.com/bminor/glibc"
+    }
+  }
+}
+'''

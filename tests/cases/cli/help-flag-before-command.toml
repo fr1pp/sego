@@ -6,8 +6,7 @@ usage: sego show [--json] REPO[@REV]:PATH [LINES]
        sego show [--json] REPO@REV
 
 addresses:
-  REPO     host/owner/name, owner/name, or a GitHub, GitLab or
-           Sourcegraph URL
+  REPO     host/owner/name or owner/name
   @REV     a branch, tag or commit; the default branch without it
   @REV     with no :PATH, the commit: its message and changed files
   :PATH    a path from the repository root

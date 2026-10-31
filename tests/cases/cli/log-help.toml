@@ -6,8 +6,7 @@ usage: sego log [--json] [--follow] REPO[@REV][:PATH] [PATH]
        sego log [--json] REPO@A..B[:PATH] [PATH]
 
 operands:
-  REPO       host/owner/name, owner/name, or a GitHub, GitLab or
-             Sourcegraph URL
+  REPO       host/owner/name or owner/name
   REPO@REV   commits reachable from REV, in git log order; the default
              branch without @REV
   REPO@A..B  commits reachable from B and not from A, as git log A..B

@@ -1,5 +1,5 @@
-# A commit URL names the commit; the body has CRLF line ends.
-args = ["show", "https://github.com/gorilla/mux/commit/948bec34b5168796bf3fc4dbb09215baa970351a"]
+# A commit body with CRLF line ends.
+args = ["show", "github.com/gorilla/mux@948bec34b5168796bf3fc4dbb09215baa970351a"]
 status.code = 0
 stdout = '''
 github.com/gorilla/mux@948bec34b516  2020-05-17  Eric Skoglund  parents 75dcda0896e1  1 file  +1 -2  2 tags

@@ -1,14 +1,12 @@
 //! What a path names at a commit: a file, a directory or a submodule, read
 //! through the `path` union under the one revision lookup.
 
-use std::fmt::Write as _;
-
 use serde::Deserialize;
 use serde_json::{Map, json};
 
 use super::Page;
-use super::graphql::{Envelope, GqlErrorKind, Request, Segment, View, repeated};
-use super::resolve::{self, Repository, Resolved, repository_variables, split_guesses};
+use super::graphql::{Envelope, GqlErrorKind, Request, Segment, View};
+use super::resolve::{self, Repository, Resolved, repository_variables};
 use crate::address::{Repo, Target, pinned};
 use crate::error::Error;
 use crate::pointer;
@@ -21,26 +19,15 @@ const OPEN_END_SPAN: i64 = 500_000;
 /// its parent.
 const READ: &str = "\
     oid
-    meta: path(path: $path#) {
+    meta: path(path: $path) {
       __typename
       ... on GitBlob { path byteSize totalLines binary rawURL lfs { byteSize } submodule { commit } }
       ... on GitTree { path entries(recursive: $recursive) { path isDirectory submodule { commit } } }
     }
-    body: path(path: $path#) @include(if: $content) {
+    body: path(path: $path) @include(if: $content) {
       __typename
       ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }
     }";
-
-/// One split guess of a web URL, resolved without fetching unless `$fetch`,
-/// so a wrong guess costs no fetch.
-const GUESS: &str = "\
-  g#: repository(name: $repo) {
-    comparison(base: $rev#, head: $rev#, fetchMissing: $fetch) {
-      range { headRevSpec { object { commit {
-READ
-      } } } }
-    }
-  }";
 
 /// What a path names.
 #[derive(Debug, PartialEq, Eq)]
@@ -152,15 +139,8 @@ pub fn crlf(lines: &[Line]) -> bool {
 }
 
 /// The request for what `target` names in `repo`: the lines of `window`
-/// when given, and every entry beneath a directory when `recursive`. A web
-/// URL's split guesses are resolved without fetching unless `fetch`.
-pub fn request(
-    repo: &Repo,
-    target: &Target,
-    window: Option<Window>,
-    recursive: bool,
-    fetch: bool,
-) -> Request {
+/// when given, and every entry beneath a directory when `recursive`.
+pub fn request(repo: &Repo, target: &Target, window: Option<Window>, recursive: bool) -> Request {
     let mut variables = Map::new();
     variables.insert("recursive".to_owned(), json!(recursive));
     variables.insert("content".to_owned(), json!(window.is_some()));
@@ -170,15 +150,12 @@ pub fn request(
         variables.insert("start".to_owned(), json!(start));
         variables.insert("end".to_owned(), json!(end));
     }
-    let shared = "$recursive: Boolean!, $content: Boolean!, $start: Int, $end: Int";
-    let document = match target {
-        Target::At { rev, path } => {
-            variables.extend(repository_variables(repo));
-            variables.insert("rev".to_owned(), json!(rev.as_deref().unwrap_or("HEAD")));
-            variables.insert("path".to_owned(), json!(path.as_deref().unwrap_or_default()));
-            format!(
-                "query File($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, \
-                 $path: String!, {shared}) {{
+    variables.extend(repository_variables(repo));
+    variables.insert("rev".to_owned(), json!(target.rev.as_deref().unwrap_or("HEAD")));
+    variables.insert("path".to_owned(), json!(target.path.as_deref().unwrap_or_default()));
+    let document = format!(
+        "query File($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, \
+         $path: String!, $recursive: Boolean!, $content: Boolean!, $start: Int, $end: Int) {{
   r0: repository(name: $repo0) {{ ...File }}
   r1: repository(name: $repo1) @include(if: $gitlab) {{ ...File }}
 }}
@@ -188,110 +165,22 @@ fragment File on Repository {{
   defaultBranch {{ displayName }}
   mirrorInfo {{ updatedAt }}
   commit(rev: $rev) {{
-{}
+{READ}
   }}
 }}
-",
-                READ.replace('#', "")
-            )
-        }
-        Target::Split(segments) => {
-            let guesses = split_guesses(segments);
-            variables.insert("repo".to_owned(), json!(repo.candidates()[0]));
-            variables.insert("fetch".to_owned(), json!(fetch));
-            let mut declared = String::new();
-            for (n, guess) in guesses.iter().enumerate() {
-                variables.insert(format!("rev{n}"), json!(guess.rev));
-                variables
-                    .insert(format!("path{n}"), json!(guess.path.as_deref().unwrap_or_default()));
-                let _ = write!(declared, ", $rev{n}: String!, $path{n}: String!");
-            }
-            format!(
-                "query File($repo: String!, $fetch: Boolean!, {shared}{declared}) {{
-  r: repository(name: $repo) {{ name defaultBranch {{ displayName }} mirrorInfo {{ updatedAt }} }}
-{}
-}}
-",
-                repeated(&GUESS.replace("READ", &indent(READ, "      ")), guesses.len())
-            )
-        }
-    };
+"
+    );
     Request::new("File", document, variables)
 }
 
-fn indent(text: &str, by: &str) -> String {
-    text.lines().map(|line| format!("{by}{line}")).collect::<Vec<_>>().join("\n")
-}
-
-/// What `target` names in `repo`, as the response to `request` gives it;
-/// `None` when no split guess of a web URL resolves with its path without
-/// fetching, which after `fetch` is not found.
-pub fn read(
-    envelope: &Envelope,
-    repo: &Repo,
-    target: &Target,
-    fetch: bool,
-) -> Result<Option<Read>, Error> {
-    match target {
-        Target::At { rev, path } => {
-            let found = resolve::repository(repo, envelope, resolve::roots(repo))?;
-            let at = [found.root.as_str(), "commit"];
-            let commit = resolve::commit(envelope, &found, &at, rev.as_deref().unwrap_or("HEAD"))?;
-            let path = path.clone().unwrap_or_default();
-            read_at(envelope, &found, &at, commit, rev.clone(), &path).map(Some)
-        }
-        Target::Split(segments) => {
-            let found = resolve::repository(repo, envelope, &["r"])?;
-            if let Some(error) = found.no_commits() {
-                return Err(error);
-            }
-            let guesses = split_guesses(segments);
-            let commit_at = |n: usize| {
-                let mut at = vec![format!("g{n}")];
-                at.extend(
-                    ["comparison", "range", "headRevSpec", "object", "commit"].map(str::to_owned),
-                );
-                at
-            };
-            let resolves = |n: usize| {
-                let at = commit_at(n);
-                let at: Vec<&str> = at.iter().map(String::as_str).collect();
-                let oid = envelope.get(&[&at[..], &["oid"]].concat()).is_some();
-                let meta = [&at[..], &["meta"]].concat();
-                oid && (envelope.get(&meta).is_some() || envelope.error_beneath(&meta).is_some())
-            };
-            let Some(n) = (0..guesses.len()).rev().find(|&n| resolves(n)) else {
-                let failed = (0..guesses.len()).any(|n| {
-                    envelope
-                        .errors_beneath(&[&format!("g{n}")])
-                        .iter()
-                        .any(|e| e.kind() != GqlErrorKind::RevisionNotFound)
-                });
-                if failed {
-                    return Err(Error::failed("the revision lookup"));
-                }
-                if !fetch {
-                    return Ok(None);
-                }
-                return Err(unresolved(target, &found.name));
-            };
-            let at = commit_at(n);
-            let at: Vec<&str> = at.iter().map(String::as_str).collect();
-            let commit = resolve::commit(envelope, &found, &at, &guesses[n].rev)?;
-            let path = guesses[n].path.clone().unwrap_or_default();
-            read_at(envelope, &found, &at, commit, Some(guesses[n].rev.clone()), &path).map(Some)
-        }
-    }
-}
-
-/// The error for a web URL none of whose split guesses resolves with its
-/// path in `repo`.
-pub fn unresolved(target: &Target, repo: &str) -> Error {
-    let segments = match target {
-        Target::Split(segments) => segments.join("/"),
-        Target::At { .. } => String::new(),
-    };
-    Error::not_found(format!("no revision and path in {segments} resolve in {repo}"))
+/// What `target` names in `repo`, as the response to `request` gives it.
+pub fn read(envelope: &Envelope, repo: &Repo, target: &Target) -> Result<Read, Error> {
+    let found = resolve::repository(repo, envelope, resolve::roots(repo))?;
+    let at = [found.root.as_str(), "commit"];
+    let rev = target.rev.as_deref().unwrap_or("HEAD");
+    let commit = resolve::commit(envelope, &found, &at, rev)?;
+    let path = target.path.clone().unwrap_or_default();
+    read_at(envelope, &found, &at, commit, target.rev.clone(), &path)
 }
 
 #[derive(Deserialize)]
@@ -484,53 +373,7 @@ pub fn content(
 
 #[cfg(test)]
 mod tests {
-    use serde_json::{Value, json};
-
     use super::*;
-    use crate::sourcegraph::parsed;
-
-    /// The guess `n` resolving to a commit, holding a blob at its path when
-    /// `held`.
-    fn guess(held: bool) -> Value {
-        let meta = held.then(|| {
-            json!({"__typename": "GitBlob", "path": "NEWS", "byteSize": 1, "totalLines": 1,
-                   "binary": true, "rawURL": null, "lfs": null, "submodule": null})
-        });
-        json!({"comparison": {"range": {"headRevSpec": {"object": {"commit": {
-            "oid": "a".repeat(40), "meta": meta, "body": null, "gm": null
-        }}}}}})
-    }
-
-    /// Which split of `release/2.34/master/NEWS` the response chooses, by its
-    /// revision, given each guess's response.
-    fn chosen(guesses: [Option<Value>; 4], fetch: bool) -> Result<Option<String>, Error> {
-        let mut data = json!({"r": {"name": "github.com/bminor/glibc",
-            "defaultBranch": {"displayName": "master"}, "mirrorInfo": null}});
-        for (n, response) in guesses.into_iter().enumerate() {
-            data[format!("g{n}")] = response.unwrap_or(Value::Null);
-        }
-        let target =
-            Target::Split(["release", "2.34", "master", "NEWS"].map(str::to_owned).to_vec());
-        let repo = Repo::Exact("github.com/bminor/glibc".to_owned());
-        let read = read(&parsed(&json!({"data": data})), &repo, &target, fetch)?;
-        Ok(read.and_then(|read| read.resolved.rev))
-    }
-
-    #[test]
-    fn the_longest_split_guess_that_resolves_with_its_path_is_chosen() {
-        let both = [None, Some(guess(true)), Some(guess(true)), None];
-        assert_eq!(chosen(both, false), Ok(Some("release/2.34/master".to_owned())));
-        let pathless = [None, Some(guess(true)), Some(guess(false)), None];
-        assert_eq!(chosen(pathless, false), Ok(Some("release/2.34".to_owned())));
-        assert_eq!(chosen([None, None, Some(guess(false)), None], false), Ok(None));
-        let error = chosen([None, None, None, None], true).err().map(|e| e.to_string());
-        assert_eq!(
-            error.as_deref(),
-            Some(
-                "no revision and path in release/2.34/master/NEWS resolve in github.com/bminor/glibc"
-            )
-        );
-    }
 
     fn split(text: &[u8]) -> (Vec<(String, bool)>, bool) {
         let lines = lines(text);

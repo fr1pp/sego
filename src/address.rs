@@ -1,10 +1,6 @@
-mod url;
-
 use std::fmt;
 
 use crate::escape::shell_word;
-
-use url::parse_web;
 
 const MIN_ABBREVIATION: usize = 4;
 pub const FULL_OID: usize = 40;
@@ -54,33 +50,15 @@ impl Dots {
 pub enum Rev {
     Default,
     One(String),
-    Range {
-        base: String,
-        head: String,
-        dots: Dots,
-    },
-    /// URL segments after blob/tree/raw/blame, where the ref and the path
-    /// are not yet told apart.
-    Split(Vec<String>),
+    Range { base: String, head: String, dots: Dots },
 }
 
-/// What `show` and `ls` read in a repository.
+/// What `show` and `ls` read in a repository: a revision, or the default
+/// branch for `None`, and a path.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Target {
-    /// A revision, or the default branch for `None`, and a path.
-    At { rev: Option<String>, path: Option<String> },
-    /// The segments after `blob/` or `tree/` in a web URL, where the ref and
-    /// the path are not yet told apart.
-    Split(Vec<String>),
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum UrlKind {
-    Plain,
-    Blob,
-    Tree,
-    Commit,
-    Compare,
+pub struct Target {
+    pub rev: Option<String>,
+    pub path: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -111,8 +89,6 @@ pub struct Address {
     pub rev: Rev,
     /// `None` when the address has no `:`; `Some("")` is the root.
     pub path: Option<String>,
-    pub lines: Option<LineRange>,
-    pub kind: UrlKind,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -127,9 +103,7 @@ pub enum AddressError {
     LineZero(String),
     LineEndBeforeStart(String),
     LineForm(String),
-    PullRequestUrl,
-    ReleaseUrl,
-    UnsupportedUrl(String),
+    Url(String),
     LeavesRoot(String),
     Reflog,
 }
@@ -169,14 +143,8 @@ impl fmt::Display for AddressError {
                 write!(f, "invalid line range {s}; the end is before the start")
             }
             Self::LineForm(s) => write!(f, "invalid line range {s}; lines are N, N-M, N,M, or N-"),
-            Self::PullRequestUrl => {
-                write!(f, "pull request URLs name no revision sego can read")
-            }
-            Self::ReleaseUrl => {
-                write!(f, "release URLs name no revision sego can read")
-            }
-            Self::UnsupportedUrl(t) => {
-                write!(f, "unsupported URL form: {t}")
+            Self::Url(t) => {
+                write!(f, "{t} is a URL; an address is host/owner/name or owner/name")
             }
             Self::LeavesRoot(p) => write!(f, "the path {p} leaves the repository's root"),
             Self::Reflog => write!(
@@ -306,10 +274,6 @@ fn is_bad_char(c: char) -> bool {
     c.is_whitespace() || c.is_control()
 }
 
-pub fn valid_revision(rev: &str) -> bool {
-    check_revision(rev).is_ok()
-}
-
 fn check_revision(rev: &str) -> Result<(), AddressError> {
     if rev.starts_with('-') || rev.chars().any(is_bad_char) {
         return Err(AddressError::InvalidRevision(rev.to_owned()));
@@ -342,63 +306,11 @@ fn parse_rev(rev: &str) -> Result<Rev, AddressError> {
     Ok(Rev::Range { base: base.to_owned(), head: head.to_owned(), dots })
 }
 
-/// A commit URL names one commit, so a range in its place is unsupported.
-fn commit_rev(token: &str, sha: &str) -> Result<Rev, AddressError> {
-    if sha.contains("..") {
-        return Err(AddressError::UnsupportedUrl(token.to_owned()));
-    }
-    parse_rev(sha)
-}
-
-fn all_digits_then_slash_or_end(s: &str) -> bool {
-    let end = s.find('/').unwrap_or(s.len());
-    is_digits(&s[..end])
-}
-
-/// Removes the clone-URL parts (scheme, userinfo, port, scp `host:`) from
-/// the front of the token, leaving `host/path...` or the token unchanged.
-fn strip_clone_url(token: &str) -> String {
-    let (rest, has_scheme) = match token.split_once("://") {
-        Some((scheme, rest))
-            if !scheme.is_empty()
-                && scheme.chars().all(|c| c.is_ascii_alphanumeric() || "+-.".contains(c)) =>
-        {
-            (rest, true)
-        }
-        _ => (token, false),
-    };
-    let first_end = rest.find('/').unwrap_or(rest.len());
-    let first = &rest[..first_end];
-    let mut host_part = rest;
-    if let Some(at) = first.find('@') {
-        let user = &first[..at];
-        let after = &first[at + 1..];
-        let host_end = after.find([':', '@']).unwrap_or(after.len());
-        let followed =
-            after[host_end..].starts_with(':') || host_end == after.len() && first_end < rest.len();
-        let userinfo_ok = if has_scheme {
-            true
-        } else {
-            !user.is_empty() && !user.contains('.') && after[..host_end].contains('.') && followed
-        };
-        if userinfo_ok {
-            host_part = &rest[at + 1..];
-        }
-    }
-    let host_end = host_part.find(['/', ':', '@']).unwrap_or(host_part.len());
-    let host = &host_part[..host_end];
-    if !host.contains('.') {
-        return token.to_owned();
-    }
-    let after = &host_part[host_end..];
-    match after.strip_prefix(':') {
-        Some(tail) if all_digits_then_slash_or_end(tail) => {
-            let slash = tail.find('/').unwrap_or(tail.len());
-            format!("{host}{}", &tail[slash..])
-        }
-        Some(tail) => format!("{host}/{}", tail.trim_start_matches('/')),
-        None => format!("{host}{after}"),
-    }
+/// Whether `token` starts with a URL's scheme, as in `https://`.
+fn has_scheme(token: &str) -> bool {
+    token.split_once("://").is_some_and(|(scheme, _)| {
+        !scheme.is_empty() && scheme.chars().all(|c| c.is_ascii_alphanumeric() || "+-.".contains(c))
+    })
 }
 
 fn parse_repo(repo: &str, token: &str) -> Result<Repo, AddressError> {
@@ -458,13 +370,12 @@ pub fn parse_operand(path: &str) -> Result<String, AddressError> {
 }
 
 pub fn parse(token: &str) -> Result<Address, AddressError> {
-    if let Some(web) = parse_web(token) {
-        return web;
+    if has_scheme(token) {
+        return Err(AddressError::Url(token.to_owned()));
     }
-    let stripped = strip_clone_url(token);
-    let repo_end = stripped.find(['@', ':']).unwrap_or(stripped.len());
-    let repo = parse_repo(&stripped[..repo_end], token);
-    let rest = &stripped[repo_end..];
+    let repo_end = token.find(['@', ':']).unwrap_or(token.len());
+    let repo = parse_repo(&token[..repo_end], token);
+    let rest = &token[repo_end..];
     let rev_and_path = if let Some(after_at) = rest.strip_prefix('@') {
         let (rev, path) = match after_at.split_once(':') {
             Some((rev, path)) => (rev, Some(path)),
@@ -488,7 +399,7 @@ pub fn parse(token: &str) -> Result<Address, AddressError> {
         (Err(e), _) | (_, Err(e)) => return Err(e),
     };
     let path = path.map(parse_path).transpose()?;
-    Ok(Address { repo, rev, path, lines: None, kind: UrlKind::Plain })
+    Ok(Address { repo, rev, path })
 }
 
 #[cfg(test)]
@@ -586,11 +497,10 @@ mod tests {
             AddressError::Reflog.to_string(),
             "sego can't read a reflog or upstream revision: Sourcegraph's mirror has none"
         );
-        assert!(!valid_revision("main@{1}"));
     }
 
     #[test]
-    fn plain_and_ssh_repositories_resolve_to_a_host_qualified_name() {
+    fn repositories_resolve_to_a_host_qualified_name() {
         let cases = [
             ("github.com/gorilla/mux", exact("github.com/gorilla/mux"), Rev::Default),
             ("GitHub.com/Gorilla/Mux", exact("GitHub.com/Gorilla/Mux"), Rev::Default),
@@ -601,22 +511,24 @@ mod tests {
                 Rev::Default,
             ),
             ("src.fedoraproject.org/rpms/x", exact("src.fedoraproject.org/rpms/x"), Rev::Default),
-            (
-                "git@github.com:gorilla/mux.git@v1.7.0",
-                exact("github.com/gorilla/mux"),
-                one("v1.7.0"),
-            ),
-            ("https://u:pw@github.com:443/x/y.git", exact("github.com/x/y"), Rev::Default),
-            ("ssh://git@github.com:22/x/y", exact("github.com/x/y"), Rev::Default),
-            ("https://github.com/x/y/", exact("github.com/x/y"), Rev::Default),
             ("github.com/x/y.git@v1", exact("github.com/x/y"), one("v1")),
         ];
         for (token, repo, rev) in cases {
             let address = ok(token);
             assert_eq!(address.repo, repo, "{token}");
             assert_eq!(address.rev, rev, "{token}");
-            assert_eq!(address.lines, None, "{token}");
-            assert_eq!(address.kind, UrlKind::Plain, "{token}");
+        }
+    }
+
+    #[test]
+    fn a_token_with_a_url_scheme_is_not_an_address() {
+        for token in [
+            "https://github.com/gorilla/mux",
+            "https://github.com/gorilla/mux/blob/main/mux.go#L3",
+            "ssh://git@github.com:22/x/y",
+            "git+ssh://github.com/x/y",
+        ] {
+            assert_eq!(parse(token), Err(AddressError::Url(token.to_owned())), "{token}");
         }
     }
 

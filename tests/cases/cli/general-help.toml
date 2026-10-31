@@ -19,8 +19,7 @@ commands:
   diff REPO@REV [PATH...]        the change one commit made
 
 addresses:
-  REPO     host/owner/name, owner/name, or a GitHub, GitLab or
-           Sourcegraph URL
+  REPO     host/owner/name or owner/name
   @REV     a branch, tag or commit; the default branch without it
   :PATH    a path from the repository root
   LINES    N, N-M, N,M, or N- through the last line (lines are

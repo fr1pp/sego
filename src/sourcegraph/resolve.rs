@@ -4,7 +4,7 @@
 use serde_json::{Map, Value, json};
 
 use super::graphql::{Envelope, GqlErrorKind, Request};
-use crate::address::{FULL_OID, Repo, is_name, is_oid_like, parse_path, valid_revision};
+use crate::address::{FULL_OID, Repo, is_name, is_oid_like};
 use crate::error::{Error, Kind};
 use crate::pointer;
 
@@ -136,25 +136,6 @@ fn to_the_minute(time: &str) -> String {
         Some(minute) if time.ends_with('Z') => format!("{minute}Z"),
         _ => time.to_owned(),
     }
-}
-
-/// One split of a web URL's segments into a revision and a path.
-pub struct Guess {
-    pub rev: String,
-    pub path: Option<String>,
-}
-
-/// Each split of `segments` into a revision and a path, the path
-/// normalised. Splits whose prefix is not a valid revision, or whose path
-/// leaves the root, are never sent.
-pub fn split_guesses(segments: &[String]) -> Vec<Guess> {
-    (1..=segments.len())
-        .filter_map(|k| {
-            let path = parse_path(&segments[k..].join("/")).ok()?;
-            Some(Guess { rev: segments[..k].join("/"), path: Some(path).filter(|p| !p.is_empty()) })
-        })
-        .filter(|guess| valid_revision(&guess.rev))
-        .collect()
 }
 
 /// The variables naming `repo`: `$repo0`, and `$repo1`, the gitlab.com
@@ -361,32 +342,6 @@ pub fn read_range(envelope: &Envelope, repo: &Repo, base: &str, head: &str) -> R
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn guesses(segments: &[&str]) -> Vec<(String, Option<String>)> {
-        let segments: Vec<String> = segments.iter().map(ToString::to_string).collect();
-        split_guesses(&segments).into_iter().map(|guess| (guess.rev, guess.path)).collect()
-    }
-
-    #[test]
-    fn a_slashed_url_revision_has_a_guess_per_split() {
-        let got = guesses(&["release", "2.34", "master", "NEWS"]);
-        let want = [
-            ("release", Some("2.34/master/NEWS")),
-            ("release/2.34", Some("master/NEWS")),
-            ("release/2.34/master", Some("NEWS")),
-            ("release/2.34/master/NEWS", None),
-        ]
-        .map(|(r, p)| (r.to_owned(), p.map(str::to_owned)));
-        assert_eq!(got, want);
-        assert_eq!(guesses(&["-x", "a"]), Vec::new());
-    }
-
-    #[test]
-    fn a_split_guess_path_is_normalised_and_never_leaves_the_root() {
-        let want = |rev: &str, path: Option<&str>| (rev.to_owned(), path.map(str::to_owned));
-        assert_eq!(guesses(&["main", "a", ".", "b", "..", "c"])[0], want("main", Some("a/c")));
-        assert!(guesses(&["main", "..", "a"]).iter().all(|(rev, _)| rev != "main"));
-    }
 
     #[test]
     fn a_missing_hex_revision_says_what_it_rules_out() {

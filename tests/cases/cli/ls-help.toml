@@ -5,8 +5,7 @@ stdout = '''
 usage: sego ls [--json] [--recursive] REPO[@REV][:PATH]
 
 addresses:
-  REPO     host/owner/name, owner/name, or a GitHub, GitLab or
-           Sourcegraph URL
+  REPO     host/owner/name or owner/name
   @REV     a branch, tag or commit; the default branch without it
   :PATH    a directory from the repository root; the root without it
 

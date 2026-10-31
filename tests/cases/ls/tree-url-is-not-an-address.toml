@@ -1,0 +1,7 @@
+# A web URL is not an address: the error names the forms that are.
+args = ["ls", "https://github.com/gorilla/mux/tree/v1.8.0/.github"]
+status.code = 2
+stderr = '''
+sego: error: https://github.com/gorilla/mux/tree/v1.8.0/.github is a URL; an address is host/owner/name or owner/name
+usage: sego ls [--json] [--recursive] REPO[@REV][:PATH]
+'''
