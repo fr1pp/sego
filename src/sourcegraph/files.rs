@@ -9,7 +9,6 @@ use super::graphql::{Envelope, GqlErrorKind, Request, Segment, View};
 use super::resolve::{self, Repository, Resolved, repository_variables};
 use crate::address::{Repo, Target, pinned};
 use crate::error::Error;
-use crate::pointer;
 
 /// How many lines an open-ended window asks for, at most.
 const OPEN_END_SPAN: i64 = 500_000;
@@ -258,9 +257,7 @@ fn read_at(
         if path.is_empty() {
             return Err(Error::not_found(format!("./ not found in {at}")));
         }
-        let missing =
-            pointer::missing_path(pointer::At { repo: &found.name, commit: &commit }, path);
-        return Err(Error::not_found(format!("{path} not found in {at}")).facts(missing));
+        return Err(Error::not_found(format!("{path} not found in {at}")));
     };
     let lfs_errors = view.errors_beneath(&["meta", "lfs"]);
     let lfs_failed = lfs_errors.iter().any(|e| e.kind() != GqlErrorKind::OverLimit);

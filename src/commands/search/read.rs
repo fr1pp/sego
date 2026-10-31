@@ -108,13 +108,6 @@ pub struct WrittenFilter {
     pub value: String,
 }
 
-impl WrittenFilter {
-    /// The filter as the query could restate it.
-    pub fn raw(&self) -> String {
-        format!("{}{}:{}", if self.negated { "-" } else { "" }, self.field, self.value)
-    }
-}
-
 /// The values of the non-negated `name:` filters; a negated `type:` or
 /// `select:` doesn't choose what the results are.
 pub fn chosen<'a>(written: &'a [Written], name: &'a str) -> impl Iterator<Item = &'a str> {

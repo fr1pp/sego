@@ -8,7 +8,7 @@ example.com/acme/widget@9f2c1d3e5a7b  2020-05-04  Ada Lovelace  parents none  no
     The first commit.
 '''
 stderr = '''
-sego: note: root commit: Sourcegraph has no diff for it; sego ls --recursive --json example.com/acme/widget@9f2c1d3e5a7b lists every file it adds
+sego: note: root commit: Sourcegraph has no diff for it
 '''
 
 [[exchange]]

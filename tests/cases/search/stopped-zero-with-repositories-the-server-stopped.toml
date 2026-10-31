@@ -3,7 +3,6 @@ args = ["search", "repo:example.com/acme/widget foo"]
 status.code = 3
 stderr = '''
 sego: error: the search stopped at 1.2 s with no results
-  repo:, lang: or file: narrows what the search reads
 '''
 
 [[exchange]]

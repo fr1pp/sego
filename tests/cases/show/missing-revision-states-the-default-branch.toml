@@ -1,10 +1,9 @@
-# A missing revision that ends in a release number points to the refs that contain the number.
+# A missing revision states the default branch.
 args = ["show", "github.com/gorilla/mux@release/1.8:mux.go"]
 status.code = 1
 stderr = '''
 sego: error: revision release/1.8 not found in github.com/gorilla/mux
   the default branch is main
-  sego refs github.com/gorilla/mux 1.8 lists the refs whose names contain 1.8
 '''
 
 [[exchange]]

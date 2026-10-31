@@ -18,7 +18,7 @@ alone: a small cap is what ends a broad search early, and choosing one is strate
 ## Considered options
 
 - **The server's default, 20 s.** Searches shed under load come back as plain zeros, and a search
-  cut at 20 s points the agent at a longer deadline, so it runs again at 60 s anyway.
+  cut at 20 s has to run again at 60 s anyway.
 - **60 s only for searches scoped to repositories,** to spare the server long broad searches. A
   `repo:` doesn't bound the work (`repo:^github\.com/` covers most of the corpus), a stopped broad
   search is run again at 60 s anyway, and the batch queue already keeps long searches off fast

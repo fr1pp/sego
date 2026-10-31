@@ -3,7 +3,6 @@ args = ["search", "repo:example.com/acme/lib@v1 foo"]
 status.code = 1
 stderr = '''
 sego: error: revision v@2 not found in a/b
-  sego refs a/b v@2 lists the refs whose names contain v@2
 '''
 
 [[exchange]]

@@ -3,8 +3,6 @@ args = ["diff", "github.com/gorilla/mux@v1.7.0...v1.7.1", "nope.go"]
 status.code = 1
 stderr = '''
 sego: error: nope.go not found in github.com/gorilla/mux@a7962380ca08 or @c5c6c98bc253
-  sego search 'repo:^github\.com/gorilla/mux$@c5c6c98bc253 file:(^|/)nope\.go(/|$) count:all' lists the files named nope.go, or under a directory named nope.go, at c5c6c98bc253
-  sego log github.com/gorilla/mux@c5c6c98bc253:nope.go lists any commits that changed nope.go
 '''
 
 [[exchange]]

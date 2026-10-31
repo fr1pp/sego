@@ -1,6 +1,5 @@
 use std::time::Duration;
 
-use crate::pointer;
 use crate::sourcegraph::NOT_INDEXED;
 
 use super::read::{
@@ -63,9 +62,6 @@ pub struct Query {
     /// commit, and `unit` otherwise.
     pub by_results: bool,
     pub deadline_ms: u64,
-    /// What reaches further when the search stops: a longer deadline while
-    /// sourcegraph.com allows one, otherwise a narrower scope.
-    pub stopped_pointer: String,
     pub repo_scoped: bool,
     /// A pattern names `NOT-INDEXED`, so the placeholders of unindexed
     /// files are results, not matches to drop.
@@ -88,7 +84,6 @@ impl Query {
             cap: cap(written),
             unit: unit(written),
             by_results: stated_unit(written).is_none(),
-            stopped_pointer: stopped_pointer(written, deadline_ms),
             repo_scoped: repo_scoped(written),
             lists_placeholders: written.iter().any(|item| {
                 matches!(item, Written::Pattern { text, negated: false, .. }
@@ -181,18 +176,6 @@ fn stated_unit(written: &[Written]) -> Option<Unit> {
 /// under it such as `repo.topics`.
 fn repo_select(value: &str) -> bool {
     value.split('.').next() == Some("repo")
-}
-
-/// The pointer for a search that stopped at `deadline_ms`. A query with
-/// `or` can run as several searches, each with its own deadline, which
-/// `deadline_ms` doesn't hold.
-fn stopped_pointer(written: &[Written], deadline_ms: u64) -> String {
-    let one = !written.contains(&Written::Or);
-    let timeout = written.iter().find_map(|item| match item {
-        Written::Filter(filter) if field(item, "timeout") => Some(filter.raw()),
-        _ => None,
-    });
-    pointer::stopped(one.then_some(deadline_ms), MAX_DEADLINE_MS, timeout.as_deref())
 }
 
 /// Whether the query has a non-negated `repo:` filter and no `or`. A query
@@ -503,15 +486,6 @@ mod tests {
         }
         for q in ["foo", "-repo:x foo", "file:x foo", "lang:go foo", "repo:x a or b"] {
             assert!(!Query::new(q).repo_scoped, "{q}");
-        }
-    }
-
-    #[test]
-    fn a_stopped_search_at_the_most_or_of_several_deadlines_is_pointed_to_a_narrower_scope() {
-        let pointer = |q| Query::new(q).stopped_pointer;
-        assert_ne!(pointer("repo:x foo timeout:5s"), pointer::NARROWS);
-        for q in ["repo:x foo", "repo:x foo timeout:90s", "(a timeout:5s) or (b repo:x)"] {
-            assert_eq!(pointer(q), pointer::NARROWS, "{q}");
         }
     }
 }

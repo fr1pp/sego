@@ -9,7 +9,6 @@ use super::resolve::repository_variables;
 use super::resolve::{self, Ends, Lookup, Resolved};
 use crate::address::{Repo, is_plain_path, pinned, short};
 use crate::error::Error;
-use crate::pointer;
 
 /// A revision's commit, the changes against its first parent in a wrapper
 /// whose error nulls only the wrapper, and whether each path `#` exists in
@@ -349,11 +348,9 @@ fn in_neither(path: &str, repo: &str, a: &str, b: &str) -> String {
     format!("{path} not found in {} or @{}", pinned(repo, a, None), short(b))
 }
 
-/// The error for a path in neither commit of a comparison, with the
-/// pointers at `b`.
+/// The error for a path in neither commit of a comparison.
 fn path_not_found(path: &str, repo: &str, a: &str, b: &str) -> Error {
     Error::not_found(in_neither(path, repo, a, b))
-        .facts(pointer::missing_path(pointer::At { repo, commit: b }, path))
 }
 
 /// The revision `rev`'s commit and its changes, from the response to
@@ -713,8 +710,7 @@ pub fn read_history(
         && commits.items.is_empty()
     {
         let at = pinned(&head.repo, &head.commit, None);
-        return Err(Error::not_found(format!("{path} not found in {at}"))
-            .fact(pointer::files_named(head.at(), path)));
+        return Err(Error::not_found(format!("{path} not found in {at}")));
     }
     let tags = tags(envelope, found.root_among(TAG_ROOTS));
     Ok(History { head, base: None, commits, tags, behind: None })
@@ -738,7 +734,7 @@ pub fn read_range_history(
         && commits.as_ref().is_some_and(|commits| commits.items.is_empty())
     {
         let missing = in_neither(path, &head.repo, &base.commit, &head.commit);
-        return Err(Error::not_found(missing).fact(pointer::files_named(head.at(), path)));
+        return Err(Error::not_found(missing));
     }
     let mut commits = commits.ok_or_else(comparison_failed)?;
     let mut behind = None;

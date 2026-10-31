@@ -231,21 +231,7 @@ fn short_token(args: &[String], c: char) -> String {
 }
 
 fn unknown(option: &str, synopsis: &'static str) -> Error {
-    let error = Error::usage(format!("unknown option {option}"), synopsis);
-    let fact = match option {
-        "--limit" | "--count" => {
-            format!("sego has no {option}; count: is a query filter")
-        }
-        "--context" => "sego has no --context; search prints one line of \
-                        context, show prints any range"
-            .to_owned(),
-        "--repo" | "--lang" | "--file" => {
-            let filter = &option[2..];
-            format!("sego has no {option}; {filter}: is a query filter")
-        }
-        _ => return error,
-    };
-    error.fact(fact)
+    Error::usage(format!("unknown option {option}"), synopsis)
 }
 
 fn parse_show(operands: &[String], json: bool) -> Result<Command, Error> {
@@ -414,7 +400,6 @@ mod tests {
     use crate::error::{Kind, report, usage_block};
 
     const COMMAND_LIST: &str = "commands: search, show, ls, refs, log, diff";
-    const LIMIT: &str = "sego has no --limit; count: is a query filter";
     const NEEDS_SHOW_ADDRESS: &str = "show needs an address, like REPO[@REV]:PATH";
     const RANGE_ONLY_IN_HISTORY: &str = "a range is only valid in log (A..B) and diff (A...B)";
 
@@ -549,12 +534,6 @@ mod tests {
     fn check_errors(synopsis: &str, table: &[(&[&str], &str)]) {
         for (args, message) in table {
             assert_eq!(reported(&os(args)), expected(message, &[], synopsis), "{args:?}");
-        }
-    }
-
-    fn check_errors_with_fact(synopsis: &str, table: &[(&[&str], &str, &str)]) {
-        for (args, message, fact) in table {
-            assert_eq!(reported(&os(args)), expected(message, &[fact], synopsis), "{args:?}");
         }
     }
 
@@ -716,7 +695,7 @@ mod tests {
             (vec!["-x", "search", "foo"], expected("unknown option -x", &[], SYNOPSIS)),
             (vec!["--json", "--json"], expected("--json given twice", &[], SYNOPSIS)),
             (vec!["--json=1"], expected("--json takes no value", &[], SYNOPSIS)),
-            (vec!["--limit", "5", "show"], expected("unknown option --limit", &[LIMIT], SYNOPSIS)),
+            (vec!["--limit", "5", "show"], expected("unknown option --limit", &[], SYNOPSIS)),
         ];
         for (args, text) in table {
             assert_eq!(reported(&os(&args)), text, "{args:?}");
@@ -735,39 +714,6 @@ mod tests {
                 (&["show", "-x", "x/y:a"], "unknown option -x"),
                 (&["show", "-json", "x/y:a"], "unknown option -json"),
                 (&["show", "--recursive", "x/y:a"], "show takes no --recursive"),
-            ],
-        );
-        check_errors_with_fact(
-            SHOW_SYNOPSIS,
-            &[
-                (&["show", "x/y:a", "--limit"], "unknown option --limit", LIMIT),
-                (&["show", "x/y:a", "--limit=5"], "unknown option --limit", LIMIT),
-                (
-                    &["show", "--count", "x/y:a"],
-                    "unknown option --count",
-                    "sego has no --count; count: is a query filter",
-                ),
-                (
-                    &["show", "--context", "x/y:a"],
-                    "unknown option --context",
-                    "sego has no --context; search prints one line of context, \
-                 show prints any range",
-                ),
-                (
-                    &["show", "--repo", "x/y:a"],
-                    "unknown option --repo",
-                    "sego has no --repo; repo: is a query filter",
-                ),
-                (
-                    &["show", "--lang", "x/y:a"],
-                    "unknown option --lang",
-                    "sego has no --lang; lang: is a query filter",
-                ),
-                (
-                    &["show", "--file", "x/y:a"],
-                    "unknown option --file",
-                    "sego has no --file; file: is a query filter",
-                ),
             ],
         );
     }
@@ -954,10 +900,6 @@ mod tests {
                 (&["search", "--json", "--json", "foo"], "--json given twice"),
                 (&["search", "--json=1", "foo"], "--json takes no value"),
             ],
-        );
-        check_errors_with_fact(
-            SEARCH_SYNOPSIS,
-            &[(&["search", "--limit", "5", "foo"], "unknown option --limit", LIMIT)],
         );
     }
 

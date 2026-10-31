@@ -3,6 +3,7 @@ args = ["show", "github.com/gorilla/mux@49c0:mux.go"]
 status.code = 1
 stderr = '''
 sego: error: revision 49c0 not found in github.com/gorilla/mux: no ref has that name and no single commit starts with it
+  the default branch is main
 '''
 
 [[exchange]]

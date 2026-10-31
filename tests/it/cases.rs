@@ -54,8 +54,8 @@ mod cli {
     }
 
     #[test]
-    fn limit_option_pointer() {
-        case("cli/limit-option-pointer.toml");
+    fn limit_option_is_unknown() {
+        case("cli/limit-option-is-unknown.toml");
     }
 
     #[test]
@@ -512,8 +512,8 @@ mod diff {
     }
 
     #[test]
-    fn missing_directory_is_searched_for_by_its_name() {
-        case("diff/missing-directory-is-searched-for-by-its-name.toml");
+    fn missing_directory_with_a_trailing_slash() {
+        case("diff/missing-directory-with-a-trailing-slash.toml");
     }
 
     #[test]
@@ -2122,8 +2122,8 @@ mod show {
     }
 
     #[test]
-    fn missing_revision_ending_in_a_release_number() {
-        case("show/missing-revision-ending-in-a-release-number.toml");
+    fn missing_revision_states_the_default_branch() {
+        case("show/missing-revision-states-the-default-branch.toml");
     }
 
     #[test]

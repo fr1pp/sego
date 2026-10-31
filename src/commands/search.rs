@@ -2,18 +2,13 @@ mod answer;
 mod query;
 mod read;
 
-use crate::error::{Error, Kind};
+use crate::error::Error;
 use crate::output::Notes;
-use crate::pointer;
 use crate::sourcegraph::{Client, Search};
 
 pub use answer::Answer;
 use query::Query;
 use read::PatternType;
-
-fn pointed(error: Error) -> Error {
-    if error.kind() == Kind::Deadline { error.fact(pointer::NARROWS) } else { error }
-}
 
 const REASON_CHARS: usize = 200;
 
@@ -44,7 +39,7 @@ pub struct Args {
 
 pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Error> {
     let query = Query::new(&args.query);
-    let results = match client.search(&query.text).map_err(pointed)? {
+    let results = match client.search(&query.text)? {
         Search::Results(results) => results,
         Search::BadRegexp { reason } => return Err(regexp_error(&reason, &query)),
     };
@@ -61,7 +56,7 @@ mod tests {
     use std::thread::sleep;
     use std::time::{Duration, Instant};
 
-    use crate::error::{Error, report};
+    use crate::error::report;
     use crate::sourcegraph::{DEADLINE, Endpoint, Item, Results};
 
     const PAUSE: Duration = Duration::from_millis(500);
@@ -140,8 +135,8 @@ mod tests {
         }
     }
 
-    /// `stopped_pointer` says sourcegraph.com allows at most `timeout:60s`:
-    /// a search that runs longer stops at 60 s, whatever `timeout:` it asks for.
+    /// sego sends `timeout:60s` as the most sourcegraph.com allows: a search
+    /// that runs longer stops at 60 s, whatever `timeout:` it asks for.
     fn deadline_ceiling() -> Result<(), String> {
         let results =
             searched_live(r"repo:^github\.com/torvalds/linux$ type:diff zqxjvkwq timeout:90s")?;
@@ -178,25 +173,6 @@ mod tests {
             failures.len(),
             rules.len(),
             failures.join("\n")
-        );
-    }
-
-    #[test]
-    fn a_search_past_the_client_deadline_points_to_a_narrower_scope() {
-        let error = pointed(Error::deadline("sourcegraph.com"));
-        assert_eq!(
-            report(&error),
-            "sego: error: no answer from sourcegraph.com within 90 s\n  repo:, lang: or file: \
-         narrows what the search reads\n"
-        );
-    }
-
-    #[test]
-    fn a_search_that_fails_to_connect_has_no_pointer_to_a_narrower_scope() {
-        let error = Error::network("could not reach sourcegraph.com: connection refused");
-        assert_eq!(
-            report(&pointed(error)),
-            "sego: error: could not reach sourcegraph.com: connection refused\n"
         );
     }
 }

@@ -4,6 +4,16 @@ How to search well with sego, and why. This is what has been learned about getti
 fast; sego itself prints facts, not advice ([ADR 0003](adr/0003-facts-not-advice.md)). Each point
 rests on facts in [research/](research/) or the [query reference](code-search-reference.md).
 
+## When something isn't found
+
+- **A revision.** `sego refs REPO TEXT` lists the refs whose names contain TEXT, and the release
+  number alone finds more than a full tag name: `1.28` rather than `release-1.28`.
+- **A path.** `sego search 'repo:^REPO$@COMMIT file:(^|/)NAME(/|$) count:all'` lists the files named
+  NAME at a commit, or under a directory so named. `sego log REPO@COMMIT:PATH` names the commit that
+  moved or deleted it.
+- **A root commit's files.** Sourcegraph has no diff for a root commit; `sego ls --recursive --json
+  REPO@COMMIT` lists what it adds.
+
 ## Case
 
 From [research/case.md](research/case.md).
@@ -23,6 +33,8 @@ From [research/count-and-timeout.md](research/count-and-timeout.md).
   soon as it has 30 matches, so even a common pattern across sourcegraph.com answers in a second
   or two. Thirty matches show whether the pattern matches what was meant and whether the scope is
   right.
+- **Narrow a search that stopped.** `repo:`, `lang:` or `file:` reach further than running it again.
+  An answer below the cap with `N+` and no `stopped` may still be cut: `count:all` gets every result.
 - **Narrow, then count.** `count:all` cancels nothing: the search waits for every index replica to
   search everything it holds, and returns all it found.
   - On one repository at its default branch it is cheap: hundreds of matches in under a second.

@@ -3,7 +3,6 @@ args = ["search", "repo:example.com/acme/widget foo timeout:5s"]
 status.code = 3
 stderr = '''
 sego: error: the search stopped at 5.0 s with no results
-  timeout:5s sets its deadline; sourcegraph.com allows up to timeout:60s
 '''
 
 [[exchange]]

@@ -28,7 +28,6 @@ example.com/acme/widget
 stderr = '''
 sego: note: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
 sego: note: the server proposes: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
-sego: note: repo:, lang: or file: narrows what the search reads
 '''
 
 [[exchange]]

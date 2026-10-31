@@ -10,7 +10,6 @@ use crate::output::{
     FileRow, Marker, Notes, base64, closing_fields, code_line, count, date, file_row, files_field,
     header, row_text, rows_asked, submodule_text,
 };
-use crate::pointer;
 use crate::sourcegraph::{Client, Comparison, Content, File, Resolved, Window};
 
 const DEFAULT_WINDOW: u32 = 500;
@@ -365,8 +364,7 @@ pub fn run_commit(
 fn commit_answer(comparison: Comparison, rev: &str, notes: &mut Notes) -> CommitAnswer {
     let mirrored_at = comparison.lookup().noting_other_host(|note| notes.push(note));
     if comparison.changes.is_none() {
-        let tree = pointer::root_tree(comparison.head.at());
-        notes.push(format!("{ROOT_NOTE}; {tree}"));
+        notes.push(ROOT_NOTE);
     }
     let (files, files_total, files_more, added, deleted) = match comparison.changes {
         Some(changes) => (

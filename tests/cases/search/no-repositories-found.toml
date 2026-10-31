@@ -1,5 +1,4 @@
-# No repositories found is an error; a fact points to the repositories the name
-# matches.
+# No repositories found is an error.
 args = ["search", 'repo:^github\.com/sego-nonexistent-0/nope$ foo']
 status.code = 1
 stderr = '''

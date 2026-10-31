@@ -15,9 +15,6 @@ example.com/app@0123456789ab:b.go
 1:foo 0
 2:foo 1
 '''
-stderr = '''
-sego: note: repo:, lang: or file: narrows what the search reads
-'''
 
 [[exchange]]
 operation = "Search"

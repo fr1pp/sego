@@ -8,9 +8,6 @@ query  timeout:60s repo:example.com/acme/router@v1 foo
 example.com/acme/router@0123456789ab:main.go
 1:foo
 '''
-stderr = '''
-sego: note: repo:, lang: or file: narrows what the search reads
-'''
 
 [[exchange]]
 operation = "Search"

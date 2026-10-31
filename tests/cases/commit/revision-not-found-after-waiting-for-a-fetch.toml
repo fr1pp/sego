@@ -4,7 +4,6 @@ status.code = 1
 stderr = '''
 sego: error: revision v1 not found in example.com/acme/widget
   the default branch is main
-  sego refs example.com/acme/widget v1 lists the refs whose names contain v1
 '''
 
 [[exchange]]

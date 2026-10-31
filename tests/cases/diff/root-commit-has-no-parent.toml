@@ -3,7 +3,6 @@ args = ["diff", "example.com/acme/widget@v0.1.0"]
 status.code = 1
 stderr = '''
 sego: error: v0.1.0 is a root commit: Sourcegraph has no diff for it
-  sego ls --recursive --json example.com/acme/widget@4e8d10dc715f lists every file it adds
 '''
 
 [[exchange]]

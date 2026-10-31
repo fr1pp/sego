@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use crate::error::Error;
 use crate::output::Notes;
-use crate::pointer;
 
 use super::text::tenths;
 use super::{Alert, Answer};
@@ -37,8 +36,7 @@ impl Answer {
             return Err(Error::upstream(format!(
                 "the search stopped at {} s with no results",
                 tenths(self.elapsed_ms)
-            ))
-            .fact(&self.query.stopped_pointer));
+            )));
         }
         push_notes(self, notes);
         Ok(())
@@ -65,10 +63,7 @@ fn revisions(alert: &Alert) -> Error {
     };
     let error = Error::not_found(first);
     match rest {
-        [] => match pointer::refs(missing[0].0, missing[0].1) {
-            Some(line) => error.fact(line),
-            None => error,
-        },
+        [] => error,
         [one] => error.fact(one),
         [one, two] => error.fact(one).fact(two),
         [one, ..] => {
@@ -108,8 +103,5 @@ fn push_notes(searched: &Answer, notes: &mut Notes) {
             1 => notes.push(format!("1 result of kind {kind} not shown")),
             n => notes.push(format!("{n} results of kind {kind} not shown")),
         }
-    }
-    if searched.stopped {
-        notes.push(&searched.query.stopped_pointer);
     }
 }

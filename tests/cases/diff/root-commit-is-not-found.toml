@@ -3,7 +3,6 @@ args = ["diff", "github.com/gorilla/mux@4e8d10dc715f"]
 status.code = 1
 stderr = '''
 sego: error: 4e8d10dc715f is a root commit: Sourcegraph has no diff for it
-  sego ls --recursive --json github.com/gorilla/mux@4e8d10dc715f lists every file it adds
 '''
 
 [[exchange]]

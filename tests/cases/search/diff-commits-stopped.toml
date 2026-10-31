@@ -23,9 +23,6 @@ example.com/app@030303030303  2024-05-06  Ann  change 3
     -old
     +Vars
 '''
-stderr = '''
-sego: note: timeout:20s sets its deadline; sourcegraph.com allows up to timeout:60s
-'''
 
 [[exchange]]
 operation = "Search"

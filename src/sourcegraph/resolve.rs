@@ -171,17 +171,16 @@ enum Missing<'a> {
     Both(&'a str, &'a str),
 }
 
-/// The error for revisions that name no commit in `found`. When `sego refs`
-/// can match one, it states the default branch, then points to the refs
-/// the first such one could have meant.
+/// The error for revisions that name no commit in `found`, with the default
+/// branch.
 fn missing_revisions(found: &Repository, missing: &Missing<'_>) -> Error {
     let repo = &found.name;
     let one =
         |label: &str, rev: &str| format!("{label} {rev} not found in {repo}{}", hex_reading(rev));
-    let (message, revs) = match *missing {
-        Missing::Revision(rev) => (one("revision", rev), vec![rev]),
-        Missing::Base(rev) => (one("base revision", rev), vec![rev]),
-        Missing::Head(rev) => (one("head revision", rev), vec![rev]),
+    let message = match *missing {
+        Missing::Revision(rev) => one("revision", rev),
+        Missing::Base(rev) => one("base revision", rev),
+        Missing::Head(rev) => one("head revision", rev),
         Missing::Both(base, head) => {
             let reading = match (is_abbreviation(base), is_abbreviation(head)) {
                 (false, false) => String::new(),
@@ -191,16 +190,12 @@ fn missing_revisions(found: &Repository, missing: &Missing<'_>) -> Error {
                 (true, false) => end_hex_reading(base),
                 (false, true) => end_hex_reading(head),
             };
-            (format!("revisions {base} and {head} not found in {repo}{reading}"), vec![base, head])
+            format!("revisions {base} and {head} not found in {repo}{reading}")
         }
-    };
-    let error = Error::not_found(message);
-    let Some(line) = revs.iter().find_map(|rev| pointer::refs(repo, rev)) else {
-        return error;
     };
     let branch =
         found.default_branch.as_ref().map(|branch| format!("the default branch is {branch}"));
-    error.facts(branch.into_iter().chain([line]))
+    Error::not_found(message).facts(branch)
 }
 
 /// Whether `rev` could abbreviate a commit ID: 4 to 39 hex digits.

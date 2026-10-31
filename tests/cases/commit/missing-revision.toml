@@ -3,6 +3,7 @@ args = ["show", "github.com/gorilla/mux@deadbeefdeadbeef"]
 status.code = 1
 stderr = '''
 sego: error: revision deadbeefdeadbeef not found in github.com/gorilla/mux: no ref has that name and no single commit starts with it
+  the default branch is main
 '''
 
 [[exchange]]

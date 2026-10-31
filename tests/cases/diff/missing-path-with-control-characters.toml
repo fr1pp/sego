@@ -3,8 +3,6 @@ args = ["diff", "example.com/acme/widget@v1.0.0...v2.0.0", "a\u001Bb\u202Ec\u200
 status.code = 1
 stderr = '''
 sego: error: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i-gone not found in example.com/acme/widget@0123456789ab or @89abcdef0123
-  sego search $'repo:^example\\.com/acme/widget$@89abcdef0123 file:(^|/)a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i-gone(/|$) count:all' lists the files named a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i-gone, or under a directory named a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i-gone, at 89abcdef0123
-  sego log $'example.com/acme/widget@89abcdef0123:a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i-gone' lists any commits that changed a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i-gone
 '''
 
 [[exchange]]

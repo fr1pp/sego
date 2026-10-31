@@ -3,8 +3,6 @@ args = ["ls", "github.com/gorilla/mux@v1.8.0:nope"]
 status.code = 1
 stderr = '''
 sego: error: nope not found in github.com/gorilla/mux@98cb6bf42e08
-  sego search 'repo:^github\.com/gorilla/mux$@98cb6bf42e08 file:(^|/)nope(/|$) count:all' lists the files named nope, or under a directory named nope, at 98cb6bf42e08
-  sego log github.com/gorilla/mux@98cb6bf42e08:nope lists any commits that changed nope
 '''
 
 [[exchange]]

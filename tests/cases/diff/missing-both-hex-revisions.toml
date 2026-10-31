@@ -3,6 +3,7 @@ args = ["diff", "github.com/gorilla/mux@dead...beef"]
 status.code = 1
 stderr = '''
 sego: error: revisions dead and beef not found in github.com/gorilla/mux: no ref has either name and no single commit starts with either
+  the default branch is main
 '''
 
 [[exchange]]

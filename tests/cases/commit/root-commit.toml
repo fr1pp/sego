@@ -22,7 +22,7 @@ tag  v1.2.0
 tag  v1.1
 '''
 stderr = '''
-sego: note: root commit: Sourcegraph has no diff for it; sego ls --recursive --json github.com/gorilla/mux@4e8d10dc715f lists every file it adds
+sego: note: root commit: Sourcegraph has no diff for it
 '''
 
 [[exchange]]

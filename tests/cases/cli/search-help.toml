@@ -25,21 +25,21 @@ options:
 
 defaults:
   A search covers each repository's default branch, and stops after 30
-  results, or count:N, or at its deadline: sego puts timeout:60s, the
-  most sourcegraph.com allows, in front of a query with no timeout:. The
-  answer can arrive after the deadline. By default,
-  Sourcegraph excludes archived repositories and forks; add archived:yes or
-  fork:yes to include them. No search reads a file over 1 MiB, and
-  sego show reads files under 64 MiB; index:no searches files skipped for
-  too many distinct trigrams. A query that names NOT-INDEXED, such as
-  'repo:^REPO$ NOT-INDEXED count:all', lists the files the index skipped.
+  results, or count:N (count:all gets every result), or at its deadline:
+  sego puts timeout:60s, the most sourcegraph.com allows, in front of a
+  query with no timeout:. The answer can arrive after the deadline. By
+  default, Sourcegraph excludes archived repositories and forks; add
+  archived:yes or fork:yes to include them. No search reads a file over 1
+  MiB, and sego show reads files under 64 MiB; index:no searches files
+  skipped for too many distinct trigrams. A query that names NOT-INDEXED,
+  such as 'repo:^REPO$ NOT-INDEXED count:all', lists the files the index
+  skipped.
 
 text:
   N UNIT  R repos  T s      UNIT is matches, commits, files,
                             directories, symbols or repos; N+ when
                             more may exist; "stopped at T s" when the
-                            deadline cut the search, and a note names
-                            what reaches further
+                            deadline cut the search
   query  QUERY              the query as sent
   widen  FILTER (N repos)   repositories in scope left out by default
   REPO@COMMIT:PATH          a file with results, then "N:text" for a
