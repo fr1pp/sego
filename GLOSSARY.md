@@ -88,7 +88,8 @@ given to `diff`), so no default limit cuts what is fetched.
 ## Search
 
 **Query**:
-The text an agent passes to `sego search`, sent to the server exactly as written.
+The text an agent passes to `sego search`, sent to the server as written but for a deadline when it
+sets none.
 
 **Search**:
 The server's run of a query, and what it answers.
@@ -117,19 +118,14 @@ sego's own deadline for the whole invocation is the **client deadline**.
 _Avoid_: timeout
 
 **At least**:
-An answer whose count is a lower bound, printed `N+`: the cap was reached, the search stopped, or
-the server cut the results without saying so.
+An answer whose count is a lower bound, printed `N+`: the server reported a cut, or the search
+stopped.
 _Avoid_: partial, approximate, limit hit
 
 **Stopped**:
 A search the server's deadline cut short: it reports a timeout, or it answered at or past its
 deadline. A stopped search with no results is a failure.
 _Avoid_: timed out
-
-**Local check**:
-A rule sego applies to a query before sending it, for a query the server would answer silently and
-wrongly. It prints a note and never blocks.
-_Avoid_: lint, validation
 
 **Index**:
 Sourcegraph's search index, which holds each repository's default branch at `HEAD`.
@@ -156,9 +152,6 @@ commits.
 **Widen line**:
 The line of a search answer that names the filters (`archived:yes`, `fork:yes`) under which the
 server holds more repositories than the query searched.
-
-**Preview limited**:
-A commit or diff result whose diff preview the server cut to 5 files or 3 hunks a file.
 
 ## Files
 

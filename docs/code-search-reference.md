@@ -397,6 +397,7 @@ Any other kind returns an alert. `UNKNOWN` symbols cannot be selected.
 - **Structural search over many files.** It can miss matches without a `+`, because the server matches only the candidate files its index offers first. Name one file with `file:^PATH$`, or find and count with a regex.
 - **Structural search with no language.** With no `lang:` and no `file:` extension the matcher knows, a generic parser can miss matches. Add `lang:`.
 - **`select:repo` counts.** The server never flags a cut `select:repo` answer, so a count over more than one repository can fall short with no sign. Treat it as a lower bound.
+- **Other `select:` counts.** A capped `select:file.directory`, and a capped `select:` at a pinned revision, can fall short with no sign too, since the cap applies before `select:`. `count:all` gives every one.
 - **Structural delimiters.** A structural pattern with unbalanced delimiters returns nothing, with no alert.
 - **Anonymous whitespace holes.** The anonymous structural hole `:[ ]` fails; name it, as in `:[ h]`.
 - **`file:has.content()` cannot be negated.** Negating it returns an alert. Use `not` on a pattern instead, or `-content:`.

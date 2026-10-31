@@ -4,6 +4,17 @@ How to search well with sego, and why. This is what has been learned about getti
 fast; sego itself prints facts, not advice ([ADR 0003](adr/0003-facts-not-advice.md)). Each point
 rests on facts in [research/](research/) or the [query reference](code-search-reference.md).
 
+## Case
+
+From [research/case.md](research/case.md).
+
+- **Write `case:yes` when counting a name.** A search ignores case unless the query says otherwise,
+  so `func Test` also counts `func test`, and nothing in the answer shows it.
+- **Check the filters beside `case:yes`.** It also makes `file:`, `author:`, `committer:`, `message:`
+  and the text of predicates match case. `file:readme` stops matching `README.md`. `(?i)` keeps a
+  filter caseless, but on a `file:` value write `(?i)readme.*`: with plain text after it, the
+  index searches in uppercase and finds almost nothing.
+
 ## The cap and the deadline
 
 From [research/count-and-timeout.md](research/count-and-timeout.md).
