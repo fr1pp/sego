@@ -2,7 +2,7 @@
 args = ["refs", "example.com/acme/widget"]
 status.code = 0
 stdout = '''
-example.com/acme/widget  100 branches  100 tags
+example.com/acme/widget  100 branches  100 tags  default b0
 branch  000000000000  b0  (default)
 branch  000000000000  b1
 branch  000000000000  b2

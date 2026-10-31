@@ -2,7 +2,7 @@
 args = ["refs", "acme/widget"]
 status.code = 0
 stdout = '''
-gitlab.com/acme/widget  1 branch  0 tags
+gitlab.com/acme/widget  1 branch  0 tags  default main
 branch  000000000000  main  (default)
 '''
 

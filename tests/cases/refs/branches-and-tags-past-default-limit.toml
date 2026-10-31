@@ -2,7 +2,7 @@
 args = ["refs", "github.com/microsoft/vscode"]
 status.code = 0
 stdout = '''
-github.com/microsoft/vscode  100 of 5797 branches shown  100 of 400 tags shown  mirrored 2026-10-27T07:25Z
+github.com/microsoft/vscode  100 of 5797 branches shown  100 of 400 tags shown  default main  mirrored 2026-10-27T07:25Z
 branch  4bda7217fc83  main  (default)
 branch  9cb2f82b8b2a  anthonykim1/separate-system-steering
 branch  b867e09386a0  automation/copilot-sdk-main-evaluation

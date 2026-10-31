@@ -2,7 +2,7 @@
 args = ["refs", "github.com/gorilla/mux"]
 status.code = 0
 stdout = '''
-github.com/gorilla/mux  4 branches  15 tags  mirrored 2026-10-27T07:22Z
+github.com/gorilla/mux  4 branches  15 tags  default main  mirrored 2026-10-27T07:22Z
 branch  db9d1d0073d2  main  (default)
 branch  ac856fa44dac  coreydaley-patch-2
 branch  b4617d0b9670  release-1.8

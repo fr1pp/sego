@@ -97,6 +97,9 @@ impl Answer {
                 _ => fields.push(count(total, kind.word(), kind.plural())),
             }
         }
+        if let Some(branch) = &self.default_branch {
+            fields.push(format!("default {}", one_line(branch)));
+        }
         fields.extend(closing_fields(None, self.mirrored_at.as_deref()));
         fields
     }

@@ -168,10 +168,10 @@ const REFS_TEXT: &str = concat!(
 );
 
 const REFS_FACTS: &str = r#"text:
-  REPO  N branches  M tags  mirrored T, or with TEXT, "X of Y branches
-  match" and "X of Y tags match", then a row per ref, "KIND  TARGET
-  NAME", the default branch marked. TARGET is the object the ref names,
-  a tree for some tags.
+  REPO  N branches  M tags  default BRANCH  mirrored T, or with TEXT,
+  "X of Y branches match" and "X of Y tags match", then a row per ref,
+  "KIND  TARGET  NAME", the default branch marked. TARGET is the object
+  the ref names, a tree for some tags.
   Refs come in Sourcegraph's order: the default branch, then newest
   created first (an annotated tag's tagger date, else its commit's date),
   then by name. Text prints 100 branches and 100 tags; --json carries

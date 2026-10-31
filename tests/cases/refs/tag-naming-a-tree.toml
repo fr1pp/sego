@@ -2,7 +2,7 @@
 args = ["refs", "github.com/torvalds/linux", "2.6.11"]
 status.code = 0
 stdout = '''
-github.com/torvalds/linux  0 of 2 branches match "2.6.11"  2 of 953 tags match "2.6.11"  mirrored 2026-10-27T06:14Z
+github.com/torvalds/linux  0 of 2 branches match "2.6.11"  2 of 953 tags match "2.6.11"  default master  mirrored 2026-10-27T06:14Z
 tag     c39ae07f3938  v2.6.11-tree
 tag     c39ae07f3938  v2.6.11
 '''

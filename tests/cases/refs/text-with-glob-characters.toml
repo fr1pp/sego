@@ -2,7 +2,7 @@
 args = ["refs", "example.com/acme/widget", "v1.*"]
 status.code = 0
 stdout = '''
-example.com/acme/widget  0 of 4 branches match "v1.*"  0 of 15 tags match "v1.*"
+example.com/acme/widget  0 of 4 branches match "v1.*"  0 of 15 tags match "v1.*"  default main
 '''
 
 [[exchange]]

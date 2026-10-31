@@ -2,7 +2,7 @@
 args = ["refs", "example.com/acme/widget", "feature"]
 status.code = 0
 stdout = '''
-example.com/acme/widget  120 of 5456 branches match "feature"  100 shown  3 of 40 tags match "feature"
+example.com/acme/widget  120 of 5456 branches match "feature"  100 shown  3 of 40 tags match "feature"  default main
 branch  000000000000  feature-0
 branch  000000000000  feature-1
 branch  000000000000  feature-2

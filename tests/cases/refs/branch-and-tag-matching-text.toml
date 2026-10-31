@@ -1,8 +1,8 @@
-# A filter's counts use the singular unit of the unfiltered total.
+# TEXT filters the rows, and the header still names the default branch.
 args = ["refs", "example.com/acme/widget", "release"]
 status.code = 0
 stdout = '''
-example.com/acme/widget  1 of 1 branch match "release"  0 of 1 tag match "release"
+example.com/acme/widget  1 of 1 branch match "release"  0 of 1 tag match "release"  default release
 branch  000000000000  release  (default)
 '''
 

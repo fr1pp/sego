@@ -2,7 +2,7 @@
 args = ["refs", "github.com/BurntSushi/ripgrep", "14.1"]
 status.code = 0
 stdout = '''
-github.com/BurntSushi/ripgrep  0 of 16 branches match "14.1"  2 of 272 tags match "14.1"  mirrored 2026-10-27T05:26Z
+github.com/BurntSushi/ripgrep  0 of 16 branches match "14.1"  2 of 272 tags match "14.1"  default master  mirrored 2026-10-27T05:26Z
 tag     4649aa970061  14.1.1
 tag     e50df40a1967  14.1.0
 '''

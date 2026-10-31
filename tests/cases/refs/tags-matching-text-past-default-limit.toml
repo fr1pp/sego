@@ -2,7 +2,7 @@
 args = ["refs", "example.com/acme/widget", "rel"]
 status.code = 0
 stdout = '''
-example.com/acme/widget  0 of 12 branches match "rel"  130 of 400 tags match "rel"  100 shown
+example.com/acme/widget  0 of 12 branches match "rel"  130 of 400 tags match "rel"  100 shown  default main
 tag     abc000000001  rel-001
 tag     abc000000002  rel-002
 tag     abc000000003  rel-003
