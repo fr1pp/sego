@@ -9,6 +9,8 @@ use super::read::{
 
 const MAX_DEADLINE_MS: u64 = 60_000;
 const DEFAULT_DEADLINE_MS: u64 = 20_000;
+const DEFAULT_CAP: u64 = 30;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Unit {
     Matches,
@@ -54,6 +56,7 @@ pub struct Query {
     pub pattern_type: PatternType,
     /// The query names `lucky`, which the server reads as `standard`.
     lucky: bool,
+    pub cap: Option<u64>,
     pub unit: Unit,
     /// The query states no unit, so the results decide it: `Repos` when
     /// every result is a repository, `Commits` when every result is a
@@ -82,6 +85,7 @@ impl Query {
             text,
             pattern_type,
             lucky: pattern_type == PatternType::Standard && written_type(written) == Some("lucky"),
+            cap: cap(written),
             unit: unit(written),
             by_results: stated_unit(written).is_none(),
             stopped_pointer: stopped_pointer(written, deadline_ms),
@@ -123,6 +127,19 @@ fn sent(text: &str) -> String {
     } else {
         text.to_owned()
     }
+}
+
+/// How many results the query asks for: the last `count:` value, 30 when
+/// there is none. The server reads a number with an optional `+`; `all`, or
+/// any other value, is no cap.
+fn cap(written: &[Written]) -> Option<u64> {
+    let last = filters(written).filter(|f| f.field.eq_ignore_ascii_case("count")).last();
+    let Some(filter) = last else { return Some(DEFAULT_CAP) };
+    let digits = filter.value.strip_prefix('+').unwrap_or(&filter.value);
+    if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    digits.parse().ok()
 }
 
 fn field(item: &Written, name: &str) -> bool {

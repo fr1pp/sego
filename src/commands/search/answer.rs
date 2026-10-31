@@ -566,11 +566,16 @@ pub fn counted(
     commits: Option<u64>,
 ) -> Counted {
     let count = commits.unwrap_or_else(|| results.match_count.saturating_sub(placeholder_ranges));
-    // A search stops at its deadline, so one answered at or past it was cut.
-    let stopped = !results.timedout.is_empty() || results.elapsed_milliseconds >= query.deadline_ms;
-    // The raw `matchCount`, since a cut can leave nothing but placeholders.
-    // A stopped zero says it stopped; agents read `0+` as doubt about the term.
-    let at_least = results.match_count > 0 && (results.limit_hit || (stopped && count > 0));
+    // The raw `matchCount`, since the server counted placeholders against the cap.
+    let capped = results.limit_hit
+        && results.match_count > 0
+        && query.cap.is_some_and(|cap| results.match_count >= cap);
+    // A search stops at its deadline, so one answered at or past it was cut,
+    // unless it had what it asked for.
+    let stopped = !capped
+        && (!results.timedout.is_empty() || results.elapsed_milliseconds >= query.deadline_ms);
+    // A zero says it stopped; agents read `0+` as doubt about the term.
+    let at_least = if count > 0 { results.limit_hit || stopped } else { capped };
     Counted { count, at_least, stopped }
 }
 
@@ -894,15 +899,18 @@ mod tests {
     }
 
     #[test]
-    fn a_limit_hit_answer_past_its_deadline_is_stopped() {
-        assert_eq!(counted_as(30, true, 2000, "repo:x foo timeout:2s", 0), (30, true, true));
+    fn an_answer_that_fills_its_cap_at_its_deadline_is_not_stopped() {
+        assert_eq!(counted_as(30, true, 2000, "repo:x foo timeout:2s", 0), (30, true, false));
+        assert_eq!(counted_as(17, true, 2000, "repo:x foo timeout:2s", 0), (17, true, true));
     }
 
     #[test]
-    fn an_answer_of_only_placeholders_is_at_least_when_the_server_reports_a_cut() {
+    fn a_zero_of_placeholders_is_at_least_only_when_they_fill_the_cap() {
         let query = "repo:x binary";
         assert_eq!(counted_as(30, true, 500, query, 30), (0, true, false));
         assert_eq!(counted_as(30, false, 500, query, 30), (0, false, false));
+        assert_eq!(counted_as(29, true, 500, query, 29), (0, false, false));
+        assert_eq!(counted_as(30, true, 500, "repo:x binary count:all", 30), (0, false, false));
     }
 
     #[test]
