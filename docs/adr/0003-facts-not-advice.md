@@ -7,4 +7,9 @@ evaluations, `widen archived:yes 68896` (68,896 archived repositories the search
 string itself. The one addition is a pointer: a short line, worked out from the answer and ready to
 run, naming the sego command that gets the rest of an answer sego itself cut, such as a log past its
 default limit. A search the server cut, a path or revision that doesn't exist and a mistyped option
-get the fact alone, since what to do next is a guess at what the caller meant.
+get the fact alone, since what to do next is a guess at what the caller meant. A note earns its
+place by one test: does it tell an agent something the answer doesn't already show, and would that
+change what it does next? A note that restates the answer only costs context (ADR 0004). The one
+exception is `cache unavailable`: the answer is whole without the cache (ADR 0009), but the raw route
+is rate limited separately, so a cache that stops working must not do so silently, since every read
+of a large file then spends that limit.
