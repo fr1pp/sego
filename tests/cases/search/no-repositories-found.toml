@@ -8,10 +8,10 @@ sego: error: No repositories found
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s repo:^github\\.com/sego-nonexistent-0/nope$ foo"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -25,7 +25,7 @@ response = '''
         },
         "approximateResultCount": "0",
         "dynamicFilters": [],
-        "elapsedMilliseconds": 10,
+        "elapsedMilliseconds": 14,
         "limitHit": false,
         "matchCount": 0,
         "results": [],

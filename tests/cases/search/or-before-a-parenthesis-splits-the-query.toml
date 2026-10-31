@@ -13,7 +13,7 @@ example.com/acme/server@0123456789ab:main.go
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$ zqxv Or(NewRouter)"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
 response = '''
@@ -36,6 +36,7 @@ response = '''
         "results": [
           {
             "__typename": "FileMatch",
+            "pathMatches": [],
             "chunkMatches": [
               {
                 "content": "\tr := mux.NewRouter()",

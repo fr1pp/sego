@@ -3,7 +3,7 @@
 args = ["search", '(repo:^github\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter) or (repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter) count:100']
 status.code = 0
 stdout = '''
-100 of 102+ matches  1 repo  0.4 s
+100 of 102+ matches  1 repo  0.2 s
 query  timeout:60s (repo:^github\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter) or (repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter) count:100
 
 github.com/gorilla/mux@98cb6bf42e08:mux.go
@@ -35,6 +35,262 @@ github.com/gorilla/mux@98cb6bf42e08:example_route_test.go
 35-func ExampleRoute_HeadersRegexp_exactMatch() {
 36:	r := mux.NewRouter()
 37-	route := r.NewRoute().HeadersRegexp("Origin", "^https://example.co$")
+
+github.com/gorilla/mux@98cb6bf42e08:example_cors_method_middleware_test.go
+11-func ExampleCORSMethodMiddleware() {
+12:	r := mux.NewRouter()
+13-
+
+github.com/gorilla/mux@98cb6bf42e08:doc.go
+28-	func main() {
+29:		r := mux.NewRouter()
+30-		r.HandleFunc("/", HomeHandler)
+--
+44-
+45:	r := mux.NewRouter()
+46-	r.HandleFunc("/products/{key}", ProductHandler)
+--
+70-
+71:	r := mux.NewRouter()
+72-	// Only matches if domain is "www.example.com".
+--
+117-
+118:	r := mux.NewRouter()
+119-	s := r.Host("www.example.com").Subrouter()
+--
+138-
+139:	r := mux.NewRouter()
+140-	s := r.PathPrefix("/products").Subrouter()
+--
+156-		flag.Parse()
+157:		r := mux.NewRouter()
+158-
+--
+177-
+178:	r := mux.NewRouter()
+179-	r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
+--
+192-
+193:	r := mux.NewRouter()
+194-	r.Host("{subdomain}.domain.com").
+--
+230-
+231:	r := mux.NewRouter()
+232-	s := r.Host("{subdomain}.domain.com").Subrouter()
+--
+260-
+261:	r := mux.NewRouter()
+262-	r.HandleFunc("/", handler)
+--
+294-
+295:	r := mux.NewRouter()
+296-	r.HandleFunc("/", handler)
+
+github.com/gorilla/mux@98cb6bf42e08:middleware_test.go
+22-func TestMiddlewareAdd(t *testing.T) {
+23:	router := NewRouter()
+24-	router.HandleFunc("/", dummyHandler).Methods("GET")
+--
+47-func TestMiddleware(t *testing.T) {
+48:	router := NewRouter()
+49-	router.HandleFunc("/", dummyHandler).Methods("GET")
+--
+90-func TestMiddlewareSubrouter(t *testing.T) {
+91:	router := NewRouter()
+92-	router.HandleFunc("/", dummyHandler).Methods("GET")
+--
+158-
+159:	router := NewRouter()
+160-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
+--
+196-
+197:	router := NewRouter()
+198-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
+--
+237-
+238:	router := NewRouter()
+239-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
+--
+278-
+279:	router := NewRouter()
+280-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
+--
+324-
+325:	router := NewRouter()
+326-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
+--
+455-		t.Run(tt.name, func(t *testing.T) {
+456:			router := NewRouter()
+457-
+--
+481-func TestCORSMethodMiddlewareSubrouter(t *testing.T) {
+482:	router := NewRouter().StrictSlash(true)
+483-
+--
+505-
+506:	router := NewRouter()
+507-	firstSubRouter := router.PathPrefix("/").Subrouter()
+
+github.com/gorilla/mux@98cb6bf42e08:route.go
+185-	}
+186:	rr, err := newRouteRegexp(tpl, typ, routeRegexpOptions{
+187-		strictSlash:    r.strictSlash,
+--
+232-//
+233://     r := mux.NewRouter()
+234-//     r.Headers("Content-Type", "application/json",
+--
+257-//
+258://     r := mux.NewRouter()
+259-//     r.HeadersRegexp("Content-Type", "application/(text|json)",
+--
+285-//
+286://     r := mux.NewRouter()
+287-//     r.Host("www.example.com")
+--
+344-//
+345://     r := mux.NewRouter()
+346-//     r.Path("/products/").Handler(ProductsHandler)
+
+github.com/gorilla/mux@98cb6bf42e08:example_authentication_middleware_test.go
+38-func Example_authenticationMiddleware() {
+39:	r := mux.NewRouter()
+40-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+
+github.com/gorilla/mux@98cb6bf42e08:mux_httpserver_test.go
+13-func TestSchemeMatchers(t *testing.T) {
+14:	router := NewRouter()
+15-	router.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
+
+github.com/gorilla/mux@98cb6bf42e08:old_test.go
+71-
+72:	router := NewRouter()
+73-	router.NewRoute().Host("{var1}.google.com").
+--
+257-	{
+258:		matcher: NewRouter().NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}"),
+259-		url:     "http://abc.def.ghi/",
+--
+263-	{
+264:		matcher: NewRouter().NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}:{port:.*}"),
+265-		url:     "http://abc.def.ghi:65535/",
+--
+269-	{
+270:		matcher: NewRouter().NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}"),
+271-		url:     "http://abc.def.ghi:65535/",
+--
+275-	{
+276:		matcher: NewRouter().NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}"),
+277-		url:     "http://a.b.c/",
+--
+320-	{
+321:		matcher: NewRouter().NewRoute().Path("/{foo:[0-9][0-9][0-9]}/{bar:[0-9][0-9][0-9]}/{baz:[0-9][0-9][0-9]}"),
+322-		url:     "http://localhost:8080/123/456/789",
+--
+326-	{
+327:		matcher: NewRouter().NewRoute().Path("/{foo:[0-9][0-9][0-9]}/{bar:[0-9][0-9][0-9]}/{baz:[0-9][0-9][0-9]}"),
+328-		url:     "http://localhost:8080/1/2/3",
+--
+536-
+537:	router := NewRouter()
+538-	router.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).Name("article")
+--
+548-	routeName := "stock"
+549:	router := NewRouter()
+550-	route := router.NewRoute().Path("/products/").Name(routeName)
+--
+568-	// Example from docs.
+569:	router := NewRouter()
+570-	subrouter := router.NewRoute().Host("www.example.com").Subrouter()
+--
+599-	var routeMatch RouteMatch
+600:	r := NewRouter()
+601-
+--
+697-	for pattern, paths := range tests {
+698:		p, _ = newRouteRegexp(pattern, regexpTypePath, routeRegexpOptions{})
+699-		for path, result := range paths {
+
+github.com/gorilla/mux@98cb6bf42e08:README.md
+52-func main() {
+53:    r := mux.NewRouter()
+54-    r.HandleFunc("/", HomeHandler)
+--
+65-```go
+66:r := mux.NewRouter()
+67-r.HandleFunc("/products/{key}", ProductHandler)
+--
+88-```go
+89:r := mux.NewRouter()
+90-// Only matches if domain is "www.example.com".
+--
+145-```go
+146:r := mux.NewRouter()
+147-r.HandleFunc("/specific", specificHandler)
+--
+155-```go
+156:r := mux.NewRouter()
+157-s := r.Host("www.example.com").Subrouter()
+--
+174-```go
+175:r := mux.NewRouter()
+176-s := r.PathPrefix("/products").Subrouter()
+--
+197-    flag.Parse()
+198:    r := mux.NewRouter()
+199-
+--
+279-func main() {
+280:	router := mux.NewRouter()
+281-
+--
+308-```go
+309:r := mux.NewRouter()
+310-r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
+--
+328-```go
+329:r := mux.NewRouter()
+330-r.Host("{subdomain}.example.com").
+--
+365-```go
+366:r := mux.NewRouter()
+367-s := r.Host("{subdomain}.example.com").Subrouter()
+--
+398-func main() {
+399:	r := mux.NewRouter()
+400-	r.HandleFunc("/", handler)
+--
+461-
+462:    r := mux.NewRouter()
+463-    // Add your routes as needed
+--
+531-```go
+532:r := mux.NewRouter()
+533-r.HandleFunc("/", handler)
+--
+571-```go
+572:r := mux.NewRouter()
+573-r.HandleFunc("/", handler)
+--
+602-func main() {
+603:    r := mux.NewRouter()
+604-
+--
+670-func main() {
+671:    r := mux.NewRouter()
+672-    r.HandleFunc("/health", HealthCheckHandler)
+--
+727-func main() {
+728:    r := mux.NewRouter()
+729-    // A route with a route variable:
+--
+761-	// Need to create a router that we can pass the request through so that the vars will be added to the context
+762:	router := mux.NewRouter()
+763-        router.HandleFunc("/metrics/{type}", MetricsHandler)
+--
+793-func main() {
+794:    r := mux.NewRouter()
+795-    // Routes consist of a path and a handler function.
 
 github.com/gorilla/mux@98cb6bf42e08:mux_test.go
 1433-func TestNamedRoutes(t *testing.T) {
@@ -144,271 +400,15 @@ github.com/gorilla/mux@98cb6bf42e08:mux_test.go
 2747-
 2748:	router := NewRouter()
 2749-	router.HandleFunc("/test", handler).Methods(http.MethodGet)
---
-2794-	handler := func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }
-2795:	router := NewRouter()
-2796-	router.Path("/a").Subrouter().HandleFunc("/thing", handler).Methods(http.MethodGet)
---
-2817-
-2818:	r := NewRouter()
-2819-	r.Handle("/path/{foo}", withTimeout(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-github.com/gorilla/mux@98cb6bf42e08:mux_httpserver_test.go
-13-func TestSchemeMatchers(t *testing.T) {
-14:	router := NewRouter()
-15-	router.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-
-github.com/gorilla/mux@98cb6bf42e08:old_test.go
-71-
-72:	router := NewRouter()
-73-	router.NewRoute().Host("{var1}.google.com").
---
-257-	{
-258:		matcher: NewRouter().NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}"),
-259-		url:     "http://abc.def.ghi/",
---
-263-	{
-264:		matcher: NewRouter().NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}:{port:.*}"),
-265-		url:     "http://abc.def.ghi:65535/",
---
-269-	{
-270:		matcher: NewRouter().NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}"),
-271-		url:     "http://abc.def.ghi:65535/",
---
-275-	{
-276:		matcher: NewRouter().NewRoute().Host("{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}"),
-277-		url:     "http://a.b.c/",
---
-320-	{
-321:		matcher: NewRouter().NewRoute().Path("/{foo:[0-9][0-9][0-9]}/{bar:[0-9][0-9][0-9]}/{baz:[0-9][0-9][0-9]}"),
-322-		url:     "http://localhost:8080/123/456/789",
---
-326-	{
-327:		matcher: NewRouter().NewRoute().Path("/{foo:[0-9][0-9][0-9]}/{bar:[0-9][0-9][0-9]}/{baz:[0-9][0-9][0-9]}"),
-328-		url:     "http://localhost:8080/1/2/3",
---
-536-
-537:	router := NewRouter()
-538-	router.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).Name("article")
---
-548-	routeName := "stock"
-549:	router := NewRouter()
-550-	route := router.NewRoute().Path("/products/").Name(routeName)
---
-568-	// Example from docs.
-569:	router := NewRouter()
-570-	subrouter := router.NewRoute().Host("www.example.com").Subrouter()
---
-599-	var routeMatch RouteMatch
-600:	r := NewRouter()
-601-
---
-697-	for pattern, paths := range tests {
-698:		p, _ = newRouteRegexp(pattern, regexpTypePath, routeRegexpOptions{})
-699-		for path, result := range paths {
-
-github.com/gorilla/mux@98cb6bf42e08:example_authentication_middleware_test.go
-38-func Example_authenticationMiddleware() {
-39:	r := mux.NewRouter()
-40-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-
-github.com/gorilla/mux@98cb6bf42e08:middleware_test.go
-22-func TestMiddlewareAdd(t *testing.T) {
-23:	router := NewRouter()
-24-	router.HandleFunc("/", dummyHandler).Methods("GET")
---
-47-func TestMiddleware(t *testing.T) {
-48:	router := NewRouter()
-49-	router.HandleFunc("/", dummyHandler).Methods("GET")
---
-90-func TestMiddlewareSubrouter(t *testing.T) {
-91:	router := NewRouter()
-92-	router.HandleFunc("/", dummyHandler).Methods("GET")
---
-158-
-159:	router := NewRouter()
-160-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
---
-196-
-197:	router := NewRouter()
-198-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
---
-237-
-238:	router := NewRouter()
-239-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
---
-278-
-279:	router := NewRouter()
-280-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
---
-324-
-325:	router := NewRouter()
-326-	router.HandleFunc("/", func(w http.ResponseWriter, e *http.Request) {
---
-455-		t.Run(tt.name, func(t *testing.T) {
-456:			router := NewRouter()
-457-
---
-481-func TestCORSMethodMiddlewareSubrouter(t *testing.T) {
-482:	router := NewRouter().StrictSlash(true)
-483-
---
-505-
-506:	router := NewRouter()
-507-	firstSubRouter := router.PathPrefix("/").Subrouter()
-
-github.com/gorilla/mux@98cb6bf42e08:doc.go
-28-	func main() {
-29:		r := mux.NewRouter()
-30-		r.HandleFunc("/", HomeHandler)
---
-44-
-45:	r := mux.NewRouter()
-46-	r.HandleFunc("/products/{key}", ProductHandler)
---
-70-
-71:	r := mux.NewRouter()
-72-	// Only matches if domain is "www.example.com".
---
-117-
-118:	r := mux.NewRouter()
-119-	s := r.Host("www.example.com").Subrouter()
---
-138-
-139:	r := mux.NewRouter()
-140-	s := r.PathPrefix("/products").Subrouter()
---
-156-		flag.Parse()
-157:		r := mux.NewRouter()
-158-
---
-177-
-178:	r := mux.NewRouter()
-179-	r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
---
-192-
-193:	r := mux.NewRouter()
-194-	r.Host("{subdomain}.domain.com").
---
-230-
-231:	r := mux.NewRouter()
-232-	s := r.Host("{subdomain}.domain.com").Subrouter()
---
-260-
-261:	r := mux.NewRouter()
-262-	r.HandleFunc("/", handler)
---
-294-
-295:	r := mux.NewRouter()
-296-	r.HandleFunc("/", handler)
-
-github.com/gorilla/mux@98cb6bf42e08:example_cors_method_middleware_test.go
-11-func ExampleCORSMethodMiddleware() {
-12:	r := mux.NewRouter()
-13-
-
-github.com/gorilla/mux@98cb6bf42e08:README.md
-52-func main() {
-53:    r := mux.NewRouter()
-54-    r.HandleFunc("/", HomeHandler)
---
-65-```go
-66:r := mux.NewRouter()
-67-r.HandleFunc("/products/{key}", ProductHandler)
---
-88-```go
-89:r := mux.NewRouter()
-90-// Only matches if domain is "www.example.com".
---
-145-```go
-146:r := mux.NewRouter()
-147-r.HandleFunc("/specific", specificHandler)
---
-155-```go
-156:r := mux.NewRouter()
-157-s := r.Host("www.example.com").Subrouter()
---
-174-```go
-175:r := mux.NewRouter()
-176-s := r.PathPrefix("/products").Subrouter()
---
-197-    flag.Parse()
-198:    r := mux.NewRouter()
-199-
---
-279-func main() {
-280:	router := mux.NewRouter()
-281-
---
-308-```go
-309:r := mux.NewRouter()
-310-r.HandleFunc("/articles/{category}/{id:[0-9]+}", ArticleHandler).
---
-328-```go
-329:r := mux.NewRouter()
-330-r.Host("{subdomain}.example.com").
---
-365-```go
-366:r := mux.NewRouter()
-367-s := r.Host("{subdomain}.example.com").Subrouter()
---
-398-func main() {
-399:	r := mux.NewRouter()
-400-	r.HandleFunc("/", handler)
---
-461-
-462:    r := mux.NewRouter()
-463-    // Add your routes as needed
---
-531-```go
-532:r := mux.NewRouter()
-533-r.HandleFunc("/", handler)
---
-571-```go
-572:r := mux.NewRouter()
-573-r.HandleFunc("/", handler)
---
-602-func main() {
-603:    r := mux.NewRouter()
-604-
---
-670-func main() {
-671:    r := mux.NewRouter()
-672-    r.HandleFunc("/health", HealthCheckHandler)
---
-727-func main() {
-728:    r := mux.NewRouter()
-729-    // A route with a route variable:
---
-761-	// Need to create a router that we can pass the request through so that the vars will be added to the context
-762:	router := mux.NewRouter()
-763-        router.HandleFunc("/metrics/{type}", MetricsHandler)
---
-793-func main() {
-794:    r := mux.NewRouter()
-795-    // Routes consist of a path and a handler function.
-
-github.com/gorilla/mux@98cb6bf42e08:route.go
-185-	}
-186:	rr, err := newRouteRegexp(tpl, typ, routeRegexpOptions{
-187-		strictSlash:    r.strictSlash,
---
-232-//
-233://     r := mux.NewRouter()
-234-//     r.Headers("Content-Type", "application/json",
---
-257-//
-258://     r := mux.NewRouter()
-259-//     r.HeadersRegexp("Content-Type", "application/(text|json)",
 '''
 
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s (repo:^github\\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter) or (repo:^github\\.com/gorilla/mux$@v1.8.0 NewRouter) count:100"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -453,7 +453,7 @@ response = '''
             "value": "select:symbol.function"
           }
         ],
-        "elapsedMilliseconds": 445,
+        "elapsedMilliseconds": 152,
         "limitHit": true,
         "matchCount": 102,
         "results": [
@@ -513,6 +513,7 @@ response = '''
               },
               "path": "mux.go"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -580,6 +581,7 @@ response = '''
               },
               "path": "regexp.go"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -647,6 +649,1275 @@ response = '''
               },
               "path": "example_route_test.go"
             },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "func ExampleCORSMethodMiddleware() {\n\tr := mux.NewRouter()\n\n",
+                "contentStart": {
+                  "line": 10
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 11
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 11
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "example_cors_method_middleware_test.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "\tfunc main() {\n\t\tr := mux.NewRouter()\n\t\tr.HandleFunc(\"/\", HomeHandler)\n",
+                "contentStart": {
+                  "line": 27
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 28
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 28
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\tr.HandleFunc(\"/products/{key}\", ProductHandler)\n",
+                "contentStart": {
+                  "line": 43
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 44
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 44
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\t// Only matches if domain is \"www.example.com\".\n",
+                "contentStart": {
+                  "line": 69
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 70
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 70
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\ts := r.Host(\"www.example.com\").Subrouter()\n",
+                "contentStart": {
+                  "line": 116
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 117
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 117
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\ts := r.PathPrefix(\"/products\").Subrouter()\n",
+                "contentStart": {
+                  "line": 137
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 138
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 138
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\t\tflag.Parse()\n\t\tr := mux.NewRouter()\n\n",
+                "contentStart": {
+                  "line": 155
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 156
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 156
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\tr.HandleFunc(\"/articles/{category}/{id:[0-9]+}\", ArticleHandler).\n",
+                "contentStart": {
+                  "line": 176
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 177
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 177
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\tr.Host(\"{subdomain}.domain.com\").\n",
+                "contentStart": {
+                  "line": 191
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 192
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 192
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\ts := r.Host(\"{subdomain}.domain.com\").Subrouter()\n",
+                "contentStart": {
+                  "line": 229
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 230
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 230
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\tr.HandleFunc(\"/\", handler)\n",
+                "contentStart": {
+                  "line": 259
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 260
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 260
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\tr := mux.NewRouter()\n\tr.HandleFunc(\"/\", handler)\n",
+                "contentStart": {
+                  "line": 293
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 294
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 294
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "doc.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "func TestMiddlewareAdd(t *testing.T) {\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", dummyHandler).Methods(\"GET\")\n",
+                "contentStart": {
+                  "line": 21
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 22
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 22
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "func TestMiddleware(t *testing.T) {\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", dummyHandler).Methods(\"GET\")\n",
+                "contentStart": {
+                  "line": 46
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 47
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 47
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "func TestMiddlewareSubrouter(t *testing.T) {\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", dummyHandler).Methods(\"GET\")\n",
+                "contentStart": {
+                  "line": 89
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 90
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 90
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", func(w http.ResponseWriter, e *http.Request) {\n",
+                "contentStart": {
+                  "line": 157
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 158
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 158
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", func(w http.ResponseWriter, e *http.Request) {\n",
+                "contentStart": {
+                  "line": 195
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 196
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 196
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", func(w http.ResponseWriter, e *http.Request) {\n",
+                "contentStart": {
+                  "line": 236
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 237
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 237
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", func(w http.ResponseWriter, e *http.Request) {\n",
+                "contentStart": {
+                  "line": 277
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 278
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 278
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", func(w http.ResponseWriter, e *http.Request) {\n",
+                "contentStart": {
+                  "line": 323
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 324
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 324
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\t\tt.Run(tt.name, func(t *testing.T) {\n\t\t\trouter := NewRouter()\n\n",
+                "contentStart": {
+                  "line": 454
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 455
+                    },
+                    "start": {
+                      "character": 13,
+                      "line": 455
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "func TestCORSMethodMiddlewareSubrouter(t *testing.T) {\n\trouter := NewRouter().StrictSlash(true)\n\n",
+                "contentStart": {
+                  "line": 480
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 481
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 481
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\trouter := NewRouter()\n\tfirstSubRouter := router.PathPrefix(\"/\").Subrouter()\n",
+                "contentStart": {
+                  "line": 504
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 505
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 505
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "middleware_test.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "\t}\n\trr, err := newRouteRegexp(tpl, typ, routeRegexpOptions{\n\t\tstrictSlash:    r.strictSlash,\n",
+                "contentStart": {
+                  "line": 184
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 21,
+                      "line": 185
+                    },
+                    "start": {
+                      "character": 12,
+                      "line": 185
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "//\n//     r := mux.NewRouter()\n//     r.Headers(\"Content-Type\", \"application/json\",\n",
+                "contentStart": {
+                  "line": 231
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 25,
+                      "line": 232
+                    },
+                    "start": {
+                      "character": 16,
+                      "line": 232
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "//\n//     r := mux.NewRouter()\n//     r.HeadersRegexp(\"Content-Type\", \"application/(text|json)\",\n",
+                "contentStart": {
+                  "line": 256
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 25,
+                      "line": 257
+                    },
+                    "start": {
+                      "character": 16,
+                      "line": 257
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "//\n//     r := mux.NewRouter()\n//     r.Host(\"www.example.com\")\n",
+                "contentStart": {
+                  "line": 284
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 25,
+                      "line": 285
+                    },
+                    "start": {
+                      "character": 16,
+                      "line": 285
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "//\n//     r := mux.NewRouter()\n//     r.Path(\"/products/\").Handler(ProductsHandler)\n",
+                "contentStart": {
+                  "line": 343
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 25,
+                      "line": 344
+                    },
+                    "start": {
+                      "character": 16,
+                      "line": 344
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "route.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "func Example_authenticationMiddleware() {\n\tr := mux.NewRouter()\n\tr.HandleFunc(\"/\", func(w http.ResponseWriter, r *http.Request) {\n",
+                "contentStart": {
+                  "line": 37
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 38
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 38
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "example_authentication_middleware_test.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "func TestSchemeMatchers(t *testing.T) {\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", func(rw http.ResponseWriter, r *http.Request) {\n",
+                "contentStart": {
+                  "line": 12
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 13
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 13
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "mux_httpserver_test.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "\n\trouter := NewRouter()\n\trouter.NewRoute().Host(\"{var1}.google.com\").\n",
+                "contentStart": {
+                  "line": 70
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 71
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 71
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\t{\n\t\tmatcher: NewRouter().NewRoute().Host(\"{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}\"),\n\t\turl:     \"http://abc.def.ghi/\",\n",
+                "contentStart": {
+                  "line": 256
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 257
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 257
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\t{\n\t\tmatcher: NewRouter().NewRoute().Host(\"{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}:{port:.*}\"),\n\t\turl:     \"http://abc.def.ghi:65535/\",\n",
+                "contentStart": {
+                  "line": 262
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 263
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 263
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\t{\n\t\tmatcher: NewRouter().NewRoute().Host(\"{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}\"),\n\t\turl:     \"http://abc.def.ghi:65535/\",\n",
+                "contentStart": {
+                  "line": 268
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 269
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 269
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\t{\n\t\tmatcher: NewRouter().NewRoute().Host(\"{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}\"),\n\t\turl:     \"http://a.b.c/\",\n",
+                "contentStart": {
+                  "line": 274
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 275
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 275
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\t{\n\t\tmatcher: NewRouter().NewRoute().Path(\"/{foo:[0-9][0-9][0-9]}/{bar:[0-9][0-9][0-9]}/{baz:[0-9][0-9][0-9]}\"),\n\t\turl:     \"http://localhost:8080/123/456/789\",\n",
+                "contentStart": {
+                  "line": 319
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 320
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 320
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\t{\n\t\tmatcher: NewRouter().NewRoute().Path(\"/{foo:[0-9][0-9][0-9]}/{bar:[0-9][0-9][0-9]}/{baz:[0-9][0-9][0-9]}\"),\n\t\turl:     \"http://localhost:8080/1/2/3\",\n",
+                "contentStart": {
+                  "line": 325
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 326
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 326
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/articles/{category}/{id:[0-9]+}\", ArticleHandler).Name(\"article\")\n",
+                "contentStart": {
+                  "line": 535
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 536
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 536
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\trouteName := \"stock\"\n\trouter := NewRouter()\n\troute := router.NewRoute().Path(\"/products/\").Name(routeName)\n",
+                "contentStart": {
+                  "line": 547
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 548
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 548
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\t// Example from docs.\n\trouter := NewRouter()\n\tsubrouter := router.NewRoute().Host(\"www.example.com\").Subrouter()\n",
+                "contentStart": {
+                  "line": 567
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 20,
+                      "line": 568
+                    },
+                    "start": {
+                      "character": 11,
+                      "line": 568
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\tvar routeMatch RouteMatch\n\tr := NewRouter()\n\n",
+                "contentStart": {
+                  "line": 598
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 15,
+                      "line": 599
+                    },
+                    "start": {
+                      "character": 6,
+                      "line": 599
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\tfor pattern, paths := range tests {\n\t\tp, _ = newRouteRegexp(pattern, regexpTypePath, routeRegexpOptions{})\n\t\tfor path, result := range paths {\n",
+                "contentStart": {
+                  "line": 696
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 697
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 697
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "old_test.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "func main() {\n    r := mux.NewRouter()\n    r.HandleFunc(\"/\", HomeHandler)\n",
+                "contentStart": {
+                  "line": 51
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 52
+                    },
+                    "start": {
+                      "character": 13,
+                      "line": 52
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\nr.HandleFunc(\"/products/{key}\", ProductHandler)\n",
+                "contentStart": {
+                  "line": 64
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 65
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 65
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\n// Only matches if domain is \"www.example.com\".\n",
+                "contentStart": {
+                  "line": 87
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 88
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 88
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\nr.HandleFunc(\"/specific\", specificHandler)\n",
+                "contentStart": {
+                  "line": 144
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 145
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 145
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\ns := r.Host(\"www.example.com\").Subrouter()\n",
+                "contentStart": {
+                  "line": 154
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 155
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 155
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\ns := r.PathPrefix(\"/products\").Subrouter()\n",
+                "contentStart": {
+                  "line": 173
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 174
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 174
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "    flag.Parse()\n    r := mux.NewRouter()\n\n",
+                "contentStart": {
+                  "line": 196
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 197
+                    },
+                    "start": {
+                      "character": 13,
+                      "line": 197
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "func main() {\n\trouter := mux.NewRouter()\n\n",
+                "contentStart": {
+                  "line": 278
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 24,
+                      "line": 279
+                    },
+                    "start": {
+                      "character": 15,
+                      "line": 279
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\nr.HandleFunc(\"/articles/{category}/{id:[0-9]+}\", ArticleHandler).\n",
+                "contentStart": {
+                  "line": 307
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 308
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 308
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\nr.Host(\"{subdomain}.example.com\").\n",
+                "contentStart": {
+                  "line": 327
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 328
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 328
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\ns := r.Host(\"{subdomain}.example.com\").Subrouter()\n",
+                "contentStart": {
+                  "line": 364
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 365
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 365
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "func main() {\n\tr := mux.NewRouter()\n\tr.HandleFunc(\"/\", handler)\n",
+                "contentStart": {
+                  "line": 397
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 19,
+                      "line": 398
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 398
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n    r := mux.NewRouter()\n    // Add your routes as needed\n",
+                "contentStart": {
+                  "line": 460
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 461
+                    },
+                    "start": {
+                      "character": 13,
+                      "line": 461
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\nr.HandleFunc(\"/\", handler)\n",
+                "contentStart": {
+                  "line": 530
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 531
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 531
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "```go\nr := mux.NewRouter()\nr.HandleFunc(\"/\", handler)\n",
+                "contentStart": {
+                  "line": 570
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 18,
+                      "line": 571
+                    },
+                    "start": {
+                      "character": 9,
+                      "line": 571
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "func main() {\n    r := mux.NewRouter()\n\n",
+                "contentStart": {
+                  "line": 601
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 602
+                    },
+                    "start": {
+                      "character": 13,
+                      "line": 602
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "func main() {\n    r := mux.NewRouter()\n    r.HandleFunc(\"/health\", HealthCheckHandler)\n",
+                "contentStart": {
+                  "line": 669
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 670
+                    },
+                    "start": {
+                      "character": 13,
+                      "line": 670
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "func main() {\n    r := mux.NewRouter()\n    // A route with a route variable:\n",
+                "contentStart": {
+                  "line": 726
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 727
+                    },
+                    "start": {
+                      "character": 13,
+                      "line": 727
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\t// Need to create a router that we can pass the request through so that the vars will be added to the context\n\trouter := mux.NewRouter()\n        router.HandleFunc(\"/metrics/{type}\", MetricsHandler)\n",
+                "contentStart": {
+                  "line": 760
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 24,
+                      "line": 761
+                    },
+                    "start": {
+                      "character": 15,
+                      "line": 761
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "func main() {\n    r := mux.NewRouter()\n    // Routes consist of a path and a handler function.\n",
+                "contentStart": {
+                  "line": 792
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 22,
+                      "line": 793
+                    },
+                    "start": {
+                      "character": 13,
+                      "line": 793
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "README.md"
+            },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -1199,1266 +2470,7 @@ response = '''
               },
               "path": "mux_test.go"
             },
-            "repository": {
-              "name": "github.com/gorilla/mux"
-            },
-            "revSpec": {
-              "expr": "v1.8.0"
-            },
-            "symbols": []
-          },
-          {
-            "__typename": "FileMatch",
-            "chunkMatches": [
-              {
-                "content": "func TestSchemeMatchers(t *testing.T) {\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", func(rw http.ResponseWriter, r *http.Request) {\n",
-                "contentStart": {
-                  "line": 12
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 13
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 13
-                    }
-                  }
-                ]
-              }
-            ],
-            "file": {
-              "commit": {
-                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
-              },
-              "path": "mux_httpserver_test.go"
-            },
-            "repository": {
-              "name": "github.com/gorilla/mux"
-            },
-            "revSpec": {
-              "expr": "v1.8.0"
-            },
-            "symbols": []
-          },
-          {
-            "__typename": "FileMatch",
-            "chunkMatches": [
-              {
-                "content": "\n\trouter := NewRouter()\n\trouter.NewRoute().Host(\"{var1}.google.com\").\n",
-                "contentStart": {
-                  "line": 70
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 71
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 71
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\t{\n\t\tmatcher: NewRouter().NewRoute().Host(\"{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}\"),\n\t\turl:     \"http://abc.def.ghi/\",\n",
-                "contentStart": {
-                  "line": 256
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 257
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 257
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\t{\n\t\tmatcher: NewRouter().NewRoute().Host(\"{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}:{port:.*}\"),\n\t\turl:     \"http://abc.def.ghi:65535/\",\n",
-                "contentStart": {
-                  "line": 262
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 263
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 263
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\t{\n\t\tmatcher: NewRouter().NewRoute().Host(\"{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}\"),\n\t\turl:     \"http://abc.def.ghi:65535/\",\n",
-                "contentStart": {
-                  "line": 268
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 269
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 269
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\t{\n\t\tmatcher: NewRouter().NewRoute().Host(\"{foo:[a-z][a-z][a-z]}.{bar:[a-z][a-z][a-z]}.{baz:[a-z][a-z][a-z]}\"),\n\t\turl:     \"http://a.b.c/\",\n",
-                "contentStart": {
-                  "line": 274
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 275
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 275
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\t{\n\t\tmatcher: NewRouter().NewRoute().Path(\"/{foo:[0-9][0-9][0-9]}/{bar:[0-9][0-9][0-9]}/{baz:[0-9][0-9][0-9]}\"),\n\t\turl:     \"http://localhost:8080/123/456/789\",\n",
-                "contentStart": {
-                  "line": 319
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 320
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 320
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\t{\n\t\tmatcher: NewRouter().NewRoute().Path(\"/{foo:[0-9][0-9][0-9]}/{bar:[0-9][0-9][0-9]}/{baz:[0-9][0-9][0-9]}\"),\n\t\turl:     \"http://localhost:8080/1/2/3\",\n",
-                "contentStart": {
-                  "line": 325
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 326
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 326
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/articles/{category}/{id:[0-9]+}\", ArticleHandler).Name(\"article\")\n",
-                "contentStart": {
-                  "line": 535
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 536
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 536
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\trouteName := \"stock\"\n\trouter := NewRouter()\n\troute := router.NewRoute().Path(\"/products/\").Name(routeName)\n",
-                "contentStart": {
-                  "line": 547
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 548
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 548
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\t// Example from docs.\n\trouter := NewRouter()\n\tsubrouter := router.NewRoute().Host(\"www.example.com\").Subrouter()\n",
-                "contentStart": {
-                  "line": 567
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 568
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 568
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\tvar routeMatch RouteMatch\n\tr := NewRouter()\n\n",
-                "contentStart": {
-                  "line": 598
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 15,
-                      "line": 599
-                    },
-                    "start": {
-                      "character": 6,
-                      "line": 599
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\tfor pattern, paths := range tests {\n\t\tp, _ = newRouteRegexp(pattern, regexpTypePath, routeRegexpOptions{})\n\t\tfor path, result := range paths {\n",
-                "contentStart": {
-                  "line": 696
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 18,
-                      "line": 697
-                    },
-                    "start": {
-                      "character": 9,
-                      "line": 697
-                    }
-                  }
-                ]
-              }
-            ],
-            "file": {
-              "commit": {
-                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
-              },
-              "path": "old_test.go"
-            },
-            "repository": {
-              "name": "github.com/gorilla/mux"
-            },
-            "revSpec": {
-              "expr": "v1.8.0"
-            },
-            "symbols": []
-          },
-          {
-            "__typename": "FileMatch",
-            "chunkMatches": [
-              {
-                "content": "func Example_authenticationMiddleware() {\n\tr := mux.NewRouter()\n\tr.HandleFunc(\"/\", func(w http.ResponseWriter, r *http.Request) {\n",
-                "contentStart": {
-                  "line": 37
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 19,
-                      "line": 38
-                    },
-                    "start": {
-                      "character": 10,
-                      "line": 38
-                    }
-                  }
-                ]
-              }
-            ],
-            "file": {
-              "commit": {
-                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
-              },
-              "path": "example_authentication_middleware_test.go"
-            },
-            "repository": {
-              "name": "github.com/gorilla/mux"
-            },
-            "revSpec": {
-              "expr": "v1.8.0"
-            },
-            "symbols": []
-          },
-          {
-            "__typename": "FileMatch",
-            "chunkMatches": [
-              {
-                "content": "func TestMiddlewareAdd(t *testing.T) {\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", dummyHandler).Methods(\"GET\")\n",
-                "contentStart": {
-                  "line": 21
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 22
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 22
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "func TestMiddleware(t *testing.T) {\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", dummyHandler).Methods(\"GET\")\n",
-                "contentStart": {
-                  "line": 46
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 47
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 47
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "func TestMiddlewareSubrouter(t *testing.T) {\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", dummyHandler).Methods(\"GET\")\n",
-                "contentStart": {
-                  "line": 89
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 90
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 90
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", func(w http.ResponseWriter, e *http.Request) {\n",
-                "contentStart": {
-                  "line": 157
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 158
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 158
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", func(w http.ResponseWriter, e *http.Request) {\n",
-                "contentStart": {
-                  "line": 195
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 196
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 196
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", func(w http.ResponseWriter, e *http.Request) {\n",
-                "contentStart": {
-                  "line": 236
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 237
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 237
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", func(w http.ResponseWriter, e *http.Request) {\n",
-                "contentStart": {
-                  "line": 277
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 278
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 278
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\trouter := NewRouter()\n\trouter.HandleFunc(\"/\", func(w http.ResponseWriter, e *http.Request) {\n",
-                "contentStart": {
-                  "line": 323
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 324
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 324
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\t\tt.Run(tt.name, func(t *testing.T) {\n\t\t\trouter := NewRouter()\n\n",
-                "contentStart": {
-                  "line": 454
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 22,
-                      "line": 455
-                    },
-                    "start": {
-                      "character": 13,
-                      "line": 455
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "func TestCORSMethodMiddlewareSubrouter(t *testing.T) {\n\trouter := NewRouter().StrictSlash(true)\n\n",
-                "contentStart": {
-                  "line": 480
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 481
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 481
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\trouter := NewRouter()\n\tfirstSubRouter := router.PathPrefix(\"/\").Subrouter()\n",
-                "contentStart": {
-                  "line": 504
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 505
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 505
-                    }
-                  }
-                ]
-              }
-            ],
-            "file": {
-              "commit": {
-                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
-              },
-              "path": "middleware_test.go"
-            },
-            "repository": {
-              "name": "github.com/gorilla/mux"
-            },
-            "revSpec": {
-              "expr": "v1.8.0"
-            },
-            "symbols": []
-          },
-          {
-            "__typename": "FileMatch",
-            "chunkMatches": [
-              {
-                "content": "\tfunc main() {\n\t\tr := mux.NewRouter()\n\t\tr.HandleFunc(\"/\", HomeHandler)\n",
-                "contentStart": {
-                  "line": 27
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 28
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 28
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\tr := mux.NewRouter()\n\tr.HandleFunc(\"/products/{key}\", ProductHandler)\n",
-                "contentStart": {
-                  "line": 43
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 19,
-                      "line": 44
-                    },
-                    "start": {
-                      "character": 10,
-                      "line": 44
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\tr := mux.NewRouter()\n\t// Only matches if domain is \"www.example.com\".\n",
-                "contentStart": {
-                  "line": 69
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 19,
-                      "line": 70
-                    },
-                    "start": {
-                      "character": 10,
-                      "line": 70
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\tr := mux.NewRouter()\n\ts := r.Host(\"www.example.com\").Subrouter()\n",
-                "contentStart": {
-                  "line": 116
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 19,
-                      "line": 117
-                    },
-                    "start": {
-                      "character": 10,
-                      "line": 117
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\tr := mux.NewRouter()\n\ts := r.PathPrefix(\"/products\").Subrouter()\n",
-                "contentStart": {
-                  "line": 137
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 19,
-                      "line": 138
-                    },
-                    "start": {
-                      "character": 10,
-                      "line": 138
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\t\tflag.Parse()\n\t\tr := mux.NewRouter()\n\n",
-                "contentStart": {
-                  "line": 155
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 20,
-                      "line": 156
-                    },
-                    "start": {
-                      "character": 11,
-                      "line": 156
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\tr := mux.NewRouter()\n\tr.HandleFunc(\"/articles/{category}/{id:[0-9]+}\", ArticleHandler).\n",
-                "contentStart": {
-                  "line": 176
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 19,
-                      "line": 177
-                    },
-                    "start": {
-                      "character": 10,
-                      "line": 177
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\tr := mux.NewRouter()\n\tr.Host(\"{subdomain}.domain.com\").\n",
-                "contentStart": {
-                  "line": 191
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 19,
-                      "line": 192
-                    },
-                    "start": {
-                      "character": 10,
-                      "line": 192
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\tr := mux.NewRouter()\n\ts := r.Host(\"{subdomain}.domain.com\").Subrouter()\n",
-                "contentStart": {
-                  "line": 229
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 19,
-                      "line": 230
-                    },
-                    "start": {
-                      "character": 10,
-                      "line": 230
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\tr := mux.NewRouter()\n\tr.HandleFunc(\"/\", handler)\n",
-                "contentStart": {
-                  "line": 259
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 19,
-                      "line": 260
-                    },
-                    "start": {
-                      "character": 10,
-                      "line": 260
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\tr := mux.NewRouter()\n\tr.HandleFunc(\"/\", handler)\n",
-                "contentStart": {
-                  "line": 293
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 19,
-                      "line": 294
-                    },
-                    "start": {
-                      "character": 10,
-                      "line": 294
-                    }
-                  }
-                ]
-              }
-            ],
-            "file": {
-              "commit": {
-                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
-              },
-              "path": "doc.go"
-            },
-            "repository": {
-              "name": "github.com/gorilla/mux"
-            },
-            "revSpec": {
-              "expr": "v1.8.0"
-            },
-            "symbols": []
-          },
-          {
-            "__typename": "FileMatch",
-            "chunkMatches": [
-              {
-                "content": "func ExampleCORSMethodMiddleware() {\n\tr := mux.NewRouter()\n\n",
-                "contentStart": {
-                  "line": 10
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 19,
-                      "line": 11
-                    },
-                    "start": {
-                      "character": 10,
-                      "line": 11
-                    }
-                  }
-                ]
-              }
-            ],
-            "file": {
-              "commit": {
-                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
-              },
-              "path": "example_cors_method_middleware_test.go"
-            },
-            "repository": {
-              "name": "github.com/gorilla/mux"
-            },
-            "revSpec": {
-              "expr": "v1.8.0"
-            },
-            "symbols": []
-          },
-          {
-            "__typename": "FileMatch",
-            "chunkMatches": [
-              {
-                "content": "func main() {\n    r := mux.NewRouter()\n    r.HandleFunc(\"/\", HomeHandler)\n",
-                "contentStart": {
-                  "line": 51
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 22,
-                      "line": 52
-                    },
-                    "start": {
-                      "character": 13,
-                      "line": 52
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "```go\nr := mux.NewRouter()\nr.HandleFunc(\"/products/{key}\", ProductHandler)\n",
-                "contentStart": {
-                  "line": 64
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 18,
-                      "line": 65
-                    },
-                    "start": {
-                      "character": 9,
-                      "line": 65
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "```go\nr := mux.NewRouter()\n// Only matches if domain is \"www.example.com\".\n",
-                "contentStart": {
-                  "line": 87
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 18,
-                      "line": 88
-                    },
-                    "start": {
-                      "character": 9,
-                      "line": 88
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "```go\nr := mux.NewRouter()\nr.HandleFunc(\"/specific\", specificHandler)\n",
-                "contentStart": {
-                  "line": 144
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 18,
-                      "line": 145
-                    },
-                    "start": {
-                      "character": 9,
-                      "line": 145
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "```go\nr := mux.NewRouter()\ns := r.Host(\"www.example.com\").Subrouter()\n",
-                "contentStart": {
-                  "line": 154
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 18,
-                      "line": 155
-                    },
-                    "start": {
-                      "character": 9,
-                      "line": 155
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "```go\nr := mux.NewRouter()\ns := r.PathPrefix(\"/products\").Subrouter()\n",
-                "contentStart": {
-                  "line": 173
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 18,
-                      "line": 174
-                    },
-                    "start": {
-                      "character": 9,
-                      "line": 174
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "    flag.Parse()\n    r := mux.NewRouter()\n\n",
-                "contentStart": {
-                  "line": 196
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 22,
-                      "line": 197
-                    },
-                    "start": {
-                      "character": 13,
-                      "line": 197
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "func main() {\n\trouter := mux.NewRouter()\n\n",
-                "contentStart": {
-                  "line": 278
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 24,
-                      "line": 279
-                    },
-                    "start": {
-                      "character": 15,
-                      "line": 279
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "```go\nr := mux.NewRouter()\nr.HandleFunc(\"/articles/{category}/{id:[0-9]+}\", ArticleHandler).\n",
-                "contentStart": {
-                  "line": 307
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 18,
-                      "line": 308
-                    },
-                    "start": {
-                      "character": 9,
-                      "line": 308
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "```go\nr := mux.NewRouter()\nr.Host(\"{subdomain}.example.com\").\n",
-                "contentStart": {
-                  "line": 327
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 18,
-                      "line": 328
-                    },
-                    "start": {
-                      "character": 9,
-                      "line": 328
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "```go\nr := mux.NewRouter()\ns := r.Host(\"{subdomain}.example.com\").Subrouter()\n",
-                "contentStart": {
-                  "line": 364
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 18,
-                      "line": 365
-                    },
-                    "start": {
-                      "character": 9,
-                      "line": 365
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "func main() {\n\tr := mux.NewRouter()\n\tr.HandleFunc(\"/\", handler)\n",
-                "contentStart": {
-                  "line": 397
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 19,
-                      "line": 398
-                    },
-                    "start": {
-                      "character": 10,
-                      "line": 398
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n    r := mux.NewRouter()\n    // Add your routes as needed\n",
-                "contentStart": {
-                  "line": 460
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 22,
-                      "line": 461
-                    },
-                    "start": {
-                      "character": 13,
-                      "line": 461
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "```go\nr := mux.NewRouter()\nr.HandleFunc(\"/\", handler)\n",
-                "contentStart": {
-                  "line": 530
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 18,
-                      "line": 531
-                    },
-                    "start": {
-                      "character": 9,
-                      "line": 531
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "```go\nr := mux.NewRouter()\nr.HandleFunc(\"/\", handler)\n",
-                "contentStart": {
-                  "line": 570
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 18,
-                      "line": 571
-                    },
-                    "start": {
-                      "character": 9,
-                      "line": 571
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "func main() {\n    r := mux.NewRouter()\n\n",
-                "contentStart": {
-                  "line": 601
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 22,
-                      "line": 602
-                    },
-                    "start": {
-                      "character": 13,
-                      "line": 602
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "func main() {\n    r := mux.NewRouter()\n    r.HandleFunc(\"/health\", HealthCheckHandler)\n",
-                "contentStart": {
-                  "line": 669
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 22,
-                      "line": 670
-                    },
-                    "start": {
-                      "character": 13,
-                      "line": 670
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "func main() {\n    r := mux.NewRouter()\n    // A route with a route variable:\n",
-                "contentStart": {
-                  "line": 726
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 22,
-                      "line": 727
-                    },
-                    "start": {
-                      "character": 13,
-                      "line": 727
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\t// Need to create a router that we can pass the request through so that the vars will be added to the context\n\trouter := mux.NewRouter()\n        router.HandleFunc(\"/metrics/{type}\", MetricsHandler)\n",
-                "contentStart": {
-                  "line": 760
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 24,
-                      "line": 761
-                    },
-                    "start": {
-                      "character": 15,
-                      "line": 761
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "func main() {\n    r := mux.NewRouter()\n    // Routes consist of a path and a handler function.\n",
-                "contentStart": {
-                  "line": 792
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 22,
-                      "line": 793
-                    },
-                    "start": {
-                      "character": 13,
-                      "line": 793
-                    }
-                  }
-                ]
-              }
-            ],
-            "file": {
-              "commit": {
-                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
-              },
-              "path": "README.md"
-            },
-            "repository": {
-              "name": "github.com/gorilla/mux"
-            },
-            "revSpec": {
-              "expr": "v1.8.0"
-            },
-            "symbols": []
-          },
-          {
-            "__typename": "FileMatch",
-            "chunkMatches": [
-              {
-                "content": "\t}\n\trr, err := newRouteRegexp(tpl, typ, routeRegexpOptions{\n\t\tstrictSlash:    r.strictSlash,\n",
-                "contentStart": {
-                  "line": 184
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 21,
-                      "line": 185
-                    },
-                    "start": {
-                      "character": 12,
-                      "line": 185
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "//\n//     r := mux.NewRouter()\n//     r.Headers(\"Content-Type\", \"application/json\",\n",
-                "contentStart": {
-                  "line": 231
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 25,
-                      "line": 232
-                    },
-                    "start": {
-                      "character": 16,
-                      "line": 232
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "//\n//     r := mux.NewRouter()\n//     r.HeadersRegexp(\"Content-Type\", \"application/(text|json)\",\n",
-                "contentStart": {
-                  "line": 256
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 25,
-                      "line": 257
-                    },
-                    "start": {
-                      "character": 16,
-                      "line": 257
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "//\n//     r := mux.NewRouter()\n//     r.Host(\"www.example.com\")\n",
-                "contentStart": {
-                  "line": 284
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 25,
-                      "line": 285
-                    },
-                    "start": {
-                      "character": 16,
-                      "line": 285
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "//\n//     r := mux.NewRouter()\n//     r.Path(\"/products/\").Handler(ProductsHandler)\n",
-                "contentStart": {
-                  "line": 343
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 25,
-                      "line": 344
-                    },
-                    "start": {
-                      "character": 16,
-                      "line": 344
-                    }
-                  }
-                ]
-              }
-            ],
-            "file": {
-              "commit": {
-                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
-              },
-              "path": "route.go"
-            },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/gorilla/mux"
             },

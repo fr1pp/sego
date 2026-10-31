@@ -2,16 +2,16 @@
 args = ["search", "--json", 'repo:^github\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter']
 status.code = 0
 stdout = '''
-{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter","pattern_type":"keyword","unit":"symbols","count":2,"at_least":false,"stopped":false,"elapsed_ms":24,"limit_ms":60000,"widen":[],"alert":null,"results":[{"kind":"symbol","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"mux.go","line":25,"name":"NewRouter","symbol_kind":"function","container":"mux"},{"kind":"symbol","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"regexp.go","line":41,"name":"newRouteRegexp","symbol_kind":"function","container":"mux"}],"server":{"match_count":2,"approximate_count":"2","limit_hit":false,"timedout":[]},"notes":[]}
+{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter","pattern_type":"keyword","unit":"symbols","count":2,"at_least":false,"stopped":false,"elapsed_ms":18,"limit_ms":60000,"widen":[],"alert":null,"results":[{"kind":"symbol","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"mux.go","line":25,"name":"NewRouter","symbol_kind":"function","container":"mux"},{"kind":"symbol","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"regexp.go","line":41,"name":"newRouteRegexp","symbol_kind":"function","container":"mux"}],"server":{"match_count":2,"approximate_count":"2","limit_hit":false,"timedout":[]},"notes":[]}
 '''
 
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -41,7 +41,7 @@ response = '''
             "value": "select:symbol.function"
           }
         ],
-        "elapsedMilliseconds": 24,
+        "elapsedMilliseconds": 18,
         "limitHit": false,
         "matchCount": 2,
         "results": [
@@ -54,6 +54,7 @@ response = '''
               },
               "path": "mux.go"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -84,6 +85,7 @@ response = '''
               },
               "path": "regexp.go"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/gorilla/mux"
             },

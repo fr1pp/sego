@@ -58,7 +58,7 @@ example.com/app@080808080808  2024-05-06  Ann  change 8
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s repo:example.com/app type:diff skipClean count:all"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
 response = '''

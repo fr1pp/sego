@@ -14,10 +14,10 @@ github.com/gorilla/mux@98cb6bf42e08  2020-07-11  Harshavardhana  fix: regression
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 type:commit wildcard"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -47,7 +47,7 @@ response = '''
             "value": "repo:^github\\.com/gorilla/mux$"
           }
         ],
-        "elapsedMilliseconds": 26,
+        "elapsedMilliseconds": 24,
         "limitHit": false,
         "matchCount": 1,
         "results": [

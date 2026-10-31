@@ -13,7 +13,7 @@ example.com/acme/widget@0123456789ab:src/real.txt
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s repo:example.com/acme/widget binary"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
 response = '''
@@ -30,6 +30,7 @@ response = '''
         "results": [
           {
             "__typename": "FileMatch",
+            "pathMatches": [],
             "chunkMatches": [
               {
                 "content": "a binary value\nanother binary",
@@ -74,6 +75,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
+            "pathMatches": [],
             "chunkMatches": [
               {
                 "content": "NOT-INDEXED: contains binary content",

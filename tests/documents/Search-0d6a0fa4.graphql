@@ -11,6 +11,7 @@ query Search($query: String!) {
         ... on FileMatch {
           repository { name }
           file { path commit { oid } }
+          pathMatches { start { line } }
           revSpec { ... on GitRevSpecExpr { expr } }
           chunkMatches { content contentStart { line }
             ranges { start { line character } end { line character } } }

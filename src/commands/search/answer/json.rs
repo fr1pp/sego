@@ -48,6 +48,7 @@ struct Document<'a> {
 enum Record<'a> {
     Line(LineRecord<'a>),
     Path(PathRecord<'a>),
+    File(PathRecord<'a>),
     Binary(PathRecord<'a>),
     Unindexed(UnindexedRecord<'a>),
     Symbol(SymbolRecord<'a>),
@@ -119,6 +120,7 @@ fn records<'a>(group: &'a Group) -> Vec<Record<'a>> {
                 }
                 Some(FileItem::Binary) => out.push(Record::Binary(file())),
                 Some(FileItem::Path) => out.push(Record::Path(file())),
+                Some(FileItem::File) => out.push(Record::File(file())),
                 _ => {}
             }
             let symbol_record = |symbol: &'a SymbolRow| {

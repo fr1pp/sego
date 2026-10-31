@@ -37,7 +37,7 @@ example.com/app@0123456789ab:main.go
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s repo:example.com/app binary count:30"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
 response = '''
@@ -54,6 +54,7 @@ response = '''
         "results": [
           {
             "__typename": "FileMatch",
+            "pathMatches": [],
             "chunkMatches": [
               {
                 "content": "binary 0\nbinary 1\nbinary 2\nbinary 3\nbinary 4\nbinary 5\nbinary 6\nbinary 7\nbinary 8\nbinary 9\nbinary 10\nbinary 11\nbinary 12\nbinary 13\nbinary 14\nbinary 15\nbinary 16\nbinary 17\nbinary 18\nbinary 19\nbinary 20\nbinary 21\nbinary 22\nbinary 23\nbinary 24",
@@ -328,6 +329,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
+            "pathMatches": [],
             "chunkMatches": [
               {
                 "content": "NOT-INDEXED: exceeds the maximum size limit",
@@ -362,6 +364,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
+            "pathMatches": [],
             "chunkMatches": [
               {
                 "content": "NOT-INDEXED: exceeds the maximum size limit",
@@ -396,6 +399,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
+            "pathMatches": [],
             "chunkMatches": [
               {
                 "content": "NOT-INDEXED: exceeds the maximum size limit",
@@ -430,6 +434,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
+            "pathMatches": [],
             "chunkMatches": [
               {
                 "content": "NOT-INDEXED: exceeds the maximum size limit",
@@ -464,6 +469,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
+            "pathMatches": [],
             "chunkMatches": [
               {
                 "content": "NOT-INDEXED: exceeds the maximum size limit",

@@ -1,0 +1,72 @@
+# A select:file result is a file record in JSON, not a path record.
+args = ["search", "--json", 'repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter select:file count:1']
+status.code = 0
+stdout = '''
+{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 NewRouter select:file count:1","pattern_type":"keyword","unit":"files","count":1,"at_least":true,"stopped":false,"elapsed_ms":189,"limit_ms":60000,"widen":[],"alert":null,"results":[{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"old_test.go"}],"server":{"match_count":1,"approximate_count":"1+","limit_hit":true,"timedout":[]},"notes":[]}
+'''
+
+[[exchange]]
+operation = "Search"
+variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 NewRouter select:file count:1"}'
+document = "Search-0d6a0fa4"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "1+",
+        "dynamicFilters": [
+          {
+            "count": 1,
+            "kind": "type",
+            "value": "type:path"
+          },
+          {
+            "count": 1,
+            "kind": "file",
+            "value": "-file:_test\\.\\w+$"
+          },
+          {
+            "count": 1,
+            "kind": "lang",
+            "value": "lang:go"
+          },
+          {
+            "count": 1,
+            "kind": "repo",
+            "value": "repo:^github\\.com/gorilla/mux$@v1.8.0"
+          }
+        ],
+        "elapsedMilliseconds": 189,
+        "limitHit": true,
+        "matchCount": 1,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "old_test.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}
+'''

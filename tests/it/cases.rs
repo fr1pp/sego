@@ -1638,8 +1638,13 @@ mod search {
     }
 
     #[test]
-    fn path_search_prints_headers_alone() {
-        case("search/path-search-prints-headers-alone.toml");
+    fn path_and_content_results_in_one_answer_json() {
+        case("search/path-and-content-results-in-one-answer-json.toml");
+    }
+
+    #[test]
+    fn path_result_is_marked() {
+        case("search/path-result-is-marked.toml");
     }
 
     #[test]
@@ -1800,6 +1805,16 @@ mod search {
     #[test]
     fn select_directory_returns_directories_and_the_root() {
         case("search/select-directory-returns-directories-and-the-root.toml");
+    }
+
+    #[test]
+    fn select_file_result_in_json() {
+        case("search/select-file-result-in-json.toml");
+    }
+
+    #[test]
+    fn select_file_result_is_not_a_path_result() {
+        case("search/select-file-result-is-not-a-path-result.toml");
     }
 
     #[test]

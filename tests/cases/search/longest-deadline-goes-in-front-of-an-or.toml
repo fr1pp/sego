@@ -5,26 +5,46 @@ stdout = '''
 60+ matches  2 repos  0.1 s
 query  timeout:60s (repo:^github\.com/gorilla/mux$ StrictSlash) or (repo:^github\.com/gorilla/handlers$ Handler)
 
-github.com/gorilla/mux@db9d1d0073d2:regexp.go
-17-type routeRegexpOptions struct {
-18:	strictSlash    bool
-19-	useEncodedPath bool
+github.com/gorilla/mux@db9d1d0073d2:old_test.go
+601-
+602:	r.StrictSlash(false)
+603-	route = r.NewRoute()
+604:	if route.strictSlash != false {
+605-		t.Errorf("Expected false redirectSlash.")
 --
-57-	if typ != regexpTypePath {
-58:		options.strictSlash = false
-59-	}
-60:	// Set a flag for strictSlash.
-61-	endSlash := false
-62:	if options.strictSlash && strings.HasSuffix(tpl, "/") {
-63-		tpl = tpl[:len(tpl)-1]
+607-
+608:	r.StrictSlash(true)
+609-	route = r.NewRoute()
+610:	if route.strictSlash != true {
+611-		t.Errorf("Expected true redirectSlash.")
 --
-116-	pattern.WriteString(regexp.QuoteMeta(raw))
-117:	if options.strictSlash {
-118-		pattern.WriteString("[/]?")
+614-	route = new(Route)
+615:	route.strictSlash = true
+616-	route.Path("/{arg1}/{arg2:[0-9]+}/")
+
+github.com/gorilla/mux@db9d1d0073d2:mux.go
+87-	// redirect to the former and vice versa.
+88:	strictSlash bool
+89-
 --
-368-		// Check if we should redirect.
-369:		if v.path.options.strictSlash {
-370-			p1 := strings.HasSuffix(path, "/")
+241-
+242:// StrictSlash defines the trailing slash behavior for new routes. The initial
+243-// value is false.
+--
+259-// be determined from a prefix alone. However, any subrouters created from that
+260:// route inherit the original StrictSlash setting.
+261:func (r *Router) StrictSlash(value bool) *Router {
+262:	r.strictSlash = value
+263-	return r
+
+github.com/gorilla/mux@db9d1d0073d2:route.go
+259-	rr, err := newRouteRegexp(tpl, typ, routeRegexpOptions{
+260:		strictSlash:    r.strictSlash,
+261-		useEncodedPath: r.useEncodedPath,
+--
+439-//
+440:// Also note that the setting of Router.StrictSlash() has no effect on routes
+441-// with a PathPrefix matcher.
 
 github.com/gorilla/mux@db9d1d0073d2:mux_test.go
 1466-
@@ -60,38 +80,6 @@ github.com/gorilla/mux@db9d1d0073d2:mux_test.go
 2811-				useEncodedPath: true,
 2812:				strictSlash:    true,
 2813-				skipClean:      true,
-
-github.com/gorilla/mux@db9d1d0073d2:old_test.go
-601-
-602:	r.StrictSlash(false)
-603-	route = r.NewRoute()
-604:	if route.strictSlash != false {
-605-		t.Errorf("Expected false redirectSlash.")
---
-607-
-608:	r.StrictSlash(true)
-609-	route = r.NewRoute()
-610:	if route.strictSlash != true {
-611-		t.Errorf("Expected true redirectSlash.")
---
-614-	route = new(Route)
-615:	route.strictSlash = true
-616-	route.Path("/{arg1}/{arg2:[0-9]+}/")
-
-github.com/gorilla/mux@db9d1d0073d2:mux.go
-87-	// redirect to the former and vice versa.
-88:	strictSlash bool
-89-
---
-241-
-242:// StrictSlash defines the trailing slash behavior for new routes. The initial
-243-// value is false.
---
-259-// be determined from a prefix alone. However, any subrouters created from that
-260:// route inherit the original StrictSlash setting.
-261:func (r *Router) StrictSlash(value bool) *Router {
-262:	r.strictSlash = value
-263-	return r
 
 github.com/gorilla/handlers@9c61bd81e701:logging.go
 4-
@@ -144,23 +132,35 @@ github.com/gorilla/handlers@9c61bd81e701:logging.go
 249:	return loggingHandler{out, h, f}
 250-}
 
-github.com/gorilla/mux@db9d1d0073d2:route.go
-259-	rr, err := newRouteRegexp(tpl, typ, routeRegexpOptions{
-260:		strictSlash:    r.strictSlash,
-261-		useEncodedPath: r.useEncodedPath,
+github.com/gorilla/mux@db9d1d0073d2:regexp.go
+17-type routeRegexpOptions struct {
+18:	strictSlash    bool
+19-	useEncodedPath bool
 --
-439-//
-440:// Also note that the setting of Router.StrictSlash() has no effect on routes
-441-// with a PathPrefix matcher.
+57-	if typ != regexpTypePath {
+58:		options.strictSlash = false
+59-	}
+60:	// Set a flag for strictSlash.
+61-	endSlash := false
+62:	if options.strictSlash && strings.HasSuffix(tpl, "/") {
+63-		tpl = tpl[:len(tpl)-1]
+--
+116-	pattern.WriteString(regexp.QuoteMeta(raw))
+117:	if options.strictSlash {
+118-		pattern.WriteString("[/]?")
+--
+368-		// Check if we should redirect.
+369:		if v.path.options.strictSlash {
+370-			p1 := strings.HasSuffix(path, "/")
 '''
 
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s (repo:^github\\.com/gorilla/mux$ StrictSlash) or (repo:^github\\.com/gorilla/handlers$ Handler)"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -195,7 +195,7 @@ response = '''
             "value": "-file:_test\\.\\w+$"
           }
         ],
-        "elapsedMilliseconds": 64,
+        "elapsedMilliseconds": 78,
         "limitHit": true,
         "matchCount": 60,
         "results": [
@@ -203,93 +203,75 @@ response = '''
             "__typename": "FileMatch",
             "chunkMatches": [
               {
-                "content": "type routeRegexpOptions struct {\n\tstrictSlash    bool\n\tuseEncodedPath bool\n",
+                "content": "\n\tr.StrictSlash(false)\n\troute = r.NewRoute()\n\tif route.strictSlash != false {\n\t\tt.Errorf(\"Expected false redirectSlash.\")\n",
                 "contentStart": {
-                  "line": 16
+                  "line": 600
                 },
                 "ranges": [
                   {
                     "end": {
-                      "character": 12,
-                      "line": 17
+                      "character": 14,
+                      "line": 601
                     },
                     "start": {
-                      "character": 1,
-                      "line": 17
+                      "character": 3,
+                      "line": 601
                     }
-                  }
-                ]
-              },
-              {
-                "content": "\tif typ != regexpTypePath {\n\t\toptions.strictSlash = false\n\t}\n\t// Set a flag for strictSlash.\n\tendSlash := false\n\tif options.strictSlash && strings.HasSuffix(tpl, \"/\") {\n\t\ttpl = tpl[:len(tpl)-1]\n",
-                "contentStart": {
-                  "line": 56
-                },
-                "ranges": [
+                  },
                   {
                     "end": {
                       "character": 21,
-                      "line": 57
+                      "line": 603
                     },
                     "start": {
                       "character": 10,
-                      "line": 57
-                    }
-                  },
-                  {
-                    "end": {
-                      "character": 30,
-                      "line": 59
-                    },
-                    "start": {
-                      "character": 19,
-                      "line": 59
-                    }
-                  },
-                  {
-                    "end": {
-                      "character": 23,
-                      "line": 61
-                    },
-                    "start": {
-                      "character": 12,
-                      "line": 61
+                      "line": 603
                     }
                   }
                 ]
               },
               {
-                "content": "\tpattern.WriteString(regexp.QuoteMeta(raw))\n\tif options.strictSlash {\n\t\tpattern.WriteString(\"[/]?\")\n",
+                "content": "\n\tr.StrictSlash(true)\n\troute = r.NewRoute()\n\tif route.strictSlash != true {\n\t\tt.Errorf(\"Expected true redirectSlash.\")\n",
                 "contentStart": {
-                  "line": 115
+                  "line": 606
                 },
                 "ranges": [
                   {
                     "end": {
-                      "character": 23,
-                      "line": 116
+                      "character": 14,
+                      "line": 607
                     },
                     "start": {
-                      "character": 12,
-                      "line": 116
+                      "character": 3,
+                      "line": 607
+                    }
+                  },
+                  {
+                    "end": {
+                      "character": 21,
+                      "line": 609
+                    },
+                    "start": {
+                      "character": 10,
+                      "line": 609
                     }
                   }
                 ]
               },
               {
-                "content": "\t\t// Check if we should redirect.\n\t\tif v.path.options.strictSlash {\n\t\t\tp1 := strings.HasSuffix(path, \"/\")\n",
+                "content": "\troute = new(Route)\n\troute.strictSlash = true\n\troute.Path(\"/{arg1}/{arg2:[0-9]+}/\")\n",
                 "contentStart": {
-                  "line": 367
+                  "line": 613
                 },
                 "ranges": [
                   {
                     "end": {
-                      "character": 31,
-                      "line": 368
+                      "character": 18,
+                      "line": 614
                     },
                     "start": {
-                      "character": 20,
-                      "line": 368
+                      "character": 7,
+                      "line": 614
                     }
                   }
                 ]
@@ -299,8 +281,163 @@ response = '''
               "commit": {
                 "oid": "db9d1d0073d27a0a2d9a8c1bc52aa0af4374d265"
               },
-              "path": "regexp.go"
+              "path": "old_test.go"
             },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "// be determined from a prefix alone. However, any subrouters created from that\n// route inherit the original StrictSlash setting.\nfunc (r *Router) StrictSlash(value bool) *Router {\n\tr.strictSlash = value\n\treturn r\n",
+                "contentStart": {
+                  "line": 258
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 41,
+                      "line": 259
+                    },
+                    "start": {
+                      "character": 30,
+                      "line": 259
+                    }
+                  },
+                  {
+                    "end": {
+                      "character": 28,
+                      "line": 260
+                    },
+                    "start": {
+                      "character": 17,
+                      "line": 260
+                    }
+                  },
+                  {
+                    "end": {
+                      "character": 14,
+                      "line": 261
+                    },
+                    "start": {
+                      "character": 3,
+                      "line": 261
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\t// redirect to the former and vice versa.\n\tstrictSlash bool\n\n",
+                "contentStart": {
+                  "line": 86
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 12,
+                      "line": 87
+                    },
+                    "start": {
+                      "character": 1,
+                      "line": 87
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\n// StrictSlash defines the trailing slash behavior for new routes. The initial\n// value is false.\n",
+                "contentStart": {
+                  "line": 240
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 14,
+                      "line": 241
+                    },
+                    "start": {
+                      "character": 3,
+                      "line": 241
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "db9d1d0073d27a0a2d9a8c1bc52aa0af4374d265"
+              },
+              "path": "mux.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": null,
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "\trr, err := newRouteRegexp(tpl, typ, routeRegexpOptions{\n\t\tstrictSlash:    r.strictSlash,\n\t\tuseEncodedPath: r.useEncodedPath,\n",
+                "contentStart": {
+                  "line": 258
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 13,
+                      "line": 259
+                    },
+                    "start": {
+                      "character": 2,
+                      "line": 259
+                    }
+                  },
+                  {
+                    "end": {
+                      "character": 31,
+                      "line": 259
+                    },
+                    "start": {
+                      "character": 20,
+                      "line": 259
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "//\n// Also note that the setting of Router.StrictSlash() has no effect on routes\n// with a PathPrefix matcher.\n",
+                "contentStart": {
+                  "line": 438
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 51,
+                      "line": 439
+                    },
+                    "start": {
+                      "character": 40,
+                      "line": 439
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "db9d1d0073d27a0a2d9a8c1bc52aa0af4374d265"
+              },
+              "path": "route.go"
+            },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -483,186 +620,7 @@ response = '''
               },
               "path": "mux_test.go"
             },
-            "repository": {
-              "name": "github.com/gorilla/mux"
-            },
-            "revSpec": null,
-            "symbols": []
-          },
-          {
-            "__typename": "FileMatch",
-            "chunkMatches": [
-              {
-                "content": "\n\tr.StrictSlash(false)\n\troute = r.NewRoute()\n\tif route.strictSlash != false {\n\t\tt.Errorf(\"Expected false redirectSlash.\")\n",
-                "contentStart": {
-                  "line": 600
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 14,
-                      "line": 601
-                    },
-                    "start": {
-                      "character": 3,
-                      "line": 601
-                    }
-                  },
-                  {
-                    "end": {
-                      "character": 21,
-                      "line": 603
-                    },
-                    "start": {
-                      "character": 10,
-                      "line": 603
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n\tr.StrictSlash(true)\n\troute = r.NewRoute()\n\tif route.strictSlash != true {\n\t\tt.Errorf(\"Expected true redirectSlash.\")\n",
-                "contentStart": {
-                  "line": 606
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 14,
-                      "line": 607
-                    },
-                    "start": {
-                      "character": 3,
-                      "line": 607
-                    }
-                  },
-                  {
-                    "end": {
-                      "character": 21,
-                      "line": 609
-                    },
-                    "start": {
-                      "character": 10,
-                      "line": 609
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\troute = new(Route)\n\troute.strictSlash = true\n\troute.Path(\"/{arg1}/{arg2:[0-9]+}/\")\n",
-                "contentStart": {
-                  "line": 613
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 18,
-                      "line": 614
-                    },
-                    "start": {
-                      "character": 7,
-                      "line": 614
-                    }
-                  }
-                ]
-              }
-            ],
-            "file": {
-              "commit": {
-                "oid": "db9d1d0073d27a0a2d9a8c1bc52aa0af4374d265"
-              },
-              "path": "old_test.go"
-            },
-            "repository": {
-              "name": "github.com/gorilla/mux"
-            },
-            "revSpec": null,
-            "symbols": []
-          },
-          {
-            "__typename": "FileMatch",
-            "chunkMatches": [
-              {
-                "content": "// be determined from a prefix alone. However, any subrouters created from that\n// route inherit the original StrictSlash setting.\nfunc (r *Router) StrictSlash(value bool) *Router {\n\tr.strictSlash = value\n\treturn r\n",
-                "contentStart": {
-                  "line": 258
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 41,
-                      "line": 259
-                    },
-                    "start": {
-                      "character": 30,
-                      "line": 259
-                    }
-                  },
-                  {
-                    "end": {
-                      "character": 28,
-                      "line": 260
-                    },
-                    "start": {
-                      "character": 17,
-                      "line": 260
-                    }
-                  },
-                  {
-                    "end": {
-                      "character": 14,
-                      "line": 261
-                    },
-                    "start": {
-                      "character": 3,
-                      "line": 261
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\t// redirect to the former and vice versa.\n\tstrictSlash bool\n\n",
-                "contentStart": {
-                  "line": 86
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 12,
-                      "line": 87
-                    },
-                    "start": {
-                      "character": 1,
-                      "line": 87
-                    }
-                  }
-                ]
-              },
-              {
-                "content": "\n// StrictSlash defines the trailing slash behavior for new routes. The initial\n// value is false.\n",
-                "contentStart": {
-                  "line": 240
-                },
-                "ranges": [
-                  {
-                    "end": {
-                      "character": 14,
-                      "line": 241
-                    },
-                    "start": {
-                      "character": 3,
-                      "line": 241
-                    }
-                  }
-                ]
-              }
-            ],
-            "file": {
-              "commit": {
-                "oid": "db9d1d0073d27a0a2d9a8c1bc52aa0af4374d265"
-              },
-              "path": "mux.go"
-            },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -1067,6 +1025,7 @@ response = '''
               },
               "path": "logging.go"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/gorilla/handlers"
             },
@@ -1077,47 +1036,93 @@ response = '''
             "__typename": "FileMatch",
             "chunkMatches": [
               {
-                "content": "\trr, err := newRouteRegexp(tpl, typ, routeRegexpOptions{\n\t\tstrictSlash:    r.strictSlash,\n\t\tuseEncodedPath: r.useEncodedPath,\n",
+                "content": "type routeRegexpOptions struct {\n\tstrictSlash    bool\n\tuseEncodedPath bool\n",
                 "contentStart": {
-                  "line": 258
+                  "line": 16
                 },
                 "ranges": [
                   {
                     "end": {
-                      "character": 13,
-                      "line": 259
+                      "character": 12,
+                      "line": 17
                     },
                     "start": {
-                      "character": 2,
-                      "line": 259
-                    }
-                  },
-                  {
-                    "end": {
-                      "character": 31,
-                      "line": 259
-                    },
-                    "start": {
-                      "character": 20,
-                      "line": 259
+                      "character": 1,
+                      "line": 17
                     }
                   }
                 ]
               },
               {
-                "content": "//\n// Also note that the setting of Router.StrictSlash() has no effect on routes\n// with a PathPrefix matcher.\n",
+                "content": "\tif typ != regexpTypePath {\n\t\toptions.strictSlash = false\n\t}\n\t// Set a flag for strictSlash.\n\tendSlash := false\n\tif options.strictSlash && strings.HasSuffix(tpl, \"/\") {\n\t\ttpl = tpl[:len(tpl)-1]\n",
                 "contentStart": {
-                  "line": 438
+                  "line": 56
                 },
                 "ranges": [
                   {
                     "end": {
-                      "character": 51,
-                      "line": 439
+                      "character": 21,
+                      "line": 57
                     },
                     "start": {
-                      "character": 40,
-                      "line": 439
+                      "character": 10,
+                      "line": 57
+                    }
+                  },
+                  {
+                    "end": {
+                      "character": 30,
+                      "line": 59
+                    },
+                    "start": {
+                      "character": 19,
+                      "line": 59
+                    }
+                  },
+                  {
+                    "end": {
+                      "character": 23,
+                      "line": 61
+                    },
+                    "start": {
+                      "character": 12,
+                      "line": 61
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\tpattern.WriteString(regexp.QuoteMeta(raw))\n\tif options.strictSlash {\n\t\tpattern.WriteString(\"[/]?\")\n",
+                "contentStart": {
+                  "line": 115
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 23,
+                      "line": 116
+                    },
+                    "start": {
+                      "character": 12,
+                      "line": 116
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\t\t// Check if we should redirect.\n\t\tif v.path.options.strictSlash {\n\t\t\tp1 := strings.HasSuffix(path, \"/\")\n",
+                "contentStart": {
+                  "line": 367
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 31,
+                      "line": 368
+                    },
+                    "start": {
+                      "character": 20,
+                      "line": 368
                     }
                   }
                 ]
@@ -1127,8 +1132,9 @@ response = '''
               "commit": {
                 "oid": "db9d1d0073d27a0a2d9a8c1bc52aa0af4374d265"
               },
-              "path": "route.go"
+              "path": "regexp.go"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/gorilla/mux"
             },

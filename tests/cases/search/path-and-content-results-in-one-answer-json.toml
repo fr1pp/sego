@@ -1,0 +1,287 @@
+# A file whose name matches and whose contents don't is a path result beside the content results.
+args = ["search", "--json", 'repo:^github\.com/sharkdp/bat$@v0.24.0 syntax_request.md count:all']
+status.code = 0
+stdout = '''
+{"query":"timeout:60s repo:^github\\.com/sharkdp/bat$@v0.24.0 syntax_request.md count:all","pattern_type":"keyword","unit":"matches","count":9,"at_least":false,"stopped":false,"elapsed_ms":626,"limit_ms":60000,"widen":[],"alert":null,"results":[{"kind":"path","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":".github/ISSUE_TEMPLATE/syntax_request.md"},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"doc/README-ko.md","line":530,"text":"  절차를 [여기](../doc/assets.md)서 읽은 후 \"문법 요청(syntax request)\"을 열어","match":false,"ranges":[],"chunk":1},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"doc/README-ko.md","line":531,"text":"  주세요: [문법 요청하기](https://github.com/sharkdp/bat/issues/new?labels=syntax-request&template=syntax_request.md).","match":true,"ranges":[[90,107]],"chunk":1},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"doc/README-ko.md","line":532,"text":"","match":false,"ranges":[],"chunk":1},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"README.md","line":549,"text":"   consider opening a \"syntax request\" ticket after reading the policies and","match":false,"ranges":[],"chunk":1},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"README.md","line":550,"text":"   instructions [here](doc/assets.md): [Open Syntax Request](https://github.com/sharkdp/bat/issues/new?labels=syntax-request&template=syntax_request.md).","match":true,"ranges":[[134,151]],"chunk":1},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"README.md","line":551,"text":"","match":false,"ranges":[],"chunk":1},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"doc/README-zh.md","line":447,"text":"","match":false,"ranges":[],"chunk":1},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"doc/README-zh.md","line":448,"text":"4. 如果你觉得`bat`有必要自带该语法支持，请在阅读[指导](doc/assets.md)后向仓库提交 [Syntax Request](https://github.com/sharkdp/bat/issues/new?labels=syntax-request&template=syntax_request.md)。","match":true,"ranges":[[144,161]],"chunk":1},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"doc/README-zh.md","line":449,"text":"","match":false,"ranges":[],"chunk":1},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt","line":1,"text":"\u001b[35m\u001b[K.github/ISSUE_TEMPLATE/syntax_request.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K3\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[Kabout: Request adding a new syntax to \u001b[1;33m\u001b[Kbat\u001b[m\u001b[K.","match":true,"ranges":[[31,48]],"chunk":1},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt","line":2,"text":"\u001b[35m\u001b[K.github/ISSUE_TEMPLATE/syntax_request.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K14\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[1;33m\u001b[KBat\u001b[m\u001b[K supports locally-installed language definitions. See the link below:","match":true,"ranges":[[31,48]],"chunk":1},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt","line":3,"text":"\u001b[35m\u001b[K.github/ISSUE_TEMPLATE/syntax_request.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K16\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[Khttps://github.com/sharkdp/\u001b[1;33m\u001b[Kbat\u001b[m\u001b[K#adding-new-syntaxes--language-definitions","match":true,"ranges":[[31,48]],"chunk":1},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt","line":4,"text":"\u001b[35m\u001b[K.github/ISSUE_TEMPLATE/question.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K3\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[Kabout: Ask a question about '\u001b[1;33m\u001b[Kbat\u001b[m\u001b[K'.","match":false,"ranges":[],"chunk":1},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt","line":145,"text":"\u001b[35m\u001b[KREADME.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K488\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K4. If you think that a specific syntax should be included in `\u001b[1;33m\u001b[Kbat\u001b[m\u001b[K` by default, please","match":false,"ranges":[],"chunk":2},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt","line":146,"text":"\u001b[35m\u001b[KREADME.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K490\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K   instructions [here](doc/assets.md): [Open Syntax Request](https://github.com/sharkdp/\u001b[1;33m\u001b[Kbat\u001b[m\u001b[K/issues/new?labels=syntax-request&template=syntax_request.md).","match":true,"ranges":[[220,237]],"chunk":2},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt","line":147,"text":"\u001b[35m\u001b[KREADME.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K498\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[Kmkdir -p \"$(\u001b[1;33m\u001b[Kbat\u001b[m\u001b[K --config-dir)/themes\"","match":false,"ranges":[],"chunk":2},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt","line":819,"text":"\u001b[35m\u001b[Kdoc/README-ko.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K529\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K4. 만약 특정 문법이 `\u001b[1;33m\u001b[Kbat\u001b[m\u001b[K`에 기본적으로 포함되어 있어야 한다고 생각한다면, 방침과","match":false,"ranges":[],"chunk":3},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt","line":820,"text":"\u001b[35m\u001b[Kdoc/README-ko.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K531\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K  주세요: [문법 요청하기](https://github.com/sharkdp/\u001b[1;33m\u001b[Kbat\u001b[m\u001b[K/issues/new?labels=syntax-request&template=syntax_request.md).","match":true,"ranges":[[183,200]],"chunk":3},{"kind":"line","repo":"github.com/sharkdp/bat","commit":"fc9546854f5a7b38823f4990453c6cde386bfd3b","rev":"v0.24.0","path":"tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt","line":821,"text":"\u001b[35m\u001b[Kdoc/README-ko.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K539\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[Kmkdir -p \"$(\u001b[1;33m\u001b[Kbat\u001b[m\u001b[K --config-dir)/themes\"","match":false,"ranges":[],"chunk":3}],"server":{"match_count":9,"approximate_count":"9","limit_hit":false,"timedout":[]},"notes":[]}
+'''
+
+[[exchange]]
+operation = "Search"
+variables = '{"query":"timeout:60s repo:^github\\.com/sharkdp/bat$@v0.24.0 syntax_request.md count:all"}'
+document = "Search-0d6a0fa4"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "9",
+        "dynamicFilters": [
+          {
+            "count": 8,
+            "kind": "type",
+            "value": "type:file"
+          },
+          {
+            "count": 1,
+            "kind": "type",
+            "value": "type:path"
+          },
+          {
+            "count": 9,
+            "kind": "repo",
+            "value": "repo:^github\\.com/sharkdp/bat$@v0.24.0"
+          },
+          {
+            "count": 5,
+            "kind": "lang",
+            "value": "lang:text"
+          },
+          {
+            "count": 4,
+            "kind": "lang",
+            "value": "lang:markdown"
+          }
+        ],
+        "elapsedMilliseconds": 626,
+        "limitHit": false,
+        "matchCount": 9,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "fc9546854f5a7b38823f4990453c6cde386bfd3b"
+              },
+              "path": ".github/ISSUE_TEMPLATE/syntax_request.md"
+            },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": {
+              "expr": "v0.24.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "  절차를 [여기](../doc/assets.md)서 읽은 후 \"문법 요청(syntax request)\"을 열어\n  주세요: [문법 요청하기](https://github.com/sharkdp/bat/issues/new?labels=syntax-request&template=syntax_request.md).\n\n",
+                "contentStart": {
+                  "line": 529
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 107,
+                      "line": 530
+                    },
+                    "start": {
+                      "character": 90,
+                      "line": 530
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "fc9546854f5a7b38823f4990453c6cde386bfd3b"
+              },
+              "path": "doc/README-ko.md"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": {
+              "expr": "v0.24.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "   consider opening a \"syntax request\" ticket after reading the policies and\n   instructions [here](doc/assets.md): [Open Syntax Request](https://github.com/sharkdp/bat/issues/new?labels=syntax-request&template=syntax_request.md).\n\n",
+                "contentStart": {
+                  "line": 548
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 151,
+                      "line": 549
+                    },
+                    "start": {
+                      "character": 134,
+                      "line": 549
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "fc9546854f5a7b38823f4990453c6cde386bfd3b"
+              },
+              "path": "README.md"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": {
+              "expr": "v0.24.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "\n4. 如果你觉得`bat`有必要自带该语法支持，请在阅读[指导](doc/assets.md)后向仓库提交 [Syntax Request](https://github.com/sharkdp/bat/issues/new?labels=syntax-request&template=syntax_request.md)。\n\n",
+                "contentStart": {
+                  "line": 446
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 161,
+                      "line": 447
+                    },
+                    "start": {
+                      "character": 144,
+                      "line": 447
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "fc9546854f5a7b38823f4990453c6cde386bfd3b"
+              },
+              "path": "doc/README-zh.md"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": {
+              "expr": "v0.24.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [
+              {
+                "content": "\u001b[35m\u001b[K.github/ISSUE_TEMPLATE/syntax_request.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K3\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[Kabout: Request adding a new syntax to \u001b[1;33m\u001b[Kbat\u001b[m\u001b[K.\n\u001b[35m\u001b[K.github/ISSUE_TEMPLATE/syntax_request.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K14\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[1;33m\u001b[KBat\u001b[m\u001b[K supports locally-installed language definitions. See the link below:\n\u001b[35m\u001b[K.github/ISSUE_TEMPLATE/syntax_request.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K16\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[Khttps://github.com/sharkdp/\u001b[1;33m\u001b[Kbat\u001b[m\u001b[K#adding-new-syntaxes--language-definitions\n\u001b[35m\u001b[K.github/ISSUE_TEMPLATE/question.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K3\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[Kabout: Ask a question about '\u001b[1;33m\u001b[Kbat\u001b[m\u001b[K'.\n",
+                "contentStart": {
+                  "line": 0
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 48,
+                      "line": 0
+                    },
+                    "start": {
+                      "character": 31,
+                      "line": 0
+                    }
+                  },
+                  {
+                    "end": {
+                      "character": 48,
+                      "line": 1
+                    },
+                    "start": {
+                      "character": 31,
+                      "line": 1
+                    }
+                  },
+                  {
+                    "end": {
+                      "character": 48,
+                      "line": 2
+                    },
+                    "start": {
+                      "character": 31,
+                      "line": 2
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\u001b[35m\u001b[KREADME.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K488\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K4. If you think that a specific syntax should be included in `\u001b[1;33m\u001b[Kbat\u001b[m\u001b[K` by default, please\n\u001b[35m\u001b[KREADME.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K490\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K   instructions [here](doc/assets.md): [Open Syntax Request](https://github.com/sharkdp/\u001b[1;33m\u001b[Kbat\u001b[m\u001b[K/issues/new?labels=syntax-request&template=syntax_request.md).\n\u001b[35m\u001b[KREADME.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K498\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[Kmkdir -p \"$(\u001b[1;33m\u001b[Kbat\u001b[m\u001b[K --config-dir)/themes\"\n",
+                "contentStart": {
+                  "line": 144
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 237,
+                      "line": 145
+                    },
+                    "start": {
+                      "character": 220,
+                      "line": 145
+                    }
+                  }
+                ]
+              },
+              {
+                "content": "\u001b[35m\u001b[Kdoc/README-ko.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K529\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K4. 만약 특정 문법이 `\u001b[1;33m\u001b[Kbat\u001b[m\u001b[K`에 기본적으로 포함되어 있어야 한다고 생각한다면, 방침과\n\u001b[35m\u001b[Kdoc/README-ko.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K531\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K  주세요: [문법 요청하기](https://github.com/sharkdp/\u001b[1;33m\u001b[Kbat\u001b[m\u001b[K/issues/new?labels=syntax-request&template=syntax_request.md).\n\u001b[35m\u001b[Kdoc/README-ko.md\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[K\u001b[32m\u001b[K539\u001b[m\u001b[K\u001b[36m\u001b[K:\u001b[m\u001b[Kmkdir -p \"$(\u001b[1;33m\u001b[Kbat\u001b[m\u001b[K --config-dir)/themes\"\n",
+                "contentStart": {
+                  "line": 818
+                },
+                "ranges": [
+                  {
+                    "end": {
+                      "character": 200,
+                      "line": 819
+                    },
+                    "start": {
+                      "character": 183,
+                      "line": 819
+                    }
+                  }
+                ]
+              }
+            ],
+            "file": {
+              "commit": {
+                "oid": "fc9546854f5a7b38823f4990453c6cde386bfd3b"
+              },
+              "path": "tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/sharkdp/bat"
+            },
+            "revSpec": {
+              "expr": "v0.24.0"
+            },
+            "symbols": []
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}
+'''

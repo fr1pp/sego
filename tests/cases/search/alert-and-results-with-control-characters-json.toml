@@ -12,7 +12,7 @@ sego: note: the server proposes: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028
 [[exchange]]
 operation = "Search"
 variables = "{\"query\":\"timeout:60s a\\u001bb\u202Ec\u200Bd\\ne\\rf\\u0000g\u2028h\u007Fi ok\"}"
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
 response = '''
@@ -50,6 +50,7 @@ response = '''
         "results": [
           {
             "__typename": "FileMatch",
+            "pathMatches": [],
             "chunkMatches": [
               {
                 "content": "a\u001bb\nc\u202ed\ne\u200bf\ni\u2028j\nk\u007fl\nmid\rcr\ntab\tok\n",
@@ -99,6 +100,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
+            "pathMatches": [],
             "chunkMatches": [
               {
                 "content": "a\u0000b\n",

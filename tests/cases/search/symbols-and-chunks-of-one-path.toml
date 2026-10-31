@@ -17,7 +17,7 @@ example.com/app@0123456789ab:b.go
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s (repo:example.com/app type:symbol foo) or (repo:example.com/app foo)"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
 response = '''
@@ -34,6 +34,7 @@ response = '''
         "results": [
           {
             "__typename": "FileMatch",
+            "pathMatches": [],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -62,6 +63,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
+            "pathMatches": [],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -77,6 +79,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
+            "pathMatches": [],
             "chunkMatches": [
               {
                 "content": "x",

@@ -2,7 +2,7 @@
 args = ["search", 'repo:^github\.com/gorilla/mux$@v1.8.0 select:file.owners NewRouter']
 status.code = 0
 stdout = '''
-0 files  0.3 s
+0 files  0.1 s
 query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0 select:file.owners NewRouter
 '''
 stderr = '''
@@ -12,10 +12,10 @@ sego: note: Some results have no owners: For some results, no ownership data was
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 select:file.owners NewRouter"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -29,7 +29,7 @@ response = '''
         },
         "approximateResultCount": "0+",
         "dynamicFilters": [],
-        "elapsedMilliseconds": 272,
+        "elapsedMilliseconds": 124,
         "limitHit": true,
         "matchCount": 0,
         "results": [],

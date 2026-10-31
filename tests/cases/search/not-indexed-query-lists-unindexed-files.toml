@@ -3,7 +3,7 @@
 args = ["search", 'repo:^github\.com/sharkdp/bat$ NOT-INDEXED count:all']
 status.code = 0
 stdout = '''
-14 matches  1 repo  2.4 s
+14 matches  1 repo  0.1 s
 query  timeout:60s repo:^github\.com/sharkdp/bat$ NOT-INDEXED count:all
 
 github.com/sharkdp/bat@8f5727ea3869:assets/themes.bin
@@ -52,10 +52,10 @@ NOT-INDEXED: contains too many trigrams
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s repo:^github\\.com/sharkdp/bat$ NOT-INDEXED count:all"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -85,7 +85,7 @@ response = '''
             "value": "lang:powershell"
           }
         ],
-        "elapsedMilliseconds": 2360,
+        "elapsedMilliseconds": 68,
         "limitHit": false,
         "matchCount": 14,
         "results": [
@@ -117,6 +117,7 @@ response = '''
               },
               "path": "assets/themes.bin"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/sharkdp/bat"
             },
@@ -151,6 +152,7 @@ response = '''
               },
               "path": "assets/syntaxes.bin"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/sharkdp/bat"
             },
@@ -185,6 +187,7 @@ response = '''
               },
               "path": "tests/examples/test.binary"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/sharkdp/bat"
             },
@@ -219,6 +222,7 @@ response = '''
               },
               "path": "assets/acknowledgements.bin"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/sharkdp/bat"
             },
@@ -253,6 +257,7 @@ response = '''
               },
               "path": "tests/examples/nonprintable.txt"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/sharkdp/bat"
             },
@@ -287,6 +292,7 @@ response = '''
               },
               "path": "tests/examples/test_UTF-16BE.txt"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/sharkdp/bat"
             },
@@ -321,6 +327,7 @@ response = '''
               },
               "path": "tests/examples/test_UTF-16LE.txt"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/sharkdp/bat"
             },
@@ -355,6 +362,7 @@ response = '''
               },
               "path": "tests/examples/control_characters.txt"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/sharkdp/bat"
             },
@@ -389,6 +397,7 @@ response = '''
               },
               "path": "tests/examples/test_UTF-16BE-complicated.txt"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/sharkdp/bat"
             },
@@ -423,6 +432,7 @@ response = '''
               },
               "path": "tests/examples/test_UTF-16LE-complicated.txt"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/sharkdp/bat"
             },
@@ -457,6 +467,7 @@ response = '''
               },
               "path": "tests/syntax-tests/source/PowerShell/test.ps1"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/sharkdp/bat"
             },
@@ -491,6 +502,7 @@ response = '''
               },
               "path": "tests/examples/regression_tests/issue_3631.txt"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/sharkdp/bat"
             },
@@ -525,6 +537,7 @@ response = '''
               },
               "path": "tests/syntax-tests/source/Plaintext/plaintext.txt"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/sharkdp/bat"
             },
@@ -559,6 +572,7 @@ response = '''
               },
               "path": "tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/sharkdp/bat"
             },

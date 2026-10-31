@@ -12,7 +12,7 @@ example.com/app@0123456789ab:main.go
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s repo:example.com/app foo count:1000"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
 response = '''
@@ -29,6 +29,7 @@ response = '''
         "results": [
           {
             "__typename": "FileMatch",
+            "pathMatches": [],
             "chunkMatches": [
               {
                 "content": "foo 0",

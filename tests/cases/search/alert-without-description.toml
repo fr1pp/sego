@@ -14,7 +14,7 @@ sego: note: Heads up
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s repo:example.com/acme/widget type:repo"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
 response = '''

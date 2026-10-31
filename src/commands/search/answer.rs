@@ -77,6 +77,8 @@ pub enum Group {
         rev: Option<String>,
         path: String,
         marker: Option<Marker>,
+        /// The server matched the file's path.
+        by_path: bool,
         chunks: Vec<Chunk>,
         symbols: Vec<SymbolRow>,
     },
@@ -128,6 +130,7 @@ struct FileAcc {
     rev: Option<String>,
     path: String,
     marker: Option<Marker>,
+    by_path: bool,
     raw: Vec<RawChunk>,
     symbols: Vec<SymbolRow>,
 }
@@ -185,6 +188,7 @@ impl FileAcc {
             rev: None,
             path: file.file.path.clone(),
             marker: None,
+            by_path: false,
             raw: Vec::new(),
             symbols: Vec::new(),
         }
@@ -194,6 +198,7 @@ impl FileAcc {
         if self.rev.is_none() {
             self.rev = file.rev_spec.as_ref().and_then(|r| r.expr.clone());
         }
+        self.by_path |= !file.path_matches.is_empty();
         if let Some(reason) = file.placeholder_reason() {
             self.marker = Some(Marker::Unindexed(reason.to_owned()));
             return;
@@ -220,6 +225,7 @@ impl FileAcc {
             rev: self.rev,
             path: self.path,
             marker: self.marker,
+            by_path: self.by_path,
             chunks,
             symbols: self.symbols,
         }
@@ -339,8 +345,11 @@ pub enum FileItem<'a> {
     Binary,
     /// The file is unindexed: its header is followed by the reason.
     Unindexed(&'a str),
-    /// The file matched by path alone: its header is the whole result.
+    /// The file matched by path alone: its header says so.
     Path,
+    /// The file with no lines, as `select:file` gives it: its header is the
+    /// whole result.
+    File,
     Chunk(usize, &'a Chunk),
     Symbol(&'a SymbolRow),
 }
@@ -349,7 +358,11 @@ impl FileItem<'_> {
     pub fn units(&self) -> u32 {
         match self {
             FileItem::Chunk(_, chunk) => chunk.units,
-            FileItem::Binary | FileItem::Unindexed(_) | FileItem::Path | FileItem::Symbol(_) => 1,
+            FileItem::Binary
+            | FileItem::Unindexed(_)
+            | FileItem::Path
+            | FileItem::File
+            | FileItem::Symbol(_) => 1,
         }
     }
 }
@@ -361,7 +374,7 @@ impl Group {
     /// that starts on the same line. A symbol with no line is not an item,
     /// and a group of another kind has none.
     pub fn file_items(&self) -> Vec<FileItem<'_>> {
-        let Group::File { marker, chunks, symbols, .. } = self else {
+        let Group::File { marker, by_path, chunks, symbols, .. } = self else {
             return Vec::new();
         };
         let mut items: Vec<(u32, u8, FileItem)> = chunks
@@ -378,7 +391,8 @@ impl Group {
         match marker {
             Some(Marker::Unindexed(reason)) => out.push(FileItem::Unindexed(reason)),
             Some(Marker::Binary) => out.push(FileItem::Binary),
-            None if items.is_empty() => out.push(FileItem::Path),
+            None if items.is_empty() && *by_path => out.push(FileItem::Path),
+            None if items.is_empty() => out.push(FileItem::File),
             None => {}
         }
         out.extend(items.into_iter().map(|(.., item)| item));
@@ -626,6 +640,7 @@ mod tests {
             "repository": {"name": "r/a"},
             "file": {"path": path, "commit": {"oid": "c1"}},
             "revSpec": {"expr": "main"},
+            "pathMatches": [],
             "chunkMatches": chunks,
             "symbols": symbols,
         })

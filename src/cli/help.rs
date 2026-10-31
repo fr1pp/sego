@@ -77,7 +77,8 @@ text:
   REPO@COMMIT:PATH          a file with results, then "N:text" for a
                             matching line and "N-text" for context, or
                             "NOT-INDEXED: REASON" for a file the index
-                            skipped
+                            skipped; "path match" after it when only
+                            its path matched
   A match is one matched range; a line can hold several.
   A diff result previews at most 5 files and 3 hunks a file.
   Text prints the first 100 matches; --json carries every result fetched.
@@ -88,7 +89,8 @@ text:
 json:
   query pattern_type unit count at_least stopped elapsed_ms limit_ms
   widen[{filter repos}] alert
-  results[]: kind (line, path, binary, unindexed, symbol, commit or repo)
+  results[]: kind (line, path, file, binary, unindexed, symbol, commit or
+    repo)
     and repo; file kinds add commit rev path; unindexed adds reason; line
     adds line text match ranges chunk, with match false on a context
     line; symbol adds line name symbol_kind container; commit adds commit

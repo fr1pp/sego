@@ -1,34 +1,34 @@
-# A type:path search prints headers alone.
+# A path result is marked as one.
 args = ["search", 'repo:^github\.com/gorilla/mux$@v1.8.0 type:path file:\.go$']
 status.code = 0
 stdout = '''
-15 files  1 repo  0.4 s
+15 files  1 repo  0.2 s
 query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0 type:path file:\.go$
 
-github.com/gorilla/mux@98cb6bf42e08:test_helpers.go
-github.com/gorilla/mux@98cb6bf42e08:example_authentication_middleware_test.go
-github.com/gorilla/mux@98cb6bf42e08:example_cors_method_middleware_test.go
-github.com/gorilla/mux@98cb6bf42e08:example_route_test.go
-github.com/gorilla/mux@98cb6bf42e08:old_test.go
-github.com/gorilla/mux@98cb6bf42e08:bench_test.go
-github.com/gorilla/mux@98cb6bf42e08:doc.go
-github.com/gorilla/mux@98cb6bf42e08:middleware.go
-github.com/gorilla/mux@98cb6bf42e08:middleware_test.go
-github.com/gorilla/mux@98cb6bf42e08:mux.go
-github.com/gorilla/mux@98cb6bf42e08:mux_httpserver_test.go
-github.com/gorilla/mux@98cb6bf42e08:mux_test.go
-github.com/gorilla/mux@98cb6bf42e08:regexp.go
-github.com/gorilla/mux@98cb6bf42e08:regexp_test.go
-github.com/gorilla/mux@98cb6bf42e08:route.go
+github.com/gorilla/mux@98cb6bf42e08:test_helpers.go  path match
+github.com/gorilla/mux@98cb6bf42e08:example_authentication_middleware_test.go  path match
+github.com/gorilla/mux@98cb6bf42e08:example_cors_method_middleware_test.go  path match
+github.com/gorilla/mux@98cb6bf42e08:example_route_test.go  path match
+github.com/gorilla/mux@98cb6bf42e08:old_test.go  path match
+github.com/gorilla/mux@98cb6bf42e08:bench_test.go  path match
+github.com/gorilla/mux@98cb6bf42e08:doc.go  path match
+github.com/gorilla/mux@98cb6bf42e08:middleware.go  path match
+github.com/gorilla/mux@98cb6bf42e08:middleware_test.go  path match
+github.com/gorilla/mux@98cb6bf42e08:mux.go  path match
+github.com/gorilla/mux@98cb6bf42e08:mux_httpserver_test.go  path match
+github.com/gorilla/mux@98cb6bf42e08:mux_test.go  path match
+github.com/gorilla/mux@98cb6bf42e08:regexp.go  path match
+github.com/gorilla/mux@98cb6bf42e08:regexp_test.go  path match
+github.com/gorilla/mux@98cb6bf42e08:route.go  path match
 '''
 
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 type:path file:\\.go$"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -58,7 +58,7 @@ response = '''
             "value": "-file:_test\\.\\w+$"
           }
         ],
-        "elapsedMilliseconds": 417,
+        "elapsedMilliseconds": 175,
         "limitHit": false,
         "matchCount": 15,
         "results": [
@@ -71,6 +71,13 @@ response = '''
               },
               "path": "test_helpers.go"
             },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -88,6 +95,13 @@ response = '''
               },
               "path": "example_authentication_middleware_test.go"
             },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -105,6 +119,13 @@ response = '''
               },
               "path": "example_cors_method_middleware_test.go"
             },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -122,6 +143,13 @@ response = '''
               },
               "path": "example_route_test.go"
             },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -139,6 +167,13 @@ response = '''
               },
               "path": "old_test.go"
             },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -156,6 +191,13 @@ response = '''
               },
               "path": "bench_test.go"
             },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -173,6 +215,13 @@ response = '''
               },
               "path": "doc.go"
             },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -190,6 +239,13 @@ response = '''
               },
               "path": "middleware.go"
             },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -207,6 +263,13 @@ response = '''
               },
               "path": "middleware_test.go"
             },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -224,6 +287,13 @@ response = '''
               },
               "path": "mux.go"
             },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -241,6 +311,13 @@ response = '''
               },
               "path": "mux_httpserver_test.go"
             },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -258,6 +335,13 @@ response = '''
               },
               "path": "mux_test.go"
             },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -275,6 +359,13 @@ response = '''
               },
               "path": "regexp.go"
             },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -292,6 +383,13 @@ response = '''
               },
               "path": "regexp_test.go"
             },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
             "repository": {
               "name": "github.com/gorilla/mux"
             },
@@ -309,6 +407,13 @@ response = '''
               },
               "path": "route.go"
             },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
             "repository": {
               "name": "github.com/gorilla/mux"
             },

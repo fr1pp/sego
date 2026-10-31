@@ -19,7 +19,7 @@ example.com/app@bbbbbbbbbbbb  2024-05-06  Ann  fix the printer
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s repo:example.com/app type:commit fix count:30"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
 response = '''

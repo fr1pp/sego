@@ -1,0 +1,75 @@
+# A select:file result has no lines, and its contents matched, so it isn't marked as a path result.
+args = ["search", 'repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter select:file count:1']
+status.code = 0
+stdout = '''
+1+ files  1 repo  0.2 s
+query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter select:file count:1
+
+github.com/gorilla/mux@98cb6bf42e08:old_test.go
+'''
+
+[[exchange]]
+operation = "Search"
+variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 NewRouter select:file count:1"}'
+document = "Search-0d6a0fa4"
+status = 200
+content-type = "application/json"
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com" }
+response = '''
+{
+  "data": {
+    "search": {
+      "results": {
+        "alert": null,
+        "approximateResultCount": "1+",
+        "dynamicFilters": [
+          {
+            "count": 1,
+            "kind": "type",
+            "value": "type:path"
+          },
+          {
+            "count": 1,
+            "kind": "file",
+            "value": "-file:_test\\.\\w+$"
+          },
+          {
+            "count": 1,
+            "kind": "lang",
+            "value": "lang:go"
+          },
+          {
+            "count": 1,
+            "kind": "repo",
+            "value": "repo:^github\\.com/gorilla/mux$@v1.8.0"
+          }
+        ],
+        "elapsedMilliseconds": 189,
+        "limitHit": true,
+        "matchCount": 1,
+        "results": [
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "old_test.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          }
+        ],
+        "timedout": []
+      }
+    }
+  }
+}
+'''

@@ -7,6 +7,8 @@ use crate::escape::{escape, one_line, render_line};
 use crate::output::{Marker, code_line, count, header};
 use crate::sourcegraph::NOT_INDEXED;
 
+const PATH_MATCH: &str = "path match";
+
 pub const TEXT_UNITS: u32 = 100;
 
 impl fmt::Display for Answer {
@@ -91,9 +93,15 @@ impl Answer {
             match group {
                 Group::File { repo, commit, path, .. } => {
                     let shown = if path.is_empty() { "./" } else { path };
-                    out.push_str(&header(&pinned(repo, commit, Some(shown)), &[]));
+                    let items = group.file_items();
+                    let fields: &[String] = if matches!(items.first(), Some(FileItem::Path)) {
+                        &[PATH_MATCH.to_owned()]
+                    } else {
+                        &[]
+                    };
+                    out.push_str(&header(&pinned(repo, commit, Some(shown)), fields));
                     header_end = out.len();
-                    printed += file_body(&mut out, &group.file_items(), printed);
+                    printed += file_body(&mut out, &items, printed);
                 }
                 Group::Commit { repo, commit, date, author, subject, lines, highlights, diff } => {
                     let address = pinned(repo, commit, None);
@@ -164,7 +172,7 @@ fn file_body(out: &mut String, items: &[FileItem], before: u32) -> u32 {
             FileItem::Unindexed(reason) => {
                 let _ = writeln!(out, "{NOT_INDEXED}: {}", escape(reason));
             }
-            FileItem::Path => {}
+            FileItem::Path | FileItem::File => {}
             FileItem::Chunk(index, chunk) => chunks.push((*index, chunk)),
             FileItem::Symbol(symbol) => symbols.push(symbol),
         }

@@ -25,10 +25,10 @@ github.com/gorilla/mux@98cb6bf42e08:old_test.go
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 Route count:5"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com" }
 response = '''
 {
   "data": {
@@ -58,7 +58,7 @@ response = '''
             "value": "repo:^github\\.com/gorilla/mux$@v1.8.0"
           }
         ],
-        "elapsedMilliseconds": 78,
+        "elapsedMilliseconds": 54,
         "limitHit": true,
         "matchCount": 5,
         "results": [
@@ -146,6 +146,7 @@ response = '''
               },
               "path": "old_test.go"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/gorilla/mux"
             },

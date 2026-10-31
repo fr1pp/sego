@@ -2,7 +2,7 @@
 args = ["search", 'repo:^github\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade']
 status.code = 0
 stdout = '''
-4 directories  1 repo  0.2 s
+4 directories  1 repo  0.3 s
 query  timeout:60s repo:^github\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade
 
 github.com/gorilla/websocket@ce903f6d1d96:examples/chat/
@@ -14,10 +14,10 @@ github.com/gorilla/websocket@ce903f6d1d96:./
 [[exchange]]
 operation = "Search"
 variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
-recorded = { date = 2026-10-30, endpoint = "https://sourcegraph.com", live = "values" }
+recorded = { date = 2026-10-31, endpoint = "https://sourcegraph.com", live = "values" }
 response = '''
 {
   "data": {
@@ -42,7 +42,7 @@ response = '''
             "value": "repo:^github\\.com/gorilla/websocket$@v1.5.3"
           }
         ],
-        "elapsedMilliseconds": 170,
+        "elapsedMilliseconds": 269,
         "limitHit": false,
         "matchCount": 4,
         "results": [
@@ -55,6 +55,7 @@ response = '''
               },
               "path": "examples/chat/"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/gorilla/websocket"
             },
@@ -72,6 +73,7 @@ response = '''
               },
               "path": "examples/echo/"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/gorilla/websocket"
             },
@@ -89,6 +91,7 @@ response = '''
               },
               "path": "examples/command/"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/gorilla/websocket"
             },
@@ -106,6 +109,7 @@ response = '''
               },
               "path": "./"
             },
+            "pathMatches": [],
             "repository": {
               "name": "github.com/gorilla/websocket"
             },

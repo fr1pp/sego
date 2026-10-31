@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use serde::de::{DeserializeOwned, Deserializer, Error as _};
+use serde::de::{DeserializeOwned, Deserializer, Error as _, IgnoredAny};
 use serde_json::{Map, Value, json};
 
 use super::graphql::{Envelope, Request};
@@ -22,6 +22,7 @@ query Search($query: String!) {
         ... on FileMatch {
           repository { name }
           file { path commit { oid } }
+          pathMatches { start { line } }
           revSpec { ... on GitRevSpecExpr { expr } }
           chunkMatches { content contentStart { line }
             ranges { start { line character } end { line character } } }
@@ -146,6 +147,7 @@ impl<'de> Deserialize<'de> for Item {
 pub struct FileMatch {
     pub repository: Named,
     pub file: File,
+    pub path_matches: Vec<IgnoredAny>,
     pub rev_spec: Option<RevSpec>,
     pub chunk_matches: Vec<ChunkMatch>,
     pub symbols: Vec<Symbol>,
@@ -282,6 +284,7 @@ mod tests {
             "repository": {"name": "r/a"},
             "file": {"path": "big.bin", "commit": {"oid": "c1"}},
             "revSpec": null,
+            "pathMatches": [],
             "chunkMatches": chunks,
             "symbols": symbols,
         })

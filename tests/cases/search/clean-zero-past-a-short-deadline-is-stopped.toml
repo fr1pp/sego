@@ -8,7 +8,7 @@ sego: error: the search stopped at 0.0 s with no results
 [[exchange]]
 operation = "Search"
 variables = '{"query":"repo:example.com/acme/widget func timeout:1ms"}'
-document = "Search-8bd92430"
+document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
 response = '''
