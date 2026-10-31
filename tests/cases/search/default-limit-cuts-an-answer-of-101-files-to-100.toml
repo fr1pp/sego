@@ -5,106 +5,106 @@ stdout = '''
 100 of 101 files  1 repo  0.7 s
 query  timeout:60s repo:example.com/acme/widget type:path file:\.go$ count:all
 
-example.com/acme/widget@0123456789ab:src/file001.go
-example.com/acme/widget@0123456789ab:src/file002.go
-example.com/acme/widget@0123456789ab:src/file003.go
-example.com/acme/widget@0123456789ab:src/file004.go
-example.com/acme/widget@0123456789ab:src/file005.go
-example.com/acme/widget@0123456789ab:src/file006.go
-example.com/acme/widget@0123456789ab:src/file007.go
-example.com/acme/widget@0123456789ab:src/file008.go
-example.com/acme/widget@0123456789ab:src/file009.go
-example.com/acme/widget@0123456789ab:src/file010.go
-example.com/acme/widget@0123456789ab:src/file011.go
-example.com/acme/widget@0123456789ab:src/file012.go
-example.com/acme/widget@0123456789ab:src/file013.go
-example.com/acme/widget@0123456789ab:src/file014.go
-example.com/acme/widget@0123456789ab:src/file015.go
-example.com/acme/widget@0123456789ab:src/file016.go
-example.com/acme/widget@0123456789ab:src/file017.go
-example.com/acme/widget@0123456789ab:src/file018.go
-example.com/acme/widget@0123456789ab:src/file019.go
-example.com/acme/widget@0123456789ab:src/file020.go
-example.com/acme/widget@0123456789ab:src/file021.go
-example.com/acme/widget@0123456789ab:src/file022.go
-example.com/acme/widget@0123456789ab:src/file023.go
-example.com/acme/widget@0123456789ab:src/file024.go
-example.com/acme/widget@0123456789ab:src/file025.go
-example.com/acme/widget@0123456789ab:src/file026.go
-example.com/acme/widget@0123456789ab:src/file027.go
-example.com/acme/widget@0123456789ab:src/file028.go
-example.com/acme/widget@0123456789ab:src/file029.go
-example.com/acme/widget@0123456789ab:src/file030.go
-example.com/acme/widget@0123456789ab:src/file031.go
-example.com/acme/widget@0123456789ab:src/file032.go
-example.com/acme/widget@0123456789ab:src/file033.go
-example.com/acme/widget@0123456789ab:src/file034.go
-example.com/acme/widget@0123456789ab:src/file035.go
-example.com/acme/widget@0123456789ab:src/file036.go
-example.com/acme/widget@0123456789ab:src/file037.go
-example.com/acme/widget@0123456789ab:src/file038.go
-example.com/acme/widget@0123456789ab:src/file039.go
-example.com/acme/widget@0123456789ab:src/file040.go
-example.com/acme/widget@0123456789ab:src/file041.go
-example.com/acme/widget@0123456789ab:src/file042.go
-example.com/acme/widget@0123456789ab:src/file043.go
-example.com/acme/widget@0123456789ab:src/file044.go
-example.com/acme/widget@0123456789ab:src/file045.go
-example.com/acme/widget@0123456789ab:src/file046.go
-example.com/acme/widget@0123456789ab:src/file047.go
-example.com/acme/widget@0123456789ab:src/file048.go
-example.com/acme/widget@0123456789ab:src/file049.go
-example.com/acme/widget@0123456789ab:src/file050.go
-example.com/acme/widget@0123456789ab:src/file051.go
-example.com/acme/widget@0123456789ab:src/file052.go
-example.com/acme/widget@0123456789ab:src/file053.go
-example.com/acme/widget@0123456789ab:src/file054.go
-example.com/acme/widget@0123456789ab:src/file055.go
-example.com/acme/widget@0123456789ab:src/file056.go
-example.com/acme/widget@0123456789ab:src/file057.go
-example.com/acme/widget@0123456789ab:src/file058.go
-example.com/acme/widget@0123456789ab:src/file059.go
-example.com/acme/widget@0123456789ab:src/file060.go
-example.com/acme/widget@0123456789ab:src/file061.go
-example.com/acme/widget@0123456789ab:src/file062.go
-example.com/acme/widget@0123456789ab:src/file063.go
-example.com/acme/widget@0123456789ab:src/file064.go
-example.com/acme/widget@0123456789ab:src/file065.go
-example.com/acme/widget@0123456789ab:src/file066.go
-example.com/acme/widget@0123456789ab:src/file067.go
-example.com/acme/widget@0123456789ab:src/file068.go
-example.com/acme/widget@0123456789ab:src/file069.go
-example.com/acme/widget@0123456789ab:src/file070.go
-example.com/acme/widget@0123456789ab:src/file071.go
-example.com/acme/widget@0123456789ab:src/file072.go
-example.com/acme/widget@0123456789ab:src/file073.go
-example.com/acme/widget@0123456789ab:src/file074.go
-example.com/acme/widget@0123456789ab:src/file075.go
-example.com/acme/widget@0123456789ab:src/file076.go
-example.com/acme/widget@0123456789ab:src/file077.go
-example.com/acme/widget@0123456789ab:src/file078.go
-example.com/acme/widget@0123456789ab:src/file079.go
-example.com/acme/widget@0123456789ab:src/file080.go
-example.com/acme/widget@0123456789ab:src/file081.go
-example.com/acme/widget@0123456789ab:src/file082.go
-example.com/acme/widget@0123456789ab:src/file083.go
-example.com/acme/widget@0123456789ab:src/file084.go
-example.com/acme/widget@0123456789ab:src/file085.go
-example.com/acme/widget@0123456789ab:src/file086.go
-example.com/acme/widget@0123456789ab:src/file087.go
-example.com/acme/widget@0123456789ab:src/file088.go
-example.com/acme/widget@0123456789ab:src/file089.go
-example.com/acme/widget@0123456789ab:src/file090.go
-example.com/acme/widget@0123456789ab:src/file091.go
-example.com/acme/widget@0123456789ab:src/file092.go
-example.com/acme/widget@0123456789ab:src/file093.go
-example.com/acme/widget@0123456789ab:src/file094.go
-example.com/acme/widget@0123456789ab:src/file095.go
-example.com/acme/widget@0123456789ab:src/file096.go
-example.com/acme/widget@0123456789ab:src/file097.go
-example.com/acme/widget@0123456789ab:src/file098.go
-example.com/acme/widget@0123456789ab:src/file099.go
-example.com/acme/widget@0123456789ab:src/file100.go
+example.com/acme/widget@0123456789ab:src/file001.go  path match
+example.com/acme/widget@0123456789ab:src/file002.go  path match
+example.com/acme/widget@0123456789ab:src/file003.go  path match
+example.com/acme/widget@0123456789ab:src/file004.go  path match
+example.com/acme/widget@0123456789ab:src/file005.go  path match
+example.com/acme/widget@0123456789ab:src/file006.go  path match
+example.com/acme/widget@0123456789ab:src/file007.go  path match
+example.com/acme/widget@0123456789ab:src/file008.go  path match
+example.com/acme/widget@0123456789ab:src/file009.go  path match
+example.com/acme/widget@0123456789ab:src/file010.go  path match
+example.com/acme/widget@0123456789ab:src/file011.go  path match
+example.com/acme/widget@0123456789ab:src/file012.go  path match
+example.com/acme/widget@0123456789ab:src/file013.go  path match
+example.com/acme/widget@0123456789ab:src/file014.go  path match
+example.com/acme/widget@0123456789ab:src/file015.go  path match
+example.com/acme/widget@0123456789ab:src/file016.go  path match
+example.com/acme/widget@0123456789ab:src/file017.go  path match
+example.com/acme/widget@0123456789ab:src/file018.go  path match
+example.com/acme/widget@0123456789ab:src/file019.go  path match
+example.com/acme/widget@0123456789ab:src/file020.go  path match
+example.com/acme/widget@0123456789ab:src/file021.go  path match
+example.com/acme/widget@0123456789ab:src/file022.go  path match
+example.com/acme/widget@0123456789ab:src/file023.go  path match
+example.com/acme/widget@0123456789ab:src/file024.go  path match
+example.com/acme/widget@0123456789ab:src/file025.go  path match
+example.com/acme/widget@0123456789ab:src/file026.go  path match
+example.com/acme/widget@0123456789ab:src/file027.go  path match
+example.com/acme/widget@0123456789ab:src/file028.go  path match
+example.com/acme/widget@0123456789ab:src/file029.go  path match
+example.com/acme/widget@0123456789ab:src/file030.go  path match
+example.com/acme/widget@0123456789ab:src/file031.go  path match
+example.com/acme/widget@0123456789ab:src/file032.go  path match
+example.com/acme/widget@0123456789ab:src/file033.go  path match
+example.com/acme/widget@0123456789ab:src/file034.go  path match
+example.com/acme/widget@0123456789ab:src/file035.go  path match
+example.com/acme/widget@0123456789ab:src/file036.go  path match
+example.com/acme/widget@0123456789ab:src/file037.go  path match
+example.com/acme/widget@0123456789ab:src/file038.go  path match
+example.com/acme/widget@0123456789ab:src/file039.go  path match
+example.com/acme/widget@0123456789ab:src/file040.go  path match
+example.com/acme/widget@0123456789ab:src/file041.go  path match
+example.com/acme/widget@0123456789ab:src/file042.go  path match
+example.com/acme/widget@0123456789ab:src/file043.go  path match
+example.com/acme/widget@0123456789ab:src/file044.go  path match
+example.com/acme/widget@0123456789ab:src/file045.go  path match
+example.com/acme/widget@0123456789ab:src/file046.go  path match
+example.com/acme/widget@0123456789ab:src/file047.go  path match
+example.com/acme/widget@0123456789ab:src/file048.go  path match
+example.com/acme/widget@0123456789ab:src/file049.go  path match
+example.com/acme/widget@0123456789ab:src/file050.go  path match
+example.com/acme/widget@0123456789ab:src/file051.go  path match
+example.com/acme/widget@0123456789ab:src/file052.go  path match
+example.com/acme/widget@0123456789ab:src/file053.go  path match
+example.com/acme/widget@0123456789ab:src/file054.go  path match
+example.com/acme/widget@0123456789ab:src/file055.go  path match
+example.com/acme/widget@0123456789ab:src/file056.go  path match
+example.com/acme/widget@0123456789ab:src/file057.go  path match
+example.com/acme/widget@0123456789ab:src/file058.go  path match
+example.com/acme/widget@0123456789ab:src/file059.go  path match
+example.com/acme/widget@0123456789ab:src/file060.go  path match
+example.com/acme/widget@0123456789ab:src/file061.go  path match
+example.com/acme/widget@0123456789ab:src/file062.go  path match
+example.com/acme/widget@0123456789ab:src/file063.go  path match
+example.com/acme/widget@0123456789ab:src/file064.go  path match
+example.com/acme/widget@0123456789ab:src/file065.go  path match
+example.com/acme/widget@0123456789ab:src/file066.go  path match
+example.com/acme/widget@0123456789ab:src/file067.go  path match
+example.com/acme/widget@0123456789ab:src/file068.go  path match
+example.com/acme/widget@0123456789ab:src/file069.go  path match
+example.com/acme/widget@0123456789ab:src/file070.go  path match
+example.com/acme/widget@0123456789ab:src/file071.go  path match
+example.com/acme/widget@0123456789ab:src/file072.go  path match
+example.com/acme/widget@0123456789ab:src/file073.go  path match
+example.com/acme/widget@0123456789ab:src/file074.go  path match
+example.com/acme/widget@0123456789ab:src/file075.go  path match
+example.com/acme/widget@0123456789ab:src/file076.go  path match
+example.com/acme/widget@0123456789ab:src/file077.go  path match
+example.com/acme/widget@0123456789ab:src/file078.go  path match
+example.com/acme/widget@0123456789ab:src/file079.go  path match
+example.com/acme/widget@0123456789ab:src/file080.go  path match
+example.com/acme/widget@0123456789ab:src/file081.go  path match
+example.com/acme/widget@0123456789ab:src/file082.go  path match
+example.com/acme/widget@0123456789ab:src/file083.go  path match
+example.com/acme/widget@0123456789ab:src/file084.go  path match
+example.com/acme/widget@0123456789ab:src/file085.go  path match
+example.com/acme/widget@0123456789ab:src/file086.go  path match
+example.com/acme/widget@0123456789ab:src/file087.go  path match
+example.com/acme/widget@0123456789ab:src/file088.go  path match
+example.com/acme/widget@0123456789ab:src/file089.go  path match
+example.com/acme/widget@0123456789ab:src/file090.go  path match
+example.com/acme/widget@0123456789ab:src/file091.go  path match
+example.com/acme/widget@0123456789ab:src/file092.go  path match
+example.com/acme/widget@0123456789ab:src/file093.go  path match
+example.com/acme/widget@0123456789ab:src/file094.go  path match
+example.com/acme/widget@0123456789ab:src/file095.go  path match
+example.com/acme/widget@0123456789ab:src/file096.go  path match
+example.com/acme/widget@0123456789ab:src/file097.go  path match
+example.com/acme/widget@0123456789ab:src/file098.go  path match
+example.com/acme/widget@0123456789ab:src/file099.go  path match
+example.com/acme/widget@0123456789ab:src/file100.go  path match
 '''
 
 [[exchange]]
@@ -127,7 +127,7 @@ response = '''
         "results": [
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -143,7 +143,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -159,7 +159,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -175,7 +175,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -191,7 +191,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -207,7 +207,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -223,7 +223,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -239,7 +239,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -255,7 +255,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -271,7 +271,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -287,7 +287,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -303,7 +303,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -319,7 +319,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -335,7 +335,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -351,7 +351,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -367,7 +367,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -383,7 +383,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -399,7 +399,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -415,7 +415,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -431,7 +431,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -447,7 +447,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -463,7 +463,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -479,7 +479,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -495,7 +495,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -511,7 +511,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -527,7 +527,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -543,7 +543,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -559,7 +559,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -575,7 +575,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -591,7 +591,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -607,7 +607,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -623,7 +623,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -639,7 +639,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -655,7 +655,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -671,7 +671,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -687,7 +687,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -703,7 +703,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -719,7 +719,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -735,7 +735,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -751,7 +751,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -767,7 +767,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -783,7 +783,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -799,7 +799,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -815,7 +815,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -831,7 +831,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -847,7 +847,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -863,7 +863,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -879,7 +879,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -895,7 +895,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -911,7 +911,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -927,7 +927,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -943,7 +943,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -959,7 +959,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -975,7 +975,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -991,7 +991,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1007,7 +1007,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1023,7 +1023,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1039,7 +1039,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1055,7 +1055,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1071,7 +1071,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1087,7 +1087,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1103,7 +1103,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1119,7 +1119,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1135,7 +1135,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1151,7 +1151,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1167,7 +1167,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1183,7 +1183,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1199,7 +1199,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1215,7 +1215,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1231,7 +1231,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1247,7 +1247,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1263,7 +1263,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1279,7 +1279,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1295,7 +1295,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1311,7 +1311,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1327,7 +1327,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1343,7 +1343,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1359,7 +1359,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1375,7 +1375,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1391,7 +1391,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1407,7 +1407,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1423,7 +1423,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1439,7 +1439,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1455,7 +1455,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1471,7 +1471,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1487,7 +1487,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1503,7 +1503,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1519,7 +1519,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1535,7 +1535,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1551,7 +1551,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1567,7 +1567,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1583,7 +1583,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1599,7 +1599,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1615,7 +1615,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1631,7 +1631,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1647,7 +1647,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1663,7 +1663,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1679,7 +1679,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1695,7 +1695,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1711,7 +1711,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {
@@ -1727,7 +1727,7 @@ response = '''
           },
           {
             "__typename": "FileMatch",
-            "pathMatches": [],
+            "pathMatches": [{"start": {"line": 0}}],
             "chunkMatches": [],
             "file": {
               "commit": {

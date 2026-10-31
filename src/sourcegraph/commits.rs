@@ -733,8 +733,7 @@ pub fn read_range_history(
         && envelope.get(&["b", "commit", "x"]).is_none()
         && commits.as_ref().is_some_and(|commits| commits.items.is_empty())
     {
-        let missing = in_neither(path, &head.repo, &base.commit, &head.commit);
-        return Err(Error::not_found(missing));
+        return Err(path_not_found(path, &head.repo, &base.commit, &head.commit));
     }
     let mut commits = commits.ok_or_else(comparison_failed)?;
     let mut behind = None;

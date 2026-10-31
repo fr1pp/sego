@@ -118,12 +118,12 @@ _Avoid_: timeout
 
 **At least**:
 An answer whose count is a lower bound, printed `N+`: the server reported a cut, or the search
-stopped.
+stopped. A zero is one only when placeholders filled the cap.
 _Avoid_: partial, approximate, limit hit
 
 **Stopped**:
 A search the server's deadline cut short: it reports a timeout, or it answered at or past its
-deadline. A stopped search with no results is a failure.
+deadline without reaching its cap. A stopped search with no results is a failure.
 _Avoid_: timed out
 
 **Index**:

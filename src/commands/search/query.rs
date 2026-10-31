@@ -56,6 +56,7 @@ pub struct Query {
     /// The query names `lucky`, which the server reads as `standard`.
     lucky: bool,
     pub cap: Option<u64>,
+    pub selects_files: bool,
     pub unit: Unit,
     /// The query states no unit, so the results decide it: `Repos` when
     /// every result is a repository, `Commits` when every result is a
@@ -82,6 +83,7 @@ impl Query {
             pattern_type,
             lucky: pattern_type == PatternType::Standard && written_type(written) == Some("lucky"),
             cap: cap(written),
+            selects_files: chosen(written, "select").any(|v| unquoted(v).starts_with("file")),
             unit: unit(written),
             by_results: stated_unit(written).is_none(),
             repo_scoped: repo_scoped(written),
@@ -126,11 +128,16 @@ fn sent(text: &str) -> String {
 
 /// How many results the query asks for: the last `count:` value, 30 when
 /// there is none. The server reads a number with an optional `+`; `all`, or
-/// any other value, is no cap.
+/// any other value, is no cap. A query with `or` can run as several searches,
+/// each with its own cap, so it has none to compare a total with.
 fn cap(written: &[Written]) -> Option<u64> {
+    if written.contains(&Written::Or) {
+        return None;
+    }
     let last = filters(written).filter(|f| f.field.eq_ignore_ascii_case("count")).last();
     let Some(filter) = last else { return Some(DEFAULT_CAP) };
-    let digits = filter.value.strip_prefix('+').unwrap_or(&filter.value);
+    let value = unquoted(&filter.value);
+    let digits = value.strip_prefix('+').unwrap_or(value);
     if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
         return None;
     }

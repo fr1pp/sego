@@ -1,13 +1,13 @@
 # A select:file result is a file record in JSON, not a path record.
-args = ["search", "--json", 'repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter select:file count:1']
+args = ["search", "--json", 'repo:^github\.com/gorilla/mux$@v1.8.0 Route select:file count:all']
 status.code = 0
 stdout = '''
-{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 NewRouter select:file count:1","pattern_type":"keyword","unit":"files","count":1,"at_least":true,"stopped":false,"elapsed_ms":189,"limit_ms":60000,"widen":[],"alert":null,"results":[{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"old_test.go"}],"server":{"match_count":1,"approximate_count":"1+","limit_hit":true,"timedout":[]},"notes":[]}
+{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 Route select:file count:all","pattern_type":"keyword","unit":"files","count":15,"at_least":false,"stopped":false,"elapsed_ms":71,"limit_ms":60000,"widen":[],"alert":null,"results":[{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"old_test.go"},{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"example_route_test.go"},{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"test_helpers.go"},{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"example_cors_method_middleware_test.go"},{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"example_authentication_middleware_test.go"},{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"README.md"},{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"bench_test.go"},{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"doc.go"},{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"middleware.go"},{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"middleware_test.go"},{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"mux.go"},{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"mux_httpserver_test.go"},{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"mux_test.go"},{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"regexp.go"},{"kind":"file","repo":"github.com/gorilla/mux","commit":"98cb6bf42e086f6af920b965c38cacc07402d51b","rev":"v1.8.0","path":"route.go"}],"server":{"match_count":15,"approximate_count":"15","limit_hit":false,"timedout":[]},"notes":[]}
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 NewRouter select:file count:1"}'
+variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 Route select:file count:all"}'
 document = "Search-0d6a0fa4"
 status = 200
 content-type = "application/json"
@@ -18,32 +18,37 @@ response = '''
     "search": {
       "results": {
         "alert": null,
-        "approximateResultCount": "1+",
+        "approximateResultCount": "15",
         "dynamicFilters": [
           {
-            "count": 1,
+            "count": 15,
             "kind": "type",
             "value": "type:path"
           },
           {
-            "count": 1,
+            "count": 15,
+            "kind": "repo",
+            "value": "repo:^github\\.com/gorilla/mux$@v1.8.0"
+          },
+          {
+            "count": 14,
+            "kind": "lang",
+            "value": "lang:go"
+          },
+          {
+            "count": 8,
             "kind": "file",
             "value": "-file:_test\\.\\w+$"
           },
           {
             "count": 1,
             "kind": "lang",
-            "value": "lang:go"
-          },
-          {
-            "count": 1,
-            "kind": "repo",
-            "value": "repo:^github\\.com/gorilla/mux$@v1.8.0"
+            "value": "lang:markdown"
           }
         ],
-        "elapsedMilliseconds": 189,
-        "limitHit": true,
-        "matchCount": 1,
+        "elapsedMilliseconds": 71,
+        "limitHit": false,
+        "matchCount": 15,
         "results": [
           {
             "__typename": "FileMatch",
@@ -55,6 +60,270 @@ response = '''
               "path": "old_test.go"
             },
             "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "example_route_test.go"
+            },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "test_helpers.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "example_cors_method_middleware_test.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "example_authentication_middleware_test.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "README.md"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "bench_test.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "doc.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "middleware.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "middleware_test.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "mux.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "mux_httpserver_test.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "mux_test.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "regexp.go"
+            },
+            "pathMatches": [],
+            "repository": {
+              "name": "github.com/gorilla/mux"
+            },
+            "revSpec": {
+              "expr": "v1.8.0"
+            },
+            "symbols": []
+          },
+          {
+            "__typename": "FileMatch",
+            "chunkMatches": [],
+            "file": {
+              "commit": {
+                "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+              },
+              "path": "route.go"
+            },
+            "pathMatches": [
+              {
+                "start": {
+                  "line": 0
+                }
+              }
+            ],
             "repository": {
               "name": "github.com/gorilla/mux"
             },

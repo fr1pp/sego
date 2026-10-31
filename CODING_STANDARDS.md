@@ -34,11 +34,11 @@ The rules every change to sego follows. Where an ADR holds the reason, the rule 
 - A note or error is lowercase and has no trailing period.
 - It states a fact or a pointer
   ([ADR 0003](docs/adr/0003-facts-not-advice.md)).
-- A note says something about its answer that the answer's fields don't, or points to what gets
-  what the answer left out. A fact that holds whatever the answer, such as which files no search
-  reads, goes in the help.
-- A pointer gives the command or filter itself, worked out from the answer, and appears only where
-  it holds for that answer.
+- A note says something about its answer that the answer doesn't already show, and that would
+  change what an agent does next. A fact that holds whatever the answer, such as which files no
+  search reads, goes in the help.
+- A pointer gives the sego command itself, worked out from the answer, and appears only for the
+  rest of an answer sego cut.
 - The help states the action to take, never the wrong form to avoid.
 - Every string from the server is escaped before it is printed
   ([ADR 0006](docs/adr/0006-escape-server-text.md)).

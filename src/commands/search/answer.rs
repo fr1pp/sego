@@ -194,11 +194,13 @@ impl FileAcc {
         }
     }
 
-    fn add(&mut self, file: FileMatch) {
+    /// `selected` is a query that selects files, whose results keep their
+    /// path matches though their contents matched.
+    fn add(&mut self, file: FileMatch, selected: bool) {
         if self.rev.is_none() {
             self.rev = file.rev_spec.as_ref().and_then(|r| r.expr.clone());
         }
-        self.by_path |= !file.path_matches.is_empty();
+        self.by_path |= !selected && !file.path_matches.is_empty();
         if let Some(reason) = file.placeholder_reason() {
             self.marker = Some(Marker::Unindexed(reason.to_owned()));
             return;
@@ -487,7 +489,7 @@ impl Answer {
                         slots.len() - 1
                     });
                     if let Slot::File(acc) = &mut slots[at] {
-                        acc.add(file);
+                        acc.add(file, query.selects_files);
                     }
                 }
                 Item::CommitSearchResult(result) => {
@@ -586,9 +588,10 @@ pub fn counted(
         && query.cap.is_some_and(|cap| results.match_count >= cap);
     // A search stops at its deadline, so one answered at or past it was cut,
     // unless it had what it asked for.
-    let stopped = !capped
-        && (!results.timedout.is_empty() || results.elapsed_milliseconds >= query.deadline_ms);
-    // A zero says it stopped; agents read `0+` as doubt about the term.
+    let past = results.elapsed_milliseconds >= query.deadline_ms;
+    let stopped = !results.timedout.is_empty() || (past && !capped);
+    // A zero is a lower bound only when placeholders filled the cap: agents
+    // read `0+` as doubt about the term, and a stopped zero says it stopped.
     let at_least = if count > 0 { results.limit_hit || stopped } else { capped };
     Counted { count, at_least, stopped }
 }
@@ -926,6 +929,43 @@ mod tests {
         assert_eq!(counted_as(30, false, 500, query, 30), (0, false, false));
         assert_eq!(counted_as(29, true, 500, query, 29), (0, false, false));
         assert_eq!(counted_as(30, true, 500, "repo:x binary count:all", 30), (0, false, false));
+    }
+
+    #[test]
+    fn a_quoted_count_is_a_cap() {
+        let query = r#"repo:x foo count:"5" timeout:2s"#;
+        assert_eq!(counted_as(5, true, 2000, query, 0), (5, true, false));
+    }
+
+    #[test]
+    fn an_or_of_several_searches_has_no_cap_to_fill() {
+        let query = "(repo:a x) or (repo:b y)";
+        assert_eq!(counted_as(35, true, 60_000, query, 0), (35, true, true));
+    }
+
+    #[test]
+    fn a_timeout_the_server_reports_stops_a_search_that_filled_its_cap() {
+        let results: Results = serde_json::from_value(json!({
+            "matchCount": 30, "approximateResultCount": "30", "limitHit": true,
+            "timedout": [{"name": "a/b"}], "alert": null, "elapsedMilliseconds": 500,
+            "dynamicFilters": [], "results": [],
+        }))
+        .unwrap_or_else(|e| panic!("{e}"));
+        let got = counted(&results, &Query::new("repo:x foo"), 0, None);
+        assert_eq!((got.at_least, got.stopped), (true, true));
+    }
+
+    #[test]
+    fn a_path_match_on_a_select_of_files_is_not_a_path_result() {
+        let with_path = |query: &str| {
+            let mut result = file("a.go", &[], &[]);
+            result["pathMatches"] = json!([{"start": {"line": 0}}]);
+            let answer = searched_for(query, &json!([result]));
+            matches!(answer.groups[0].file_items()[..], [FileItem::Path])
+        };
+        assert!(with_path("repo:x a.go"));
+        assert!(!with_path("repo:x foo select:file"));
+        assert!(!with_path("repo:x foo select:file.directory"));
     }
 
     #[test]
