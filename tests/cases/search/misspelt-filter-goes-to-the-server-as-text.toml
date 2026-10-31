@@ -1,17 +1,14 @@
-# Regular expression syntax in a keyword query is noted.
-args = ["search", 'repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter\(']
+# A misspelt filter goes to the server as written, and sego says nothing of it.
+args = ["search", 'repo:^github\.com/gorilla/mux$@v1.8.0 lnag:go NewRouter']
 status.code = 0
 stdout = '''
-0 matches  0.2 s
-query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter\(
-'''
-stderr = '''
-sego: note: keyword mode matches `NewRouter\(` literally; a regex goes inside /.../
+0 matches  0.1 s
+query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0 lnag:go NewRouter
 '''
 
 [[exchange]]
 operation = "Search"
-variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 NewRouter\\("}'
+variables = '{"query":"timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 lnag:go NewRouter"}'
 document = "Search-8bd92430"
 status = 200
 content-type = "application/json"
@@ -24,7 +21,7 @@ response = '''
         "alert": null,
         "approximateResultCount": "0",
         "dynamicFilters": [],
-        "elapsedMilliseconds": 152,
+        "elapsedMilliseconds": 124,
         "limitHit": false,
         "matchCount": 0,
         "results": [],

@@ -93,12 +93,6 @@ fn proposals(alert: &Alert, mut error: Error) -> Error {
 }
 
 fn push_notes(searched: &Answer, notes: &mut Notes) {
-    if let Some(note) = &searched.query.flag_note
-        && searched.is_zero()
-        && !searched.at_least
-    {
-        notes.push(note);
-    }
     if let Some(alert) = &searched.alert {
         match description(alert) {
             Some(text) => notes.push(format!("{}: {text}", alert.title)),

@@ -1548,41 +1548,6 @@ mod search {
     }
 
     #[test]
-    fn local_check_misspelt_filter() {
-        case("search/local-check-misspelt-filter.toml");
-    }
-
-    #[test]
-    fn local_check_note_precedes_an_unable_to_process_query_error() {
-        case("search/local-check-note-precedes-an-unable-to-process-query-error.toml");
-    }
-
-    #[test]
-    fn local_check_note_precedes_the_alert_note() {
-        case("search/local-check-note-precedes-the-alert-note.toml");
-    }
-
-    #[test]
-    fn local_check_range_in_a_repository_revision() {
-        case("search/local-check-range-in-a-repository-revision.toml");
-    }
-
-    #[test]
-    fn local_check_regex_syntax_in_keyword_mode() {
-        case("search/local-check-regex-syntax-in-keyword-mode.toml");
-    }
-
-    #[test]
-    fn local_check_symbol_select_without_a_pattern() {
-        case("search/local-check-symbol-select-without-a-pattern.toml");
-    }
-
-    #[test]
-    fn local_check_unknown_type() {
-        case("search/local-check-unknown-type.toml");
-    }
-
-    #[test]
     fn long_commit_message_line_is_cut_around_its_highlight() {
         case("search/long-commit-message-line-is-cut-around-its-highlight.toml");
     }
@@ -1600,6 +1565,11 @@ mod search {
     #[test]
     fn longest_deadline_goes_in_front_of_an_or() {
         case("search/longest-deadline-goes-in-front-of-an-or.toml");
+    }
+
+    #[test]
+    fn misspelt_filter_goes_to_the_server_as_text() {
+        case("search/misspelt-filter-goes-to-the-server-as-text.toml");
     }
 
     #[test]
@@ -1813,26 +1783,6 @@ mod search {
     }
 
     #[test]
-    fn regex_flag_on_a_stopped_zero_is_an_error_only() {
-        case("search/regex-flag-on-a-stopped-zero-is-an-error-only.toml");
-    }
-
-    #[test]
-    fn regex_flag_on_a_zero_is_a_note() {
-        case("search/regex-flag-on-a-zero-is-a-note.toml");
-    }
-
-    #[test]
-    fn regex_flag_on_an_answer_with_results_has_no_note() {
-        case("search/regex-flag-on-an-answer-with-results-has-no-note.toml");
-    }
-
-    #[test]
-    fn regex_flag_on_an_at_least_answer_has_no_note() {
-        case("search/regex-flag-on-an-at-least-answer-has-no-note.toml");
-    }
-
-    #[test]
     fn regexp_error_boundary() {
         case("search/regexp-error-boundary.toml");
     }
@@ -2005,11 +1955,6 @@ mod search {
     #[test]
     fn symbols_and_chunks_of_one_path() {
         case("search/symbols-and-chunks-of-one-path.toml");
-    }
-
-    #[test]
-    fn symbols_of_a_content_search_are_noted() {
-        case("search/symbols-of-a-content-search-are-noted.toml");
     }
 
     #[test]

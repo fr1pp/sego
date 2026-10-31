@@ -695,8 +695,24 @@ mod tests {
     /// A query sixteen times as long takes at most sixteen times the steps:
     /// steps that grow with the square of the length would number some 256
     /// times as many. Every shape takes at least a step a character, so a
-    /// count that stopped counting couldn't pass. The count covers `read`, not
-    /// the checks `Query::new` then runs on what it read.
+    /// count that stopped counting couldn't pass.
+    #[test]
+    fn groups_are_read_at_any_depth() {
+        let nested = |depth| format!("{}repo:x foo{}", "(".repeat(depth), ")".repeat(depth));
+        for depth in [64, 65, 100_000] {
+            assert_eq!(read(&nested(depth)).written.len(), 2, "{depth}");
+        }
+    }
+
+    #[test]
+    fn unbalanced_parentheses_are_read_in_linear_time() {
+        let started = std::time::Instant::now();
+        read(&format!("{}foo", "\\(".repeat(60_000)));
+        read(&format!("{}foo", "(".repeat(120_000)));
+        let elapsed = started.elapsed();
+        assert!(elapsed < std::time::Duration::from_secs(5), "{elapsed:?}");
+    }
+
     #[test]
     fn a_query_is_read_in_linear_time() {
         let nests = ["(f:x a ", "(a f:x ", "(f:x a b ", "(-f:x a ", "(not f:x a ", "(content:x a "];

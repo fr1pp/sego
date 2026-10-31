@@ -1,5 +1,4 @@
 mod answer;
-mod checks;
 mod query;
 mod read;
 
@@ -45,9 +44,6 @@ pub struct Args {
 
 pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Error> {
     let query = Query::new(&args.query);
-    for note in &query.notes {
-        notes.push(note);
-    }
     let results = match client.search(&query.text).map_err(pointed)? {
         Search::Results(results) => results,
         Search::BadRegexp { reason } => return Err(regexp_error(&reason, &query)),
@@ -144,15 +140,6 @@ mod tests {
         }
     }
 
-    /// The local check `symbols_of_content` notes that this returns nothing.
-    fn symbols_of_content() -> Result<(), String> {
-        let results = searched_live(r"repo:^github\.com/gorilla/mux$ NewRouter select:symbol")?;
-        match results.match_count {
-            0 => Ok(()),
-            n => Err(format!("matchCount {n}; select:symbol over content now answers")),
-        }
-    }
-
     /// The `repos` half of `lower_bound`: over these five repositories, a
     /// capped repo select answers fewer than `count:all`, unflagged (#32).
     fn repo_select_cut() -> Result<(), String> {
@@ -197,12 +184,11 @@ mod tests {
     #[test]
     #[ignore = "sends requests to sourcegraph.com"]
     fn the_rules_search_relies_on_still_hold_on_the_live_server() {
-        let rules: [(&str, Rule); 7] = [
+        let rules: [(&str, Rule); 6] = [
             ("placeholder format", placeholder_format),
             ("cap and plus", cap_and_plus),
             ("complete answer", complete_answer),
             ("utility counts", utility_counts),
-            ("symbols of content", symbols_of_content),
             ("repo select cut", repo_select_cut),
             ("deadline ceiling", deadline_ceiling),
         ];

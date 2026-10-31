@@ -3,7 +3,6 @@ use std::time::Duration;
 use crate::pointer;
 use crate::sourcegraph::NOT_INDEXED;
 
-use super::checks::{check, flag_note};
 use super::read::{
     PatternType, Written, WrittenFilter as Filter, chosen, has_pattern, read, unquoted,
 };
@@ -77,14 +76,11 @@ pub struct Query {
     /// A pattern names `NOT-INDEXED`, so the placeholders of unindexed
     /// files are results, not matches to drop.
     pub lists_placeholders: bool,
-    pub flag_note: Option<String>,
-    pub notes: Vec<String>,
 }
 
 impl Query {
-    /// The facts about `text` that what it writes gives, and the notes of
-    /// the local checks. A query the server rejects while reading it gives
-    /// none.
+    /// The facts about `text` that what it writes gives. A query the server
+    /// rejects while reading it gives none.
     pub fn new(written: &str) -> Query {
         let text = sent(written);
         let reading = read(&text);
@@ -95,7 +91,6 @@ impl Query {
             text,
             pattern_type,
             lucky: pattern_type == PatternType::Standard && written_type(written) == Some("lucky"),
-            notes: check(written, pattern_type),
             cap: cap(written),
             unit: unit(written),
             by_results: stated_unit(written).is_none(),
@@ -110,7 +105,6 @@ impl Query {
                 matches!(item, Written::Pattern { text, negated: false, .. }
                     if text.to_ascii_uppercase().contains(NOT_INDEXED))
             }),
-            flag_note: flag_note(written, pattern_type),
             deadline_ms,
         }
     }
@@ -900,14 +894,12 @@ mod tests {
     }
 
     #[test]
-    fn the_search_a_path_pointer_names_raises_no_local_check() {
+    fn the_search_a_path_pointer_names_has_no_cap() {
         for path in ["a/nope.go", "[id].tsx", "c++ x.cc", "docs/a|b(1).md", "x$^{2}"] {
             let at = pointer::At { repo: "github.com/a/b.c", commit: "0123456789ab" };
             let line = pointer::files_named(at, path);
             let quoted = line.split('\'').nth(1).unwrap_or_default();
-            let query = Query::new(quoted);
-            assert_eq!(query.notes, Vec::<String>::new(), "{line}");
-            assert_eq!(query.cap, None, "{line}");
+            assert_eq!(Query::new(quoted).cap, None, "{line}");
         }
     }
 }
