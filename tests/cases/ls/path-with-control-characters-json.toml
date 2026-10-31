@@ -16,9 +16,6 @@ response = '''
   "data": {
     "r0": {
       "commit": {
-        "gm": {
-          "content": "[submodule \"a\u001bb\u202ec\u200bd\\ne\rf\u0000g\u2028h\u007fi/sub\"]\n\tpath = \"a\u001bb\u202ec\u200bd\\ne\rf\u0000g\u2028h\u007fi/sub\"\n\turl = \"https://example.com/a\u001bb\u202ec\u200bd\\ne\rf\u0000g\u2028h\u007fi\"\n"
-        },
         "meta": {
           "__typename": "GitTree",
           "entries": [

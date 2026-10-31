@@ -1015,6 +1015,11 @@ mod ls {
     }
 
     #[test]
+    fn host_alone_is_not_a_repository() {
+        case("ls/host-alone-is-not-a-repository.toml");
+    }
+
+    #[test]
     fn listing_error_hides_server_text() {
         case("ls/listing-error-hides-server-text.toml");
     }
@@ -1105,6 +1110,11 @@ mod ls {
     }
 
     #[test]
+    fn scp_clone_url_is_not_an_address() {
+        case("ls/scp-clone-url-is-not-an-address.toml");
+    }
+
+    #[test]
     fn subdirectory_paths_from_repository_root() {
         case("ls/subdirectory-paths-from-repository-root.toml");
     }
@@ -1117,6 +1127,11 @@ mod ls {
     #[test]
     fn submodule_path_json() {
         case("ls/submodule-path-json.toml");
+    }
+
+    #[test]
+    fn submodule_without_commit_json() {
+        case("ls/submodule-without-commit-json.toml");
     }
 
     #[test]

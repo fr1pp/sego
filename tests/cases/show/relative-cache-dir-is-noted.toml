@@ -27,7 +27,6 @@ response = '''
     "r0": {
       "commit": {
         "body": null,
-        "gm": null,
         "meta": {
           "__typename": "GitBlob",
           "binary": false,

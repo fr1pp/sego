@@ -1,4 +1,4 @@
-# A root with submodules counts them and prints their targets.
+# A root with submodules counts them and prints their commits.
 args = ["ls", "github.com/akinomyoga/ble.sh@d81fd54feb0d996fdff20dca27eaf0201f7015cc"]
 status.code = 0
 stdout = '''

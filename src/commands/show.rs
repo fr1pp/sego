@@ -33,7 +33,7 @@ pub struct Line {
 /// A submodule, as the answer gives it.
 #[derive(Serialize)]
 pub struct Submodule {
-    commit: String,
+    commit: Option<String>,
 }
 
 /// What `show` prints: a file or a submodule, or the listing of a directory.
@@ -135,7 +135,9 @@ pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Shown, Erro
         File::Directory(_) => return Ok(Shown::Listing(ls::answer(at, file, false, notes))),
         File::Submodule(submodule) => {
             let mut shown = Answer::new(at, path, AddressKind::Submodule, notes);
-            shown.fields.push(format!("submodule  {}", submodule_text(&submodule.commit)));
+            shown
+                .fields
+                .push(format!("submodule  {}", submodule_text(submodule.commit.as_deref())));
             shown.finish_fields();
             shown.submodule = Some(Submodule { commit: submodule.commit });
             return Ok(Shown::File(shown));

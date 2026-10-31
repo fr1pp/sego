@@ -1,4 +1,4 @@
-# A submodule in JSON has the target and the commit.
+# A submodule in JSON has its commit.
 args = ["show", "--json", "github.com/akinomyoga/ble.sh@d81fd54feb0d:contrib"]
 status.code = 0
 stdout = '''

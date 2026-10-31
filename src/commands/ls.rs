@@ -44,7 +44,7 @@ impl Entry {
             (Some(_), false) => Kind::Submodule,
             (None, false) => Kind::File,
         };
-        Entry { path: path.to_owned(), kind, submodule_commit: module.map(|module| module.commit) }
+        Entry { path: path.to_owned(), kind, submodule_commit: module.and_then(|m| m.commit) }
     }
 
     fn row(&self) -> String {
@@ -52,9 +52,9 @@ impl Entry {
         if matches!(self.kind, Kind::Dir) {
             row.push('/');
         }
-        if let Some(commit) = &self.submodule_commit {
+        if matches!(self.kind, Kind::Submodule) {
             row.push_str("  ");
-            row.push_str(&one_line(&submodule_text(commit)));
+            row.push_str(&one_line(&submodule_text(self.submodule_commit.as_deref())));
         }
         row.push('\n');
         row

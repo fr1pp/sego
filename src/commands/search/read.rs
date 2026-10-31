@@ -2,7 +2,7 @@
 //! `or` and `not`, filters, and quoted and `/`-delimited patterns.
 
 /// The fields the server reads as filters, in any case.
-pub const KNOWN: &[&str] = &[
+const KNOWN: &[&str] = &[
     "repo",
     "r",
     "file",
@@ -92,11 +92,9 @@ impl PatternType {
 pub enum Written {
     Filter(WrittenFilter),
     /// A pattern's text, without a `not` before it, which negates it.
-    /// `delimited` is a quoted or `/`-delimited pattern.
     Pattern {
         text: String,
         negated: bool,
-        delimited: bool,
     },
     Or,
 }
@@ -472,9 +470,9 @@ impl<'t> Reader<'t> {
         Reader { t, ty, flat, pos: 0, open: 0, mixed: false, written: Vec::new() }
     }
 
-    fn write_pattern(&mut self, start: usize, end: usize, negated: bool, delimited: bool) {
+    fn write_pattern(&mut self, start: usize, end: usize, negated: bool) {
         let text = self.t.text(start, end);
-        self.written.push(Written::Pattern { text, negated, delimited });
+        self.written.push(Written::Pattern { text, negated });
     }
 
     /// A `)` ends the innermost or-expression being read, unless `or`
@@ -504,7 +502,7 @@ impl<'t> Reader<'t> {
                     && let Some(end) = t.run(self.pos)
                 {
                     frame.items.push(PATTERN);
-                    self.write_pattern(self.pos, end, false, false);
+                    self.write_pattern(self.pos, end, false);
                     self.pos = end;
                     continue;
                 }
@@ -516,11 +514,7 @@ impl<'t> Reader<'t> {
                 if frame.items.is_empty() {
                     frame.items.push(PATTERN);
                     // The server reads an empty group as the pattern `()`.
-                    let empty = Written::Pattern {
-                        text: "()".to_owned(),
-                        negated: false,
-                        delimited: false,
-                    };
+                    let empty = Written::Pattern { text: "()".to_owned(), negated: false };
                     self.written.push(empty);
                 }
                 self.pos += 1;
@@ -638,7 +632,7 @@ impl<'t> Reader<'t> {
         };
         if let Some(c) = close.filter(|&c| t.terminal(c + 1)) {
             self.pos = c + 1;
-            self.write_pattern(s, self.pos, negated, true);
+            self.write_pattern(s, self.pos, negated);
             return;
         }
         self.pos = match (!self.flat).then(|| t.run(s)).flatten() {
@@ -646,7 +640,7 @@ impl<'t> Reader<'t> {
             None if ty == PatternType::Regexp => t.plain(s, !self.flat, true),
             None => t.plain(s, false, false),
         };
-        self.write_pattern(s, self.pos, negated, false);
+        self.write_pattern(s, self.pos, negated);
     }
 }
 
@@ -663,10 +657,6 @@ mod tests {
         (STEPS.with(std::cell::Cell::get), query.chars().count())
     }
 
-    /// A query sixteen times as long takes at most sixteen times the steps:
-    /// steps that grow with the square of the length would number some 256
-    /// times as many. Every shape takes at least a step a character, so a
-    /// count that stopped counting couldn't pass.
     #[test]
     fn groups_are_read_at_any_depth() {
         let nested = |depth| format!("{}repo:x foo{}", "(".repeat(depth), ")".repeat(depth));
@@ -684,6 +674,10 @@ mod tests {
         assert!(elapsed < std::time::Duration::from_secs(5), "{elapsed:?}");
     }
 
+    /// A query sixteen times as long takes at most sixteen times the steps:
+    /// steps that grow with the square of the length would number some 256
+    /// times as many. Every shape takes at least a step a character, so a
+    /// count that stopped counting couldn't pass.
     #[test]
     fn a_query_is_read_in_linear_time() {
         let nests = ["(f:x a ", "(a f:x ", "(f:x a b ", "(-f:x a ", "(not f:x a ", "(content:x a "];

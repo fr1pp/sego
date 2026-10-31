@@ -26,7 +26,6 @@ response = '''
           "__typename": "GitBlob",
           "content": "# gorilla/mux\n\n"
         },
-        "gm": null,
         "meta": {
           "__typename": "GitBlob",
           "binary": false,

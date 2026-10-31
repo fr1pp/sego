@@ -306,11 +306,16 @@ fn parse_rev(rev: &str) -> Result<Rev, AddressError> {
     Ok(Rev::Range { base: base.to_owned(), head: head.to_owned(), dots })
 }
 
-/// Whether `token` starts with a URL's scheme, as in `https://`.
-fn has_scheme(token: &str) -> bool {
-    token.split_once("://").is_some_and(|(scheme, _)| {
+/// Whether `token` starts with a URL's scheme, as in `https://`, or is a
+/// clone URL in scp form, as in `git@host:path`. An address has a `/` before
+/// any `@`.
+fn is_url(token: &str) -> bool {
+    let scheme = token.split_once("://").is_some_and(|(scheme, _)| {
         !scheme.is_empty() && scheme.chars().all(|c| c.is_ascii_alphanumeric() || "+-.".contains(c))
-    })
+    });
+    let scp =
+        token.split_once('@').is_some_and(|(user, rest)| !user.contains('/') && rest.contains(':'));
+    scheme || scp
 }
 
 fn parse_repo(repo: &str, token: &str) -> Result<Repo, AddressError> {
@@ -327,7 +332,7 @@ fn parse_repo(repo: &str, token: &str) -> Result<Repo, AddressError> {
     if segments.iter().any(|s| s.is_empty()) {
         return Err(AddressError::InvalidRepository(repo.to_owned()));
     }
-    if segments[0].contains('.') {
+    if segments[0].contains('.') && segments.len() > 1 {
         return Ok(Repo::Exact(repo.to_owned()));
     }
     match segments.len() {
@@ -370,7 +375,7 @@ pub fn parse_operand(path: &str) -> Result<String, AddressError> {
 }
 
 pub fn parse(token: &str) -> Result<Address, AddressError> {
-    if has_scheme(token) {
+    if is_url(token) {
         return Err(AddressError::Url(token.to_owned()));
     }
     let repo_end = token.find(['@', ':']).unwrap_or(token.len());

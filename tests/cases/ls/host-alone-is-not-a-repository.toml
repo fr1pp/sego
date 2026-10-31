@@ -1,0 +1,7 @@
+# A host followed by a path names no repository.
+args = ["ls", "github.com:gorilla/mux"]
+status.code = 2
+stderr = '''
+sego: error: invalid repository name 'github.com'
+usage: sego ls [--json] [--recursive] REPO[@REV][:PATH]
+'''

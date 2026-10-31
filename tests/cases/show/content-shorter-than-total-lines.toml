@@ -20,7 +20,6 @@ response = '''
           "__typename": "GitBlob",
           "content": "a\n"
         },
-        "gm": null,
         "meta": {
           "__typename": "GitBlob",
           "binary": false,

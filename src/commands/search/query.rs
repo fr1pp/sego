@@ -192,12 +192,8 @@ fn filters(written: &[Written]) -> impl Iterator<Item = &Filter> {
     })
 }
 
-fn is(f: &Filter, names: &[&str]) -> bool {
-    names.iter().any(|name| f.field.eq_ignore_ascii_case(name))
-}
-
 fn is_repo(f: &Filter) -> bool {
-    is(f, &["repo", "r"])
+    f.field.eq_ignore_ascii_case("repo") || f.field.eq_ignore_ascii_case("r")
 }
 
 /// The last `patterntype:` value that names a type, unquoted.

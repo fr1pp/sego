@@ -41,6 +41,7 @@ The sources and measurements behind this section are in [research/count-and-time
 - **Default limit.** With no `count:`, a search stops after 30 matches and sets `limitHit`.
 - **What counts as a match.** A match is a line range, a path match, a symbol, a commit or a repository, not a file. 30 matches can come from just two files.
   - In `type:commit` and `type:diff`, each highlighted range in a message or diff counts, so `count:3` can return one commit.
+  - A `type:diff` count in matches counts highlights in a truncated preview, so it can fall short of what the full diffs hold.
   - With `select:`, each result after conversion and deduplication counts once.
 - **`count:`.** `count:N` raises the limit to N. `count:all` sets it to 99,999,999.
   - A limit ends a search early: the server cancels it once it has that many matches, so a common pattern under the default 30 answers fast.
@@ -264,6 +265,7 @@ An `or` splits the query into branches, and each branch runs as its own search.
 ### Revisions
 
 - **Two equivalent forms.** `repo:R@rev` is the same as `repo:R rev:rev`.
+- **A range searches its end.** `repo:R@a..b` searches `b` only.
   - Using both on one repo returns an alert.
   - `rev:` without `repo:` returns an alert.
   - `rev:` may appear only once.
@@ -317,7 +319,7 @@ The same date parser serves `before:`, `after:`, `rev:at.time()` and `repo:has.c
 |---|---|---|
 | none (default) | file content and paths | File results: line matches, plus path-only hits with no lines. |
 | `type:file` | file content only | File results with line matches. |
-| `type:path` | file paths only | File results with no lines. Several terms are ANDed against the path, and `or` works. |
+| `type:path` | file paths only | File results with no lines. Several terms are ANDed against the path, and `or` works. With only filters and no pattern it returns nothing. |
 | `type:symbol` | ctags symbol definitions | File results carrying symbols (see below). |
 | `type:repo` | repository names | Repositories. |
 | `type:commit` | commit messages | Commits (oid, subject, author, date, message), newest first. Works with filters only. |

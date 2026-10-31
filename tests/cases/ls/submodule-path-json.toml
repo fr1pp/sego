@@ -1,4 +1,4 @@
-# JSON carries one entry for the submodule path, with its URL, target and commit.
+# JSON carries one entry for the submodule path, with its commit.
 args = ["ls", "--json", "github.com/akinomyoga/ble.sh@d81fd54feb0d996fdff20dca27eaf0201f7015cc:contrib"]
 status.code = 0
 stdout = '''

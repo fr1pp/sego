@@ -1,0 +1,7 @@
+# A clone URL in scp form is not an address.
+args = ["ls", "git@github.com:gorilla/mux.git"]
+status.code = 2
+stderr = '''
+sego: error: git@github.com:gorilla/mux.git is a URL; an address is host/owner/name or owner/name
+usage: sego ls [--json] [--recursive] REPO[@REV][:PATH]
+'''

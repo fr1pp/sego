@@ -172,8 +172,8 @@ pub fn header_line(lead: &str, fields: &[String]) -> String {
 }
 
 /// A submodule's commit as text: 12 hex digits, or `?` when it isn't known.
-pub fn submodule_text(commit: &str) -> String {
-    if commit.is_empty() { "?".to_owned() } else { short(commit) }
+pub fn submodule_text(commit: Option<&str>) -> String {
+    commit.map_or_else(|| "?".to_owned(), short)
 }
 
 pub fn code_line(number: u32, marker: Marker, text: &str, focus: Option<usize>) -> String {

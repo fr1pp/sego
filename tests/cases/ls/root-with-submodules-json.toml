@@ -1,4 +1,4 @@
-# JSON carries each submodule's URL, target and commit beside the dirs and files.
+# JSON carries each submodule's commit beside the dirs and files.
 args = ["ls", "--json", "github.com/akinomyoga/ble.sh@d81fd54feb0d996fdff20dca27eaf0201f7015cc"]
 status.code = 0
 stdout = '''

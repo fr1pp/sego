@@ -1,0 +1,40 @@
+# A submodule's unknown commit is null in JSON.
+args = ["ls", "--json", "example.com/acme/shell@d81fd54feb0d996fdff20dca27eaf0201f7015cc:contrib"]
+status.code = 0
+stdout = '''
+{"repo":"example.com/acme/shell","rev":"d81fd54feb0d996fdff20dca27eaf0201f7015cc","commit":"d81fd54feb0d996fdff20dca27eaf0201f7015cc","path":"contrib","kind":"submodule","recursive":false,"entries":[{"path":"contrib","kind":"submodule","submodule_commit":null}],"entries_total":1,"entries_more":false,"mirrored_at":null,"notes":[]}
+'''
+
+[[exchange]]
+operation = "File"
+variables = '{"content":false,"gitlab":false,"path":"contrib","recursive":false,"repo0":"example.com/acme/shell","repo1":"","rev":"d81fd54feb0d996fdff20dca27eaf0201f7015cc"}'
+document = "File-f4700c66"
+status = 200
+content-type = "application/json"
+response = '''
+{
+  "data": {
+    "r0": {
+      "commit": {
+        "meta": {
+          "__typename": "GitBlob",
+          "binary": false,
+          "byteSize": 0,
+          "lfs": null,
+          "path": "contrib",
+          "rawURL": null,
+          "submodule": {
+            "commit": ""
+          },
+          "totalLines": 1
+        },
+        "oid": "d81fd54feb0d996fdff20dca27eaf0201f7015cc"
+      },
+      "defaultBranch": {
+        "displayName": "main"
+      },
+      "name": "example.com/acme/shell"
+    }
+  }
+}
+'''

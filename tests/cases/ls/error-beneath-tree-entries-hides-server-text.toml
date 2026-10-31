@@ -17,7 +17,6 @@ response = '''
   "data": {
     "r0": {
       "commit": {
-        "gm": null,
         "meta": {
           "__typename": "GitTree",
           "entries": [

@@ -20,7 +20,6 @@ response = '''
         "body": {
           "__typename": "GitTree"
         },
-        "gm": null,
         "meta": {
           "__typename": "GitTree",
           "entries": [

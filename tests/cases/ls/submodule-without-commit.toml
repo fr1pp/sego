@@ -1,4 +1,4 @@
-# A submodule with no commit prints its target without a revision.
+# A submodule with no commit prints ? in its place.
 args = ["ls", "example.com/acme/shell@d81fd54feb0d996fdff20dca27eaf0201f7015cc:contrib"]
 status.code = 0
 stdout = '''
@@ -17,9 +17,6 @@ response = '''
   "data": {
     "r0": {
       "commit": {
-        "gm": {
-          "content": "[submodule \"contrib\"]\n\tpath = \"contrib\"\n\turl = \"../contrib\"\n"
-        },
         "meta": {
           "__typename": "GitBlob",
           "binary": false,

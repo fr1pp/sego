@@ -1,4 +1,4 @@
-# Names, a submodule's URL and its commit with control characters are escaped.
+# Names and a submodule's commit with control characters are escaped.
 args = ["ls", "example.com/acme/widget"]
 status.code = 0
 stdout = '''
@@ -20,9 +20,6 @@ response = '''
   "data": {
     "r0": {
       "commit": {
-        "gm": {
-          "content": "[submodule \"sub\"]\n\tpath = \"sub\"\n\turl = \"https://example.com/a\u001bb\u202ec\u200bd\\ne\rf\u0000g\u2028h\u007fi\"\n[submodule \"mod\"]\n\tpath = \"mod\"\n\turl = \"https://example.com/acme/lib\"\n"
-        },
         "meta": {
           "__typename": "GitTree",
           "entries": [

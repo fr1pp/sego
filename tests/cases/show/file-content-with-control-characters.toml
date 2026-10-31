@@ -29,7 +29,6 @@ response = '''
           "__typename": "GitBlob",
           "content": "a\u001bb\nc\u202ed\ne\u200bf\ng\u0000h\ni\u2028j\nk\u007fl\nmid\rcr\ntab\tok\ncrlf\r\n"
         },
-        "gm": null,
         "meta": {
           "__typename": "GitBlob",
           "binary": false,

@@ -88,7 +88,8 @@ pub struct Entry {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Submodule {
-    pub commit: String,
+    /// `None` when the server doesn't give it.
+    pub commit: Option<String>,
 }
 
 /// The lines asked of a file: from `start`, to `end` or the last.
@@ -228,6 +229,12 @@ struct SubmoduleNode {
     commit: String,
 }
 
+impl From<SubmoduleNode> for Submodule {
+    fn from(node: SubmoduleNode) -> Submodule {
+        Submodule { commit: Some(node.commit).filter(|commit| !commit.is_empty()) }
+    }
+}
+
 /// What the commit at `at`, resolved to `commit`, holds at `path`.
 fn read_at(
     envelope: &Envelope,
@@ -265,7 +272,7 @@ fn read_at(
                 .entries
                 .into_iter()
                 .map(|node| Entry {
-                    submodule: node.submodule.map(|module| Submodule { commit: module.commit }),
+                    submodule: node.submodule.map(Submodule::from),
                     path: node.path,
                     is_directory: node.is_directory,
                 })
@@ -276,8 +283,7 @@ fn read_at(
         }
         Ok(Meta::GitBlob(blob)) if !other_failed && !lfs_failed => {
             if let Some(module) = blob.submodule {
-                let module = Submodule { commit: module.commit };
-                (File::Submodule(module), blob.path, Body::None)
+                (File::Submodule(module.into()), blob.path, Body::None)
             } else {
                 let details_failed = || Error::failed("the file's details");
                 let lfs_size = blob
