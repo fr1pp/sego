@@ -16,9 +16,9 @@ install-path = "~/.local/bin"
 # The archive format to use for non-windows builds (defaults .tar.xz)
 unix-archive = ".tar.gz"
 # Whether to enable GitHub Attestations
-github-attestations = false
+github-attestations = true
 # Which actions to run on pull requests
-pr-run-mode = "upload"
+pr-run-mode = "plan"
 # Whether to install an updater program
 install-updater = false
 
