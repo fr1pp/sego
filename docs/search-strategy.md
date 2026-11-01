@@ -13,6 +13,10 @@ rests on facts in [research/](research/) or the [query reference](code-search-re
   moved or deleted it.
 - **A root commit's files.** Sourcegraph has no diff for a root commit; `sego ls --recursive --json
   REPO@COMMIT` lists what it adds.
+- **Text in one file.** `sego show REPO@REV:PATH 1- | grep PATTERN` searches a file at any revision,
+  including one too big for any search to read, and needs no index. Each row already starts with
+  its line number, so leave out `grep -n`, which counts the header line. To count, drop the header
+  first, since it holds the path: `sego show REPO@REV:PATH 1- | tail -n +2 | grep -c PATTERN`.
 
 ## Case
 
