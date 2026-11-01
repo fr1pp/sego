@@ -723,8 +723,14 @@ struct TagTarget {
     oid: Option<String>,
 }
 
-/// The commits of the page at `at`, and where the next page starts.
-fn page(envelope: &Envelope, at: &[&str]) -> Option<(Page<CommitSummary>, Option<String>)> {
+/// A page of a commit list, and where the next page starts.
+pub struct CommitList {
+    pub page: Page<CommitSummary>,
+    pub cursor: Option<String>,
+}
+
+/// The commits of the page at `at`.
+fn page(envelope: &Envelope, at: &[&str]) -> Option<CommitList> {
     let page = CommitPage::deserialize(envelope.get(at)?).ok()?;
     let items = page
         .nodes
@@ -738,14 +744,11 @@ fn page(envelope: &Envelope, at: &[&str]) -> Option<(Page<CommitSummary>, Option
         })
         .collect();
     let more = page.page_info.has_next_page;
-    Some((Page { items, total: None, more }, page.page_info.end_cursor))
+    Some(CommitList { page: Page { items, total: None, more }, cursor: page.page_info.end_cursor })
 }
 
 /// A page after the first, from the response to `page_request`.
-pub fn read_page(
-    envelope: &Envelope,
-    history: &History,
-) -> Result<(Page<CommitSummary>, Option<String>), Error> {
+pub fn read_page(envelope: &Envelope, history: &History) -> Result<CommitList, Error> {
     let failed = || Error::failed("the commit list");
     if envelope.error_beneath(&["repository"]).is_some() {
         return Err(failed());
@@ -791,7 +794,7 @@ pub fn read_history(
     if envelope.error_beneath(&[&root, "commit", "w"]).is_some() {
         return Err(list_failed());
     }
-    let (commits, cursor) =
+    let CommitList { page: commits, cursor } =
         page(envelope, &[&root, "commit", "w", "commit", "ancestors"]).ok_or_else(list_failed)?;
     let head = Resolved::new(&found, oid, rev.map(str::to_owned), None);
     if let Some(path) = path.filter(|p| is_plain_path(p))
@@ -821,12 +824,12 @@ pub fn read_range_history(
     if let Some(path) = path.filter(|p| is_plain_path(p))
         && envelope.get(&["a", "commit", "x"]).is_none()
         && envelope.get(&["b", "commit", "x"]).is_none()
-        && read.as_ref().is_some_and(|(commits, _)| commits.items.is_empty())
+        && read.as_ref().is_some_and(|list| list.page.items.is_empty())
         && skip == 0
     {
         return Err(path_not_found(path, &head.repo, &base.commit, &head.commit));
     }
-    let (mut commits, cursor) = read.ok_or_else(comparison_failed)?;
+    let CommitList { page: mut commits, cursor } = read.ok_or_else(comparison_failed)?;
     let mut behind = None;
     if path.is_none() {
         let count_failed = || Error::failed("the commit count");

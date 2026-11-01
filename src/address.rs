@@ -225,6 +225,23 @@ pub fn pinned(repo: &str, commit: &str, path: Option<&str>) -> Pinned {
     Pinned(shell_word(&address).into_owned())
 }
 
+/// The range of `repo` from `commit_a` to `commit_b`, at `path` when given,
+/// pinned at both ends and quoted for bash.
+pub fn pinned_range(
+    repo: &str,
+    commit_a: &str,
+    dots: Dots,
+    commit_b: &str,
+    path: Option<&str>,
+) -> String {
+    let mut address = format!("{repo}@{}{}{}", short(commit_a), dots.as_str(), short(commit_b));
+    if let Some(path) = path {
+        address.push(':');
+        address.push_str(path);
+    }
+    shell_word(&address).into_owned()
+}
+
 fn is_digits(s: &str) -> bool {
     !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit())
 }

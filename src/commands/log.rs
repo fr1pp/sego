@@ -2,10 +2,9 @@ use std::fmt::{self, Write as _};
 
 use serde::Serialize;
 
-use crate::address::{Repo, pinned, range_rev_field, rev_field, short};
+use crate::address::{Dots, Repo, pinned, pinned_range, range_rev_field, rev_field, short};
 use crate::commands::Revs;
 use crate::error::Error;
-use crate::escape::shell_word;
 use crate::escape::{one_line, render_line};
 use crate::output::{Notes, closing_fields, count, date, header, header_line};
 use crate::pointer;
@@ -92,10 +91,9 @@ impl fmt::Display for Answer {
             let commit_b = self.at.commit_b.as_deref().unwrap_or_default();
             let rev = range_rev_field((a, commit_a), "..", (b, commit_b));
             fields.extend(closing_fields(rev, self.mirrored_at.as_deref()));
-            header_line(
-                &range_address(&self.repo, commit_a, commit_b, self.path.as_deref()),
-                &fields,
-            )
+            let path = self.path.as_deref();
+            let address = pinned_range(&self.repo, commit_a, Dots::Two, commit_b, path);
+            header_line(&address, &fields)
         } else {
             let commit = self.at.commit.as_deref().unwrap_or_default();
             let rev = rev_field(self.at.rev.as_ref(), commit);
@@ -108,16 +106,6 @@ impl fmt::Display for Answer {
         }
         Ok(())
     }
-}
-
-/// The range `commit_a..commit_b`, pinned at both ends.
-fn range_address(repo: &str, commit_a: &str, commit_b: &str, path: Option<&str>) -> String {
-    let mut address = format!("{repo}@{}..{}", short(commit_a), short(commit_b));
-    if let Some(path) = path {
-        address.push(':');
-        address.push_str(path);
-    }
-    shell_word(&address).into_owned()
 }
 
 fn row(entry: &Entry) -> String {
@@ -176,7 +164,7 @@ fn continuation(
 ) -> String {
     let path = args.path.as_deref().map(|path| path.trim_end_matches('/'));
     let address = match base {
-        Some(base) => range_address(&head.repo, &base.commit, &head.commit, path),
+        Some(base) => pinned_range(&head.repo, &base.commit, Dots::Two, &head.commit, path),
         None => pinned(&head.repo, &head.commit, path).to_string(),
     };
     let command = if args.json { "sego log --json" } else { "sego log" };

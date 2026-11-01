@@ -236,10 +236,10 @@ impl<'a> Client<'a> {
             let size = page_size(wanted - history.commits.items.len());
             let request = commits::page_request(history, path, size, &after);
             match self.exchange(&request).and_then(|page| commits::read_page(&page, history)) {
-                Ok((page, cursor)) => {
-                    history.commits.items.extend(page.items);
-                    history.commits.more = page.more;
-                    history.cursor = cursor;
+                Ok(list) => {
+                    history.commits.items.extend(list.page.items);
+                    history.commits.more = list.page.more;
+                    history.cursor = list.cursor;
                 }
                 Err(error) if error.kind() == Kind::Deadline => {
                     history.cut_by_deadline = true;
@@ -726,7 +726,7 @@ mod tests {
                 let request = commits::page_request(history, None, first, after);
                 commits::read_page(&client.exchange(&request)?, history)
             })
-            .0
+            .page
             .items
         }
 

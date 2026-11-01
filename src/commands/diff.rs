@@ -2,7 +2,7 @@ use std::fmt;
 
 use serde::Serialize;
 
-use crate::address::{Repo, range_rev_field, rev_field, short};
+use crate::address::{Dots, Repo, pinned_range, range_rev_field, rev_field, short};
 use crate::commands::Revs;
 use crate::error::Error;
 use crate::escape::render_line;
@@ -43,13 +43,8 @@ impl Answer {
 
 impl fmt::Display for Answer {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut address =
-            format!("{}@{}...{}", self.repo, short(&self.commit_a), short(&self.commit_b));
-        if let [path] = self.paths.as_slice() {
-            address.push(':');
-            address.push_str(path);
-        }
-        let lead = shell_word(&address).into_owned();
+        let path = if let [path] = self.paths.as_slice() { Some(path.as_str()) } else { None };
+        let lead = pinned_range(&self.repo, &self.commit_a, Dots::Three, &self.commit_b, path);
         let printed = self.files.len().min(TEXT_ROWS);
         let mut fields = vec![
             files_field(printed, self.files_total.unwrap_or(self.files.len() as u64)),
