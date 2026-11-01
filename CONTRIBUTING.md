@@ -163,6 +163,10 @@ is fixed by a new version.
 `.github/workflows/release.yml` is generated from `dist-workspace.toml`, so change that file
 and run `dist generate`; `dist` comes from its GitHub releases, since crates.io is behind.
 
+`.github/workflows/actions.lock` pins every action to a commit. After changing a `uses:` or upgrading
+`dist`, run `gh actions-lock --no-narrow`, from the `github/gh-actions-lock` extension. Without
+`--no-narrow` it rewrites tags in the generated workflow, which `dist plan` then rejects.
+
 1. Run `just live`.
 2. In a pull request, set `version` in `Cargo.toml`, run `cargo check` to update `Cargo.lock`, add the
    version's section to `CHANGELOG.md`, and run `just bless cli::version`.
