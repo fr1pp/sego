@@ -38,7 +38,7 @@ The rules every change to sego follows. Where an ADR holds the reason, the rule 
   change what an agent does next. A fact that holds whatever the answer, such as which files no
   search reads, goes in the help.
 - A pointer gives the sego command itself, worked out from the answer, and appears only for the
-  rest of an answer sego cut.
+  rest of a cut answer, whether a default cut it or a `log -n` did.
 - The help states the action to take, never the wrong form to avoid.
 - Every string from the server is escaped before it is printed
   ([ADR 0006](docs/adr/0006-escape-server-text.md)).
@@ -49,7 +49,9 @@ The rules every change to sego follows. Where an ADR holds the reason, the rule 
   ([ADR 0014](docs/adr/0014-json-carries-every-fact-text-prints.md)).
 - A list that can be cut carries `X_total`, `null` when the server doesn't give it, and `X_more`,
   whether more exists than the list holds. `X_more` reports what the server sent, so where JSON
-  asks for the whole list it is `false` unless the server sent less than its total. A search
+  asks for the whole list it is `false` unless the server sent less than its total. `log --skip`
+  leaves out the start of a list: `X_total` still counts those, and `X_more` speaks only of what
+  follows. A search
   keeps `count`, `at_least` and `stopped`, its own form of the rule.
 - A field name means one thing in every command's document. An `ls` entry's `kind` is the word its
   text row prints (`dir`, `file` or `submodule`), while a document's `kind` names what the address

@@ -1,5 +1,5 @@
 //! Pointers (ADR 0003): each names the sego command that gets the rest of
-//! an answer sego cut.
+//! a cut answer.
 
 /// The log of `address` from where a cut log stopped, `skip` commits in,
 /// listing `count` more when the cut log was asked for a count. `command` is

@@ -59,7 +59,7 @@ A fact about an answer, written to stderr before the answer as `sego: note: …`
 _Avoid_: warning, hint
 
 **Pointer**:
-A note naming the sego command that gets the rest of an answer sego cut, worked out from the answer.
+A note naming the sego command that gets the rest of a cut answer, worked out from the answer.
 _Avoid_: suggestion, hint, advice
 
 **Usage error**:

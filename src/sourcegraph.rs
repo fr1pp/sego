@@ -624,29 +624,35 @@ mod tests {
         })
     }
 
-    #[test]
-    fn a_later_page_sends_the_servers_cursor_as_it_came_at_the_commits_full_id() {
-        let first = json!({"data": {
+    /// The first page of a log, with `cursor` when more follow.
+    fn first_page_of_a_log(cursor: Option<&str>) -> serde_json::Value {
+        json!({"data": {
             "r0": {
                 "name": "github.com/gorilla/mux",
                 "defaultBranch": {"displayName": "main"},
                 "mirrorInfo": null,
                 "commit": {
                     "oid": "a".repeat(40),
-                    "w": {"commit": {"ancestors": page_of_a_log(Some("not a number"))}},
+                    "w": {"commit": {"ancestors": page_of_a_log(cursor)}},
                 },
             },
             "t0": {"gitRefs": {"nodes": []}},
-        }});
+        }})
+    }
+
+    fn log_of_five(client: Client<'_>) -> Result<History, Error> {
+        let repo = Repo::Exact("github.com/gorilla/mux".to_owned());
+        client.history(&repo, Revisions::One(Some("v1")), None, false, Some(5), 0)
+    }
+
+    #[test]
+    fn a_later_page_sends_the_servers_cursor_as_it_came_at_the_commits_full_id() {
+        let first = first_page_of_a_log(Some("not a number"));
         let later = json!({"data": {"repository": {"commit": {
             "ancestors": page_of_a_log(None),
         }}}});
         let script = Script::new(vec![Ok(json(&first)), Ok(json(&later))], Duration::ZERO);
-        let repo = Repo::Exact("github.com/gorilla/mux".to_owned());
-        let history = run(&script, DEADLINE, |client| {
-            client.history(&repo, Revisions::One(Some("v1")), None, false, Some(5), 0)
-        })
-        .unwrap_or_else(|e| panic!("{e}"));
+        let history = run(&script, DEADLINE, log_of_five).unwrap_or_else(|e| panic!("{e}"));
         assert_eq!(history.commits.items.len(), 2);
         let bodies = script.bodies.borrow();
         assert_eq!(bodies[0]["variables"]["first"], 5);
@@ -654,6 +660,23 @@ mod tests {
         assert_eq!(bodies[1]["variables"]["after"], "not a number");
         assert_eq!(bodies[1]["variables"]["commit"], "a".repeat(40));
         assert_eq!(bodies[1]["variables"]["first"], 4);
+    }
+
+    #[test]
+    fn the_client_deadline_after_a_page_keeps_what_was_read() {
+        let first = Ok(json(&first_page_of_a_log(Some("1"))));
+        let script = Script::new(vec![first, Err(TransportError::Deadline)], Duration::ZERO);
+        let history = run(&script, DEADLINE, log_of_five).unwrap_or_else(|e| panic!("{e}"));
+        assert!(history.cut_by_deadline);
+        assert!(history.commits.more);
+        assert_eq!(history.commits.items.len(), 1);
+    }
+
+    #[test]
+    fn the_client_deadline_before_a_page_fails_the_log() {
+        let script = Script::new(vec![Err(TransportError::Deadline)], Duration::ZERO);
+        let failed = run(&script, DEADLINE, log_of_five).map_err(|e| e.kind());
+        assert_eq!(failed.err(), Some(Kind::Deadline));
     }
 
     /// What paging a commit list relies on and Sourcegraph doesn't promise
