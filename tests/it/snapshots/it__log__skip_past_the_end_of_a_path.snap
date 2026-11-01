@@ -1,0 +1,9 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"--skip\", \"5000\", \"github.com/gorilla/mux@v1.8.0\", \"mux.go\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@98cb6bf42e08:mux.go  0 commits  skip 5000  rev v1.8.0  mirrored 2026-11-01T13:37Z
+----- stderr -----
+----- end -----

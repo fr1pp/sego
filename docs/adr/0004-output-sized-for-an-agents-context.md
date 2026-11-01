@@ -8,3 +8,7 @@ notes first so a cut answer still says what it holds, and with any line too wide
 reading shortened. An agent that needs more asks for it, and an explicit request or `--json` gets
 the whole of what it asked for. Time is bounded the same way: sego gives up before a typical
 harness kills the command, and after the longest search the server allows.
+
+A revision's `--json` is bounded by default too, at the same 150 commits as its text: the whole of a
+history can be hundreds of megabytes, so `sego log -n N` is the explicit request. A range's `--json`
+gets the whole range.

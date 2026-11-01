@@ -156,5 +156,5 @@ b600f62ab68e  2021-01-05  Niklas Mohrin  Add unix specific integration test abou
 21ae26cb17ad  2020-11-24  Niklas Mohrin  Add cycle detection with clircle, now v0.2
 478233f7952d  2021-01-04  Martin Nordholts  Merge remote-tracking branch 'origin/master' into fix-1063
 ----- stderr -----
-sego: note: sego log github.com/sharkdp/bat@478233f7952d:Cargo.toml and sego log --json github.com/sharkdp/bat@478233f7952d..fc9546854f5a Cargo.toml together list every commit this log left out
+sego: note: sego log --skip 150 github.com/sharkdp/bat@fc9546854f5a:Cargo.toml continues from the last commit shown
 ----- end -----

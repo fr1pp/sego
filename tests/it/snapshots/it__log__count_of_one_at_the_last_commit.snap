@@ -1,0 +1,10 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"-n\", \"1\", \"--skip\", \"286\", \"github.com/gorilla/mux@v1.8.0\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@98cb6bf42e08  1 commit  skip 286  rev v1.8.0  mirrored 2026-11-01T08:33Z
+4e8d10dc715f  2012-10-02  rodrigo moraes  Initial commit
+----- stderr -----
+----- end -----

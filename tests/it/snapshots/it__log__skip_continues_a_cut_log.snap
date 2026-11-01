@@ -1,0 +1,146 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"--skip\", \"150\", \"github.com/gorilla/mux@v1.8.0\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@98cb6bf42e08  137 commits  skip 150  rev v1.8.0  mirrored 2026-11-01T13:37Z
+acf3be1b335c  2016-03-07  Matt Silverlock  Merge pull request #155 from jprobinson/master
+65c2651643a9  2016-03-07  JP Robinson  fixing regexp changes from PR #144
+786d36e5ab04  2016-03-07  Owen Ou  `go fmt`
+8ac5cf967fba  2014-05-20  Dave Newman  Add SkipClean option
+147a95f5e36a  2016-03-05  Matt Silverlock  Merge pull request #104 from Digitalxero/method-to-get-url-template
+f7ac7251e3b6  2016-02-29  Dj Gilcrease  Update doc strings based on feedback
+c9e326e2bdec  2016-02-29  Matt Silverlock  Merge pull request #150 from gorilla/elithrar/go-lint
+02c98b3f736c  2016-02-29  Matt Silverlock  [docs] Satisfied golint.
+f84ab9ab620f  2016-02-28  Dj Gilcrease  Fix go fmt issues
+0d60c4bfebed  2016-02-28  Dj Gilcrease  Add tests for GetPathTemplate. Added GetHostTemplate and associated tests as well
+16507e2c476b  2016-02-28  Dj Gilcrease  Merge branch 'master' into method-to-get-url-template
+c582f4facc2a  2016-02-28  Matt Silverlock  Merge pull request #149 from gorilla/elithrar/readme-website
+5f42f0f524cc  2016-02-28  Matt Silverlock  [docs] Add http://www.gorillatoolkit.org/pkg/mux to README.
+d067e8732964  2016-02-28  Matt Silverlock  Merge pull request #144 from tumdum/regexp-speedup
+dfc482b2558f  2016-02-26  Matt Silverlock  Merge pull request #148 from gorilla/ci/travis-go-1.6
+7872f90afae4  2016-02-26  Matt Silverlock  Update .travis.yml to build Go 1.6
+78fb8eb96216  2016-01-23  Tomasz Kłak  Added benchmark with deep path
+f48927253fa1  2016-01-23  Tomasz Kłak  Named groups replaced with conditional wrapping of regexps
+26a6070f8499  2015-12-31  Matt Silverlock  Merge pull request #141 from tcyrus/patch-1
+66181ed3371d  2015-12-31  Timothy Cyrus  Update README.md
+2aad27d3101b  2015-12-29  Matt Silverlock  Merge pull request #139 from bign8/issue_20
+82a9c170d405  2015-12-26  Nate Woods  Covering change with unit test
+c329c7d19328  2015-12-25  bign8  Potential fix for #20
+9c068cf16d98  2015-11-11  Matt Silverlock  Merge pull request #134 from shurcooL/travis-CI-more-thorough
+9a9f155278d9  2015-11-09  Dmitri Shuralyov  Travis: Perform gofmt, go vet checks; use race detector during tests.
+48e889f422c9  2015-11-08  Matt Silverlock  Merge pull request #133 from mttrs/govet
+a90bbbc6fa11  2015-11-07  mitsuteru sawa  Correct a printf verb type
+ad4d7a5882b9  2015-10-03  Matt Silverlock  Merge pull request #128 from mcasper/typo
+ac3897eae376  2015-10-03  Matt Casper  Fix a typo in the comments, add a few comment docs
+49c024275504  2015-09-08  Kamil Kisiel  Merge pull request #125 from eastwood/develop
+8ae7a23e0396  2015-09-08  Clint Ryan  Fixed documentation from Issue 16
+ee1815431e49  2015-08-20  Kamil Kisiel  Update .travis.yml
+f8220e087da2  2015-08-16  Kamil Kisiel  travis-ci: more recent go versions
+f7b6aaaa69e3  2015-08-14  Matt Silverlock  Merge pull request #122 from gorilla/README-badge-fix
+e45852e5374d  2015-08-14  Matt Silverlock  Fixed GoDoc badge.
+b0b2bc47bcd1  2015-08-13  Kamil Kisiel  Quote domain names in README.md. Use example.com instead of domain.com
+5112c33f3a6e  2015-08-12  Kamil Kisiel  slightly improve printing of regexps in failed tests.
+e330fd08a314  2015-08-11  Kamil Kisiel  Merge pull request #120 from shkw/reduce-variable-name-restriction
+d17b93cab89c  2015-08-11  Shinya Kawaguchi  Refactoring for better performance
+273db6897121  2015-08-10  Shinya Kawaguchi  Fix regexp syntax error caused by variable names containing any characters except letters, digits, and underscores
+577b9e4a658e  2015-08-10  Shinya Kawaguchi  Add tests for hyphenated variable names
+ffb3f683aad4  2015-08-08  Kamil Kisiel  Merge pull request #118 from elithrar/full-example
+ca524fd37fc9  2015-08-08  Matt Silverlock  Updated README w/ runnable example. Addresses #32.
+8965bfef36e3  2015-08-07  Kamil Kisiel  Merge branch 'subexp-fix'
+c3c5f0000f7b  2015-08-07  Kamil Kisiel  Add test which used to fail for queries.
+780d0505d751  2015-08-07  Kamil Kisiel  Update README
+e73f183699f8  2015-08-07  Kamil Kisiel  fix use of capturing subexpressions in pattern matches.
+5a8a04005005  2015-08-05  Kamil Kisiel  Merge pull request #116 from brocaar/add_current_route_note
+13c822608100  2015-08-05  Orne Brocaar  Update comment and specify KeepContext option.
+39cff3481ca9  2015-08-05  Orne Brocaar  Add note about the availability of CurrentRoute.
+f15e0c49460f  2015-07-27  Kamil Kisiel  Merge pull request #100 from eastwood/master
+98fb535d771e  2015-07-19  Clint Ryan  Issue 16: Return the regexp compile error
+ba336c9cfb43  2015-07-17  Kamil Kisiel  getUrlQuery: Use SplitN with a max of 2.
+61445102e8c8  2015-07-17  Kamil Kisiel  Merge pull request #111 from burrbd/master
+3339267a853e  2015-07-17  Bay Dodd  adding tests
+fe40f0d05612  2015-07-17  Bay Dodd  updating query match string
+104068abd5cf  2015-07-16  Kamil Kisiel  Merge pull request #106 from Digitalxero/router-walk-adjustments
+fe156cb197c7  2015-07-16  Kamil Kisiel  Merge pull request #108 from burrbd/master
+19f0a91c4e29  2015-07-16  Bay Dodd  adding test and updating condition
+2b3240979240  2015-07-16  Bay Dodd  fix for empty query
+92ae1d67265b  2015-07-09  Dj Gilcrease  Update the walk method to walk matchers so it walks the full list of routers and child routers
+8eb02a9f12e5  2015-07-08  Dj Gilcrease  Add URLPathTemplate to Route to make it easier to generate a API page that lists all routes by template
+9cb89f07ca03  2015-07-05  Kamil Kisiel  Add a couple of additional tests for query strings.
+0c9d5c08c1d6  2015-07-05  Bay Dodd  refactoring
+a710a8bfa960  2015-07-05  Bay Dodd  adding ^ and $ to query pattern
+306509329bce  2015-07-05  Clint Ryan  Merge branch 'master' of https://github.com/eastwood/mux
+c21431a6cd00  2015-07-05  Clint Ryan  Fixed up commenting and removed unused code
+c0a5cbce5acc  2015-05-29  Craig Jellick  Fix typo
+a063f14812c8  2015-05-29  Craig Jellick  Fix typo
+47e8f450ef38  2015-05-30  Kamil Kisiel  Merge pull request #98 from cjellick/doc-fix
+77f424d3ae04  2015-05-29  Craig Jellick  Fix typo
+94903de8c98a  2015-05-05  Kamil Kisiel  Merge pull request #89 from gemnasium/add_tests_for_pipe
+660d31f8602b  2015-04-22  Kamil Kisiel  Merge pull request #93 from shurcooL/patch-1
+9641367e9535  2015-04-22  Dmitri Shuralyov  Fix up doc formatting, use spaces for alignment (tabs are for indentation only).
+8096f4750345  2015-03-11  Kamil Kisiel  Merge pull request #88 from gemnasium/add_tests_for_pipe
+e98fd88cbd72  2015-03-11  Philippe Lafoucrière  Add complementary test for patterns with pipe
+00bf0e01a12e  2015-03-11  Philippe Lafoucrière  Add tests for patterns with pipe
+8a875a034c69  2015-02-13  Kamil Kisiel  Merge pull request #52 from sqs/BuildVarsFunc
+e444e69cbd2e  2014-09-26  Kamil Kisiel  Merge pull request #71 from Madrigal/patch-1
+d7e46398189a  2014-09-26  Felipe Madrigal  Rearrange rules for matching strict slash
+8df3a80fb8cd  2014-09-26  Felipe Madrigal  Rearrange getHost function
+4b8fbc56f3b2  2014-08-11  Kamil Kisiel  Merge pull request #67 from pwaller/patch-1
+8f1a419c3868  2014-08-11  Peter Waller  Remove blank line to fix docs for  Route.Queries
+14cafe285133  2014-06-24  Kamil Kisiel  Merge pull request #60 from roylee17/gofmt
+3351f602a5ba  2014-06-24  Tzu-Jung Lee  gofmt
+854d482e2650  2014-06-04  Kamil Kisiel  Fix racy modification of NotFoundHandler.
+0ef595e787ef  2014-05-27  Kamil Kisiel  Merge pull request #56 from raphael/query-vars
+451fd8b77960  2014-05-27  Raphael Simon  Additional code cleanup (see comments on issue #56)
+3505396fb555  2014-05-27  Raphael Simon  Code cleanup (see comments on issue #56)
+69237eaae593  2014-05-27  Raphael Simon  Fix "Queries" matcher to support out-of-order query string parameters
+2900ff05a48b  2014-05-27  Kamil Kisiel  Merge pull request #55 from raphael/query-vars
+0a0d6a1b2a0c  2014-05-27  Raphael Simon  Add tests for regexp variables in query strings
+c9469524da00  2014-05-26  Raphael Simon  Fix old tests
+65cc9b5df83a  2014-05-26  Raphael Simon  Add ability to capture variables in query strings
+136d54f81f00  2014-05-05  Kamil Kisiel  Merge pull request #51 from ttencate/master
+a883d5a9b9d5  2014-04-17  Quinn Slack  Call parent BuildVarsFuncs
+cef3b0cd6d46  2014-04-17  Quinn Slack  Add BuildVarsFunc to allow modifying route variables before generating a route's URL
+b864f07c539c  2014-04-23  Thomas ten Cate  Propagate StrictSlash to subrouters instead of rudely turning it off
+3509745ae8a2  2014-04-23  Thomas ten Cate  Add tests for all four StrictSlash cases
+bac13721298f  2014-04-23  Thomas ten Cate  Convert TestStrictSlash to a table driven test
+033224c12ed4  2014-04-23  Thomas ten Cate  Document behaviour of StrictSlash and PathPrefix better, and add tests to nail this down
+525eff436e45  2014-04-23  Thomas ten Cate  Improve docs about leading and trailing slashes
+270c42505a11  2014-04-19  Kamil Kisiel  Merge pull request #49 from sqs/gofmt
+9ee70e572c18  2014-04-17  Quinn Slack  gofmt
+9ede152210fa  2013-12-05  Kamil Kisiel  Add go 1.2 to travis.yml
+c4e0d8b3719d  2013-11-30  Kamil Kisiel  Merge pull request #41 from pschlump/master
+e807f7c33833  2013-11-30  Kamil Kisiel  Add Travis badge
+3829d74241c4  2013-11-30  Kamil Kisiel  Add travis.yml
+db86729398c8  2013-11-30  Kamil Kisiel  Merge pull request #43 from andrewsmedina/gofmt
+cebebed6c46d  2013-11-30  Andrews Medina  go fmt.
+ab8ae247f17a  2013-11-18  Philip Schlump  Fixed the domain name copied from my other code to be example.com
+6689ee8243e2  2013-11-18  Philip Schlump  Cleaned up testing.
+1a2411f44a85  2013-11-18  Philip Schlump  Added tests to verify that the 301 redirect returns query string
+d10d5466f2db  2013-11-15  Philip Schlump  Fixed problem with droping query string.
+42cbcc5a246f  2013-11-10  Kamil Kisiel  Merge pull request #38 from TheDude05/fix-doc-typo
+9d99a927754d  2013-11-10  Andrew Williams  Remove extra parentheses
+b08c5fcf14d0  2013-09-11  Kamil Kisiel  Merge pull request #35 from JulienSchmidt/patch-1
+0ae6d35b080d  2013-09-11  Julien Schmidt  Fix typo
+ea1bb06e006e  2013-08-29  Kamil Kisiel  Merge pull request #33 from Crisfole/fixDocumentation
+04a79835ae36  2013-08-29  Christopher Pfohl  Add "of" like the rest of the function docstrings
+e718e932ee60  2013-06-05  John Nadratowski  Add KeepContext flag to Router to disable clearing of context data.
+9b36453141c3  2013-04-08  rodrigo moraes  Update README.md
+b9f42e6d5598  2013-03-25  Kamil Kisiel  Tweak example indent
+36205eb8f163  2013-03-25  Kamil Kisiel  Merge pull request #15 from yodaiken/master
+bb851ab75f24  2013-03-25  Aaron Yodaiken  Add example MatcherFunc
+51a7bc30e9ae  2013-02-03  rodrigo moraes  Merge pull request #12 from temoto/patch-1
+38545dbae82f  2013-02-03  Sergey Shepelev  Removed excess bool variable assignment in `if`s
+2d12ebab4227  2013-01-17  rodrigo moraes  Merge pull request #9 from golanger/master
+78f60492585e  2013-01-17  Jongmin Kim  Update mux.go
+a8ad2b0f1353  2012-12-27  moraes  Now the real test for https://plus.google.com/101022900381697718949/posts/eWy6DjFJ6uW
+b20a198901ae  2012-12-27  moraes  Test for https://plus.google.com/101022900381697718949/posts/eWy6DjFJ6uW
+99a7fbf24450  2012-10-16  rodrigo moraes  Merge pull request #3 from kisielk/test
+f89494aed121  2012-10-14  Kamil Kisiel  Finished converting rest of mux tests to table tests
+67d903c9a446  2012-10-05  rodrigo moraes  Merge pull request #1 from kisielk/test
+bcb4f4bcdcd3  2012-10-05  Kamil Kisiel  Converted TestRoute to a table-driven test
+eac83ba2c004  2012-10-03  moraes  Initial files.
+4e8d10dc715f  2012-10-02  rodrigo moraes  Initial commit
+----- stderr -----
+----- end -----

@@ -19,7 +19,8 @@ exit: 0
   "repo": "github.com/gorilla/mux",
   "rev": null,
   "rev_a": "v1.8.0",
-  "rev_b": "v1.7.0"
+  "rev_b": "v1.7.0",
+  "skip": 0
 }
 ----- stderr -----
 ----- end -----

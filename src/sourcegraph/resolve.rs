@@ -6,7 +6,6 @@ use serde_json::{Map, Value, json};
 use super::graphql::{Envelope, GqlErrorKind, Request};
 use crate::address::{FULL_OID, Repo, is_name, is_oid_like};
 use crate::error::{Error, Kind};
-use crate::pointer;
 
 pub const SOURCEGRAPH_COM_MIRRORS: &str = "sourcegraph.com serves indexed repositories from \
     github.com, gitlab.com and a few other hosts; a renamed repository \
@@ -50,11 +49,6 @@ impl Lookup {
 }
 
 impl Resolved {
-    /// The commit as a pointer names it.
-    pub fn at(&self) -> pointer::At<'_> {
-        pointer::At { repo: &self.repo, commit: &self.commit }
-    }
-
     /// The lookup as this end or a range's other end read it: both ends
     /// share one repository and one mirror.
     pub fn lookup_with(&self, other: Option<&Resolved>) -> Lookup {

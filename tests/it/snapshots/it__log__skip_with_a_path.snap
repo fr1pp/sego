@@ -1,0 +1,13 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"-n\", \"3\", \"--skip\", \"5\", \"github.com/gorilla/mux@v1.8.0\",\n\"mux.go\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@98cb6bf42e08:mux.go  3 commits shown; more exist  skip 5  rev v1.8.0  mirrored 2026-11-01T13:37Z
+758eb64354aa  2018-12-07  Joe Wilner  Improve subroute configuration propagation #422
+e3702bed27f0  2018-05-13  Matt Silverlock  (tag: v1.6.2) [docs] Improve docstrings for middleware, skipclean (#375)
+ded0c29b24f9  2018-05-01  Matt Silverlock  Fix linter issues (docs) (#370)
+----- stderr -----
+sego: note: sego log -n 3 --skip 8 github.com/gorilla/mux@98cb6bf42e08:mux.go continues from the last commit shown
+----- end -----

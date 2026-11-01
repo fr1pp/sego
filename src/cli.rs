@@ -7,6 +7,7 @@ use lexopt::Arg;
 use crate::address::{self, Dots, Rev, Target};
 use crate::commands::{Command, Revs, diff, log, ls, refs, search, show};
 use crate::error::Error;
+use crate::sourcegraph::COMMIT_PAGE;
 
 pub const SYNOPSIS: &str = "sego COMMAND [--json] ...";
 
@@ -17,8 +18,9 @@ sego show [--json] REPO@REV";
 pub const LS_SYNOPSIS: &str = "sego ls [--json] [--recursive] REPO[@REV][:PATH]";
 pub const REFS_SYNOPSIS: &str = "sego refs [--json] REPO [TEXT]";
 pub const LOG_SYNOPSIS: &str = "\
-sego log [--json] [--follow] REPO[@REV][:PATH] [PATH]\n\
-sego log [--json] REPO@A..B[:PATH] [PATH]";
+sego log [--json] [-n N] [--skip N] REPO[@REV][:PATH] [PATH]\n\
+sego log [--json] [-n N] [--skip N] REPO@A..B[:PATH] [PATH]\n\
+sego log [--json] [-n N] --follow REPO[@REV][:PATH] [PATH]";
 pub const DIFF_SYNOPSIS: &str = "\
 sego diff [--json] REPO@A...B[:PATH] [PATH...]\n\
 sego diff [--json] REPO@REV[:PATH] [PATH...]";
@@ -71,6 +73,8 @@ struct Flags {
     follow: bool,
     help: bool,
     version: bool,
+    count: Option<u32>,
+    skip: Option<u32>,
 }
 
 /// `args` excludes the program name.
@@ -108,6 +112,10 @@ pub fn parse(args: &[OsString]) -> Result<Invocation, Error> {
             Arg::Long("recursive") => flags.recursive = true,
             Arg::Long("follow") if flags.follow => return Err(twice("--follow")),
             Arg::Long("follow") => flags.follow = true,
+            Arg::Short('n') if flags.count.is_some() => return Err(twice("-n")),
+            Arg::Short('n') => flags.count = Some(count(&mut parser, synopsis)?),
+            Arg::Long("skip") if flags.skip.is_some() => return Err(twice("--skip")),
+            Arg::Long("skip") => flags.skip = Some(skip(&mut parser, synopsis)?),
             Arg::Long("help") if flags.help => return Err(twice("--help")),
             Arg::Short('h') if flags.help => return Err(twice("-h")),
             Arg::Long("help") | Arg::Short('h') => flags.help = true,
@@ -148,16 +156,39 @@ pub fn parse(args: &[OsString]) -> Result<Invocation, Error> {
     if flags.follow && name != "log" {
         return Err(Error::usage(format!("{name} takes no --follow"), synopsis_of(Some(name))));
     }
+    for (given, option) in [(flags.count.is_some(), "-n"), (flags.skip.is_some(), "--skip")] {
+        if given && name != "log" {
+            return Err(Error::usage(format!("{name} takes no {option}"), synopsis_of(Some(name))));
+        }
+    }
     let command = match name {
         "search" => parse_search(rest, flags.json),
         "show" => parse_show(rest, flags.json),
         "ls" => parse_ls(rest, flags.recursive, flags.json),
         "refs" => parse_refs(rest, flags.json),
-        "log" => parse_log(rest, flags.follow, flags.json),
+        "log" => parse_log(rest, &flags),
         "diff" => parse_diff(rest, flags.json),
         other => Err(unknown_command(other)),
     };
     command.map(Invocation::Command)
+}
+
+/// The value of the option `parser` has just read.
+fn value(parser: &mut lexopt::Parser, synopsis: &'static str) -> Result<String, Error> {
+    let value = parser.value().map_err(|e| Error::usage(e.to_string(), synopsis))?;
+    Ok(value.to_string_lossy().into_owned())
+}
+
+fn count(parser: &mut lexopt::Parser, synopsis: &'static str) -> Result<u32, Error> {
+    let text = value(parser, synopsis)?;
+    text.parse().ok().filter(|&count| count > 0).ok_or_else(|| {
+        Error::usage(format!("-n takes a whole number of at least 1: {text}"), synopsis)
+    })
+}
+
+fn skip(parser: &mut lexopt::Parser, synopsis: &'static str) -> Result<u32, Error> {
+    let text = value(parser, synopsis)?;
+    text.parse().map_err(|_| Error::usage(format!("--skip takes a whole number: {text}"), synopsis))
 }
 
 /// A token with exactly one leading dash, other than `-h`, is query text.
@@ -320,7 +351,8 @@ fn named_path(path: &str, synopsis: &'static str) -> Result<Option<String>, Erro
     Ok(Some(path).filter(|path| !path.is_empty()))
 }
 
-fn parse_log(operands: &[String], follow: bool, json: bool) -> Result<Command, Error> {
+fn parse_log(operands: &[String], flags: &Flags) -> Result<Command, Error> {
+    let follow = flags.follow;
     let usage = |message: &str| Error::usage(message, LOG_SYNOPSIS);
     let [token, rest @ ..] = operands else {
         return Err(usage("log needs an address, like REPO[@REV][:PATH]"));
@@ -350,7 +382,21 @@ fn parse_log(operands: &[String], follow: bool, json: bool) -> Result<Command, E
     if follow && (!plain || matches!(revs, Revs::Range { .. })) {
         return Err(usage("--follow needs one revision and one plain path"));
     }
-    Ok(Command::Log(log::Args { repo: address.repo, revs, path, follow, json }))
+    if follow && flags.skip.is_some() {
+        return Err(usage("--follow takes no --skip"));
+    }
+    if follow && flags.count.is_some_and(|count| count > COMMIT_PAGE) {
+        return Err(usage(&log::follow_limit()));
+    }
+    Ok(Command::Log(log::Args {
+        repo: address.repo,
+        revs,
+        path,
+        follow,
+        json: flags.json,
+        count: flags.count,
+        skip: flags.skip.unwrap_or(0),
+    }))
 }
 
 fn parse_diff(operands: &[String], json: bool) -> Result<Command, Error> {
@@ -464,6 +510,8 @@ mod tests {
             path: path.map(str::to_owned),
             follow: false,
             json,
+            count: None,
+            skip: 0,
         }))
     }
 
@@ -819,6 +867,84 @@ mod tests {
                 (&["log", "x/y@a..b:src", "lib"], "log takes one path"),
                 (&["log", "x/y@:src"], "the address has an empty revision: x/y@:src"),
             ],
+        );
+    }
+
+    /// `log` of `token`, listing `count` commits after skipping `skip`.
+    fn windowed(token: &str, count: Option<u32>, skip: u32) -> Invocation {
+        let Invocation::Command(Command::Log(args)) = log(token, None, false) else {
+            panic!("not a log")
+        };
+        Invocation::Command(Command::Log(log::Args { count, skip, ..args }))
+    }
+
+    #[test]
+    fn log_takes_a_count_and_a_skip_anywhere_on_the_line() {
+        check_parses(vec![
+            (vec!["log", "-n", "5", "x/y"], windowed("x/y", Some(5), 0)),
+            (vec!["log", "-n5", "x/y"], windowed("x/y", Some(5), 0)),
+            (vec!["log", "x/y", "-n", "5"], windowed("x/y", Some(5), 0)),
+            (vec!["log", "--skip", "10", "x/y"], windowed("x/y", None, 10)),
+            (vec!["log", "--skip=10", "x/y"], windowed("x/y", None, 10)),
+            (vec!["log", "--skip", "0", "x/y"], windowed("x/y", None, 0)),
+            (vec!["log", "-n", "5", "--skip", "10", "x/y@a..b"], windowed("x/y@a..b", Some(5), 10)),
+            (vec!["-n", "5", "log", "x/y"], windowed("x/y", Some(5), 0)),
+        ]);
+    }
+
+    #[test]
+    fn a_count_above_a_page_is_for_a_log_that_can_page() {
+        check_parses(vec![
+            (vec!["log", "-n", "20001", "x/y"], windowed("x/y", Some(20_001), 0)),
+            (vec!["log", "-n", "4294967295", "x/y"], windowed("x/y", Some(u32::MAX), 0)),
+        ]);
+        let limit = "--follow lists at most 20000 commits";
+        check_errors(LOG_SYNOPSIS, &[(&["log", "--follow", "-n", "20001", "x/y", "a"], limit)]);
+        let Invocation::Command(Command::Log(args)) = log("x/y", Some("a"), false) else {
+            panic!("not a log")
+        };
+        let at_the_limit = log::Args { follow: true, count: Some(20_000), ..args };
+        check_parses(vec![(
+            vec!["log", "--follow", "-n", "20000", "x/y", "a"],
+            Invocation::Command(Command::Log(at_the_limit)),
+        )]);
+    }
+
+    #[test]
+    fn usage_errors_in_the_count_and_skip_of_log() {
+        let count = |value: &str| format!("-n takes a whole number of at least 1: {value}");
+        let skip = |value: &str| format!("--skip takes a whole number: {value}");
+        check_errors(
+            LOG_SYNOPSIS,
+            &[
+                (&["log", "-n", "0", "x/y"], &count("0")),
+                (&["log", "-n", "-1", "x/y"], &count("-1")),
+                (&["log", "-n", "abc", "x/y"], &count("abc")),
+                (&["log", "-n", "1.5", "x/y"], &count("1.5")),
+                (&["log", "-n", "4294967296", "x/y"], &count("4294967296")),
+                (&["log", "-n", "1", "-n", "2", "x/y"], "-n given twice"),
+                (&["log", "--skip", "-1", "x/y"], &skip("-1")),
+                (&["log", "--skip", "abc", "x/y"], &skip("abc")),
+                (&["log", "--skip", "1", "--skip", "2", "x/y"], "--skip given twice"),
+                (&["log", "x/y", "-n"], "missing argument for option '-n'"),
+                (&["log", "x/y", "--skip"], "missing argument for option '--skip'"),
+                (&["log", "--follow", "--skip", "1", "x/y", "a"], "--follow takes no --skip"),
+            ],
+        );
+    }
+
+    #[test]
+    fn a_count_and_a_skip_belong_to_log() {
+        check_errors(SHOW_SYNOPSIS, &[(&["show", "-n", "1", "x/y:a"], "show takes no -n")]);
+        check_errors(LS_SYNOPSIS, &[(&["ls", "--skip", "1", "x/y"], "ls takes no --skip")]);
+        check_errors(REFS_SYNOPSIS, &[(&["refs", "x/y", "-n", "1"], "refs takes no -n")]);
+        check_errors(
+            DIFF_SYNOPSIS,
+            &[(&["diff", "--skip", "1", "x/y@v1"], "diff takes no --skip")],
+        );
+        check_errors(
+            SEARCH_SYNOPSIS,
+            &[(&["search", "--skip", "1", "foo"], "search takes no --skip")],
         );
     }
 

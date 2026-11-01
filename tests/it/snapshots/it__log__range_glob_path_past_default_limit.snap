@@ -156,4 +156,5 @@ b9ff34f617bc  2017-01-17  ShaneSaww  Adding some extra tests, to hit all the use
 0b13a922203e  2016-08-27  Richard Musiol  Simplify extractVars, fixes edge cases. (#185)
 34bf6dc9faa0  2016-08-24  Aaron Taylor  make the getPath method safer, fixing panics within App Engine (#189)
 ----- stderr -----
+sego: note: sego log --skip 150 'github.com/gorilla/mux@0eeaf8392f5b..b4617d0b9670:*' continues from the last commit shown
 ----- end -----

@@ -1,0 +1,1440 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"--json\", \"--skip\", \"150\", \"github.com/gorilla/mux@v1.8.0\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "behind": null,
+  "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+  "commit_a": null,
+  "commit_b": null,
+  "commits": [
+    {
+      "author": "Matt Silverlock",
+      "commit": "acf3be1b335c8ce30b2c8d51300984666f0ceefa",
+      "date": "2016-03-07",
+      "parents": [
+        "147a95f5e36a65f1c7b29440b9b0283aab154693",
+        "65c2651643a9eb5438d10f1c492ba892fe96244f"
+      ],
+      "subject": "Merge pull request #155 from jprobinson/master",
+      "tags": []
+    },
+    {
+      "author": "JP Robinson",
+      "commit": "65c2651643a9eb5438d10f1c492ba892fe96244f",
+      "date": "2016-03-07",
+      "parents": [
+        "147a95f5e36a65f1c7b29440b9b0283aab154693"
+      ],
+      "subject": "fixing regexp changes from PR #144",
+      "tags": []
+    },
+    {
+      "author": "Owen Ou",
+      "commit": "786d36e5ab042d67efe94022439cf6c91ee711dc",
+      "date": "2016-03-07",
+      "parents": [
+        "8ac5cf967fbadf2522625826070379e0fd6e2f98"
+      ],
+      "subject": "`go fmt`",
+      "tags": []
+    },
+    {
+      "author": "Dave Newman",
+      "commit": "8ac5cf967fbadf2522625826070379e0fd6e2f98",
+      "date": "2014-05-20",
+      "parents": [
+        "147a95f5e36a65f1c7b29440b9b0283aab154693"
+      ],
+      "subject": "Add SkipClean option",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "147a95f5e36a65f1c7b29440b9b0283aab154693",
+      "date": "2016-03-05",
+      "parents": [
+        "c9e326e2bdec29039a3761c07bece13133863e1e",
+        "f7ac7251e3b615c63207d481413aab0726812499"
+      ],
+      "subject": "Merge pull request #104 from Digitalxero/method-to-get-url-template",
+      "tags": []
+    },
+    {
+      "author": "Dj Gilcrease",
+      "commit": "f7ac7251e3b615c63207d481413aab0726812499",
+      "date": "2016-02-29",
+      "parents": [
+        "f84ab9ab620f5ac2d587d5688b7b0820b5bdf9bf"
+      ],
+      "subject": "Update doc strings based on feedback",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "c9e326e2bdec29039a3761c07bece13133863e1e",
+      "date": "2016-02-29",
+      "parents": [
+        "c582f4facc2ac9c51fa0358015cfb796aaf6d2ed",
+        "02c98b3f736c94c45d11bef7b60023f752c2d21d"
+      ],
+      "subject": "Merge pull request #150 from gorilla/elithrar/go-lint",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "02c98b3f736c94c45d11bef7b60023f752c2d21d",
+      "date": "2016-02-29",
+      "parents": [
+        "c582f4facc2ac9c51fa0358015cfb796aaf6d2ed"
+      ],
+      "subject": "[docs] Satisfied golint.",
+      "tags": []
+    },
+    {
+      "author": "Dj Gilcrease",
+      "commit": "f84ab9ab620f5ac2d587d5688b7b0820b5bdf9bf",
+      "date": "2016-02-28",
+      "parents": [
+        "0d60c4bfebed9448afb78ab65727a497cc2d9f3d"
+      ],
+      "subject": "Fix go fmt issues",
+      "tags": []
+    },
+    {
+      "author": "Dj Gilcrease",
+      "commit": "0d60c4bfebed9448afb78ab65727a497cc2d9f3d",
+      "date": "2016-02-28",
+      "parents": [
+        "16507e2c476babc0abccdb1ed84165067c492361"
+      ],
+      "subject": "Add tests for GetPathTemplate. Added GetHostTemplate and associated tests as well",
+      "tags": []
+    },
+    {
+      "author": "Dj Gilcrease",
+      "commit": "16507e2c476babc0abccdb1ed84165067c492361",
+      "date": "2016-02-28",
+      "parents": [
+        "8eb02a9f12e527fe2ce9ab3b640579a6104f2d44",
+        "c582f4facc2ac9c51fa0358015cfb796aaf6d2ed"
+      ],
+      "subject": "Merge branch 'master' into method-to-get-url-template",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "c582f4facc2ac9c51fa0358015cfb796aaf6d2ed",
+      "date": "2016-02-28",
+      "parents": [
+        "d067e8732964fef44811013d178bd8962a9c0a46",
+        "5f42f0f524cc51ac5f74cdedf0298bed528981f2"
+      ],
+      "subject": "Merge pull request #149 from gorilla/elithrar/readme-website",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "5f42f0f524cc51ac5f74cdedf0298bed528981f2",
+      "date": "2016-02-28",
+      "parents": [
+        "d067e8732964fef44811013d178bd8962a9c0a46"
+      ],
+      "subject": "[docs] Add http://www.gorillatoolkit.org/pkg/mux to README.",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "d067e8732964fef44811013d178bd8962a9c0a46",
+      "date": "2016-02-28",
+      "parents": [
+        "dfc482b2558f4151fc8598139a686caf3fb2ef65",
+        "78fb8eb962166e2ed581b9e30619fc353d2758b3"
+      ],
+      "subject": "Merge pull request #144 from tumdum/regexp-speedup",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "dfc482b2558f4151fc8598139a686caf3fb2ef65",
+      "date": "2016-02-26",
+      "parents": [
+        "26a6070f849969ba72b72256e9f14cf519751690",
+        "7872f90afae404a743afc2e74ef5e21797879951"
+      ],
+      "subject": "Merge pull request #148 from gorilla/ci/travis-go-1.6",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "7872f90afae404a743afc2e74ef5e21797879951",
+      "date": "2016-02-26",
+      "parents": [
+        "26a6070f849969ba72b72256e9f14cf519751690"
+      ],
+      "subject": "Update .travis.yml to build Go 1.6",
+      "tags": []
+    },
+    {
+      "author": "Tomasz Kłak",
+      "commit": "78fb8eb962166e2ed581b9e30619fc353d2758b3",
+      "date": "2016-01-23",
+      "parents": [
+        "f48927253fa183f81eda684da508ba9226b87e9f"
+      ],
+      "subject": "Added benchmark with deep path",
+      "tags": []
+    },
+    {
+      "author": "Tomasz Kłak",
+      "commit": "f48927253fa183f81eda684da508ba9226b87e9f",
+      "date": "2016-01-23",
+      "parents": [
+        "26a6070f849969ba72b72256e9f14cf519751690"
+      ],
+      "subject": "Named groups replaced with conditional wrapping of regexps",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "26a6070f849969ba72b72256e9f14cf519751690",
+      "date": "2015-12-31",
+      "parents": [
+        "2aad27d3101b8183f8fa1bebdbc2cdb74fcef090",
+        "66181ed3371dcbff358575eff5e41efc013608d8"
+      ],
+      "subject": "Merge pull request #141 from tcyrus/patch-1",
+      "tags": []
+    },
+    {
+      "author": "Timothy Cyrus",
+      "commit": "66181ed3371dcbff358575eff5e41efc013608d8",
+      "date": "2015-12-31",
+      "parents": [
+        "2aad27d3101b8183f8fa1bebdbc2cdb74fcef090"
+      ],
+      "subject": "Update README.md",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "2aad27d3101b8183f8fa1bebdbc2cdb74fcef090",
+      "date": "2015-12-29",
+      "parents": [
+        "9c068cf16d982f8bd444b8c352acbeec34c4fe5b",
+        "82a9c170d40582ee65ff8af081485e5e325fb4a0"
+      ],
+      "subject": "Merge pull request #139 from bign8/issue_20",
+      "tags": []
+    },
+    {
+      "author": "Nate Woods",
+      "commit": "82a9c170d40582ee65ff8af081485e5e325fb4a0",
+      "date": "2015-12-26",
+      "parents": [
+        "c329c7d193285eb0aeac7892896766be20a84c4c"
+      ],
+      "subject": "Covering change with unit test",
+      "tags": []
+    },
+    {
+      "author": "bign8",
+      "commit": "c329c7d193285eb0aeac7892896766be20a84c4c",
+      "date": "2015-12-25",
+      "parents": [
+        "9c068cf16d982f8bd444b8c352acbeec34c4fe5b"
+      ],
+      "subject": "Potential fix for #20",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "9c068cf16d982f8bd444b8c352acbeec34c4fe5b",
+      "date": "2015-11-11",
+      "parents": [
+        "48e889f422c9702f924e53b095546239a1253159",
+        "9a9f155278d9b29c53acbb38c89b3024f658b55d"
+      ],
+      "subject": "Merge pull request #134 from shurcooL/travis-CI-more-thorough",
+      "tags": []
+    },
+    {
+      "author": "Dmitri Shuralyov",
+      "commit": "9a9f155278d9b29c53acbb38c89b3024f658b55d",
+      "date": "2015-11-09",
+      "parents": [
+        "48e889f422c9702f924e53b095546239a1253159"
+      ],
+      "subject": "Travis: Perform gofmt, go vet checks; use race detector during tests.",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "48e889f422c9702f924e53b095546239a1253159",
+      "date": "2015-11-08",
+      "parents": [
+        "ad4d7a5882b961e07e2626045eb995c022ac6664",
+        "a90bbbc6fa11b6a5c4ad95c2ab27eb51229890a5"
+      ],
+      "subject": "Merge pull request #133 from mttrs/govet",
+      "tags": []
+    },
+    {
+      "author": "mitsuteru sawa",
+      "commit": "a90bbbc6fa11b6a5c4ad95c2ab27eb51229890a5",
+      "date": "2015-11-07",
+      "parents": [
+        "ad4d7a5882b961e07e2626045eb995c022ac6664"
+      ],
+      "subject": "Correct a printf verb type",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "ad4d7a5882b961e07e2626045eb995c022ac6664",
+      "date": "2015-10-03",
+      "parents": [
+        "49c024275504f0341e5a9971eb7ba7fa3dc7af40",
+        "ac3897eae3767628df9a43b55c53fca226870a27"
+      ],
+      "subject": "Merge pull request #128 from mcasper/typo",
+      "tags": []
+    },
+    {
+      "author": "Matt Casper",
+      "commit": "ac3897eae3767628df9a43b55c53fca226870a27",
+      "date": "2015-10-03",
+      "parents": [
+        "49c024275504f0341e5a9971eb7ba7fa3dc7af40"
+      ],
+      "subject": "Fix a typo in the comments, add a few comment docs",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "49c024275504f0341e5a9971eb7ba7fa3dc7af40",
+      "date": "2015-09-08",
+      "parents": [
+        "ee1815431e497d3850809578c93ab6705f1a19f7",
+        "8ae7a23e03967d170fbd699eaf8e55883b99e94b"
+      ],
+      "subject": "Merge pull request #125 from eastwood/develop",
+      "tags": []
+    },
+    {
+      "author": "Clint Ryan",
+      "commit": "8ae7a23e03967d170fbd699eaf8e55883b99e94b",
+      "date": "2015-09-08",
+      "parents": [
+        "98fb535d771e43021d337c156c78ab13d1a7f506"
+      ],
+      "subject": "Fixed documentation from Issue 16",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "ee1815431e497d3850809578c93ab6705f1a19f7",
+      "date": "2015-08-20",
+      "parents": [
+        "f8220e087da2fc83d083bfc0289ed7f9db3536bd"
+      ],
+      "subject": "Update .travis.yml",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "f8220e087da2fc83d083bfc0289ed7f9db3536bd",
+      "date": "2015-08-16",
+      "parents": [
+        "f7b6aaaa69e39a15e1f94389b8effd3f9338b013"
+      ],
+      "subject": "travis-ci: more recent go versions",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "f7b6aaaa69e39a15e1f94389b8effd3f9338b013",
+      "date": "2015-08-14",
+      "parents": [
+        "b0b2bc47bcd1442dfc76e58ab649dea056461ac9",
+        "e45852e5374d4b40feb756a967c21a758fca25b1"
+      ],
+      "subject": "Merge pull request #122 from gorilla/README-badge-fix",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "e45852e5374d4b40feb756a967c21a758fca25b1",
+      "date": "2015-08-14",
+      "parents": [
+        "b0b2bc47bcd1442dfc76e58ab649dea056461ac9"
+      ],
+      "subject": "Fixed GoDoc badge.",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "b0b2bc47bcd1442dfc76e58ab649dea056461ac9",
+      "date": "2015-08-13",
+      "parents": [
+        "5112c33f3a6ef694c1e5784b68981f08b3f0327c"
+      ],
+      "subject": "Quote domain names in README.md. Use example.com instead of domain.com",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "5112c33f3a6ef694c1e5784b68981f08b3f0327c",
+      "date": "2015-08-12",
+      "parents": [
+        "e330fd08a314ab270035e000f1543d1af53f6812"
+      ],
+      "subject": "slightly improve printing of regexps in failed tests.",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "e330fd08a314ab270035e000f1543d1af53f6812",
+      "date": "2015-08-11",
+      "parents": [
+        "ffb3f683aad4dcbc2bb65177799563252585dd22",
+        "d17b93cab89c2fe13ef8292fdefb116d86666e75"
+      ],
+      "subject": "Merge pull request #120 from shkw/reduce-variable-name-restriction",
+      "tags": []
+    },
+    {
+      "author": "Shinya Kawaguchi",
+      "commit": "d17b93cab89c2fe13ef8292fdefb116d86666e75",
+      "date": "2015-08-11",
+      "parents": [
+        "273db68971215ed764f24e23f49469c54e9bcd4b"
+      ],
+      "subject": "Refactoring for better performance",
+      "tags": []
+    },
+    {
+      "author": "Shinya Kawaguchi",
+      "commit": "273db68971215ed764f24e23f49469c54e9bcd4b",
+      "date": "2015-08-10",
+      "parents": [
+        "577b9e4a658e25897ddd3320255d96a9285a26c0"
+      ],
+      "subject": "Fix regexp syntax error caused by variable names containing any characters except letters, digits, and underscores",
+      "tags": []
+    },
+    {
+      "author": "Shinya Kawaguchi",
+      "commit": "577b9e4a658e25897ddd3320255d96a9285a26c0",
+      "date": "2015-08-10",
+      "parents": [
+        "ffb3f683aad4dcbc2bb65177799563252585dd22"
+      ],
+      "subject": "Add tests for hyphenated variable names",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "ffb3f683aad4dcbc2bb65177799563252585dd22",
+      "date": "2015-08-08",
+      "parents": [
+        "8965bfef36e398a40fa4afbe4e22eea61cb8db86",
+        "ca524fd37fc91e043c82ba10aed96f77d523c514"
+      ],
+      "subject": "Merge pull request #118 from elithrar/full-example",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "ca524fd37fc91e043c82ba10aed96f77d523c514",
+      "date": "2015-08-08",
+      "parents": [
+        "8965bfef36e398a40fa4afbe4e22eea61cb8db86"
+      ],
+      "subject": "Updated README w/ runnable example. Addresses #32.",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "8965bfef36e398a40fa4afbe4e22eea61cb8db86",
+      "date": "2015-08-07",
+      "parents": [
+        "c3c5f0000f7b474738b08f34308c1e8a4060ce14",
+        "e73f183699f8ab7d54609771e1fa0ab7ffddc21b"
+      ],
+      "subject": "Merge branch 'subexp-fix'",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "c3c5f0000f7b474738b08f34308c1e8a4060ce14",
+      "date": "2015-08-07",
+      "parents": [
+        "780d0505d751ba5c99ecf71ea287253f089a496b"
+      ],
+      "subject": "Add test which used to fail for queries.",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "780d0505d751ba5c99ecf71ea287253f089a496b",
+      "date": "2015-08-07",
+      "parents": [
+        "5a8a0400500543e28b2886a8c52d21a435815411"
+      ],
+      "subject": "Update README",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "e73f183699f8ab7d54609771e1fa0ab7ffddc21b",
+      "date": "2015-08-07",
+      "parents": [
+        "f15e0c49460fd49eebe2bcc8486b05d1bef68d3a"
+      ],
+      "subject": "fix use of capturing subexpressions in pattern matches.",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "5a8a0400500543e28b2886a8c52d21a435815411",
+      "date": "2015-08-05",
+      "parents": [
+        "f15e0c49460fd49eebe2bcc8486b05d1bef68d3a",
+        "13c8226081008f7ade9c619da744ed14e78eb8de"
+      ],
+      "subject": "Merge pull request #116 from brocaar/add_current_route_note",
+      "tags": []
+    },
+    {
+      "author": "Orne Brocaar",
+      "commit": "13c8226081008f7ade9c619da744ed14e78eb8de",
+      "date": "2015-08-05",
+      "parents": [
+        "39cff3481ca9e2726231c3067f58fcf3a8c9e333"
+      ],
+      "subject": "Update comment and specify KeepContext option.",
+      "tags": []
+    },
+    {
+      "author": "Orne Brocaar",
+      "commit": "39cff3481ca9e2726231c3067f58fcf3a8c9e333",
+      "date": "2015-08-05",
+      "parents": [
+        "f15e0c49460fd49eebe2bcc8486b05d1bef68d3a"
+      ],
+      "subject": "Add note about the availability of CurrentRoute.",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "f15e0c49460fd49eebe2bcc8486b05d1bef68d3a",
+      "date": "2015-07-27",
+      "parents": [
+        "ba336c9cfb43552c90de6cb2ceedd3271c747558",
+        "98fb535d771e43021d337c156c78ab13d1a7f506"
+      ],
+      "subject": "Merge pull request #100 from eastwood/master",
+      "tags": []
+    },
+    {
+      "author": "Clint Ryan",
+      "commit": "98fb535d771e43021d337c156c78ab13d1a7f506",
+      "date": "2015-07-19",
+      "parents": [
+        "306509329bce2152a92040e805ef24fd8e3f877d"
+      ],
+      "subject": "Issue 16: Return the regexp compile error",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "ba336c9cfb43552c90de6cb2ceedd3271c747558",
+      "date": "2015-07-17",
+      "parents": [
+        "61445102e8c8e7ce9c2ad977d594d26ac226a8b6"
+      ],
+      "subject": "getUrlQuery: Use SplitN with a max of 2.",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "61445102e8c8e7ce9c2ad977d594d26ac226a8b6",
+      "date": "2015-07-17",
+      "parents": [
+        "104068abd5cf50032c57aecbf2b8ce5b0a08a2cb",
+        "3339267a853e3a855d6e415b96d6f3447b60a824"
+      ],
+      "subject": "Merge pull request #111 from burrbd/master",
+      "tags": []
+    },
+    {
+      "author": "Bay Dodd",
+      "commit": "3339267a853e3a855d6e415b96d6f3447b60a824",
+      "date": "2015-07-17",
+      "parents": [
+        "fe40f0d05612a52a42bbbcd9d28cb81ebe4e6d36"
+      ],
+      "subject": "adding tests",
+      "tags": []
+    },
+    {
+      "author": "Bay Dodd",
+      "commit": "fe40f0d05612a52a42bbbcd9d28cb81ebe4e6d36",
+      "date": "2015-07-17",
+      "parents": [
+        "19f0a91c4e299b8253f142001ad546110f3c1e84"
+      ],
+      "subject": "updating query match string",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "104068abd5cf50032c57aecbf2b8ce5b0a08a2cb",
+      "date": "2015-07-16",
+      "parents": [
+        "fe156cb197c7094648577e93c1734bb4c856969e",
+        "92ae1d67265b4cf52d659a340435398e8da2ad05"
+      ],
+      "subject": "Merge pull request #106 from Digitalxero/router-walk-adjustments",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "fe156cb197c7094648577e93c1734bb4c856969e",
+      "date": "2015-07-16",
+      "parents": [
+        "9cb89f07ca03c6a28d1e237ba033bc6a29422fd6",
+        "19f0a91c4e299b8253f142001ad546110f3c1e84"
+      ],
+      "subject": "Merge pull request #108 from burrbd/master",
+      "tags": []
+    },
+    {
+      "author": "Bay Dodd",
+      "commit": "19f0a91c4e299b8253f142001ad546110f3c1e84",
+      "date": "2015-07-16",
+      "parents": [
+        "2b32409792406cc61512ca3aa35706bb9ce8c7dd"
+      ],
+      "subject": "adding test and updating condition",
+      "tags": []
+    },
+    {
+      "author": "Bay Dodd",
+      "commit": "2b32409792406cc61512ca3aa35706bb9ce8c7dd",
+      "date": "2015-07-16",
+      "parents": [
+        "9cb89f07ca03c6a28d1e237ba033bc6a29422fd6"
+      ],
+      "subject": "fix for empty query",
+      "tags": []
+    },
+    {
+      "author": "Dj Gilcrease",
+      "commit": "92ae1d67265b4cf52d659a340435398e8da2ad05",
+      "date": "2015-07-09",
+      "parents": [
+        "9cb89f07ca03c6a28d1e237ba033bc6a29422fd6"
+      ],
+      "subject": "Update the walk method to walk matchers so it walks the full list of routers and child routers",
+      "tags": []
+    },
+    {
+      "author": "Dj Gilcrease",
+      "commit": "8eb02a9f12e527fe2ce9ab3b640579a6104f2d44",
+      "date": "2015-07-08",
+      "parents": [
+        "9cb89f07ca03c6a28d1e237ba033bc6a29422fd6"
+      ],
+      "subject": "Add URLPathTemplate to Route to make it easier to generate a API page that lists all routes by template",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "9cb89f07ca03c6a28d1e237ba033bc6a29422fd6",
+      "date": "2015-07-05",
+      "parents": [
+        "0c9d5c08c1d6103f2ced11750a195fc94902d3fc"
+      ],
+      "subject": "Add a couple of additional tests for query strings.",
+      "tags": []
+    },
+    {
+      "author": "Bay Dodd",
+      "commit": "0c9d5c08c1d6103f2ced11750a195fc94902d3fc",
+      "date": "2015-07-05",
+      "parents": [
+        "a710a8bfa96010c24d50767a4207e34a0b9f1b90"
+      ],
+      "subject": "refactoring",
+      "tags": []
+    },
+    {
+      "author": "Bay Dodd",
+      "commit": "a710a8bfa96010c24d50767a4207e34a0b9f1b90",
+      "date": "2015-07-05",
+      "parents": [
+        "47e8f450ef38c857cdd922ec08862ca9d65a1c6d"
+      ],
+      "subject": "adding ^ and $ to query pattern",
+      "tags": []
+    },
+    {
+      "author": "Clint Ryan",
+      "commit": "306509329bce2152a92040e805ef24fd8e3f877d",
+      "date": "2015-07-05",
+      "parents": [
+        "c21431a6cd004f2e4ac692b2ec8c56f3a4ebd036",
+        "a063f14812c8ea1ae2a62a8d9b2307afe23348a7"
+      ],
+      "subject": "Merge branch 'master' of https://github.com/eastwood/mux",
+      "tags": []
+    },
+    {
+      "author": "Clint Ryan",
+      "commit": "c21431a6cd004f2e4ac692b2ec8c56f3a4ebd036",
+      "date": "2015-07-05",
+      "parents": [
+        "c0a5cbce5acc7d44030541b8b383b1ebcdfcc96f"
+      ],
+      "subject": "Fixed up commenting and removed unused code",
+      "tags": []
+    },
+    {
+      "author": "Craig Jellick",
+      "commit": "c0a5cbce5acc7d44030541b8b383b1ebcdfcc96f",
+      "date": "2015-05-29",
+      "parents": [
+        "94903de8c98a68d8b4483c529b26a5d146e386a2"
+      ],
+      "subject": "Fix typo",
+      "tags": []
+    },
+    {
+      "author": "Craig Jellick",
+      "commit": "a063f14812c8ea1ae2a62a8d9b2307afe23348a7",
+      "date": "2015-05-29",
+      "parents": [
+        "94903de8c98a68d8b4483c529b26a5d146e386a2"
+      ],
+      "subject": "Fix typo",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "47e8f450ef38c857cdd922ec08862ca9d65a1c6d",
+      "date": "2015-05-30",
+      "parents": [
+        "94903de8c98a68d8b4483c529b26a5d146e386a2",
+        "77f424d3ae04bf4130e489900890fa84992d9b40"
+      ],
+      "subject": "Merge pull request #98 from cjellick/doc-fix",
+      "tags": []
+    },
+    {
+      "author": "Craig Jellick",
+      "commit": "77f424d3ae04bf4130e489900890fa84992d9b40",
+      "date": "2015-05-29",
+      "parents": [
+        "94903de8c98a68d8b4483c529b26a5d146e386a2"
+      ],
+      "subject": "Fix typo",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "94903de8c98a68d8b4483c529b26a5d146e386a2",
+      "date": "2015-05-05",
+      "parents": [
+        "660d31f8602b95058fed6833debf113e85350868",
+        "e98fd88cbd7216fd46d0b480a047d34748d603d5"
+      ],
+      "subject": "Merge pull request #89 from gemnasium/add_tests_for_pipe",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "660d31f8602b95058fed6833debf113e85350868",
+      "date": "2015-04-22",
+      "parents": [
+        "8096f47503459bcc74d1f4c487b7e6e42e5746b5",
+        "9641367e95358701e3b0b36e09090c8c10131e0c"
+      ],
+      "subject": "Merge pull request #93 from shurcooL/patch-1",
+      "tags": []
+    },
+    {
+      "author": "Dmitri Shuralyov",
+      "commit": "9641367e95358701e3b0b36e09090c8c10131e0c",
+      "date": "2015-04-22",
+      "parents": [
+        "8096f47503459bcc74d1f4c487b7e6e42e5746b5"
+      ],
+      "subject": "Fix up doc formatting, use spaces for alignment (tabs are for indentation only).",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "8096f47503459bcc74d1f4c487b7e6e42e5746b5",
+      "date": "2015-03-11",
+      "parents": [
+        "8a875a034c69b940914d83ea03d3f1299b4d094b",
+        "00bf0e01a12e9ce13adef15e5ddb53700d90bd81"
+      ],
+      "subject": "Merge pull request #88 from gemnasium/add_tests_for_pipe",
+      "tags": []
+    },
+    {
+      "author": "Philippe Lafoucrière",
+      "commit": "e98fd88cbd7216fd46d0b480a047d34748d603d5",
+      "date": "2015-03-11",
+      "parents": [
+        "00bf0e01a12e9ce13adef15e5ddb53700d90bd81"
+      ],
+      "subject": "Add complementary test for patterns with pipe",
+      "tags": []
+    },
+    {
+      "author": "Philippe Lafoucrière",
+      "commit": "00bf0e01a12e9ce13adef15e5ddb53700d90bd81",
+      "date": "2015-03-11",
+      "parents": [
+        "8a875a034c69b940914d83ea03d3f1299b4d094b"
+      ],
+      "subject": "Add tests for patterns with pipe",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "8a875a034c69b940914d83ea03d3f1299b4d094b",
+      "date": "2015-02-13",
+      "parents": [
+        "e444e69cbd2e2e3e0749a2f3c717cec491552bbf",
+        "a883d5a9b9d5fb9f3c084dd9858ee6fa11d9c622"
+      ],
+      "subject": "Merge pull request #52 from sqs/BuildVarsFunc",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "e444e69cbd2e2e3e0749a2f3c717cec491552bbf",
+      "date": "2014-09-26",
+      "parents": [
+        "4b8fbc56f3b2400a7c7ea3dba9b3539787c486b6",
+        "d7e46398189abd89d18d874e3c53b42d492002b8"
+      ],
+      "subject": "Merge pull request #71 from Madrigal/patch-1",
+      "tags": []
+    },
+    {
+      "author": "Felipe Madrigal",
+      "commit": "d7e46398189abd89d18d874e3c53b42d492002b8",
+      "date": "2014-09-26",
+      "parents": [
+        "8df3a80fb8cd2b280d3b0b7d809ad80c1d0be236"
+      ],
+      "subject": "Rearrange rules for matching strict slash",
+      "tags": []
+    },
+    {
+      "author": "Felipe Madrigal",
+      "commit": "8df3a80fb8cd2b280d3b0b7d809ad80c1d0be236",
+      "date": "2014-09-26",
+      "parents": [
+        "4b8fbc56f3b2400a7c7ea3dba9b3539787c486b6"
+      ],
+      "subject": "Rearrange getHost function",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "4b8fbc56f3b2400a7c7ea3dba9b3539787c486b6",
+      "date": "2014-08-11",
+      "parents": [
+        "14cafe28513321476c73967a5a4f3454b6129c46",
+        "8f1a419c38688087a65a29395ac483f7b113c745"
+      ],
+      "subject": "Merge pull request #67 from pwaller/patch-1",
+      "tags": []
+    },
+    {
+      "author": "Peter Waller",
+      "commit": "8f1a419c38688087a65a29395ac483f7b113c745",
+      "date": "2014-08-11",
+      "parents": [
+        "14cafe28513321476c73967a5a4f3454b6129c46"
+      ],
+      "subject": "Remove blank line to fix docs for  Route.Queries",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "14cafe28513321476c73967a5a4f3454b6129c46",
+      "date": "2014-06-24",
+      "parents": [
+        "854d482e26505d59549690719cbc009f04042c2e",
+        "3351f602a5ba82692d059fad533e58702e0cb5ce"
+      ],
+      "subject": "Merge pull request #60 from roylee17/gofmt",
+      "tags": []
+    },
+    {
+      "author": "Tzu-Jung Lee",
+      "commit": "3351f602a5ba82692d059fad533e58702e0cb5ce",
+      "date": "2014-06-24",
+      "parents": [
+        "854d482e26505d59549690719cbc009f04042c2e"
+      ],
+      "subject": "gofmt",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "854d482e26505d59549690719cbc009f04042c2e",
+      "date": "2014-06-04",
+      "parents": [
+        "0ef595e787efa95d68151570ead5c85dc2e05f91"
+      ],
+      "subject": "Fix racy modification of NotFoundHandler.",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "0ef595e787efa95d68151570ead5c85dc2e05f91",
+      "date": "2014-05-27",
+      "parents": [
+        "2900ff05a48b4ab3619b7c56d87ea2859986e9c3",
+        "451fd8b7796015afbe01cfe9168e4c51e8b40013"
+      ],
+      "subject": "Merge pull request #56 from raphael/query-vars",
+      "tags": []
+    },
+    {
+      "author": "Raphael Simon",
+      "commit": "451fd8b7796015afbe01cfe9168e4c51e8b40013",
+      "date": "2014-05-27",
+      "parents": [
+        "3505396fb555c93ffac5e511eb8addb3bc4a9397"
+      ],
+      "subject": "Additional code cleanup (see comments on issue #56)",
+      "tags": []
+    },
+    {
+      "author": "Raphael Simon",
+      "commit": "3505396fb555c93ffac5e511eb8addb3bc4a9397",
+      "date": "2014-05-27",
+      "parents": [
+        "69237eaae593124b64a499c92be50a5ce17db2e6"
+      ],
+      "subject": "Code cleanup (see comments on issue #56)",
+      "tags": []
+    },
+    {
+      "author": "Raphael Simon",
+      "commit": "69237eaae593124b64a499c92be50a5ce17db2e6",
+      "date": "2014-05-27",
+      "parents": [
+        "0a0d6a1b2a0c75b931495697ce6a2182f810ffb3"
+      ],
+      "subject": "Fix \"Queries\" matcher to support out-of-order query string parameters",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "2900ff05a48b4ab3619b7c56d87ea2859986e9c3",
+      "date": "2014-05-27",
+      "parents": [
+        "136d54f81f00414c45c3c68dd47e98cc97519c5e",
+        "0a0d6a1b2a0c75b931495697ce6a2182f810ffb3"
+      ],
+      "subject": "Merge pull request #55 from raphael/query-vars",
+      "tags": []
+    },
+    {
+      "author": "Raphael Simon",
+      "commit": "0a0d6a1b2a0c75b931495697ce6a2182f810ffb3",
+      "date": "2014-05-27",
+      "parents": [
+        "c9469524da00abe15b8d00bb1ee9621d85ebdfbc"
+      ],
+      "subject": "Add tests for regexp variables in query strings",
+      "tags": []
+    },
+    {
+      "author": "Raphael Simon",
+      "commit": "c9469524da00abe15b8d00bb1ee9621d85ebdfbc",
+      "date": "2014-05-26",
+      "parents": [
+        "65cc9b5df83a841607cf9f88c58cb6cdd8ab0421"
+      ],
+      "subject": "Fix old tests",
+      "tags": []
+    },
+    {
+      "author": "Raphael Simon",
+      "commit": "65cc9b5df83a841607cf9f88c58cb6cdd8ab0421",
+      "date": "2014-05-26",
+      "parents": [
+        "136d54f81f00414c45c3c68dd47e98cc97519c5e"
+      ],
+      "subject": "Add ability to capture variables in query strings",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "136d54f81f00414c45c3c68dd47e98cc97519c5e",
+      "date": "2014-05-05",
+      "parents": [
+        "270c42505a11c779b5a5aaecfa5ec717adac996e",
+        "b864f07c539c7abc16652d65350d070d8e2810de"
+      ],
+      "subject": "Merge pull request #51 from ttencate/master",
+      "tags": []
+    },
+    {
+      "author": "Quinn Slack",
+      "commit": "a883d5a9b9d5fb9f3c084dd9858ee6fa11d9c622",
+      "date": "2014-04-17",
+      "parents": [
+        "cef3b0cd6d468434914c21146d6e400436f2d0e3"
+      ],
+      "subject": "Call parent BuildVarsFuncs",
+      "tags": []
+    },
+    {
+      "author": "Quinn Slack",
+      "commit": "cef3b0cd6d468434914c21146d6e400436f2d0e3",
+      "date": "2014-04-17",
+      "parents": [
+        "270c42505a11c779b5a5aaecfa5ec717adac996e"
+      ],
+      "subject": "Add BuildVarsFunc to allow modifying route variables before generating a route's URL",
+      "tags": []
+    },
+    {
+      "author": "Thomas ten Cate",
+      "commit": "b864f07c539c7abc16652d65350d070d8e2810de",
+      "date": "2014-04-23",
+      "parents": [
+        "3509745ae8a2db852c51794a6f6e9f1e533e1632"
+      ],
+      "subject": "Propagate StrictSlash to subrouters instead of rudely turning it off",
+      "tags": []
+    },
+    {
+      "author": "Thomas ten Cate",
+      "commit": "3509745ae8a2db852c51794a6f6e9f1e533e1632",
+      "date": "2014-04-23",
+      "parents": [
+        "bac13721298f7a2dbf554446a58826c2035e70e8"
+      ],
+      "subject": "Add tests for all four StrictSlash cases",
+      "tags": []
+    },
+    {
+      "author": "Thomas ten Cate",
+      "commit": "bac13721298f7a2dbf554446a58826c2035e70e8",
+      "date": "2014-04-23",
+      "parents": [
+        "033224c12ed48938d1815f4851103f86abcf6201"
+      ],
+      "subject": "Convert TestStrictSlash to a table driven test",
+      "tags": []
+    },
+    {
+      "author": "Thomas ten Cate",
+      "commit": "033224c12ed48938d1815f4851103f86abcf6201",
+      "date": "2014-04-23",
+      "parents": [
+        "525eff436e45137f9c4ffa422f18bab457a96500"
+      ],
+      "subject": "Document behaviour of StrictSlash and PathPrefix better, and add tests to nail this down",
+      "tags": []
+    },
+    {
+      "author": "Thomas ten Cate",
+      "commit": "525eff436e45137f9c4ffa422f18bab457a96500",
+      "date": "2014-04-23",
+      "parents": [
+        "270c42505a11c779b5a5aaecfa5ec717adac996e"
+      ],
+      "subject": "Improve docs about leading and trailing slashes",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "270c42505a11c779b5a5aaecfa5ec717adac996e",
+      "date": "2014-04-19",
+      "parents": [
+        "9ede152210fa25c1377d33e867cb828c19316445",
+        "9ee70e572c1827c6524470f8fd12839bf7b98a39"
+      ],
+      "subject": "Merge pull request #49 from sqs/gofmt",
+      "tags": []
+    },
+    {
+      "author": "Quinn Slack",
+      "commit": "9ee70e572c1827c6524470f8fd12839bf7b98a39",
+      "date": "2014-04-17",
+      "parents": [
+        "9ede152210fa25c1377d33e867cb828c19316445"
+      ],
+      "subject": "gofmt",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "9ede152210fa25c1377d33e867cb828c19316445",
+      "date": "2013-12-05",
+      "parents": [
+        "c4e0d8b3719dc4b032bb2b98720f55b30c6310d4"
+      ],
+      "subject": "Add go 1.2 to travis.yml",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "c4e0d8b3719dc4b032bb2b98720f55b30c6310d4",
+      "date": "2013-11-30",
+      "parents": [
+        "e807f7c33833c2264798b00c24fce1cfb6d6b298",
+        "ab8ae247f17a9f1bbe9bda321aa6719600eb4775"
+      ],
+      "subject": "Merge pull request #41 from pschlump/master",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "e807f7c33833c2264798b00c24fce1cfb6d6b298",
+      "date": "2013-11-30",
+      "parents": [
+        "3829d74241c40bf4b132a413fddeb190b061dc95"
+      ],
+      "subject": "Add Travis badge",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "3829d74241c40bf4b132a413fddeb190b061dc95",
+      "date": "2013-11-30",
+      "parents": [
+        "db86729398c8fbcbdcbba60d6a9b7d8af635764b"
+      ],
+      "subject": "Add travis.yml",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "db86729398c8fbcbdcbba60d6a9b7d8af635764b",
+      "date": "2013-11-30",
+      "parents": [
+        "42cbcc5a246f176e74a0a29f1afc00a2cfd3d11d",
+        "cebebed6c46dc99617b23015fa96ef1f78d93ee4"
+      ],
+      "subject": "Merge pull request #43 from andrewsmedina/gofmt",
+      "tags": []
+    },
+    {
+      "author": "Andrews Medina",
+      "commit": "cebebed6c46dc99617b23015fa96ef1f78d93ee4",
+      "date": "2013-11-30",
+      "parents": [
+        "42cbcc5a246f176e74a0a29f1afc00a2cfd3d11d"
+      ],
+      "subject": "go fmt.",
+      "tags": []
+    },
+    {
+      "author": "Philip Schlump",
+      "commit": "ab8ae247f17a9f1bbe9bda321aa6719600eb4775",
+      "date": "2013-11-18",
+      "parents": [
+        "6689ee8243e28381f38fff95d65c84a575fa86f8"
+      ],
+      "subject": "Fixed the domain name copied from my other code to be example.com",
+      "tags": []
+    },
+    {
+      "author": "Philip Schlump",
+      "commit": "6689ee8243e28381f38fff95d65c84a575fa86f8",
+      "date": "2013-11-18",
+      "parents": [
+        "1a2411f44a858576b750ffb9d5c0975570ef1f2d"
+      ],
+      "subject": "Cleaned up testing.",
+      "tags": []
+    },
+    {
+      "author": "Philip Schlump",
+      "commit": "1a2411f44a858576b750ffb9d5c0975570ef1f2d",
+      "date": "2013-11-18",
+      "parents": [
+        "d10d5466f2db2758bb616f627775692d2f69fe8a"
+      ],
+      "subject": "Added tests to verify that the 301 redirect returns query string",
+      "tags": []
+    },
+    {
+      "author": "Philip Schlump",
+      "commit": "d10d5466f2db2758bb616f627775692d2f69fe8a",
+      "date": "2013-11-15",
+      "parents": [
+        "42cbcc5a246f176e74a0a29f1afc00a2cfd3d11d"
+      ],
+      "subject": "Fixed problem with droping query string.",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "42cbcc5a246f176e74a0a29f1afc00a2cfd3d11d",
+      "date": "2013-11-10",
+      "parents": [
+        "b08c5fcf14d01cb0c20ddf70157f54d4a2c3a38a",
+        "9d99a927754de25f584c08c423866c12207ce9e3"
+      ],
+      "subject": "Merge pull request #38 from TheDude05/fix-doc-typo",
+      "tags": []
+    },
+    {
+      "author": "Andrew Williams",
+      "commit": "9d99a927754de25f584c08c423866c12207ce9e3",
+      "date": "2013-11-10",
+      "parents": [
+        "b08c5fcf14d01cb0c20ddf70157f54d4a2c3a38a"
+      ],
+      "subject": "Remove extra parentheses",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "b08c5fcf14d01cb0c20ddf70157f54d4a2c3a38a",
+      "date": "2013-09-11",
+      "parents": [
+        "ea1bb06e006eada8e54ad4116dfdabcb8520862c",
+        "0ae6d35b080d1dcbc5744904e4aec8504283115d"
+      ],
+      "subject": "Merge pull request #35 from JulienSchmidt/patch-1",
+      "tags": []
+    },
+    {
+      "author": "Julien Schmidt",
+      "commit": "0ae6d35b080d1dcbc5744904e4aec8504283115d",
+      "date": "2013-09-11",
+      "parents": [
+        "ea1bb06e006eada8e54ad4116dfdabcb8520862c"
+      ],
+      "subject": "Fix typo",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "ea1bb06e006eada8e54ad4116dfdabcb8520862c",
+      "date": "2013-08-29",
+      "parents": [
+        "e718e932ee606838744df844eb75064959eb74bc",
+        "04a79835ae36db13cbcc39e8420082a48549a42a"
+      ],
+      "subject": "Merge pull request #33 from Crisfole/fixDocumentation",
+      "tags": []
+    },
+    {
+      "author": "Christopher Pfohl",
+      "commit": "04a79835ae36db13cbcc39e8420082a48549a42a",
+      "date": "2013-08-29",
+      "parents": [
+        "e718e932ee606838744df844eb75064959eb74bc"
+      ],
+      "subject": "Add \"of\" like the rest of the function docstrings",
+      "tags": []
+    },
+    {
+      "author": "John Nadratowski",
+      "commit": "e718e932ee606838744df844eb75064959eb74bc",
+      "date": "2013-06-05",
+      "parents": [
+        "9b36453141c35697401168b07f2c09fcff7721ce"
+      ],
+      "subject": "Add KeepContext flag to Router to disable clearing of context data.",
+      "tags": []
+    },
+    {
+      "author": "rodrigo moraes",
+      "commit": "9b36453141c35697401168b07f2c09fcff7721ce",
+      "date": "2013-04-08",
+      "parents": [
+        "b9f42e6d55989960ba207c48c8796e1eb9300433"
+      ],
+      "subject": "Update README.md",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "b9f42e6d55989960ba207c48c8796e1eb9300433",
+      "date": "2013-03-25",
+      "parents": [
+        "36205eb8f163300ce74c2930f1dd0ca4cbfce815"
+      ],
+      "subject": "Tweak example indent",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "36205eb8f163300ce74c2930f1dd0ca4cbfce815",
+      "date": "2013-03-25",
+      "parents": [
+        "51a7bc30e9ae0df47f723814a4b0ab92109ea7eb",
+        "bb851ab75f24e4a2ad8593bda4ce72a76164ec26"
+      ],
+      "subject": "Merge pull request #15 from yodaiken/master",
+      "tags": []
+    },
+    {
+      "author": "Aaron Yodaiken",
+      "commit": "bb851ab75f24e4a2ad8593bda4ce72a76164ec26",
+      "date": "2013-03-25",
+      "parents": [
+        "51a7bc30e9ae0df47f723814a4b0ab92109ea7eb"
+      ],
+      "subject": "Add example MatcherFunc",
+      "tags": []
+    },
+    {
+      "author": "rodrigo moraes",
+      "commit": "51a7bc30e9ae0df47f723814a4b0ab92109ea7eb",
+      "date": "2013-02-03",
+      "parents": [
+        "2d12ebab422784600e293e3d197f9cec45255c54",
+        "38545dbae82fbb96b45986dcda1fcb87114904e2"
+      ],
+      "subject": "Merge pull request #12 from temoto/patch-1",
+      "tags": []
+    },
+    {
+      "author": "Sergey Shepelev",
+      "commit": "38545dbae82fbb96b45986dcda1fcb87114904e2",
+      "date": "2013-02-03",
+      "parents": [
+        "2d12ebab422784600e293e3d197f9cec45255c54"
+      ],
+      "subject": "Removed excess bool variable assignment in `if`s",
+      "tags": []
+    },
+    {
+      "author": "rodrigo moraes",
+      "commit": "2d12ebab422784600e293e3d197f9cec45255c54",
+      "date": "2013-01-17",
+      "parents": [
+        "a8ad2b0f1353d35106d769d0b98d55eeee970594",
+        "78f60492585e9f21942b155e870e019a401937ef"
+      ],
+      "subject": "Merge pull request #9 from golanger/master",
+      "tags": []
+    },
+    {
+      "author": "Jongmin Kim",
+      "commit": "78f60492585e9f21942b155e870e019a401937ef",
+      "date": "2013-01-17",
+      "parents": [
+        "a8ad2b0f1353d35106d769d0b98d55eeee970594"
+      ],
+      "subject": "Update mux.go",
+      "tags": []
+    },
+    {
+      "author": "moraes",
+      "commit": "a8ad2b0f1353d35106d769d0b98d55eeee970594",
+      "date": "2012-12-27",
+      "parents": [
+        "b20a198901ae3876ded3120faac0b5feec7fab76"
+      ],
+      "subject": "Now the real test for https://plus.google.com/101022900381697718949/posts/eWy6DjFJ6uW",
+      "tags": []
+    },
+    {
+      "author": "moraes",
+      "commit": "b20a198901ae3876ded3120faac0b5feec7fab76",
+      "date": "2012-12-27",
+      "parents": [
+        "99a7fbf24450ad77ca5bbaaafa0b3d5978031d82"
+      ],
+      "subject": "Test for https://plus.google.com/101022900381697718949/posts/eWy6DjFJ6uW",
+      "tags": []
+    },
+    {
+      "author": "rodrigo moraes",
+      "commit": "99a7fbf24450ad77ca5bbaaafa0b3d5978031d82",
+      "date": "2012-10-16",
+      "parents": [
+        "67d903c9a44618fd26fb4f8d0936b12904bd1c75",
+        "f89494aed121356fbc0ab4c1143cfdf7256477ae"
+      ],
+      "subject": "Merge pull request #3 from kisielk/test",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "f89494aed121356fbc0ab4c1143cfdf7256477ae",
+      "date": "2012-10-14",
+      "parents": [
+        "67d903c9a44618fd26fb4f8d0936b12904bd1c75"
+      ],
+      "subject": "Finished converting rest of mux tests to table tests",
+      "tags": []
+    },
+    {
+      "author": "rodrigo moraes",
+      "commit": "67d903c9a44618fd26fb4f8d0936b12904bd1c75",
+      "date": "2012-10-05",
+      "parents": [
+        "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+        "bcb4f4bcdcd397e47609704f9b88c327db9eaa90"
+      ],
+      "subject": "Merge pull request #1 from kisielk/test",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "bcb4f4bcdcd397e47609704f9b88c327db9eaa90",
+      "date": "2012-10-05",
+      "parents": [
+        "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a"
+      ],
+      "subject": "Converted TestRoute to a table-driven test",
+      "tags": []
+    },
+    {
+      "author": "moraes",
+      "commit": "eac83ba2c004bb759a2875b1f1dbb032adf8bb4a",
+      "date": "2012-10-03",
+      "parents": [
+        "4e8d10dc715feb79b43f1d607b45148537546a0a"
+      ],
+      "subject": "Initial files.",
+      "tags": []
+    },
+    {
+      "author": "rodrigo moraes",
+      "commit": "4e8d10dc715feb79b43f1d607b45148537546a0a",
+      "date": "2012-10-02",
+      "parents": [],
+      "subject": "Initial commit",
+      "tags": []
+    }
+  ],
+  "commits_more": false,
+  "commits_total": null,
+  "follow": false,
+  "mirrored_at": "2026-11-01T13:37Z",
+  "notes": [],
+  "path": null,
+  "repo": "github.com/gorilla/mux",
+  "rev": "v1.8.0",
+  "rev_a": null,
+  "rev_b": null,
+  "skip": 150
+}
+----- stderr -----
+----- end -----

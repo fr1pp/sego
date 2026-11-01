@@ -53,7 +53,8 @@ exit: 0
   "repo": "example.com/acme/widget",
   "rev": "v2.0.0",
   "rev_a": null,
-  "rev_b": null
+  "rev_b": null,
+  "skip": 0
 }
 ----- stderr -----
 ----- end -----

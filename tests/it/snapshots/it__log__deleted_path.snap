@@ -4,7 +4,7 @@ expression: "sego(&[\"log\", \"github.com/gorilla/mux@v1.8.0\", \"context_gorill
 ---
 exit: 0
 ----- stdout -----
-github.com/gorilla/mux@98cb6bf42e08:context_gorilla.go  2 commits  rev v1.8.0  mirrored 2026-10-27T07:21Z
+github.com/gorilla/mux@98cb6bf42e08:context_gorilla.go  2 commits  rev v1.8.0  mirrored 2026-11-01T08:33Z
 8771f97498c6  2018-09-02  Franklin Harding  Drop support for Go < 1.7: remove gorilla/context (#391)
 fdfca9f91739  2016-06-04  Eric J. Holmes  Support native context.Context when go1.7 is used.
 ----- stderr -----

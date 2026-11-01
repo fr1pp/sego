@@ -1,0 +1,15 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"-n\", \"5\", \"github.com/gorilla/mux@v1.8.0\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@98cb6bf42e08  5 commits shown; more exist  rev v1.8.0  mirrored 2026-11-01T08:33Z
+98cb6bf42e08  2020-07-11  Harshavardhana  (tag: v1.8.0) fix: regression in vars extract for wildcard host (#579)
+948bec34b516  2020-05-17  Eric Skoglund  docs: Remove stale text from comment. (#568)
+75dcda0896e1  2020-01-12  Klaus Post  (tag: v1.7.4) perf: reduce allocations in (*routeRegexp).getURLQuery (#544)
+49c01487a141  2019-11-21  Veselkov Konstantin  lint: Remove golint warning (#526)
+4de8a5a4d283  2019-11-19  wangming  fix headers regexp test (#536)
+----- stderr -----
+sego: note: sego log -n 5 --skip 5 github.com/gorilla/mux@98cb6bf42e08 continues from the last commit shown
+----- end -----

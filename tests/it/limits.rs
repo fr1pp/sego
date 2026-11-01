@@ -1,12 +1,16 @@
 //! sego's default limits. Their responses hold hundreds of entries, so these
 //! tests build them in a loop, and check the count and the edges of the answer.
 
+use std::ffi::OsStr;
 use std::fmt::Write as _;
 
 use serde_json::{Value, json};
 
+use sego::{Response, TransportError};
+
 use crate::common::recording::ServerResponse;
-use crate::common::{Ran, answered};
+use crate::common::replay::Answers;
+use crate::common::{Ran, answered, sego_through};
 
 const WIDGET: &str = "example.com/acme/widget";
 const BASE: &str = "0123456789abcdef0123456789abcdef01234567";
@@ -453,4 +457,208 @@ fn show_raw_read_default_window_has_pointer() {
     let outcome = answered(&["show", "example.com/acme/widget@main:big.c"], [response.into(), raw]);
     let first = format!("{WIDGET}@d81fd54f1a2b:big.c  lines 1-500 of 501 (1- for all)  rev main");
     printed(&outcome, &first, 501, "500:line 500");
+}
+
+const PAGE: usize = 20_000;
+
+/// `count` commits of a log, numbered from `from`.
+fn log_nodes(from: usize, count: usize) -> Vec<Value> {
+    (from..from + count)
+        .map(|n| {
+            json!({
+                "oid": format!("{n:040x}"),
+                "subject": format!("Commit {n}"),
+                "author": {
+                    "date": "2026-07-30T17:30:00Z",
+                    "person": {"displayName": AUTHOR},
+                },
+                "parents": [],
+            })
+        })
+        .collect()
+}
+
+fn log_commits(from: usize, count: usize, more: bool) -> Value {
+    let cursor = more.then(|| (from + count).to_string());
+    json!({
+        "nodes": log_nodes(from, count),
+        "pageInfo": {"hasNextPage": more, "endCursor": cursor},
+    })
+}
+
+/// The first page of a log of `widget@v1`.
+fn log_first_page(count: usize, more: bool) -> Value {
+    json!({"data": {
+        "r0": {
+            "name": WIDGET,
+            "defaultBranch": {"displayName": "main"},
+            "mirrorInfo": null,
+            "commit": {
+                "oid": HEAD,
+                "w": {"commit": {"ancestors": log_commits(0, count, more)}},
+            },
+        },
+        "t0": {"gitRefs": {"nodes": []}},
+    }})
+}
+
+/// A later page of a log of a revision.
+fn log_later_page(from: usize, count: usize, more: bool) -> Value {
+    json!({"data": {"repository": {"commit": {"ancestors": log_commits(from, count, more)}}}})
+}
+
+fn log_range_ends() -> Value {
+    json!({"data": {"r0": {
+        "name": WIDGET,
+        "defaultBranch": {"displayName": "main"},
+        "mirrorInfo": null,
+        "a": {"oid": BASE},
+        "b": {"oid": HEAD},
+    }}})
+}
+
+/// The first page of a log of `widget@a..b`, of a range of `total` commits.
+fn log_range_first_page(count: usize, total: usize) -> Value {
+    json!({"data": {
+        "a": {"commit": {"oid": BASE}},
+        "b": {"commit": {"oid": HEAD}},
+        "c": {
+            "name": WIDGET,
+            "defaultBranch": {"displayName": "main"},
+            "comparison": {"commits": log_commits(0, count, count < total)},
+        },
+        "n": {"commit": {"behindAhead": {"ahead": total, "behind": 0}}},
+        "t": {"gitRefs": {"nodes": []}},
+    }})
+}
+
+fn log_range_later_page(from: usize, count: usize, more: bool) -> Value {
+    json!({"data": {"repository": {"comparison": {"commits": log_commits(from, count, more)}}}})
+}
+
+fn widget_log() -> String {
+    format!("{WIDGET}@v1")
+}
+
+fn widget_range() -> String {
+    format!("{WIDGET}@a..b")
+}
+
+/// A count past one request's page reads the pages it needs, and stays exact.
+#[test]
+fn log_count_past_a_page_reads_on() {
+    let log = widget_log();
+    let outcome = answered(
+        &["log", "-n", "20003", &log],
+        [log_first_page(PAGE, true), log_later_page(PAGE, 3, true)],
+    );
+    let lines: Vec<&str> = outcome.stdout.lines().collect();
+    assert_eq!(outcome.code, 0, "{}", outcome.stderr);
+    assert_eq!(lines.len(), 20_004);
+    assert!(lines[0].contains("20003 commits shown; more exist"), "{}", lines[0]);
+    assert!(lines[20_003].contains("Commit 20002"), "{}", lines[20_003]);
+    let pointer = format!("sego log -n 20003 --skip 20003 {WIDGET}@89abcdef0123 continues");
+    assert!(outcome.stderr.contains(&pointer), "{}", outcome.stderr);
+}
+
+/// One commit left over a page is asked for as two, and one is kept.
+#[test]
+fn log_count_one_past_a_page_keeps_one() {
+    let log = widget_log();
+    let outcome = answered(
+        &["log", "-n", "20001", "--json", &log],
+        [log_first_page(PAGE, true), log_later_page(PAGE, 2, false)],
+    );
+    let answer: Value = serde_json::from_str(&outcome.stdout).unwrap_or_else(|e| panic!("{e}"));
+    assert_eq!(answer["commits"].as_array().map(Vec::len), Some(20_001));
+    assert_eq!(answer["commits_more"], true);
+}
+
+/// A count of exactly one page is one request.
+#[test]
+fn log_count_of_exactly_a_page_is_one_request() {
+    let log = widget_log();
+    let outcome = answered(&["log", "-n", "20000", &log], [log_first_page(PAGE, true)]);
+    assert_eq!(outcome.code, 0, "{}", outcome.stderr);
+    assert_eq!(outcome.stdout.lines().count(), 20_001);
+}
+
+/// `--json` on a range with no count reads to the end of the range.
+#[test]
+fn log_range_json_reads_every_page() {
+    let range = widget_range();
+    let outcome = answered(
+        &["log", "--json", &range],
+        [
+            log_range_ends(),
+            log_range_first_page(PAGE, 20_003),
+            log_range_later_page(PAGE, 3, false),
+        ],
+    );
+    assert_eq!(outcome.code, 0, "{}", outcome.stderr);
+    let answer: Value = serde_json::from_str(&outcome.stdout).unwrap_or_else(|e| panic!("{e}"));
+    assert_eq!(answer["commits"].as_array().map(Vec::len), Some(20_003));
+    assert_eq!(answer["commits_total"], 20_003);
+    assert_eq!(answer["commits_more"], false);
+    assert_eq!(outcome.stderr, "");
+}
+
+/// A later page that fails fails the answer: its commits were asked for.
+#[test]
+fn log_later_page_that_fails_fails_the_answer() {
+    let log = widget_log();
+    let failed = json!({"data": null, "errors": [{"message": "boom", "path": ["repository"]}]});
+    let outcome = answered(&["log", "-n", "20003", &log], [log_first_page(PAGE, true), failed]);
+    assert_eq!(outcome.code, 3);
+    assert_eq!(outcome.stdout, "");
+}
+
+/// What a log prints when the deadline passes after `answers`.
+fn log_cut_by_the_deadline(args: &[&str], answers: Vec<Value>) -> Ran {
+    let mut answers: Vec<Result<Response, TransportError>> =
+        answers.into_iter().map(|answer| Ok(ServerResponse::from(answer).served())).collect();
+    answers.push(Err(TransportError::Deadline));
+    sego_through(args, OsStr::new("off"), &Answers::new(answers))
+}
+
+/// The deadline keeps what was read, and the pointer gets what is left.
+#[test]
+fn log_at_the_deadline_prints_what_it_read() {
+    let log = widget_log();
+    let args = ["log", "-n", "30000", log.as_str()];
+    let outcome = log_cut_by_the_deadline(&args, vec![log_first_page(PAGE, true)]);
+    assert_eq!(outcome.code, 0, "{}", outcome.stderr);
+    assert_eq!(outcome.stdout.lines().count(), 20_001);
+    assert_eq!(
+        outcome.stderr,
+        format!(
+            "sego: note: stopped at the 90 s deadline\n\
+             sego: note: sego log -n 10000 --skip 20000 {WIDGET}@89abcdef0123 continues from \
+             the last commit shown\n"
+        )
+    );
+}
+
+#[test]
+fn log_range_at_the_deadline_prints_what_it_read() {
+    let range = widget_range();
+    let args = ["log", "--json", range.as_str()];
+    let answers = vec![log_range_ends(), log_range_first_page(PAGE, 25_000)];
+    let outcome = log_cut_by_the_deadline(&args, answers);
+    assert_eq!(outcome.code, 0, "{}", outcome.stderr);
+    let answer: Value = serde_json::from_str(&outcome.stdout).unwrap_or_else(|e| panic!("{e}"));
+    assert_eq!(answer["commits"].as_array().map(Vec::len), Some(PAGE));
+    assert_eq!(answer["commits_more"], true);
+    let pointer = format!("sego log --skip 20000 {WIDGET}@0123456789ab..89abcdef0123 continues");
+    assert!(outcome.stderr.contains(&pointer), "{}", outcome.stderr);
+}
+
+/// A followed log at the limit can't ask for more, and says so.
+#[test]
+fn log_follow_at_the_limit_states_it() {
+    let log = widget_log();
+    let outcome =
+        answered(&["log", "--follow", "-n", "20000", &log, "a.go"], [log_first_page(PAGE, true)]);
+    assert_eq!(outcome.code, 0, "{}", outcome.stderr);
+    assert!(outcome.stderr.contains("--follow lists at most 20000 commits"), "{}", outcome.stderr);
 }

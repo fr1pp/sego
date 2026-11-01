@@ -4,7 +4,7 @@ expression: "sego(&[\"log\", \"github.com/gorilla/mux@v1.8.0\"])"
 ---
 exit: 0
 ----- stdout -----
-github.com/gorilla/mux@98cb6bf42e08  150 commits shown; more exist  rev v1.8.0  mirrored 2026-10-27T07:22Z
+github.com/gorilla/mux@98cb6bf42e08  150 commits shown; more exist  rev v1.8.0  mirrored 2026-11-01T13:37Z
 98cb6bf42e08  2020-07-11  Harshavardhana  (tag: v1.8.0) fix: regression in vars extract for wildcard host (#579)
 948bec34b516  2020-05-17  Eric Skoglund  docs: Remove stale text from comment. (#568)
 75dcda0896e1  2020-01-12  Klaus Post  (tag: v1.7.4) perf: reduce allocations in (*routeRegexp).getURLQuery (#544)
@@ -156,5 +156,5 @@ a41434aac388  2016-05-02  Owen Ou  Clarify more of `SkipClean`
 0eeaf8392f5b  2016-03-17  Matt Silverlock  (tag: v1.1) Merge pull request #158 from raninho/master
 8e05c69b5a3a  2016-03-17  Raniere Fernandes de Medeiros  old_test: const DefaultRemoteAddr is unused.
 ----- stderr -----
-sego: note: sego log github.com/gorilla/mux@8e05c69b5a3a and sego log --json github.com/gorilla/mux@8e05c69b5a3a..98cb6bf42e08 together list every commit this log left out
+sego: note: sego log --skip 150 github.com/gorilla/mux@98cb6bf42e08 continues from the last commit shown
 ----- end -----

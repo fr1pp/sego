@@ -156,4 +156,5 @@ b9ff34f617bc  2017-01-17  ShaneSaww  Adding some extra tests, to hit all the use
 239e05fe53b5  2016-09-30  Ken Wronkiewicz  Clarify how route variables work. (#151)
 757bef944d0f  2016-09-20  Kamil Kisiel  Merge pull request #196 from olt/doc-non-capture-groups
 ----- stderr -----
+sego: note: sego log --skip 150 github.com/gorilla/mux@0eeaf8392f5b..b4617d0b9670 continues from the last commit shown
 ----- end -----

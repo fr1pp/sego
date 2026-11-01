@@ -23,7 +23,7 @@ use crate::cache::{Cache, Entry};
 use crate::error::{Error, Kind};
 use graphql::{Envelope, Request};
 
-pub use commits::{Change, CommitSummary, Diff, History, Tag};
+pub use commits::{COMMIT_PAGE, Change, CommitSummary, Diff, History, Tag};
 pub use files::{Content, File, Submodule, Window};
 pub use graphql::regexp_reason;
 pub use http::Ureq;
@@ -184,8 +184,11 @@ impl<'a> Client<'a> {
     }
 
     /// The commits `revisions` covers touching `path`, across renames when
-    /// `follow`: the first `first`, or all for `None`. A
-    /// range is read by its commits' IDs once both ends resolve.
+    /// `follow`: after the first `skip`, the next `first`, or all for `None`.
+    /// A range is read by its commits' IDs once both ends resolve. A followed
+    /// history is one request, since `after:` can't page one
+    /// (docs/research/log-paging.md). If the deadline passes once a page is
+    /// read, the history is what was read, `stopped`.
     pub fn history(
         self,
         repo: &Repo,
@@ -193,16 +196,60 @@ impl<'a> Client<'a> {
         path: Option<&str>,
         follow: bool,
         first: Option<u32>,
+        skip: u32,
     ) -> Result<History, Error> {
-        let ends = match revisions {
+        let wanted = first.map_or(usize::MAX, |first| first as usize);
+        let size = page_size(wanted);
+        let mut history = match revisions {
             Revisions::One(head) => {
-                let request = commits::history_request(repo, head, path, follow, first);
-                return commits::read_history(&self.exchange(&request)?, repo, head, path);
+                let request = commits::history_request(repo, head, path, follow, size, skip);
+                commits::read_history(&self.exchange(&request)?, repo, head, path, skip)?
             }
-            Revisions::Range { base, head } => self.ends(repo, base, head)?,
+            Revisions::Range { base, head } => {
+                let ends = self.ends(repo, base, head)?;
+                let request = commits::range_history_request(&ends, path, size, skip);
+                commits::read_range_history(&self.exchange(&request)?, ends, path, skip)?
+            }
         };
-        let request = commits::range_history_request(&ends, path, first);
-        commits::read_range_history(&self.exchange(&request)?, ends, path)
+        if !follow {
+            self.read_on(&mut history, path, wanted)?;
+        }
+        if history.commits.items.len() > wanted {
+            history.commits.items.truncate(wanted);
+            history.commits.more = true;
+        }
+        Ok(history)
+    }
+
+    /// Reads the pages after the first until `history` holds `wanted` commits
+    /// or has no more, and marks it `stopped` if the deadline comes first.
+    fn read_on(
+        &self,
+        history: &mut History,
+        path: Option<&str>,
+        wanted: usize,
+    ) -> Result<(), Error> {
+        while history.commits.more && history.commits.items.len() < wanted {
+            let Some(after) = history.cursor.take() else {
+                return Ok(());
+            };
+            let size = page_size(wanted - history.commits.items.len());
+            let request = commits::page_request(history, path, size, &after);
+            let range = history.base.is_some();
+            match self.exchange(&request).and_then(|page| commits::read_page(&page, range)) {
+                Ok((page, cursor)) => {
+                    history.commits.items.extend(page.items);
+                    history.commits.more = page.more;
+                    history.cursor = cursor;
+                }
+                Err(error) if error.kind() == Kind::Deadline => {
+                    history.stopped = true;
+                    return Ok(());
+                }
+                Err(error) => return Err(error),
+            }
+        }
+        Ok(())
     }
 
     /// Both ends of the range `base` and `head` in `repo`, resolved in one
@@ -223,6 +270,12 @@ impl<'a> Client<'a> {
         let envelope = self.exchange(&refs::request(repo, text, first))?;
         refs::read(&envelope, repo, text)
     }
+}
+
+/// The `first:` that reads `left` commits. `first: 1` always reports a next
+/// page, so a single commit is asked for as two.
+fn page_size(left: usize) -> u32 {
+    u32::try_from(left).map_or(COMMIT_PAGE, |left| left.clamp(2, COMMIT_PAGE))
 }
 
 const DEFAULT_ENDPOINT: &str = "https://sourcegraph.com";
@@ -390,6 +443,7 @@ mod tests {
     struct Script {
         responses: Rc<RefCell<VecDeque<Result<Response, TransportError>>>>,
         asked: Rc<RefCell<Vec<String>>>,
+        bodies: Rc<RefCell<Vec<serde_json::Value>>>,
         deadlines: Rc<RefCell<Vec<Instant>>>,
         delay: Duration,
     }
@@ -417,10 +471,11 @@ mod tests {
         fn post(
             &self,
             path: &str,
-            _: &[u8],
+            body: &[u8],
             deadline: Instant,
         ) -> Result<Response, TransportError> {
             self.deadlines.borrow_mut().push(deadline);
+            self.bodies.borrow_mut().extend(serde_json::from_slice(body));
             self.answer(format!("POST {path}"))
         }
 
@@ -555,6 +610,149 @@ mod tests {
         let deadlines = script.deadlines.borrow();
         let gap = deadlines[0].saturating_duration_since(deadlines[1]);
         assert!(gap + TAGS_DEADLINE + Duration::from_secs(1) > DEADLINE, "{gap:?}");
+    }
+
+    /// A page of a log: one commit, with `cursor` when more follow.
+    fn page_of_a_log(cursor: Option<&str>) -> serde_json::Value {
+        json!({
+            "nodes": [{
+                "oid": "c".repeat(40),
+                "subject": "Fix",
+                "author": {"date": "2026-01-01T00:00:00Z", "person": {"displayName": "Ada"}},
+                "parents": [],
+            }],
+            "pageInfo": {"hasNextPage": cursor.is_some(), "endCursor": cursor},
+        })
+    }
+
+    #[test]
+    fn a_later_page_sends_the_servers_cursor_as_it_came_at_the_commits_full_id() {
+        let first = json!({"data": {
+            "r0": {
+                "name": "github.com/gorilla/mux",
+                "defaultBranch": {"displayName": "main"},
+                "mirrorInfo": null,
+                "commit": {
+                    "oid": "a".repeat(40),
+                    "w": {"commit": {"ancestors": page_of_a_log(Some("not a number"))}},
+                },
+            },
+            "t0": {"gitRefs": {"nodes": []}},
+        }});
+        let later = json!({"data": {"repository": {"commit": {
+            "ancestors": page_of_a_log(None),
+        }}}});
+        let script = Script::new(vec![Ok(json(&first)), Ok(json(&later))], Duration::ZERO);
+        let repo = Repo::Exact("github.com/gorilla/mux".to_owned());
+        let history = run(&script, DEADLINE, |client| {
+            client.history(&repo, Revisions::One(Some("v1")), None, false, Some(5), 0)
+        })
+        .unwrap_or_else(|e| panic!("{e}"));
+        assert_eq!(history.commits.items.len(), 2);
+        let bodies = script.bodies.borrow();
+        assert_eq!(bodies[0]["variables"]["first"], 5);
+        assert_eq!(bodies[1]["operationName"], "LogPage");
+        assert_eq!(bodies[1]["variables"]["after"], "not a number");
+        assert_eq!(bodies[1]["variables"]["commit"], "a".repeat(40));
+        assert_eq!(bodies[1]["variables"]["first"], 4);
+    }
+
+    /// What paging a commit list relies on and Sourcegraph doesn't promise
+    /// (docs/research/log-paging.md). Each also sends a document no recording
+    /// can reach, since a recorded log is shorter than a page.
+    mod live_rules {
+        use std::time::Instant;
+
+        use super::super::*;
+
+        fn asked<T>(ask: impl FnOnce(Client<'_>) -> Result<T, Error>) -> T {
+            let endpoint = Endpoint::default();
+            let cache = endpoint.cache(Some(OsStr::new("off")));
+            let deadline = Instant::now() + DEADLINE;
+            let client =
+                Client::new(crate::connect(Endpoint::default()), endpoint, &cache, deadline);
+            ask(client).unwrap_or_else(|e| panic!("{e}"))
+        }
+
+        fn mux() -> Repo {
+            Repo::Exact("github.com/gorilla/mux".to_owned())
+        }
+
+        fn ids(commits: &[CommitSummary]) -> Vec<&str> {
+            commits.iter().map(|commit| commit.oid.as_str()).collect()
+        }
+
+        fn history(repo: &Repo, rev: &str, first: u32, skip: u32) -> History {
+            let rev = Some(rev);
+            asked(|client| {
+                let request = commits::history_request(repo, rev, None, false, first, skip);
+                commits::read_history(&client.exchange(&request)?, repo, rev, None, skip)
+            })
+        }
+
+        fn range(base: &str, head: &str, first: u32) -> History {
+            let repo = mux();
+            asked(|client| {
+                let ends = client.ends(&repo, base, head)?;
+                let request = commits::range_history_request(&ends, None, first, 0);
+                commits::read_range_history(&client.exchange(&request)?, ends, None, 0)
+            })
+        }
+
+        fn page(history: &History, first: u32, after: &str) -> Vec<CommitSummary> {
+            let range = history.base.is_some();
+            asked(|client| {
+                let request = commits::page_request(history, None, first, after);
+                commits::read_page(&client.exchange(&request)?, range)
+            })
+            .0
+            .items
+        }
+
+        #[test]
+        #[ignore = "sends requests to sourcegraph.com; run with `just live`"]
+        fn a_cursor_is_an_offset_and_a_page_continues_a_revision() {
+            let whole = history(&mux(), "v1.8.0", 6, 0);
+            let first = history(&mux(), "v1.8.0", 3, 0);
+            assert_eq!(first.cursor.as_deref(), Some("3"));
+            let later = page(&first, 3, "3");
+            let skipped = history(&mux(), "v1.8.0", 3, 3);
+            assert_eq!(ids(&later), ids(&whole.commits.items[3..]));
+            assert_eq!(ids(&skipped.commits.items), ids(&whole.commits.items[3..]));
+        }
+
+        #[test]
+        #[ignore = "sends requests to sourcegraph.com; run with `just live`"]
+        fn a_cursor_is_an_offset_and_a_page_continues_a_range() {
+            let whole = range("v1.6.2", "v1.8.0", 6);
+            let first = range("v1.6.2", "v1.8.0", 3);
+            assert_eq!(first.cursor.as_deref(), Some("3"));
+            let later = page(&first, 3, "3");
+            assert_eq!(ids(&later), ids(&whole.commits.items[3..]));
+        }
+
+        #[test]
+        #[ignore = "sends requests to sourcegraph.com; run with `just live`"]
+        fn a_page_passes_the_cost_check_in_every_document_that_asks_for_one() {
+            let repo = Repo::Exact("github.com/kubernetes/kubernetes".to_owned());
+            let first = Some(COMMIT_PAGE);
+            let size = usize::try_from(COMMIT_PAGE).unwrap_or(usize::MAX);
+            let one = Revisions::One(Some("v1.28.0"));
+            let listed = asked(|client| client.history(&repo, one, None, false, first, 0));
+            assert_eq!(listed.commits.items.len(), size);
+            let span = Revisions::Range { base: "v1.20.0", head: "v1.28.0" };
+            let listed = asked(|client| client.history(&repo, span, None, false, first, 0));
+            assert_eq!(listed.commits.items.len(), size);
+        }
+
+        #[test]
+        #[ignore = "sends requests to sourcegraph.com; run with `just live`"]
+        fn a_page_of_two_says_truly_where_a_history_ends() {
+            let last = history(&mux(), "v1.8.0", 2, 286);
+            assert_eq!(last.commits.items.len(), 1);
+            assert!(!last.commits.more);
+            assert_eq!(last.cursor, None);
+        }
     }
 
     #[test]

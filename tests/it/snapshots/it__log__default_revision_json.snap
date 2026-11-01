@@ -611,13 +611,14 @@ exit: 0
   "commits_more": false,
   "commits_total": null,
   "follow": false,
-  "mirrored_at": "2026-10-26T23:51Z",
+  "mirrored_at": "2026-11-01T08:20Z",
   "notes": [],
   "path": null,
   "repo": "github.com/gorilla/context",
   "rev": null,
   "rev_a": null,
-  "rev_b": null
+  "rev_b": null,
+  "skip": 0
 }
 ----- stderr -----
 ----- end -----

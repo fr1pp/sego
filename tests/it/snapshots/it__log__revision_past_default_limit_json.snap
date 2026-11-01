@@ -1553,16 +1553,17 @@ exit: 0
   "commits_more": true,
   "commits_total": null,
   "follow": false,
-  "mirrored_at": "2026-10-27T07:22Z",
+  "mirrored_at": "2026-11-01T13:37Z",
   "notes": [
-    "sego log github.com/gorilla/mux@8e05c69b5a3a and sego log --json github.com/gorilla/mux@8e05c69b5a3a..98cb6bf42e08 together list every commit this log left out"
+    "sego log --skip 150 github.com/gorilla/mux@98cb6bf42e08 continues from the last commit shown"
   ],
   "path": null,
   "repo": "github.com/gorilla/mux",
   "rev": "v1.8.0",
   "rev_a": null,
-  "rev_b": null
+  "rev_b": null,
+  "skip": 0
 }
 ----- stderr -----
-sego: note: sego log github.com/gorilla/mux@8e05c69b5a3a and sego log --json github.com/gorilla/mux@8e05c69b5a3a..98cb6bf42e08 together list every commit this log left out
+sego: note: sego log --skip 150 github.com/gorilla/mux@98cb6bf42e08 continues from the last commit shown
 ----- end -----

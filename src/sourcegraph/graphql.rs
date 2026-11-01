@@ -24,6 +24,8 @@ pub struct GqlError {
     pub path: Vec<Segment>,
     /// `extensions.code`.
     pub code: Option<String>,
+    /// `extensions.actual` and `extensions.limit`, on a query over a limit.
+    pub over: Option<(u64, u64)>,
 }
 
 /// What a server error says, whatever its wording; each reader decides what
@@ -235,10 +237,12 @@ fn is_json(media: &str) -> bool {
 }
 
 fn complexity_message(body: &Value) -> Option<String> {
-    read_errors(body)
-        .into_iter()
-        .find(|error| error.kind() == GqlErrorKind::Complexity)
-        .map(|error| error.message)
+    read_errors(body).into_iter().find(|error| error.kind() == GqlErrorKind::Complexity).map(
+        |error| match error.over {
+            Some((actual, limit)) => format!("{} (actual {actual}, limit {limit})", error.message),
+            None => error.message,
+        },
+    )
 }
 
 fn read_errors(body: &Value) -> Vec<GqlError> {
@@ -258,6 +262,10 @@ fn read_errors(body: &Value) -> Vec<GqlError> {
                 .and_then(|e| e.get("code"))
                 .and_then(Value::as_str)
                 .map(str::to_owned),
+            over: error.get("extensions").and_then(|extensions| {
+                let number = |key: &str| extensions.get(key).and_then(Value::as_u64);
+                Some((number("actual")?, number("limit")?))
+            }),
         })
         .collect()
 }
@@ -380,6 +388,7 @@ mod tests {
             message: message.to_owned(),
             path: vec![Segment::Key("r0".to_owned())],
             code: None,
+            over: None,
         }
     }
 
@@ -516,14 +525,18 @@ mod tests {
                 json_response(
                     400,
                     &json!({"errors": [{
-                        "message": "query complexity limit exceeded (cost 5001, \
-                                    limit 5000)",
-                        "extensions": {"code": "ErrQueryComplexityLimitExceeded"},
+                        "message": "Query exceeds maximum field count limit",
+                        "extensions": {
+                            "code": "ErrQueryComplexityLimitExceeded",
+                            "type": "field count",
+                            "limit": 500_000,
+                            "actual": 500_012,
+                        },
                     }]}),
                 ),
                 Kind::Upstream,
-                "Sourcegraph rejected the request: query complexity limit \
-             exceeded (cost 5001, limit 5000)"
+                "Sourcegraph rejected the request: Query exceeds maximum field count \
+             limit (actual 500012, limit 500000)"
                     .into(),
             ),
             (

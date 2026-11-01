@@ -199,22 +199,27 @@ operands:
 const LOG_OPTIONS: &str = "\
 options:
   --json       one JSON document on stdout
+  -n N         list N commits
+  --skip N     start after the first N commits of the log
   --follow     follow PATH back through renames, as git log --follow; one
-               revision and one plain path; merges aren't listed
+               revision and one plain path; takes -n up to 20000 and no
+               --skip; merges aren't listed
   -h, --help   this help, or a command's help after its name
   --version    sego's version
 ";
 
 const LOG_FACTS: &str = r#"text:
-  REPO@COMMIT[:PATH]  N commits  behind B  follow  rev REV  mirrored T,
+  REPO@COMMIT[:PATH]  N commits  skip N  behind B  follow  rev REV  mirrored T,
   then a row per commit, "COMMIT  DATE  AUTHOR  SUBJECT", with
   "(tag: NAME)" before the subject of a tagged commit. behind B: commits
   in A and not in B, for a range with no PATH.
-  Text and JSON list the first 150 commits of a REV, and without --follow
-  a note names what lists the rest; a range lists them all in JSON.
+  Without -n, a REV lists 150 commits, and a range lists 150 in text and
+  all of them in JSON. A note names the command that gets the rest of a
+  cut log. A log that reaches sego's deadline prints the commits it read,
+  with that note.
 
 json:
-  repo rev commit rev_a rev_b commit_a commit_b path follow behind
+  repo rev commit rev_a rev_b commit_a commit_b path follow skip behind
   commits_total commits_more commits[{commit date author subject parents
   tags}]; date is the UTC day of the author date; tags is null when the
   tag list couldn't be read; mirrored_at notes

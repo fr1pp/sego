@@ -288,7 +288,7 @@ fn commits_with_control_characters_json() {
     );
     assert_eq!(
         ran.stdout,
-        "{\"repo\":\"example.com/acme/widget\",\"rev\":\"v2.0.0\",\"commit\":\"0123456789abcdef0123456789abcdef01234567\",\"rev_a\":null,\"rev_b\":null,\"commit_a\":null,\"commit_b\":null,\"path\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"follow\":false,\"behind\":null,\"commits_total\":null,\"commits_more\":false,\"commits\":[{\"commit\":\"0123456789abcdef0123456789abcdef01234567\",\"date\":\"2026-08-01\",\"author\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"subject\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"parents\":[\"89abcdef0123456789abcdef0123456789abcdef\"],\"tags\":[\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"t-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\"]},{\"commit\":\"89abcdef0123456789abcdef0123456789abcdef\",\"date\":\"a\\u001bb\\u202ec\\u200bd\\ne\\r\",\"author\":\"b-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"subject\":\"b-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"parents\":[\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\"],\"tags\":[]},{\"commit\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"date\":\"2026-07-01\",\"author\":\"c-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"subject\":\"c-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"parents\":[],\"tags\":[\"u-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\"]}],\"mirrored_at\":null,\"notes\":[]}\n"
+        "{\"repo\":\"example.com/acme/widget\",\"rev\":\"v2.0.0\",\"commit\":\"0123456789abcdef0123456789abcdef01234567\",\"rev_a\":null,\"rev_b\":null,\"commit_a\":null,\"commit_b\":null,\"path\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"follow\":false,\"skip\":0,\"behind\":null,\"commits_total\":null,\"commits_more\":false,\"commits\":[{\"commit\":\"0123456789abcdef0123456789abcdef01234567\",\"date\":\"2026-08-01\",\"author\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"subject\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"parents\":[\"89abcdef0123456789abcdef0123456789abcdef\"],\"tags\":[\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"t-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\"]},{\"commit\":\"89abcdef0123456789abcdef0123456789abcdef\",\"date\":\"a\\u001bb\\u202ec\\u200bd\\ne\\r\",\"author\":\"b-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"subject\":\"b-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"parents\":[\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\"],\"tags\":[]},{\"commit\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"date\":\"2026-07-01\",\"author\":\"c-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"subject\":\"c-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"parents\":[],\"tags\":[\"u-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\"]}],\"mirrored_at\":null,\"notes\":[]}\n"
     );
     assert_snapshot!(ran);
 }
@@ -417,10 +417,9 @@ fn follow_crosses_a_rename() {
     assert_snapshot!(sego(&["log", "--follow", "github.com/gorilla/mux@v1.8.0", "context.go"]));
 }
 
-/// A cut log that follows renames has no pointer: the last commit shown can hold the path under an
-/// older name.
+/// A followed log can't page, so its pointer asks for more commits from the start.
 #[test]
-fn follow_past_150_commits_points_nowhere() {
+fn follow_past_150_commits_points_to_a_larger_count() {
     assert_snapshot!(sego(&[
         "log",
         "--follow",
@@ -887,4 +886,114 @@ fn tags_not_marked_when_the_tag_list_fails_json() {
         &["log", "--json", "github.com/gorilla/mux@v1.8.0:go.mod"],
         [response]
     ));
+}
+
+/// A count below the default lists that many, and its pointer keeps the count.
+#[test]
+fn count_below_the_default() {
+    assert_snapshot!(sego(&["log", "-n", "5", "github.com/gorilla/mux@v1.8.0"]));
+}
+
+#[test]
+fn count_below_the_default_json() {
+    assert_snapshot!(sego(&["log", "--json", "-n", "5", "github.com/gorilla/mux@v1.8.0"]));
+}
+
+/// One commit is asked for as two, so the answer can say whether more exist.
+#[test]
+fn count_of_one_says_more_exist() {
+    assert_snapshot!(sego(&["log", "-n", "1", "github.com/gorilla/mux@v1.8.0"]));
+}
+
+#[test]
+fn count_of_one_at_the_last_commit() {
+    assert_snapshot!(sego(&["log", "-n", "1", "--skip", "286", "github.com/gorilla/mux@v1.8.0"]));
+}
+
+/// An explicit count is the whole of what it asked for, past the default.
+#[test]
+fn count_past_the_default() {
+    assert_snapshot!(sego(&["log", "-n", "200", "github.com/gorilla/mux@v1.8.0"]));
+}
+
+#[test]
+fn count_in_a_range() {
+    assert_snapshot!(sego(&["log", "-n", "3", "github.com/gorilla/mux@v1.7.1..v1.7.4"]));
+}
+
+/// The commits after the first 150, with none repeated.
+#[test]
+fn skip_continues_a_cut_log() {
+    assert_snapshot!(sego(&["log", "--skip", "150", "github.com/gorilla/mux@v1.8.0"]));
+}
+
+#[test]
+fn skip_continues_a_cut_log_json() {
+    assert_snapshot!(sego(&["log", "--json", "--skip", "150", "github.com/gorilla/mux@v1.8.0"]));
+}
+
+#[test]
+fn skip_with_a_path() {
+    assert_snapshot!(sego(&[
+        "log",
+        "-n",
+        "3",
+        "--skip",
+        "5",
+        "github.com/gorilla/mux@v1.8.0",
+        "mux.go"
+    ]));
+}
+
+#[test]
+fn skip_in_a_range() {
+    assert_snapshot!(sego(&["log", "--skip", "2", "github.com/gorilla/mux@v1.7.1..v1.7.4"]));
+}
+
+#[test]
+fn skip_in_a_range_with_a_path() {
+    assert_snapshot!(sego(&[
+        "log",
+        "-n",
+        "2",
+        "--skip",
+        "1",
+        "github.com/gorilla/mux@v1.7.0..v1.8.0",
+        "mux.go"
+    ]));
+}
+
+/// Past the end of a log is an empty answer.
+#[test]
+fn skip_past_the_end() {
+    assert_snapshot!(sego(&["log", "--skip", "5000", "github.com/gorilla/mux@v1.8.0"]));
+}
+
+/// Past the end of a path's log says nothing about the path.
+#[test]
+fn skip_past_the_end_of_a_path() {
+    assert_snapshot!(sego(&["log", "--skip", "5000", "github.com/gorilla/mux@v1.8.0", "mux.go"]));
+}
+
+#[test]
+fn skip_past_the_end_of_a_path_in_a_range() {
+    assert_snapshot!(sego(&[
+        "log",
+        "--skip",
+        "5000",
+        "github.com/gorilla/mux@v1.7.0..v1.8.0",
+        "mux.go"
+    ]));
+}
+
+/// `--follow` reads one request of the count asked for, past the default.
+#[test]
+fn follow_with_a_count() {
+    assert_snapshot!(sego(&[
+        "log",
+        "--follow",
+        "-n",
+        "200",
+        "github.com/sharkdp/bat@fc9546854f5a:src/bin/bat/main.rs"
+    ]));
 }

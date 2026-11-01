@@ -1,0 +1,13 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"-n\", \"3\", \"github.com/gorilla/mux@v1.7.1..v1.7.4\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@c5c6c98bc253..75dcda0896e1  3 of 24 commits shown  rev v1.7.1..v1.7.4  mirrored 2026-10-27T07:22Z
+75dcda0896e1  2020-01-12  Klaus Post  (tag: v1.7.4) perf: reduce allocations in (*routeRegexp).getURLQuery (#544)
+49c01487a141  2019-11-21  Veselkov Konstantin  lint: Remove golint warning (#526)
+4de8a5a4d283  2019-11-19  wangming  fix headers regexp test (#536)
+----- stderr -----
+sego: note: sego log -n 3 --skip 3 github.com/gorilla/mux@c5c6c98bc253..75dcda0896e1 continues from the last commit shown
+----- end -----

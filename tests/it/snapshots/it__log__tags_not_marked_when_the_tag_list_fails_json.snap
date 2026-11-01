@@ -42,7 +42,8 @@ exit: 0
   "repo": "github.com/gorilla/mux",
   "rev": "v1.8.0",
   "rev_a": null,
-  "rev_b": null
+  "rev_b": null,
+  "skip": 0
 }
 ----- stderr -----
 sego: note: tags not marked: Sourcegraph failed to answer the tag list

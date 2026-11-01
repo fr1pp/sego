@@ -6,6 +6,7 @@ exit: 2
 ----- stdout -----
 ----- stderr -----
 sego: error: log takes one path
-usage: sego log [--json] [--follow] REPO[@REV][:PATH] [PATH]
-       sego log [--json] REPO@A..B[:PATH] [PATH]
+usage: sego log [--json] [-n N] [--skip N] REPO[@REV][:PATH] [PATH]
+       sego log [--json] [-n N] [--skip N] REPO@A..B[:PATH] [PATH]
+       sego log [--json] [-n N] --follow REPO[@REV][:PATH] [PATH]
 ----- end -----

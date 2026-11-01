@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::fmt::{self, Write as _};
 
 use serde::Serialize;
@@ -10,11 +9,10 @@ use crate::escape::shell_word;
 use crate::escape::{one_line, render_line};
 use crate::output::{Notes, closing_fields, count, date, header, header_line};
 use crate::pointer;
-use crate::sourcegraph::{Client, CommitSummary, History, Tag};
+use crate::sourcegraph::{COMMIT_PAGE, Client, CommitSummary, DEADLINE, History, Resolved, Tag};
 
-const ROWS: usize = 150;
-#[expect(clippy::cast_possible_truncation, reason = "the row limit is a few hundred")]
-const FIRST: u32 = ROWS as u32;
+/// The commits a log lists when the command line doesn't say how many.
+const ROWS: u32 = 150;
 const TAGS_NOTE: &str = "tags not marked";
 
 #[derive(Serialize)]
@@ -46,6 +44,7 @@ pub struct Answer {
     at: At,
     path: Option<String>,
     follow: bool,
+    skip: u32,
     behind: Option<u64>,
     commits_total: Option<u64>,
     commits_more: bool,
@@ -59,13 +58,13 @@ impl Answer {
     }
 
     fn count(&self) -> String {
-        let shown = self.commits.len().min(ROWS) as u64;
+        let shown = self.commits.len() as u64;
         match self.commits_total {
-            Some(total) if total > ROWS as u64 => {
-                format!("{ROWS} of {total} commits shown")
-            }
+            Some(total) if total > shown => format!("{shown} of {total} commits shown"),
             Some(total) => count(total, "commit", "commits"),
-            None if self.commits_more => format!("{shown} commits shown; more exist"),
+            None if self.commits_more => {
+                format!("{} shown; more exist", count(shown, "commit", "commits"))
+            }
             None => count(shown, "commit", "commits"),
         }
     }
@@ -73,6 +72,9 @@ impl Answer {
     /// The fields after the count, before the revision.
     fn facts(&self) -> Vec<String> {
         let mut fields = Vec::new();
+        if self.skip > 0 {
+            fields.push(format!("skip {}", self.skip));
+        }
         fields.extend(self.behind.filter(|&n| n > 0).map(|n| format!("behind {n}")));
         if self.follow {
             fields.push("follow".to_owned());
@@ -90,17 +92,10 @@ impl fmt::Display for Answer {
             let commit_b = self.at.commit_b.as_deref().unwrap_or_default();
             let rev = range_rev_field((a, commit_a), "..", (b, commit_b));
             fields.extend(closing_fields(rev, self.mirrored_at.as_deref()));
-            let mut address = format!(
-                "{}@{}..{}",
-                self.repo,
-                short(self.at.commit_a.as_deref().unwrap_or_default()),
-                short(self.at.commit_b.as_deref().unwrap_or_default())
-            );
-            if let Some(path) = &self.path {
-                address.push(':');
-                address.push_str(path);
-            }
-            header_line(&shell_word(&address), &fields)
+            header_line(
+                &range_address(&self.repo, commit_a, commit_b, self.path.as_deref()),
+                &fields,
+            )
         } else {
             let commit = self.at.commit.as_deref().unwrap_or_default();
             let rev = rev_field(self.at.rev.as_ref(), commit);
@@ -108,11 +103,21 @@ impl fmt::Display for Answer {
             header(&pinned(&self.repo, commit, self.path.as_deref()), &fields)
         };
         f.write_str(&header)?;
-        for entry in self.commits.iter().take(ROWS) {
+        for entry in &self.commits {
             writeln!(f, "{}", row(entry))?;
         }
         Ok(())
     }
+}
+
+/// The range `commit_a..commit_b`, pinned at both ends.
+fn range_address(repo: &str, commit_a: &str, commit_b: &str, path: Option<&str>) -> String {
+    let mut address = format!("{repo}@{}..{}", short(commit_a), short(commit_b));
+    if let Some(path) = path {
+        address.push(':');
+        address.push_str(path);
+    }
+    shell_word(&address).into_owned()
 }
 
 fn row(entry: &Entry) -> String {
@@ -139,25 +144,50 @@ pub struct Args {
     /// Whether the path is followed across renames, as `git log --follow`.
     pub follow: bool,
     pub json: bool,
+    /// The commits to list; a default of the command's own for `None`.
+    pub count: Option<u32>,
+    /// The commits of the log to leave out at its start.
+    pub skip: u32,
+}
+
+/// The most `--follow` can list: a followed history can't page.
+pub fn follow_limit() -> String {
+    format!("--follow lists at most {COMMIT_PAGE} commits")
 }
 
 pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Error> {
     let path = args.path.as_deref();
     let range = matches!(args.revs, Revs::Range { .. });
-    let first = (!range || !args.json).then_some(FIRST);
-    let history = client.history(&args.repo, args.revs.revisions(), path, args.follow, first)?;
+    let first = args.count.or((!range || !args.json).then_some(ROWS));
+    let revisions = args.revs.revisions();
+    let history = client.history(&args.repo, revisions, path, args.follow, first, args.skip)?;
     Ok(answer(history, args, notes))
 }
 
-/// Whether a log from the last of `page`'s commits holds exactly those a
-/// cut log left out: no other commit on the page has a parent off it, so
-/// every commit left out is an ancestor of the last.
-fn continues(page: &[Entry]) -> bool {
-    let shown: HashSet<&str> = page.iter().map(|entry| entry.commit.as_str()).collect();
-    let Some((_, rest)) = page.split_last() else {
-        return false;
+/// The note that gets the rest of a cut log of `head`, or of the range from
+/// `base`: `shown` commits were listed, and `stopped` says the deadline cut
+/// them short of what was asked for.
+fn rest(
+    head: &Resolved,
+    base: Option<&Resolved>,
+    args: &Args,
+    shown: usize,
+    stopped: bool,
+) -> String {
+    let path = args.path.as_deref().map(|path| path.trim_end_matches('/'));
+    let address = match base {
+        Some(base) => range_address(&head.repo, &base.commit, &head.commit, path),
+        None => pinned(&head.repo, &head.commit, path).to_string(),
     };
-    rest.iter().flat_map(|entry| &entry.parents).all(|parent| shown.contains(parent.as_str()))
+    if args.follow {
+        return match args.count.unwrap_or(ROWS) {
+            COMMIT_PAGE => follow_limit(),
+            count => pointer::log_more(&address, (count * 2).min(COMMIT_PAGE)),
+        };
+    }
+    let listed = u32::try_from(shown).unwrap_or(u32::MAX);
+    let count = args.count.map(|count| if stopped { count - listed } else { count });
+    pointer::log_skip(&address, count, u64::from(args.skip) + shown as u64)
 }
 
 /// The answer for `history`, its entries marked with the tags that name
@@ -182,18 +212,12 @@ fn answer(history: History, args: &Args, notes: &mut Notes) -> Answer {
         parents: commit.parents,
     };
     let commits: Vec<Entry> = history.commits.items.into_iter().map(entry).collect();
-    if matches!(args.revs, Revs::One(_))
-        && history.commits.more
-        && !args.follow
-        && let Some(oldest) = commits.last()
-    {
-        let path = args.path.as_deref();
-        let note = if path.is_none() && continues(&commits) {
-            pointer::log_continues(pointer::At { repo: &history.head.repo, commit: &oldest.commit })
-        } else {
-            pointer::log_rest(history.head.at(), &oldest.commit, path)
-        };
-        notes.push(note);
+    if history.stopped {
+        notes.push(format!("stopped at the {} s deadline", DEADLINE.as_secs()));
+    }
+    if history.commits.more {
+        let base = history.base.as_ref();
+        notes.push(rest(&history.head, base, args, commits.len(), history.stopped));
     }
     let at = match (&args.revs, history.base) {
         (Revs::Range { base, head }, Some(base_end)) => At {
@@ -215,6 +239,7 @@ fn answer(history: History, args: &Args, notes: &mut Notes) -> Answer {
         at,
         path: args.path.clone(),
         follow: args.follow,
+        skip: args.skip,
         behind: history.behind,
         commits_total: history.commits.total,
         commits_more: history.commits.more,

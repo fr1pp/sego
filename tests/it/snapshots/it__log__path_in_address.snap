@@ -4,7 +4,7 @@ expression: "sego(&[\"log\", \"github.com/gorilla/mux@v1.8.0:go.mod\"])"
 ---
 exit: 0
 ----- stdout -----
-github.com/gorilla/mux@98cb6bf42e08:go.mod  2 commits  rev v1.8.0  mirrored 2026-10-27T07:22Z
+github.com/gorilla/mux@98cb6bf42e08:go.mod  2 commits  rev v1.8.0  mirrored 2026-11-01T13:37Z
 7a1bf406d6f5  2019-07-20  Franklin Harding  [docs] Add documentation for using mux to serve a SPA (#493)
 c85619274f5d  2018-05-17  Matt Silverlock  [deps] Add go.mod for versioned Go (#376)
 ----- stderr -----

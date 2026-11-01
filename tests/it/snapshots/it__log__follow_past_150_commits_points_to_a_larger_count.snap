@@ -156,4 +156,5 @@ b21fb6bca860  2018-05-21  Ezinwa Okpoechi  Extract features to separate module
 247dfbee8309  2018-05-18  Ezinwa Okpoechi  Extract syntax finding to assets module
 12cb438aa4bc  2018-05-18  Ezinwa Okpoechi  Handle line with invalid UTF-8
 ----- stderr -----
+sego: note: sego log --follow -n 300 github.com/sharkdp/bat@fc9546854f5a:src/bin/bat/main.rs lists more
 ----- end -----

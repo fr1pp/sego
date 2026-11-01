@@ -490,6 +490,11 @@ pub fn read_commit_tags(envelope: &Envelope) -> Result<Vec<String>, Error> {
     Ok(list.nodes.into_iter().filter_map(|node| node.display_name).collect())
 }
 
+/// The most commits one request asks for. A little below the lowest `first:`
+/// the server's cost check lets through a document here, 22,725 for `HISTORY`
+/// (docs/research/log-paging.md), so a field can still be added.
+pub const COMMIT_PAGE: u32 = 20_000;
+
 /// The roots of `HISTORY`'s tag lists, one per candidate of the address.
 const TAG_ROOTS: [&str; 2] = ["t0", "t1"];
 
@@ -497,7 +502,7 @@ const TAG_ROOTS: [&str; 2] = ["t0", "t1"];
 /// error nulls only the wrapper, and every tag under its own root.
 const HISTORY: &str = "\
 query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String, \
-$follow: Boolean!, $first: Int) {
+$follow: Boolean!, $first: Int, $after: String) {
   r0: repository(name: $repo0) { ...History }
   t0: repository(name: $repo0) { ...Tags }
   r1: repository(name: $repo1) @include(if: $gitlab) { ...History }
@@ -510,13 +515,13 @@ fragment History on Repository {
   mirrorInfo { updatedAt }
   commit(rev: $rev) {
     oid
-    w: tree(path: \"\") { commit { ancestors(first: $first, path: $path, follow: $follow) { ...Page } } }
+    w: tree(path: \"\") { commit { ancestors(first: $first, after: $after, path: $path, follow: $follow) { ...Page } } }
   }
 }
 
 fragment Page on GitCommitConnection {
   nodes { oid subject author { date person { displayName } } parents { oid } }
-  pageInfo { hasNextPage }
+  pageInfo { hasNextPage endCursor }
 }
 
 fragment Tags on Repository {
@@ -529,9 +534,9 @@ fragment Tags on Repository {
 /// exists at each end when `$probe`, and every tag.
 const LOG_RANGE: &str = "\
 query LogRange($repo: String!, $a: String!, $b: String!, $path: String, $first: Int, \
-$count: Boolean!, $probe: Boolean!) {
+$after: String, $count: Boolean!, $probe: Boolean!) {
   c: repository(name: $repo) {
-    comparison(base: $a, head: $b, fetchMissing: false) { commits(first: $first, path: $path) { ...Page } }
+    comparison(base: $a, head: $b, fetchMissing: false) { commits(first: $first, after: $after, path: $path) { ...Page } }
   }
   n: repository(name: $repo) {
     commit(rev: $b) @include(if: $count) { behindAhead(revspec: $a) { ahead behind } }
@@ -543,7 +548,33 @@ $count: Boolean!, $probe: Boolean!) {
 
 fragment Page on GitCommitConnection {
   nodes { oid subject author { date person { displayName } } parents { oid } }
-  pageInfo { hasNextPage }
+  pageInfo { hasNextPage endCursor }
+}
+";
+
+/// A page after the first of a revision's history, by its commit's full ID.
+const LOG_PAGE: &str = "\
+query LogPage($repo: String!, $commit: String!, $path: String, $first: Int, $after: String) {
+  repository(name: $repo) { commit(rev: $commit) { ancestors(first: $first, after: $after, path: $path) { ...Page } } }
+}
+
+fragment Page on GitCommitConnection {
+  nodes { oid subject author { date person { displayName } } parents { oid } }
+  pageInfo { hasNextPage endCursor }
+}
+";
+
+/// A page after the first of a range's commits, by its ends' full IDs.
+const LOG_RANGE_PAGE: &str = "\
+query LogRangePage($repo: String!, $a: String!, $b: String!, $path: String, $first: Int, $after: String) {
+  repository(name: $repo) {
+    comparison(base: $a, head: $b, fetchMissing: false) { commits(first: $first, after: $after, path: $path) { ...Page } }
+  }
+}
+
+fragment Page on GitCommitConnection {
+  nodes { oid subject author { date person { displayName } } parents { oid } }
+  pageInfo { hasNextPage endCursor }
 }
 ";
 
@@ -560,6 +591,10 @@ pub struct History {
     /// How many commits the base has that the head doesn't, for a range with
     /// no path.
     pub behind: Option<u64>,
+    /// Where the next page starts, when the server gave it.
+    pub cursor: Option<String>,
+    /// Whether the deadline passed with more of the list to read.
+    pub stopped: bool,
 }
 
 impl History {
@@ -586,31 +621,55 @@ pub struct Tag {
 }
 
 /// The history of `rev`, or the default branch for `None`, touching `path`,
-/// across renames when `follow`: the first `first` commits.
+/// across renames when `follow`: `first` commits, after the first `skip`.
 pub fn history_request(
     repo: &Repo,
     rev: Option<&str>,
     path: Option<&str>,
     follow: bool,
-    first: Option<u32>,
+    first: u32,
+    skip: u32,
 ) -> Request {
     let mut variables = repository_variables(repo);
     variables.insert("rev".to_owned(), json!(rev.unwrap_or("HEAD")));
     variables.insert("path".to_owned(), json!(path));
     variables.insert("follow".to_owned(), json!(follow));
     variables.insert("first".to_owned(), json!(first));
+    variables.insert("after".to_owned(), json!(cursor(skip)));
     Request::new("Log", HISTORY.to_owned(), variables)
 }
 
+/// The `after:` that leaves out the first `skip` commits.
+fn cursor(skip: u32) -> Option<String> {
+    (skip > 0).then(|| skip.to_string())
+}
+
 /// The commits in a range's head and not its base, both resolved, by their
-/// full IDs, touching `path`: the first `first`, or all for `None`.
-pub fn range_history_request(ends: &Ends, path: Option<&str>, first: Option<u32>) -> Request {
+/// full IDs, touching `path`: `first` commits, after the first `skip`.
+pub fn range_history_request(ends: &Ends, path: Option<&str>, first: u32, skip: u32) -> Request {
     let mut variables = ends_variables(ends);
     variables.insert("path".to_owned(), json!(path));
     variables.insert("first".to_owned(), json!(first));
+    variables.insert("after".to_owned(), json!(cursor(skip)));
     variables.insert("count".to_owned(), json!(path.is_none()));
     variables.insert("probe".to_owned(), json!(path.is_some_and(is_plain_path)));
     Request::new("LogRange", LOG_RANGE.to_owned(), variables)
+}
+
+/// The `first` commits of `history` from `after`, a cursor the server gave.
+pub fn page_request(history: &History, path: Option<&str>, first: u32, after: &str) -> Request {
+    let mut variables = serde_json::Map::new();
+    variables.insert("repo".to_owned(), json!(history.head.repo));
+    variables.insert("path".to_owned(), json!(path));
+    variables.insert("first".to_owned(), json!(first));
+    variables.insert("after".to_owned(), json!(after));
+    if let Some(base) = &history.base {
+        variables.insert("a".to_owned(), json!(base.commit));
+        variables.insert("b".to_owned(), json!(history.head.commit));
+        return Request::new("LogRangePage", LOG_RANGE_PAGE.to_owned(), variables);
+    }
+    variables.insert("commit".to_owned(), json!(history.head.commit));
+    Request::new("LogPage", LOG_PAGE.to_owned(), variables)
 }
 
 /// `$repo`, `$a` and `$b`: a range's repository and its ends' full IDs.
@@ -626,7 +685,15 @@ fn ends_variables(ends: &Ends) -> serde_json::Map<String, Value> {
 #[serde(rename_all = "camelCase")]
 struct CommitPage {
     nodes: Vec<SummaryNode>,
-    page_info: PageInfo,
+    page_info: CommitPageInfo,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CommitPageInfo {
+    has_next_page: bool,
+    #[serde(default)]
+    end_cursor: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -654,8 +721,8 @@ struct TagTarget {
     oid: Option<String>,
 }
 
-/// The commits of the page at `at`, and whether more follow.
-fn page(envelope: &Envelope, at: &[&str], total: Option<u64>) -> Option<Page<CommitSummary>> {
+/// The commits of the page at `at`, and where the next page starts.
+fn page(envelope: &Envelope, at: &[&str]) -> Option<(Page<CommitSummary>, Option<String>)> {
     let page = CommitPage::deserialize(envelope.get(at)?).ok()?;
     let items = page
         .nodes
@@ -668,7 +735,25 @@ fn page(envelope: &Envelope, at: &[&str], total: Option<u64>) -> Option<Page<Com
             parents: node.parents.into_iter().map(|p| p.oid).collect(),
         })
         .collect();
-    Some(Page { items, total, more: page.page_info.has_next_page })
+    let more = page.page_info.has_next_page;
+    Some((Page { items, total: None, more }, page.page_info.end_cursor))
+}
+
+/// A page after the first, from the response to `page_request`.
+pub fn read_page(
+    envelope: &Envelope,
+    range: bool,
+) -> Result<(Page<CommitSummary>, Option<String>), Error> {
+    let failed = || Error::failed("the commit list");
+    if envelope.error_beneath(&["repository"]).is_some() {
+        return Err(failed());
+    }
+    let at: &[&str] = if range {
+        &["repository", "comparison", "commits"]
+    } else {
+        &["repository", "commit", "ancestors"]
+    };
+    page(envelope, at).ok_or_else(failed)
 }
 
 /// Every tag listed at `root`, or the failure that leaves log's tags
@@ -695,6 +780,7 @@ pub fn read_history(
     repo: &Repo,
     rev: Option<&str>,
     path: Option<&str>,
+    skip: u32,
 ) -> Result<History, Error> {
     let found = resolve::repository(repo, envelope, resolve::roots(repo))?;
     let root = found.root.clone();
@@ -703,17 +789,18 @@ pub fn read_history(
     if envelope.error_beneath(&[&root, "commit", "w"]).is_some() {
         return Err(list_failed());
     }
-    let commits = page(envelope, &[&root, "commit", "w", "commit", "ancestors"], None)
-        .ok_or_else(list_failed)?;
+    let (commits, cursor) =
+        page(envelope, &[&root, "commit", "w", "commit", "ancestors"]).ok_or_else(list_failed)?;
     let head = Resolved::new(&found, oid, rev.map(str::to_owned), None);
     if let Some(path) = path.filter(|p| is_plain_path(p))
         && commits.items.is_empty()
+        && skip == 0
     {
         let at = pinned(&head.repo, &head.commit, None);
         return Err(Error::not_found(format!("{path} not found in {at}")));
     }
     let tags = tags(envelope, found.root_among(TAG_ROOTS));
-    Ok(History { head, base: None, commits, tags, behind: None })
+    Ok(History { head, base: None, commits, tags, behind: None, cursor, stopped: false })
 }
 
 /// The commits in a range, from the response to `range_history_request`.
@@ -721,21 +808,23 @@ pub fn read_range_history(
     envelope: &Envelope,
     Ends { base, head }: Ends,
     path: Option<&str>,
+    skip: u32,
 ) -> Result<History, Error> {
     let comparison_failed = || Error::failed("the comparison");
     let listed = envelope.error_beneath(&["c"]).is_none();
-    let commits = listed.then(|| page(envelope, &["c", "comparison", "commits"], None)).flatten();
+    let read = listed.then(|| page(envelope, &["c", "comparison", "commits"])).flatten();
     if probe_failed(envelope) {
         return Err(Error::failed("the path lookup"));
     }
     if let Some(path) = path.filter(|p| is_plain_path(p))
         && envelope.get(&["a", "commit", "x"]).is_none()
         && envelope.get(&["b", "commit", "x"]).is_none()
-        && commits.as_ref().is_some_and(|commits| commits.items.is_empty())
+        && read.as_ref().is_some_and(|(commits, _)| commits.items.is_empty())
+        && skip == 0
     {
         return Err(path_not_found(path, &head.repo, &base.commit, &head.commit));
     }
-    let mut commits = commits.ok_or_else(comparison_failed)?;
+    let (mut commits, cursor) = read.ok_or_else(comparison_failed)?;
     let mut behind = None;
     if path.is_none() {
         let count_failed = || Error::failed("the commit count");
@@ -748,5 +837,5 @@ pub fn read_range_history(
         behind = Some(count("behind")?);
     }
     let tags = tags(envelope, "t");
-    Ok(History { head, base: Some(base), commits, tags, behind })
+    Ok(History { head, base: Some(base), commits, tags, behind, cursor, stopped: false })
 }
