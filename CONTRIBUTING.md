@@ -2,7 +2,8 @@
 
 ## Building and checking
 
-sego builds with the stable toolchain named by `rust-version` in `Cargo.toml`.
+`rust-toolchain.toml` names the toolchain sego is developed with, and rustup fetches it.
+`rust-version` in `Cargo.toml` is the oldest compiler that builds sego; bump the two together.
 
 ```sh
 just setup              # once: install cargo-insta and turn on the pre-commit hook
@@ -151,3 +152,14 @@ What the research means for how to search well goes in
 - A commit message is one imperative sentence that says what the change does.
 - Each commit passes `just check`.
 - A pull request says what changed and why, and links its issue.
+
+## Releases
+
+`dist` builds a release from a tag: the archives, their checksums, the installer and the GitHub
+Release. `.github/workflows/release.yml` is generated from `dist-workspace.toml`, so change that file
+and run `dist generate`; `dist` comes from its GitHub releases, since crates.io is behind.
+
+1. Run `just live`.
+2. In a pull request, set `version` in `Cargo.toml`, run `cargo check` to update `Cargo.lock`, add the
+   version's section to `CHANGELOG.md`, and run `just bless cli::version`.
+3. Once it's merged, run `git fetch && git tag vX.Y.Z origin/main && git push origin vX.Y.Z`.

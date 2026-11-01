@@ -4,6 +4,9 @@
 //! [`run`] takes the arguments, the [`Env`] and a `connect` function that
 //! makes the [`Transport`] for an [`Endpoint`], so a test can answer every
 //! request itself. [`connect`] makes the one that sends them over HTTP.
+//!
+//! This interface exists for the binary and sego's tests, and has no semantic
+//! version guarantees.
 
 mod address;
 mod cache;

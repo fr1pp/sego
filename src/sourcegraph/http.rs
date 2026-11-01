@@ -386,10 +386,11 @@ mod tests {
         let requests = server.requests();
         assert_eq!(requests.len(), 2);
         for request in &requests {
-            assert_eq!(request.header("user-agent"), Some("sego/0.3.0"));
-            assert_eq!(request.header("x-requested-with"), Some("sego/0.3.0"));
+            let client = format!("sego/{VERSION}");
+            assert_eq!(request.header("user-agent"), Some(client.as_str()));
+            assert_eq!(request.header("x-requested-with"), Some(client.as_str()));
             assert_eq!(request.header("x-sourcegraph-api-client-name"), Some("sego"));
-            assert_eq!(request.header("x-sourcegraph-api-client-version"), Some("0.3.0"));
+            assert_eq!(request.header("x-sourcegraph-api-client-version"), Some(VERSION));
             assert!(request.header("accept-encoding").is_some_and(|v| { v.contains("gzip") }));
             for (name, value) in &request.headers {
                 assert!(!name.contains('@') && !value.contains('@'), "{name}");

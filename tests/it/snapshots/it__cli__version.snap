@@ -4,6 +4,6 @@ expression: "sego(&[\"--version\"])"
 ---
 exit: 0
 ----- stdout -----
-sego 0.3.0
+sego 0.1.0
 ----- stderr -----
 ----- end -----

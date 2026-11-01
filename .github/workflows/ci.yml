@@ -13,11 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: Install the toolchain named by rust-version
-        run: |
-          toolchain=$(sed -n 's/^rust-version = "\(.*\)"$/\1/p' Cargo.toml)
-          rustup toolchain install "$toolchain" --profile minimal --component rustfmt,clippy
-          rustup default "$toolchain"
+      - run: rustup toolchain install
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@v2
         with:
