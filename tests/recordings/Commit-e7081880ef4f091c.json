@@ -1,0 +1,101 @@
+{
+  "date": "2026-10-30",
+  "request": {
+    "operation": "Commit",
+    "query": "query Commit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $paths: [String!], $first: Int, $patch: Boolean!) {\n  r0: repository(name: $repo0) { ...Commit }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...Commit }\n}\n\nfragment Commit on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\n    oid subject message\n    author { date person { displayName } }\n    committer { date person { displayName } }\n    parents { oid }\n\n    w: tree(path: \"\") { commit { diff { ...Changes } } }\n  }\n}\n\nfragment Changes on RepositoryComparison {\n  all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }\n  page: fileDiffs(first: $first, paths: $paths) {\n    nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }\n    pageInfo { hasNextPage }\n  }\n  patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }\n}\n",
+    "variables": {
+      "first": null,
+      "gitlab": false,
+      "patch": false,
+      "paths": null,
+      "repo0": "github.com/gorilla/mux",
+      "repo1": "",
+      "rev": "946b6237eb8d"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": {
+            "author": {
+              "date": "2019-11-14T20:19:09Z",
+              "person": {
+                "displayName": "Franklin Harding"
+              }
+            },
+            "committer": {
+              "date": "2019-11-15T19:16:01Z",
+              "person": {
+                "displayName": "Franklin Harding"
+              }
+            },
+            "message": "Fix the CORSMethodMiddleware bug with subrouters\n\n* Adds a test case for the repro given in issue #534\n* Fixes the logic in CORSMethodMiddleware to handle matching routes\nbetter",
+            "oid": "946b6237eb8d0ce3225f502b7fd4208d0b60ce5f",
+            "parents": [
+              {
+                "oid": "ff4e71f144166b1dfe3017a146f8ed32a82e688b"
+              }
+            ],
+            "subject": "Fix the CORSMethodMiddleware bug with subrouters",
+            "w": {
+              "commit": {
+                "diff": {
+                  "all": {
+                    "diffStat": {
+                      "added": 30,
+                      "deleted": 15
+                    },
+                    "totalCount": 2
+                  },
+                  "page": {
+                    "nodes": [
+                      {
+                        "newPath": "middleware.go",
+                        "oldFile": {
+                          "commit": {
+                            "oid": "ff4e71f144166b1dfe3017a146f8ed32a82e688b"
+                          }
+                        },
+                        "oldPath": "middleware.go",
+                        "stat": {
+                          "added": 10,
+                          "deleted": 15
+                        }
+                      },
+                      {
+                        "newPath": "middleware_test.go",
+                        "oldFile": {
+                          "commit": {
+                            "oid": "ff4e71f144166b1dfe3017a146f8ed32a82e688b"
+                          }
+                        },
+                        "oldPath": "middleware_test.go",
+                        "stat": {
+                          "added": 20,
+                          "deleted": 0
+                        }
+                      }
+                    ],
+                    "pageInfo": {
+                      "hasNextPage": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "defaultBranch": {
+            "displayName": "main"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-30T05:17:26Z"
+          },
+          "name": "github.com/gorilla/mux"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

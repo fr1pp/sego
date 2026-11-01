@@ -1,0 +1,10 @@
+---
+source: tests/it/diff.rs
+expression: "answered(&[\"diff\", \"example.com/acme/widget@v0...v1\"], [response])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: base revision v0 not found in example.com/acme/widget
+  the default branch is main
+----- end -----

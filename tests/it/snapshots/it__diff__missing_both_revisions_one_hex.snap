@@ -1,0 +1,10 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"github.com/gorilla/mux@dead...v9.9.9\"])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: revisions dead and v9.9.9 not found in github.com/gorilla/mux: no ref is named dead and no single commit starts with it
+  the default branch is main
+----- end -----

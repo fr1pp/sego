@@ -1,8 +1,0 @@
-# A version flag does not excuse an unknown command.
-args = ["shwo", "--version"]
-status.code = 2
-stderr = '''
-sego: error: unknown command 'shwo'
-  commands: search, show, ls, refs, log, diff
-usage: sego COMMAND [--json] ...
-'''

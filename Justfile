@@ -4,21 +4,24 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 check:
     cargo fmt --all --check
     cargo clippy --locked --all-targets -- -D warnings
-    env -u SEGO_BLESS cargo test --locked
+    INSTA_UPDATE=no cargo test --locked
 
-# Rewrite the case list, what each case expects and the stored documents from what sego does now, and print the diff.
-bless:
-    scripts/bless
-
-# Record the responses that cases lack, and those whose request changed, two requests a second.
-record:
-    cargo test --test it -- --ignored --exact missing_and_stale_responses_are_recorded
-
-# Re-send the recorded requests of the cases under each PATH in tests/cases, or of every case and then search's live rules; fail on drift.
+# Write the snapshots of the tests matching FILTER from what sego does now, and print the diff.
 [positional-arguments]
-live *paths:
-    SEGO_LIVE_PATHS="$*" cargo test --test it -- --ignored --exact recorded_responses_still_match_sourcegraph_com
-    if [[ $# -eq 0 ]]; then cargo test --lib -- --ignored --test-threads=1; fi
+bless *filter:
+    INSTA_UPDATE=force INSTA_OUTPUT=none cargo test -q --test it -- "$@"
+    git add -N tests/it/snapshots
+    git diff --stat --patch -- tests/it/snapshots
+
+# Record the responses the tests lack, two requests a second, and remove the recordings they don't use; with a FILTER, record the matching tests' responses again. Bless afterwards.
+[positional-arguments]
+record *filter:
+    export INSTA_UPDATE=no INSTA_FORCE_PASS=1 INSTA_OUTPUT=none; if [[ $# -gt 0 ]]; then SEGO_RECORD=again cargo test --test it -- --test-threads=1 "$@"; else rm -f target/recordings-used; SEGO_RECORD=1 cargo test --test it -- --test-threads=1; SEGO_RECORD=prune cargo test --test it -- --exact prune_recordings; fi
+
+# Send the request of each recording whose name holds FILTER again; with no FILTER, also check search's live rules. Fail on drift.
+[positional-arguments]
+live filter="":
+    SEGO_LIVE="$1" cargo test --no-fail-fast -- --ignored --test-threads=1 ${1:+--skip live_rules}
 
 # Regenerate src/escape/table.rs from the pinned Unicode data.
 escape-table:

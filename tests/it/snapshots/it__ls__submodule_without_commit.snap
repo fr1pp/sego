@@ -1,0 +1,10 @@
+---
+source: tests/it/ls.rs
+expression: "answered(&[\"ls\",\n\"example.com/acme/shell@d81fd54feb0d996fdff20dca27eaf0201f7015cc:contrib\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+example.com/acme/shell@d81fd54feb0d:contrib  1 entry  1 submodule
+submodule  contrib  ?
+----- stderr -----
+----- end -----

@@ -1,0 +1,11 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\",\n\"repo:a\\u{1b}b\\u{202e}c\\u{200b}d\\ne\\rf\\0g\\u{2028}h\\u{7f}i\"], [response])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: No repositories found
+  the server proposes: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+  the server proposes: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}ix
+----- end -----

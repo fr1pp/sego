@@ -1,0 +1,49 @@
+---
+source: tests/it/log.rs
+expression: "answered(&[\"log\", \"--json\", \"github.com/gorilla/mux@v1.8.0:go.mod\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+{
+  "behind": null,
+  "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+  "commit_a": null,
+  "commit_b": null,
+  "commits": [
+    {
+      "author": "Franklin Harding",
+      "commit": "7a1bf406d6f5f8cfef4802eb0d949606c6ee7aea",
+      "date": "2019-07-20",
+      "parents": [
+        "eab9c4f3d22d907d728aa0f5918934357866249e"
+      ],
+      "subject": "[docs] Add documentation for using mux to serve a SPA (#493)",
+      "tags": null
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "c85619274f5d55a67491010f883a91f568b3a9b0",
+      "date": "2018-05-17",
+      "parents": [
+        "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+      ],
+      "subject": "[deps] Add go.mod for versioned Go (#376)",
+      "tags": null
+    }
+  ],
+  "commits_more": false,
+  "commits_total": null,
+  "follow": false,
+  "mirrored_at": "2026-10-27T07:22Z",
+  "notes": [
+    "tags not marked: Sourcegraph failed to answer the tag list"
+  ],
+  "path": "go.mod",
+  "repo": "github.com/gorilla/mux",
+  "rev": "v1.8.0",
+  "rev_a": null,
+  "rev_b": null
+}
+----- stderr -----
+sego: note: tags not marked: Sourcegraph failed to answer the tag list
+----- end -----

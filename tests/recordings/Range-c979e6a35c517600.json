@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-27",
+  "request": {
+    "operation": "Range",
+    "query": "query Range($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!) {\n  r0: repository(name: $repo0) { ...Ends }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...Ends }\n}\n\nfragment Ends on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  a: commit(rev: $a) { oid }\n  b: commit(rev: $b) { oid }\n}\n",
+    "variables": {
+      "a": "gh-pages",
+      "b": "master",
+      "gitlab": false,
+      "repo0": "github.com/select2/select2",
+      "repo1": ""
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "a": {
+            "oid": "4ccdbb53e38e168b61338eab7a8fa0a3d0572684"
+          },
+          "b": {
+            "oid": "13bad6eb9b212e8566dc467fb8b20c6d72f4bfa3"
+          },
+          "defaultBranch": {
+            "displayName": "develop"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-27T08:41:50Z"
+          },
+          "name": "github.com/select2/select2"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

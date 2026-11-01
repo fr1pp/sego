@@ -1,3 +1,0 @@
-query CommitTags($repo: String!, $commit: String!) {
-  repository(name: $repo) { commit(rev: $commit) { tags { nodes { displayName } } } }
-}

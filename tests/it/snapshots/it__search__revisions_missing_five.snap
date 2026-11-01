@@ -1,0 +1,11 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/acme/lib@v1 foo\"], [response])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: revision v1 not found in r1
+  revision v2 not found in r2
+  and 3 more revisions not found
+----- end -----

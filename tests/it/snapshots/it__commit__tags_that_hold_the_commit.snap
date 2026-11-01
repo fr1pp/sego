@@ -1,0 +1,21 @@
+---
+source: tests/it/commit.rs
+expression: "sego(&[\"show\", \"github.com/gorilla/mux@946b6237eb8d\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@946b6237eb8d  2019-11-14  Franklin Harding  parents ff4e71f14416  2 files  +30 -15  3 tags
+    Fix the CORSMethodMiddleware bug with subrouters
+
+    * Adds a test case for the repro given in issue #534
+    * Fixes the logic in CORSMethodMiddleware to handle matching routes
+    better
+
+M  +10 -15  middleware.go
+M  +20 -0  middleware_test.go
+
+tag  v1.8.1
+tag  v1.8.0
+tag  v1.7.4
+----- stderr -----
+----- end -----

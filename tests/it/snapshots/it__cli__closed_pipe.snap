@@ -1,0 +1,8 @@
+---
+source: tests/it/cli.rs
+expression: "Case::new(&[\"--help\"], Vec::new()).stdout_closed().ran()"
+---
+exit: 0
+----- stdout -----
+----- stderr -----
+----- end -----

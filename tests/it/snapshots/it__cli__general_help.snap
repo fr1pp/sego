@@ -1,0 +1,55 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"--help\"])"
+---
+exit: 0
+----- stdout -----
+sego searches and reads code on Sourcegraph, for agents.
+
+usage: sego COMMAND [--json] ...
+
+commands:
+  search QUERY...                code matching a Sourcegraph query
+  show REPO[@REV]:PATH [LINES]   lines of a file
+  show REPO@REV                  a commit: its message and changed files
+  ls REPO[@REV][:PATH]           entries of a directory
+  refs REPO [TEXT]               branches and tags
+  log REPO[@REV][:PATH] [PATH]   commits, in git log order
+  log REPO@A..B [PATH]           commits in B and not in A
+  diff REPO@A...B [PATH...]      changed files, and the patch of named paths
+  diff REPO@REV [PATH...]        the change one commit made
+
+addresses:
+  REPO     host/owner/name or owner/name
+  @REV     a branch, tag or commit; the default branch without it
+  :PATH    a path from the repository root
+  LINES    N, N-M, N,M, or N- through the last line (lines are
+           numbered from 1)
+
+output:
+  A header line comes first: what was read, such as REPO@COMMIT:PATH,
+  with its counts. Lines of a file are numbered "N:". Notes go to stderr
+  as "sego: note: ...". --json prints one JSON document instead, notes
+  in "notes"; "sego COMMAND --help" lists its fields.
+
+examples:
+  sego search 'repo:^github\.com/gorilla/mux$@v1.8.0 NewRouter'
+  sego show github.com/gorilla/mux@v1.8.0:mux.go 120-180
+  sego show github.com/gorilla/mux@v1.8.0:mux.go 1-
+  sego ls github.com/gorilla/mux@v1.8.0
+  sego refs --json github.com/gorilla/mux 1.8 | jq -r '.refs[].name'
+  sego log github.com/gorilla/mux:mux.go
+  sego diff github.com/gorilla/mux@v1.7.4...v1.8.0 mux.go
+
+options:
+  --json       one JSON document on stdout
+  -h, --help   this help, or a command's help after its name
+  --version    sego's version
+
+environment:
+  SEGO_CACHE_DIR   where sego caches large files, or off (default
+                   $XDG_CACHE_HOME/sego or ~/.cache/sego)
+
+exit codes: 0 answered, 1 not found, 2 usage error, 3 failure
+----- stderr -----
+----- end -----

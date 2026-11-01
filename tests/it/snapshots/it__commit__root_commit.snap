@@ -1,0 +1,27 @@
+---
+source: tests/it/commit.rs
+expression: "sego(&[\"show\",\n\"github.com/gorilla/mux@4e8d10dc715feb79b43f1d607b45148537546a0a\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@4e8d10dc715f  2012-10-02  rodrigo moraes  parents none  15 tags
+    Initial commit
+
+tag  v1.8.1
+tag  v1.8.0
+tag  v1.7.4
+tag  v1.7.3
+tag  v1.7.2
+tag  v1.7.1
+tag  v1.7.0
+tag  v1.6.2
+tag  v1.6.1
+tag  v1.6.0
+tag  v1.5.0
+tag  v1.4.0
+tag  v1.3.0
+tag  v1.2.0
+tag  v1.1
+----- stderr -----
+sego: note: root commit: Sourcegraph has no diff for it
+----- end -----

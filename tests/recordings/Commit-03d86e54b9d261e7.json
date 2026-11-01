@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-27",
+  "request": {
+    "operation": "Commit",
+    "query": "query Commit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $paths: [String!], $first: Int, $patch: Boolean!) {\n  r0: repository(name: $repo0) { ...Commit }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...Commit }\n}\n\nfragment Commit on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\n    oid subject message\n    author { date person { displayName } }\n    committer { date person { displayName } }\n    parents { oid }\n\n    w: tree(path: \"\") { commit { diff { ...Changes } } }\n  }\n}\n\nfragment Changes on RepositoryComparison {\n  all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }\n  page: fileDiffs(first: $first, paths: $paths) {\n    nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }\n    pageInfo { hasNextPage }\n  }\n  patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }\n}\n",
+    "variables": {
+      "first": null,
+      "gitlab": false,
+      "patch": false,
+      "paths": null,
+      "repo0": "github.com/gorilla/mux",
+      "repo1": "",
+      "rev": "deadbeefdeadbeef"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": null,
+          "defaultBranch": {
+            "displayName": "main"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-27T07:13:23Z"
+          },
+          "name": "github.com/gorilla/mux"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

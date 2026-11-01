@@ -1,0 +1,40 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\", \"--json\", \"github.com/gorilla/mux@v1.8.0:mux.go\", \"1-3\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "binary": false,
+  "byte_size": 17677,
+  "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+  "crlf": false,
+  "end": 3,
+  "kind": "file",
+  "lfs_size": null,
+  "lines": [
+    {
+      "line": 1,
+      "text": "// Copyright 2012 The Gorilla Authors. All rights reserved."
+    },
+    {
+      "line": 2,
+      "text": "// Use of this source code is governed by a BSD-style"
+    },
+    {
+      "line": 3,
+      "text": "// license that can be found in the LICENSE file."
+    }
+  ],
+  "mirrored_at": "2026-10-31T00:34Z",
+  "notes": [],
+  "path": "mux.go",
+  "repo": "github.com/gorilla/mux",
+  "rev": "v1.8.0",
+  "start": 1,
+  "submodule": null,
+  "total_lines": 606,
+  "utf8": true
+}
+----- stderr -----
+----- end -----

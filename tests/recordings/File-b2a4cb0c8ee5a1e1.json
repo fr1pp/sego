@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "File",
+    "query": "query File($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String!, $recursive: Boolean!, $content: Boolean!, $start: Int, $end: Int) {\n  r0: repository(name: $repo0) { ...File }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...File }\n}\n\nfragment File on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\noid\n    meta: path(path: $path) {\n      __typename\n      ... on GitBlob { path byteSize totalLines binary rawURL lfs { byteSize } submodule { commit } }\n      ... on GitTree { path entries(recursive: $recursive) { path isDirectory submodule { commit } } }\n    }\n    body: path(path: $path) @include(if: $content) {\n      __typename\n      ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }\n    }\n  }\n}\n",
+    "variables": {
+      "content": true,
+      "end": 500,
+      "gitlab": false,
+      "path": "mux.go",
+      "recursive": false,
+      "repo0": "github.com/gorilla/mux",
+      "repo1": "",
+      "rev": "v9.9",
+      "start": 1
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": null,
+          "defaultBranch": {
+            "displayName": "main"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-31T00:35:11Z"
+          },
+          "name": "github.com/gorilla/mux"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

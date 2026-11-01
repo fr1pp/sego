@@ -1,0 +1,11 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\", \"gorilla/mux:README.md\", \"1-2\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@db9d1d0073d2:README.md  lines 1-2 of 812  mirrored 2026-10-31T00:35Z
+1:# gorilla/mux
+2:
+----- stderr -----
+----- end -----

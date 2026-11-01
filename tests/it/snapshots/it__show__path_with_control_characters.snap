@@ -1,0 +1,10 @@
+---
+source: tests/it/show.rs
+expression: "answered(&[\"show\",\n\"example.com/acme/widget@0123456789abcdef0123456789abcdef01234567:a\\u{1b}b\\u{202e}c\\u{200b}d\\ne\\rf\\0g\\u{2028}h\\u{7f}i\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+$'example.com/acme/widget@0123456789ab:a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i'  lines 1 of 1
+1:x
+----- stderr -----
+----- end -----

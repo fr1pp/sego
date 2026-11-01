@@ -1,0 +1,14 @@
+---
+source: tests/it/search.rs
+expression: "sego(&[\"search\",\n\"repo:^github\\\\.com/gorilla/mux$@v1.8.0 type:commit wildcard\"])"
+---
+exit: 0
+----- stdout -----
+1 commit  1 repo  0.0 s
+query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0 type:commit wildcard
+
+github.com/gorilla/mux@98cb6bf42e08  2020-07-11  Harshavardhana  fix: regression in vars extract for wildcard host (#579)
+    fix: regression in vars extract for wildcard host (#579)
+    
+----- stderr -----
+----- end -----

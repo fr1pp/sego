@@ -1,7 +1,0 @@
-# refs names a repository; a revision is refused and no request is made.
-args = ["refs", "example.com/acme/widget@v1"]
-status.code = 2
-stderr = '''
-sego: error: refs names a repository, not a revision or path: example.com/acme/widget@v1
-usage: sego refs [--json] REPO [TEXT]
-'''

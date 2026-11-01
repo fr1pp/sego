@@ -1,0 +1,11 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"diff\", \"example.com/acme/widget@a..b\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: diff takes A...B (Sourcegraph compares from the merge base)
+usage: sego diff [--json] REPO@A...B[:PATH] [PATH...]
+       sego diff [--json] REPO@REV[:PATH] [PATH...]
+----- end -----

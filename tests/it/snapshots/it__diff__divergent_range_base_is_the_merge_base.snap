@@ -1,0 +1,19 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"github.com/golang/go@go1.21.1...go1.22.0\", \"VERSION\"])"
+---
+exit: 0
+----- stdout -----
+github.com/golang/go@2c1e5b05fe39...a10e42f219ab:VERSION  1 file  +2 -0  base 2639a17f146c  rev go1.21.1...go1.22.0  mirrored 2026-10-27T07:16Z
+A  +2 -0  VERSION
+
+    diff --git VERSION VERSION
+    new file mode 100644
+    index 0000000000000000000000000000000000000000..a86e94ed522ccfc70eb86bb213ae6bbb4690a160
+    --- /dev/null
+    +++ VERSION
+    @@ -0,0 +1,2 @@
+    +go1.22.0
+    +time 2024-02-02T18:09:55Z
+----- stderr -----
+----- end -----

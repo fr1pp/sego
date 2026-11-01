@@ -1,0 +1,10 @@
+---
+source: tests/it/refs.rs
+expression: "sego(&[\"refs\", \"https://github.com/gorilla/mux\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: https://github.com/gorilla/mux is a URL; an address is host/owner/name or owner/name
+usage: sego refs [--json] REPO [TEXT]
+----- end -----

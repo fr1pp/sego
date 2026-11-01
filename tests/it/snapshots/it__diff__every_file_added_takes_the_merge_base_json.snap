@@ -1,0 +1,42 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"--json\", \"github.com/gorilla/mux@v1.6.2...v1.7.0\", \".github\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "added": 20,
+  "base": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf",
+  "commit_a": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf",
+  "commit_b": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+  "deleted": 0,
+  "files": [
+    {
+      "added": 8,
+      "deleted": 0,
+      "new_path": ".github/release-drafter.yml",
+      "old_path": null,
+      "status": "A"
+    },
+    {
+      "added": 12,
+      "deleted": 0,
+      "new_path": ".github/stale.yml",
+      "old_path": null,
+      "status": "A"
+    }
+  ],
+  "files_more": false,
+  "files_total": 2,
+  "mirrored_at": "2026-10-27T07:13Z",
+  "notes": [],
+  "patch": "diff --git .github/release-drafter.yml .github/release-drafter.yml\nnew file mode 100644\nindex 0000000000000000000000000000000000000000..2db2e1397ec7b63ebe94d7536548cba72f20e7bd\n--- /dev/null\n+++ .github/release-drafter.yml\n@@ -0,0 +1,8 @@\n+# Config for https://github.com/apps/release-drafter\n+template: |\n+  \n+  <summary of changes here>\n+  \n+  ## CHANGELOG\n+\n+  $CHANGES\ndiff --git .github/stale.yml .github/stale.yml\nnew file mode 100644\nindex 0000000000000000000000000000000000000000..de8a67804bf3b119c5d4926d2acddd958ae0b5cd\n--- /dev/null\n+++ .github/stale.yml\n@@ -0,0 +1,12 @@\n+daysUntilStale: 60\n+daysUntilClose: 7\n+# Issues with these labels will never be considered stale\n+exemptLabels:\n+  - v2\n+  - needs-review\n+  - work-required\n+staleLabel: stale\n+markComment: >\n+  This issue has been automatically marked as stale because it hasn't seen\n+  a recent update. It'll be automatically closed in a few days.\n+closeComment: false\n",
+  "paths": [
+    ".github"
+  ],
+  "repo": "github.com/gorilla/mux",
+  "rev_a": "v1.6.2",
+  "rev_b": "v1.7.0"
+}
+----- stderr -----
+----- end -----

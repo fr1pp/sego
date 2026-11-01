@@ -1,0 +1,160 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"github.com/sharkdp/bat@fc9546854f5a:Cargo.toml\"])"
+---
+exit: 0
+----- stdout -----
+github.com/sharkdp/bat@fc9546854f5a:Cargo.toml  150 commits shown; more exist
+fc9546854f5a  2023-10-10  Martin Nordholts  (tag: v0.24.0) Bump version to v0.24.0
+8e35a567121a  2023-10-01  Raghav-Bell  Updated version of `serde_yaml` to 0.9
+721f956c1c9f  2023-10-01  dependabot[bot]  Bump once_cell from 1.17.0 to 1.18.0
+db4cdc1cb82e  2023-10-01  dependabot[bot]  Bump clap from 4.4.2 to 4.4.6
+e455f93a1e06  2023-10-04  dependabot[bot]  Bump encoding_rs from 0.8.32 to 0.8.33
+c7cc4b5c59db  2023-10-01  dependabot[bot]  Bump bytesize from 1.2.0 to 1.3.0
+f49278cfaa81  2023-09-05  Martin Nordholts  Do not enable `lessopen` feature by default
+e32ad0b048c5  2023-09-02  Anomalocaridid  Add `$LESSOPEN` and `$LESSCLOSE` support (#2444)
+a721cc31f393  2023-04-22  Utkarsh Gupta  Replace `dirs` crate with `etcetera` crate
+d33b2e158ea9  2023-07-21  rhysd  Replace unmaintained `encoding` with `encoding_rs`
+d295b3a39435  2023-09-01  David Peter  Merge pull request #2613 from sharkdp/dependabot/cargo/expect-test-1.4.1
+75928d20f83a  2023-09-01  dependabot[bot]  Bump nu-ansi-term from 0.47.0 to 0.49.0
+2cc45eea1ab8  2023-09-01  dependabot[bot]  Bump clap from 4.3.0 to 4.4.2
+7dbc6e3da423  2023-09-01  dependabot[bot]  Bump tempfile from 3.5.0 to 3.8.0
+f34b852aa80a  2023-09-01  dependabot[bot]  Bump git2 from 0.16.1 to 0.18.0
+82664e3c8249  2023-08-28  mataha  Bump MSRV to 1.70.0
+7f884fa58248  2023-07-01  dependabot[bot]  Bump expect-test from 1.4.0 to 1.4.1
+8676bbf97f28  2023-06-14  David Peter  Update clircle
+5042f969e505  2023-06-01  dependabot[bot]  Bump clap from 4.2.6 to 4.3.0
+39d9d64e1e0f  2023-06-01  dependabot[bot]  Bump regex from 1.8.1 to 1.8.3
+c5a9fdff935f  2023-05-01  dependabot[bot]  Bump regex from 1.7.0 to 1.8.1
+7162e38d5072  2023-05-12  dependabot[bot]  Bump predicates from 3.0.2 to 3.0.3
+9683bfdb3f1c  2023-04-22  Constantin Nickel  Update `clap` to 4.2.6
+e828d7840acc  2023-04-05  Constantin Nickel  Use valid SPDX license expression
+52f7a5a06fc1  2023-04-05  Constantin Nickel  Update `plist` to 1.4
+baa1476d8d37  2023-04-05  Constantin Nickel  Update `predicates` to 3.0
+6be56972b668  2023-04-05  Constantin Nickel  Update `serial_test` to 2.0
+2298422e852a  2023-04-05  dependabot[bot]  Bump bytesize from 1.1.0 to 1.2.0
+c5731b9079e7  2023-04-05  David Peter  Merge pull request #2530 from nickelc/deps/use_is_terminal
+458e818ab4c9  2023-04-01  dependabot[bot]  Bump walkdir from 2.3.2 to 2.3.3
+ba95955fe64b  2023-04-01  dependabot[bot]  Bump tempfile from 3.3.0 to 3.5.0
+57cc0d843567  2023-04-05  Constantin Nickel  Use the `is-terminal` crate instead of `atty`
+58dbbd1cd400  2023-03-25  David Peter  Bump version to 0.23
+a422fea06d7e  2023-03-24  David Peter  Merge pull request #2506 from nickelc/ci-strip
+1a142a82b4c9  2023-03-24  David Peter  Merge pull request #2513 from nickelc/deps/dirs
+0e148e35dd08  2023-03-24  Constantin Nickel  Replace `dirs-next` with the original `dirs` crate
+da3aa4e2fdbe  2023-03-23  Constantin Nickel  Use `nu-ansi-term` instead of `ansi_term`
+89c5683f8d8f  2023-03-16  Constantin Nickel  Use cargo's `strip` option to remove symbols+debuginfo from the binaries
+c094cd3ee5ac  2023-03-15  Constantin Nickel  Update `clap` to 4.1.8
+22cc6ffb5a44  2023-03-14  Constantin Nickel  Set `rust-version` in Cargo metadata
+2ac584dd7262  2023-03-01  dependabot[bot]  Bump grep-cli from 0.1.6 to 0.1.7
+a967b888825f  2023-03-01  dependabot[bot]  Bump ansi_colours from 1.1.1 to 1.2.1
+e3d8b56c8f28  2023-03-01  David Peter  Merge pull request #2492 from sharkdp/dependabot/cargo/clap-4.0.32
+47ab4fa9881c  2023-03-01  dependabot[bot]  Bump clap from 4.0.18 to 4.0.32
+bc714dd7a267  2023-03-01  dependabot[bot]  Bump git2 from 0.15.0 to 0.16.1
+1004018941eb  2023-01-05  BlackHoleFox  Directly read preferences instead of using the defaults CLI
+37ae4989a27d  2023-02-01  dependabot[bot]  Bump nix from 0.26.1 to 0.26.2
+d83cc3a1166a  2023-02-01  dependabot[bot]  Bump console from 0.15.2 to 0.15.5
+105e55456cf8  2023-02-01  dependabot[bot]  Bump assert_cmd from 2.0.5 to 2.0.8
+5cd77662b59d  2023-01-17  David Peter  Merge pull request #2430 from Enselic/blessable-help
+d5084cd391d6  2023-01-01  dependabot[bot]  Bump predicates from 2.1.3 to 2.1.5
+79198e80481e  2023-01-01  dependabot[bot]  Bump once_cell from 1.16.0 to 1.17.0
+4e34b362f844  2022-12-30  Martin Nordholts  Require changes to `-h` and `--help` to be blessed
+52764624c904  2022-12-01  dependabot[bot]  Bump predicates from 2.1.1 to 2.1.3
+5c510a20c1e7  2022-12-01  dependabot[bot]  Bump nix from 0.25.0 to 0.26.1
+8e960fc59c63  2022-12-01  dependabot[bot]  Bump regex from 1.6.0 to 1.7.0
+b6a5004a9cbb  2022-11-02  David Peter  Merge pull request #2390 from sharkdp/dependabot/cargo/nix-0.25.0
+bb2e3b52b8c0  2022-11-02  David Peter  Merge pull request #2389 from sharkdp/dependabot/cargo/once_cell-1.16.0
+600de0584046  2022-11-01  dependabot[bot]  Bump nix from 0.24.2 to 0.25.0
+ea7cc9d82ffc  2022-11-01  dependabot[bot]  Bump once_cell from 1.15.0 to 1.16.0
+e536aa933e42  2022-11-01  dependabot[bot]  Bump assert_cmd from 2.0.4 to 2.0.5
+1e0b0f7c5c13  2022-10-01  Gábor Lipták  Add github-actions to Dependabot
+42a3ef28e818  2022-10-01  dependabot[bot]  Bump once_cell from 1.13.1 to 1.15.0
+10ab72f8ae42  2022-10-01  dependabot[bot]  Bump unicode-width from 0.1.9 to 0.1.10
+c662801ad8d9  2022-10-01  dependabot[bot]  Bump console from 0.15.1 to 0.15.2
+e5d95796141a  2022-09-09  Martin Nordholts  (tag: v0.22.1) Bump version to v0.22.1
+3c33b2850797  2022-09-06  David Peter  Bump version to v0.22
+b295850cb3fe  2022-08-25  dependabot[bot]  Bump git2 from 0.14.2 to 0.15.0
+2323804f7e72  2022-09-01  Ed Page  refactor: Port to clap3
+3480b61eae4e  2022-09-02  dependabot[bot]  Bump wild from 2.0.4 to 2.1.0 (#2296)
+4514a362fa0f  2022-08-12  dependabot[bot]  Bump regex from 1.5.6 to 1.6.0
+44fa7a9af3af  2022-08-12  dependabot[bot]  Bump once_cell from 1.12.0 to 1.13.0
+44daae4a8fd2  2022-08-12  dependabot[bot]  Bump console from 0.15.0 to 0.15.1
+dd2c6e07b8f1  2022-08-01  dependabot[bot]  Bump nix from 0.24.1 to 0.24.2
+17c099e58990  2022-06-01  dependabot[bot]  Bump regex from 1.5.5 to 1.5.6
+7d6aa09a567e  2022-06-01  dependabot[bot]  Bump once_cell from 1.10.0 to 1.12.0
+d3f89bc4bcd3  2022-05-10  Martin Nordholts  Bump to v0.21.0
+7334ab454228  2022-05-07  Martin Nordholts  Bump to syntect 5.0.0 to e.g. start lazy-loading syntaxes (#2181)
+05ebf5ed2680  2022-05-01  Ryan Zoeller  Limit nix features
+f2727d74d558  2022-05-01  dependabot[bot]  Bump nix from 0.23.1 to 0.24.1
+520081a92c73  2022-04-02  Martin Nordholts  Print info about custom assets in --diagnostics
+47e0dc22d20b  2022-04-02  Martin Nordholts  Lock regex crate at min 1.5.5 for CVE-2022-24713
+738304fe2707  2022-04-01  dependabot[bot]  Bump once_cell from 1.9.0 to 1.10.0
+a19155203111  2022-04-01  dependabot[bot]  Bump regex from 1.5.4 to 1.5.5
+a153a78d7aa4  2022-03-01  dependabot[bot]  Bump shell-words from 1.0.0 to 1.1.0
+3ff738602e2b  2022-03-01  dependabot[bot]  Bump git2 from 0.13.25 to 0.14.1
+97a98e037d9c  2022-03-01  dependabot[bot]  Bump serial_test from 0.5.1 to 0.6.0
+95796a9cc091  2022-03-01  dependabot[bot]  Bump predicates from 2.1.0 to 2.1.1
+0655ecf23d77  2022-02-26  Martin Nordholts  (tag: v0.20.0) Prepare for v0.20.0 release
+312c8ef01f1a  2022-02-07  Mahdi Dibaiee  Add new `--style` called `header-filesize` and display it by default (#1988)
+6ce26c43c95a  2022-02-07  dependabot[bot]  Bump ansi_colours from 1.0.4 to 1.1.1
+af44f0b3ff6d  2022-02-01  dependabot[bot]  Bump tempfile from 3.2.0 to 3.3.0
+5ae1957c0ee4  2022-02-01  dependabot[bot]  Bump assert_cmd from 2.0.2 to 2.0.4
+c2232d457f97  2022-01-07  Martin Nordholts  Bump to v0.19.0
+079f6be88c78  2022-01-01  dependabot[bot]  Bump nix from 0.23.0 to 0.23.1
+392bff666625  2022-01-01  dependabot[bot]  Bump once_cell from 1.8.0 to 1.9.0
+a3ea79824669  2021-12-11  Martin Nordholts  Credit syntax definition and theme authors with new `--acknowledgements` option (#1971)
+8072d5a3e344  2021-12-01  dependabot[bot]  Bump clap from 2.33.3 to 2.34.0
+f5e3d9f010d4  2021-12-01  dependabot[bot]  Bump predicates from 2.0.3 to 2.1.0
+5519f9c7168d  2021-11-22  Martin Nordholts  Use once_cell instead of lazy_static
+dd0925a94659  2021-11-22  Martin Nordholts  Replace lazycell with once_cell
+7fbe090525ed  2021-11-01  dependabot[bot]  Bump assert_cmd from 2.0.1 to 2.0.2
+eaf64df4c659  2021-11-01  dependabot[bot]  Bump console from 0.14.1 to 0.15.0
+a1558fb6bf95  2021-11-01  dependabot[bot]  Bump predicates from 2.0.2 to 2.0.3
+ed3246c42393  2021-10-17  rhysd  Make grep-cli optional dependency
+a6cf5235aaef  2021-10-01  dependabot[bot]  Bump assert_cmd from 2.0.0 to 2.0.1
+1477338106d0  2021-10-01  dependabot[bot]  Bump nix from 0.22.1 to 0.23.0
+5344a32d3447  2021-10-02  dependabot[bot]  Bump unicode-width from 0.1.8 to 0.1.9
+87978e7755d6  2021-09-07  Martin Nordholts  Make asset compression optional at compile time (#1825)
+960219591028  2021-09-03  dependabot[bot]  Bump assert_cmd from 1.0.8 to 2.0.0
+df067f7d1fa4  2021-09-01  dependabot[bot]  Bump predicates from 2.0.1 to 2.0.2
+a8a81e99d2fc  2021-09-01  dependabot[bot]  Bump nix from 0.22.0 to 0.22.1
+19c3e82abf70  2021-08-26  Martin Nordholts  Replace deprecated 'error-chain' with 'thiserror' (#1820)
+b3247d936482  2021-08-22  Martin Nordholts  Merge the v0.18.3 hotfix release into master
+b146958ecbb8  2021-08-21  Martin Nordholts  (tag: v0.18.3) Bump version to v0.18.3
+25fa577cd06c  2021-08-10  Martin Nordholts  Make 'build-assets' an optional capability for application
+cb4973987b23  2021-08-08  Martin Nordholts  Cargo.toml: Introduce 'quick-build-application' feature
+c83e382eac32  2021-08-08  Martin Nordholts  Cargo.toml: Only build bugreport with the app
+b7fd55242ee3  2021-08-01  dependabot[bot]  Bump assert_cmd from 1.0.5 to 1.0.8
+8161955cc71f  2021-08-01  dependabot[bot]  Bump nix from 0.21.0 to 0.22.0
+3b020fd95a1e  2021-08-02  Keith Hall  Merge pull request #1771 from sharkdp/warn_when_missing_contexts
+50e1c6074f88  2021-08-01  Keith Hall  Warn when building assets from files if some referenced contexts are missing
+a7fd9f4b1b42  2021-08-01  dependabot[bot]  Bump predicates from 1.0.8 to 2.0.1
+5f5b77cddadc  2021-08-01  dependabot[bot]  Bump semver from 0.11.0 to 1.0.4
+6acec2c074e0  2021-07-22  Martin Nordholts  Reduce startup time in loop-through mode with 80%-90%
+a4b674902f26  2021-07-12  David Peter  Bump version to v0.18.2
+bf2b2df9c9e2  2021-07-12  David Peter  Fix for Windows: do not run binaries from CWD
+4296d47dcbb5  2021-07-01  dependabot[bot]  Bump assert_cmd from 1.0.4 to 1.0.5
+71f04dc0e835  2021-06-01  dependabot[bot]  Bump nix from 0.20.0 to 0.21.0
+49f8bbfee4f7  2021-06-01  dependabot[bot]  Bump assert_cmd from 1.0.3 to 1.0.4
+73dab51ad1b8  2021-05-12  David Peter  Bump version, update dependencies
+516da7719f3e  2021-05-12  David Peter  Merge pull request #1646 from sharkdp/dependabot/cargo/bugreport-0.4.0
+1a610dbdd252  2021-05-12  dependabot[bot]  Bump bugreport from 0.3.0 to 0.4.0
+d405aa98d571  2021-05-01  dependabot-preview[bot]  Bump console from 0.14.0 to 0.14.1
+38808882860e  2021-03-01  dependabot-preview[bot]  Bump nix from 0.19.1 to 0.20.0
+b8a18d3ebb5b  2021-02-27  Niklas Mohrin  (tag: v0.18.0) Use tempfiles for clircle tests
+694b31909a38  2021-02-27  Niklas Mohrin  Change circle detection to use new more conservative method and run in main loop instead of before the loop
+cfc505e1e522  2021-02-28  David Peter  Bump version to v0.18.0
+573f34d75743  2021-02-16  Caden Haustein  Update dependencies; replace unmaintained (#1522)
+a26c5b821907  2021-02-01  dependabot-preview[bot]  Bump predicates from 1.0.6 to 1.0.7
+b0e5828d3f6d  2021-01-10  sharkdp  Add comment regarding use of bat as a library, closes #953
+da1016662588  2021-01-07  Martin Nordholts  Merge remote-tracking branch 'origin/master' into fix-1063
+6a52f69b5816  2021-01-06  sharkdp  Update to bugreport 0.3.0
+2465438ec32c  2021-01-01  sharkdp  Bump bugreport version
+dec94b4111ea  2021-01-01  sharkdp  Add config file, compile time info and less version
+ebb97e94a9f3  2020-12-31  sharkdp  Add --diagnostic option to bat
+46487b201ff0  2021-01-06  Martin Nordholts  Merge remote-tracking branch 'origin/master' into fix-1063
+b600f62ab68e  2021-01-05  Niklas Mohrin  Add unix specific integration test about running bat without any arguments
+21ae26cb17ad  2020-11-24  Niklas Mohrin  Add cycle detection with clircle, now v0.2
+478233f7952d  2021-01-04  Martin Nordholts  Merge remote-tracking branch 'origin/master' into fix-1063
+----- stderr -----
+sego: note: sego log github.com/sharkdp/bat@478233f7952d:Cargo.toml and sego log --json github.com/sharkdp/bat@478233f7952d..fc9546854f5a Cargo.toml together list every commit this log left out
+----- end -----

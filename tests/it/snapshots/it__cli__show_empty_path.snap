@@ -1,0 +1,10 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"show\", \"example.com/acme/widget:\"])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: example.com/acme/widget is not on sourcegraph.com
+  sourcegraph.com serves indexed repositories from github.com, gitlab.com and a few other hosts; a renamed repository appears only under its new name
+----- end -----

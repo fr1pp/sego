@@ -89,32 +89,32 @@ pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Err
         Revs::Range { base, head } => (Some(base.clone()), head.as_str()),
     };
     let first = rows_asked(args.json, TEXT_ROWS);
-    let comparison = client.comparison(&args.repo, args.revs.revisions(), &args.paths, first)?;
-    let mirrored_at = comparison.lookup().noting_other_host(|note| notes.push(note));
+    let diff = client.diff(&args.repo, args.revs.revisions(), &args.paths, first)?;
+    let mirrored_at = diff.lookup().noting_other_host(|note| notes.push(note));
     let root_commit =
         || Error::not_found(format!("{head} is a root commit: Sourcegraph has no diff for it"));
-    let Some(changes) = comparison.changes else {
+    let Some(changes) = diff.changes else {
         return Err(root_commit());
     };
-    let commit_a = match (comparison.base, &comparison.from) {
+    let commit_a = match (diff.base, &diff.from) {
         (Some(base), _) => base.commit,
         (None, Some(parent)) => parent.clone(),
         (None, None) => return Err(root_commit()),
     };
     Ok(Answer {
-        repo: comparison.head.repo,
+        repo: diff.head.repo,
         rev_a,
         rev_b: head.to_owned(),
         commit_a,
-        commit_b: comparison.head.commit,
-        base: comparison.from,
+        commit_b: diff.head.commit,
+        base: diff.from,
         files_total: changes.files.total,
         files_more: changes.files.more,
         added: changes.added,
         deleted: changes.deleted,
         files: changes.files.items.into_iter().map(file_row).collect(),
         paths: args.paths.clone(),
-        patch: comparison.patch,
+        patch: diff.patch,
         mirrored_at,
     })
 }

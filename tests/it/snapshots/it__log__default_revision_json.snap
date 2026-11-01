@@ -1,0 +1,623 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"--json\", \"github.com/gorilla/context\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "behind": null,
+  "commit": "6a490e2f9d5230449188a699ba53618c3364b26d",
+  "commit_a": null,
+  "commit_b": null,
+  "commits": [
+    {
+      "author": "Corey Daley",
+      "commit": "6a490e2f9d5230449188a699ba53618c3364b26d",
+      "date": "2023-10-18",
+      "parents": [
+        "a45ea70b19f4801253061c655e1adf2b9f921118"
+      ],
+      "subject": "Updating github actions workflows to test 1.20 and 1.21 (#45)",
+      "tags": [
+        "v2.0.0",
+        "v1.1.2"
+      ]
+    },
+    {
+      "author": "Corey Daley",
+      "commit": "a45ea70b19f4801253061c655e1adf2b9f921118",
+      "date": "2023-09-22",
+      "parents": [
+        "1cbd4c16de64273a6e63fc710b0d89bfad72cd32"
+      ],
+      "subject": "Updating Go version and Github Actions (#44)",
+      "tags": []
+    },
+    {
+      "author": "Corey Daley",
+      "commit": "1cbd4c16de64273a6e63fc710b0d89bfad72cd32",
+      "date": "2023-07-31",
+      "parents": [
+        "39a447022b01f56854e149ad5cf747a55e329789"
+      ],
+      "subject": "Update go version, add tools for verification and testing (#43)",
+      "tags": []
+    },
+    {
+      "author": "Corey Daley",
+      "commit": "39a447022b01f56854e149ad5cf747a55e329789",
+      "date": "2023-07-15",
+      "parents": [
+        "8559d4a6b87e4f517ec1846eb90a192b8748cc89",
+        "a01379df10af3e69dd7f416e462e04b65c3d4071"
+      ],
+      "subject": "Merge pull request #41 from gorilla/coreydaley-patch-1",
+      "tags": []
+    },
+    {
+      "author": "Corey Daley",
+      "commit": "a01379df10af3e69dd7f416e462e04b65c3d4071",
+      "date": "2023-07-15",
+      "parents": [
+        "8559d4a6b87e4f517ec1846eb90a192b8748cc89"
+      ],
+      "subject": "Update README.md",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "8559d4a6b87e4f517ec1846eb90a192b8748cc89",
+      "date": "2019-06-27",
+      "parents": [
+        "dc31bb267b7960f818abb4c4ec6e61d7932864bb"
+      ],
+      "subject": "Update README.md (#40)",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "dc31bb267b7960f818abb4c4ec6e61d7932864bb",
+      "date": "2019-06-27",
+      "parents": [
+        "30a41ee8e7bff21403ce7f0965679ad336646e98"
+      ],
+      "subject": "Create config.yml (#39)",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "30a41ee8e7bff21403ce7f0965679ad336646e98",
+      "date": "2019-06-27",
+      "parents": [
+        "51ce91d2eaddeca0ef29a71d766bb3634dadf729"
+      ],
+      "subject": "Update README.md (#38)",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "51ce91d2eaddeca0ef29a71d766bb3634dadf729",
+      "date": "2018-10-12",
+      "parents": [
+        "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
+      ],
+      "subject": "README.md: Update site URL",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",
+      "date": "2016-08-17",
+      "parents": [
+        "f81bcf7f9da1b630ddedc29b12ebfe00760ae1e8"
+      ],
+      "subject": "[docs] godoc fix. (#34)",
+      "tags": [
+        "v1.1.1"
+      ]
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "f81bcf7f9da1b630ddedc29b12ebfe00760ae1e8",
+      "date": "2016-08-17",
+      "parents": [
+        "01ef6ff48fdcdcb29ae84f90f10f33dac24845a0"
+      ],
+      "subject": "[docs] Note http.Request.WithContext() conflict. (#33)",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "01ef6ff48fdcdcb29ae84f90f10f33dac24845a0",
+      "date": "2016-08-16",
+      "parents": [
+        "aed02d124ae4a0e94fea4541c8effd05bf0c8296"
+      ],
+      "subject": ".travis.yml: Add go1.7",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "aed02d124ae4a0e94fea4541c8effd05bf0c8296",
+      "date": "2016-05-25",
+      "parents": [
+        "a8d44e7d8e4d532b6a27a02dd82abb31cc1b01bd",
+        "531bdb2bdc86061bb7a8e721d5f6505eff6ea705"
+      ],
+      "subject": "Merge pull request #31 from yuokada/fix/typo",
+      "tags": []
+    },
+    {
+      "author": "Yukihiro Okada (Yuki)",
+      "commit": "531bdb2bdc86061bb7a8e721d5f6505eff6ea705",
+      "date": "2016-05-25",
+      "parents": [
+        "a8d44e7d8e4d532b6a27a02dd82abb31cc1b01bd"
+      ],
+      "subject": "Fix typo",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "a8d44e7d8e4d532b6a27a02dd82abb31cc1b01bd",
+      "date": "2016-04-22",
+      "parents": [
+        "1ea25387ff6f684839d82767c1733ff4d4d15d0a",
+        "ffc4422d763f1c9a362b38e6947496df87329a60"
+      ],
+      "subject": "[ci] .travis.yml go vet fix.",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "ffc4422d763f1c9a362b38e6947496df87329a60",
+      "date": "2016-04-22",
+      "parents": [
+        "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
+      ],
+      "subject": "[ci] .travis.yml go vet fix.",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "1ea25387ff6f684839d82767c1733ff4d4d15d0a",
+      "date": "2016-02-26",
+      "parents": [
+        "1c83b3eabd45b6d76072b66b746c20815fb2872d",
+        "b53bb424a1b622348fb7d129fa8c11f303a2256c"
+      ],
+      "subject": "Merge pull request #28 from gorilla/ci/travis-go-1.6",
+      "tags": [
+        "v1.1"
+      ]
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "b53bb424a1b622348fb7d129fa8c11f303a2256c",
+      "date": "2016-02-26",
+      "parents": [
+        "1c83b3eabd45b6d76072b66b746c20815fb2872d"
+      ],
+      "subject": "Update .travis.yml to build Go 1.6",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "1c83b3eabd45b6d76072b66b746c20815fb2872d",
+      "date": "2015-08-20",
+      "parents": [
+        "215affda49addc4c8ef7e2534915df2c8c35c6cd"
+      ],
+      "subject": "Update .travis.yml",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "215affda49addc4c8ef7e2534915df2c8c35c6cd",
+      "date": "2014-12-17",
+      "parents": [
+        "50c25fb3b2b3b3cc724e9b6ac75fb44b3bccd0da",
+        "ecbca1cc2472d276035546fbff15710a7144d421"
+      ],
+      "subject": "Merge pull request #20 from areski/pr-fix-test-version",
+      "tags": []
+    },
+    {
+      "author": "areski",
+      "commit": "ecbca1cc2472d276035546fbff15710a7144d421",
+      "date": "2014-12-17",
+      "parents": [
+        "50c25fb3b2b3b3cc724e9b6ac75fb44b3bccd0da"
+      ],
+      "subject": "Add Travis-ci tests build on Go version 1.3 / 1.4",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "50c25fb3b2b3b3cc724e9b6ac75fb44b3bccd0da",
+      "date": "2014-11-26",
+      "parents": [
+        "14f550f51af52180c2eefed15e5fd18d63c0a64a"
+      ],
+      "subject": "benchmark: fix parallelWriter.",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "14f550f51af52180c2eefed15e5fd18d63c0a64a",
+      "date": "2014-06-04",
+      "parents": [
+        "1f3e8a46c5bb4c29971d9867ede6e198ca5eddce",
+        "9af56363a72d2e9f29d444682583074e4d05a213"
+      ],
+      "subject": "Merge pull request #14 from LK4D4/fix_race_in_get",
+      "tags": []
+    },
+    {
+      "author": "Alexandr Morozov",
+      "commit": "9af56363a72d2e9f29d444682583074e4d05a213",
+      "date": "2014-06-04",
+      "parents": [
+        "1f3e8a46c5bb4c29971d9867ede6e198ca5eddce"
+      ],
+      "subject": "Fix racy code in Get",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "1f3e8a46c5bb4c29971d9867ede6e198ca5eddce",
+      "date": "2014-05-22",
+      "parents": [
+        "b06ed15e1c7a08fa1ba783fe94fff89127587f9e"
+      ],
+      "subject": "Return a shallow copy of the result in GetAll and GetAllOk.",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "b06ed15e1c7a08fa1ba783fe94fff89127587f9e",
+      "date": "2014-05-20",
+      "parents": [
+        "1be7a086a5fd6440ef16fe96baeda0c78282b980",
+        "13ce75261f2d4eda931f3de7b8c14dc7a56843a3"
+      ],
+      "subject": "Merge pull request #12 from tylerb/master",
+      "tags": []
+    },
+    {
+      "author": "Tyler Bunnell",
+      "commit": "13ce75261f2d4eda931f3de7b8c14dc7a56843a3",
+      "date": "2014-05-20",
+      "parents": [
+        "ee79a2c21bb78dd6d095137ddea5862ff15439e5"
+      ],
+      "subject": "More comprehensive benchmarking",
+      "tags": []
+    },
+    {
+      "author": "Tyler Bunnell",
+      "commit": "ee79a2c21bb78dd6d095137ddea5862ff15439e5",
+      "date": "2014-05-20",
+      "parents": [
+        "6e5f0a5765dc2423d064383f33ccb9306267deaf"
+      ],
+      "subject": "Fix golint warning",
+      "tags": []
+    },
+    {
+      "author": "Tyler Bunnell",
+      "commit": "6e5f0a5765dc2423d064383f33ccb9306267deaf",
+      "date": "2014-05-20",
+      "parents": [
+        "dad32f953222ceaeacbcb3f9354e397118a679b1"
+      ],
+      "subject": "Remove defer",
+      "tags": []
+    },
+    {
+      "author": "Tyler Bunnell",
+      "commit": "dad32f953222ceaeacbcb3f9354e397118a679b1",
+      "date": "2014-05-20",
+      "parents": [
+        "cffbf44e851f1a2068ae6273eb8795031c3b6fad"
+      ],
+      "subject": "Switch to RWMutex",
+      "tags": []
+    },
+    {
+      "author": "Tyler Bunnell",
+      "commit": "cffbf44e851f1a2068ae6273eb8795031c3b6fad",
+      "date": "2014-05-20",
+      "parents": [
+        "1be7a086a5fd6440ef16fe96baeda0c78282b980"
+      ],
+      "subject": "Add mutex benchmark",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "1be7a086a5fd6440ef16fe96baeda0c78282b980",
+      "date": "2014-03-06",
+      "parents": [
+        "a08edd30ad9e104612741163dc087a613829a23c",
+        "116fc839c218f1d5177797304d62acb8dcaa9e52"
+      ],
+      "subject": "Merge pull request #11 from adammck/add_getall",
+      "tags": []
+    },
+    {
+      "author": "Adam Mckaig",
+      "commit": "116fc839c218f1d5177797304d62acb8dcaa9e52",
+      "date": "2014-03-06",
+      "parents": [
+        "8b602e76415dbfe4d6ef80cdbc49aaecc7155be4"
+      ],
+      "subject": "Add tests for GetAllOk",
+      "tags": []
+    },
+    {
+      "author": "Adam Mckaig",
+      "commit": "8b602e76415dbfe4d6ef80cdbc49aaecc7155be4",
+      "date": "2014-03-06",
+      "parents": [
+        "b680aaae68ec431913ded5e13f81c7929acc6615"
+      ],
+      "subject": "Fix docstring",
+      "tags": []
+    },
+    {
+      "author": "Pieter Joost van de Sande",
+      "commit": "b680aaae68ec431913ded5e13f81c7929acc6615",
+      "date": "2013-07-15",
+      "parents": [
+        "08e2e8a9bc63e56764888f6519b58c2485b13b47"
+      ],
+      "subject": "Return map instead of pointer value",
+      "tags": []
+    },
+    {
+      "author": "Pieter Joost van de Sande",
+      "commit": "08e2e8a9bc63e56764888f6519b58c2485b13b47",
+      "date": "2013-07-15",
+      "parents": [
+        "77bafb62fdfb308442391933e5a0577f1f14d4f4"
+      ],
+      "subject": "Remove GetAllOk method and GetAll now returns nil for invalid request",
+      "tags": []
+    },
+    {
+      "author": "Pieter Joost van de Sande",
+      "commit": "77bafb62fdfb308442391933e5a0577f1f14d4f4",
+      "date": "2013-07-14",
+      "parents": [
+        "3e810b0ccc2a40ffaae9b422318df29732c84c2e"
+      ],
+      "subject": "Adds GetAllOk",
+      "tags": []
+    },
+    {
+      "author": "Pieter Joost van de Sande",
+      "commit": "3e810b0ccc2a40ffaae9b422318df29732c84c2e",
+      "date": "2013-07-13",
+      "parents": [
+        "6405b672ffe015cd83adf52c56bc95fab7854dce"
+      ],
+      "subject": "Return empty map when there are no values",
+      "tags": []
+    },
+    {
+      "author": "Pieter Joost van de Sande",
+      "commit": "6405b672ffe015cd83adf52c56bc95fab7854dce",
+      "date": "2013-07-13",
+      "parents": [
+        "fac5866e50388a49ba64cdbf9706d343514ad93b"
+      ],
+      "subject": "Adds test for GetAll for empty request",
+      "tags": []
+    },
+    {
+      "author": "Pieter Joost van de Sande",
+      "commit": "fac5866e50388a49ba64cdbf9706d343514ad93b",
+      "date": "2013-07-13",
+      "parents": [
+        "da513c322191274b2443deafded9feb1bef1f1f4"
+      ],
+      "subject": "Adds test for GetAll for existing request",
+      "tags": []
+    },
+    {
+      "author": "pjvds",
+      "commit": "da513c322191274b2443deafded9feb1bef1f1f4",
+      "date": "2013-07-13",
+      "parents": [
+        "a08edd30ad9e104612741163dc087a613829a23c"
+      ],
+      "subject": "Adds GetAll method",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "a08edd30ad9e104612741163dc087a613829a23c",
+      "date": "2013-12-05",
+      "parents": [
+        "bb1bb4d8798c7062d4b0a31c6f307ace50e95736"
+      ],
+      "subject": "Add go 1.2 to travis.yml",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "bb1bb4d8798c7062d4b0a31c6f307ace50e95736",
+      "date": "2013-11-30",
+      "parents": [
+        "37ad08d49581f8fdd6d9478bb145c1505aebff7d"
+      ],
+      "subject": "Add Travis badge",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "37ad08d49581f8fdd6d9478bb145c1505aebff7d",
+      "date": "2013-11-30",
+      "parents": [
+        "257e3549c53c64994caf0fe919e877bc1406422d",
+        "9192307f0e6703eb76b00cb08b112f226205946d"
+      ],
+      "subject": "Merge branch 'master' of github.com:gorilla/context",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "257e3549c53c64994caf0fe919e877bc1406422d",
+      "date": "2013-11-30",
+      "parents": [
+        "708054d61e5a2918b9f4e9700000ee611dcf03f5"
+      ],
+      "subject": "Add travis.yml",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "9192307f0e6703eb76b00cb08b112f226205946d",
+      "date": "2013-11-30",
+      "parents": [
+        "708054d61e5a2918b9f4e9700000ee611dcf03f5",
+        "b8a1d5a34aa03cd9ef7976a3bbe2f3ad3f9bd41c"
+      ],
+      "subject": "Merge pull request #8 from andrewsmedina/gofmt",
+      "tags": []
+    },
+    {
+      "author": "Andrews Medina",
+      "commit": "b8a1d5a34aa03cd9ef7976a3bbe2f3ad3f9bd41c",
+      "date": "2013-11-30",
+      "parents": [
+        "708054d61e5a2918b9f4e9700000ee611dcf03f5"
+      ],
+      "subject": "go fmt.",
+      "tags": []
+    },
+    {
+      "author": "rodrigo moraes",
+      "commit": "708054d61e5a2918b9f4e9700000ee611dcf03f5",
+      "date": "2013-05-31",
+      "parents": [
+        "a8662172a384296ff59d28f837e151643c662985",
+        "989863b11f7f9b455d4d0f63ba2fa9c67b621981"
+      ],
+      "subject": "Merge pull request #5 from DmitryBochkarev/GetOk",
+      "tags": []
+    },
+    {
+      "author": "Dmitry Bochkarev",
+      "commit": "989863b11f7f9b455d4d0f63ba2fa9c67b621981",
+      "date": "2013-05-30",
+      "parents": [
+        "3968bf33e768f06bc4fc140e7952cbe3d8453b0c"
+      ],
+      "subject": "fix doc.go",
+      "tags": []
+    },
+    {
+      "author": "Dmitry Bochkarev",
+      "commit": "3968bf33e768f06bc4fc140e7952cbe3d8453b0c",
+      "date": "2013-05-30",
+      "parents": [
+        "a8662172a384296ff59d28f837e151643c662985"
+      ],
+      "subject": "GetOk(r, key) (value, ok)",
+      "tags": []
+    },
+    {
+      "author": "rodrigo moraes",
+      "commit": "a8662172a384296ff59d28f837e151643c662985",
+      "date": "2013-04-09",
+      "parents": [
+        "12bc3a0632e8421e8b18c318640471a4023cb536"
+      ],
+      "subject": "Update README.md",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "12bc3a0632e8421e8b18c318640471a4023cb536",
+      "date": "2013-03-20",
+      "parents": [
+        "c6c09957da62d92039441decb0984771e76640d2"
+      ],
+      "subject": "Fix up grammar in docs.",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "c6c09957da62d92039441decb0984771e76640d2",
+      "date": "2013-03-20",
+      "parents": [
+        "bf37eee315a56909484ab90343138daf5dc6f330"
+      ],
+      "subject": "Revert \"Added a Context type for non-global contexts.\"",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "bf37eee315a56909484ab90343138daf5dc6f330",
+      "date": "2013-03-20",
+      "parents": [
+        "bbd3ed3168245e982981e22ebc2de0e3739ab8a5",
+        "cdee84d5cb0250831da215a94c474d7accc6de4d"
+      ],
+      "subject": "Merge commit 'cdee84d'",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "cdee84d5cb0250831da215a94c474d7accc6de4d",
+      "date": "2013-03-20",
+      "parents": [
+        "11ae2122d92bb0b626705bccf3795d3e51ffb1de"
+      ],
+      "subject": "Documented that gorilla/pat also clears the context as of 9ff7555",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "bbd3ed3168245e982981e22ebc2de0e3739ab8a5",
+      "date": "2012-12-19",
+      "parents": [
+        "11ae2122d92bb0b626705bccf3795d3e51ffb1de"
+      ],
+      "subject": "Added a Context type for non-global contexts.",
+      "tags": []
+    },
+    {
+      "author": "moraes",
+      "commit": "11ae2122d92bb0b626705bccf3795d3e51ffb1de",
+      "date": "2012-10-03",
+      "parents": [
+        "652e24b8c8576ce9c689616f02f62ba6dd7acff3"
+      ],
+      "subject": "Initial files.",
+      "tags": []
+    },
+    {
+      "author": "rodrigo moraes",
+      "commit": "652e24b8c8576ce9c689616f02f62ba6dd7acff3",
+      "date": "2012-10-02",
+      "parents": [],
+      "subject": "Initial commit",
+      "tags": []
+    }
+  ],
+  "commits_more": false,
+  "commits_total": null,
+  "follow": false,
+  "mirrored_at": "2026-10-26T23:51Z",
+  "notes": [],
+  "path": null,
+  "repo": "github.com/gorilla/context",
+  "rev": null,
+  "rev_a": null,
+  "rev_b": null
+}
+----- stderr -----
+----- end -----

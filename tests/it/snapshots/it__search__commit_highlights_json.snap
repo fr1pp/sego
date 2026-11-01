@@ -1,0 +1,49 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"--json\", \"repo:example.com/app type:diff foo\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+{
+  "alert": null,
+  "at_least": false,
+  "count": 1,
+  "elapsed_ms": 100,
+  "limit_ms": 60000,
+  "notes": [],
+  "pattern_type": "keyword",
+  "query": "timeout:60s repo:example.com/app type:diff foo",
+  "results": [
+    {
+      "author": "Ann",
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "date": "2024-05-06",
+      "highlights": [
+        [
+          2,
+          1,
+          3
+        ]
+      ],
+      "kind": "commit",
+      "lines": [
+        "old_test.go old_test.go",
+        "@@ -263,0 +263,3 @@ x",
+        "+a"
+      ],
+      "repo": "example.com/app",
+      "subject": "fix"
+    }
+  ],
+  "server": {
+    "approximate_count": "4",
+    "limit_hit": false,
+    "match_count": 4,
+    "timedout": []
+  },
+  "stopped": false,
+  "unit": "commits",
+  "widen": []
+}
+----- stderr -----
+----- end -----

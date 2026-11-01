@@ -1,0 +1,14 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\",\n\"github.com/BurntSushi/cargo-benchcmp@cf84e27337f5c671f622330ed2ee1e36584d5c2e\",\n\"coloured_output_example.png\"])"
+---
+exit: 0
+----- stdout -----
+github.com/BurntSushi/cargo-benchcmp@23d04701228d...cf84e27337f5:coloured_output_example.png  1 file  +0 -0  base 23d04701228d
+M  +0 -0  coloured_output_example.png
+
+    diff --git coloured_output_example.png coloured_output_example.png
+    index a224ed001017471d230d80849a38941277c192a3..600d1940bcf9ff652b8a5615f9deba46c57170ad 100644
+    Binary files coloured_output_example.png and coloured_output_example.png differ
+----- stderr -----
+----- end -----

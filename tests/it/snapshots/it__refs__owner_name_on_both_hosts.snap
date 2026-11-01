@@ -1,0 +1,10 @@
+---
+source: tests/it/refs.rs
+expression: "answered(&[\"refs\", \"acme/widget\"], [response])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: acme/widget exists as github.com/acme/widget and gitlab.com/acme/widget
+usage: sego refs [--json] REPO [TEXT]
+----- end -----

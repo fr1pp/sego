@@ -153,26 +153,58 @@ mod tests {
         }
     }
 
-    #[test]
-    #[ignore = "sends requests to sourcegraph.com"]
-    fn the_rules_search_relies_on_still_hold_on_the_live_server() {
-        let rules: [(&str, Rule); 5] = [
-            ("placeholder format", placeholder_format),
-            ("cap and plus", cap_and_plus),
-            ("complete answer", complete_answer),
-            ("utility counts", utility_counts),
-            ("deadline ceiling", deadline_ceiling),
-        ];
-        let failures: Vec<String> = rules
-            .iter()
-            .filter_map(|(name, check)| check().err().map(|why| format!("{name}: {why}")))
-            .collect();
-        assert!(
-            failures.is_empty(),
-            "{} of {} rules no longer hold:\n{}",
-            failures.len(),
-            rules.len(),
-            failures.join("\n")
-        );
+    /// The rules search relies on, each a test of its own, one at a time. A rule
+    /// that fails counts only if it fails again after a wait, since a search
+    /// shed under load answers as if the rule had broken.
+    mod live_rules {
+        use std::sync::{Mutex, PoisonError};
+        use std::thread::sleep;
+        use std::time::Duration;
+
+        use super::Rule;
+
+        static ONE_AT_A_TIME: Mutex<()> = Mutex::new(());
+        const SECOND_TRY: Duration = Duration::from_secs(5);
+
+        fn holds(rule: Rule) {
+            let _turn = ONE_AT_A_TIME.lock().unwrap_or_else(PoisonError::into_inner);
+            let held = rule().or_else(|_| {
+                sleep(SECOND_TRY);
+                rule()
+            });
+            if let Err(why) = held {
+                panic!("{why}");
+            }
+        }
+
+        #[test]
+        #[ignore = "sends requests to sourcegraph.com; run with `just live`"]
+        fn placeholder_format() {
+            holds(super::placeholder_format);
+        }
+
+        #[test]
+        #[ignore = "sends requests to sourcegraph.com; run with `just live`"]
+        fn cap_and_plus() {
+            holds(super::cap_and_plus);
+        }
+
+        #[test]
+        #[ignore = "sends requests to sourcegraph.com; run with `just live`"]
+        fn complete_answer() {
+            holds(super::complete_answer);
+        }
+
+        #[test]
+        #[ignore = "sends requests to sourcegraph.com; run with `just live`"]
+        fn utility_counts() {
+            holds(super::utility_counts);
+        }
+
+        #[test]
+        #[ignore = "sends requests to sourcegraph.com; run with `just live`"]
+        fn deadline_ceiling() {
+            holds(super::deadline_ceiling);
+        }
     }
 }

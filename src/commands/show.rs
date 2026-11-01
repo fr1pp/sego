@@ -10,7 +10,7 @@ use crate::output::{
     FileRow, Marker, Notes, base64, closing_fields, code_line, count, date, file_row, files_field,
     header, row_text, rows_asked, submodule_text,
 };
-use crate::sourcegraph::{Client, Comparison, Content, File, Resolved, Window};
+use crate::sourcegraph::{Client, Content, Diff, File, Resolved, Window};
 
 const DEFAULT_WINDOW: u32 = 500;
 const TEXT_ROWS: usize = 200;
@@ -357,16 +357,16 @@ pub fn run_commit(
     notes: &mut Notes,
 ) -> Result<CommitAnswer, Error> {
     let first = rows_asked(args.json, TEXT_ROWS);
-    let comparison = client.commit(&args.repo, &args.rev, first)?;
-    Ok(commit_answer(comparison, &args.rev, notes))
+    let diff = client.commit(&args.repo, &args.rev, first)?;
+    Ok(commit_answer(diff, &args.rev, notes))
 }
 
-fn commit_answer(comparison: Comparison, rev: &str, notes: &mut Notes) -> CommitAnswer {
-    let mirrored_at = comparison.lookup().noting_other_host(|note| notes.push(note));
-    if comparison.changes.is_none() {
+fn commit_answer(diff: Diff, rev: &str, notes: &mut Notes) -> CommitAnswer {
+    let mirrored_at = diff.lookup().noting_other_host(|note| notes.push(note));
+    if diff.changes.is_none() {
         notes.push(ROOT_NOTE);
     }
-    let (files, files_total, files_more, added, deleted) = match comparison.changes {
+    let (files, files_total, files_more, added, deleted) = match diff.changes {
         Some(changes) => (
             changes.files.items.into_iter().map(file_row).collect(),
             changes.files.total,
@@ -376,7 +376,7 @@ fn commit_answer(comparison: Comparison, rev: &str, notes: &mut Notes) -> Commit
         ),
         None => (Vec::new(), None, false, None, None),
     };
-    let commit = comparison.commit.unwrap_or_default();
+    let commit = diff.commit.unwrap_or_default();
     let tags = match commit.tags {
         Some(Ok(tags)) => Some(tags),
         Some(Err(error)) => {
@@ -386,9 +386,9 @@ fn commit_answer(comparison: Comparison, rev: &str, notes: &mut Notes) -> Commit
         None => None,
     };
     CommitAnswer {
-        repo: comparison.head.repo,
+        repo: diff.head.repo,
         rev: rev.to_owned(),
-        commit: comparison.head.commit,
+        commit: diff.head.commit,
         kind: AddressKind::Commit,
         author: commit.author,
         author_date: date(&commit.author_date),

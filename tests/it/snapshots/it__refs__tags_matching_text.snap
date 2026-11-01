@@ -1,0 +1,11 @@
+---
+source: tests/it/refs.rs
+expression: "sego(&[\"refs\", \"github.com/BurntSushi/ripgrep\", \"14.1\"])"
+---
+exit: 0
+----- stdout -----
+github.com/BurntSushi/ripgrep  0 of 16 branches match "14.1"  2 of 274 tags match "14.1"  default master  mirrored 2026-10-31T08:22Z
+tag     4649aa970061  14.1.1
+tag     e50df40a1967  14.1.0
+----- stderr -----
+----- end -----

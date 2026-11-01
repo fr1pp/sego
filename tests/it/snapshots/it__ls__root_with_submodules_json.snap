@@ -1,0 +1,132 @@
+---
+source: tests/it/ls.rs
+expression: "sego(&[\"ls\", \"--json\",\n\"github.com/akinomyoga/ble.sh@d81fd54feb0d996fdff20dca27eaf0201f7015cc\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "commit": "d81fd54feb0d996fdff20dca27eaf0201f7015cc",
+  "entries": [
+    {
+      "kind": "file",
+      "path": ".gitattributes",
+      "submodule_commit": null
+    },
+    {
+      "kind": "dir",
+      "path": ".github",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": ".gitignore",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": ".gitmodules",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": ".srcoption",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "GNUmakefile",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "LICENSE.md",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "Makefile",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "README-ja_JP.md",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "README.md",
+      "submodule_commit": null
+    },
+    {
+      "kind": "dir",
+      "path": "archive",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "ble.pp",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "blerc.template",
+      "submodule_commit": null
+    },
+    {
+      "kind": "submodule",
+      "path": "contrib",
+      "submodule_commit": "d2109203480a7dfe1dead5f5f8f9f15a9146c90d"
+    },
+    {
+      "kind": "dir",
+      "path": "docs",
+      "submodule_commit": null
+    },
+    {
+      "kind": "dir",
+      "path": "lib",
+      "submodule_commit": null
+    },
+    {
+      "kind": "dir",
+      "path": "make",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "make_command.sh",
+      "submodule_commit": null
+    },
+    {
+      "kind": "dir",
+      "path": "memo",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "note.txt",
+      "submodule_commit": null
+    },
+    {
+      "kind": "dir",
+      "path": "src",
+      "submodule_commit": null
+    },
+    {
+      "kind": "dir",
+      "path": "test",
+      "submodule_commit": null
+    }
+  ],
+  "entries_more": false,
+  "entries_total": 22,
+  "kind": "directory",
+  "mirrored_at": null,
+  "notes": [],
+  "path": null,
+  "recursive": false,
+  "repo": "github.com/akinomyoga/ble.sh",
+  "rev": "d81fd54feb0d996fdff20dca27eaf0201f7015cc"
+}
+----- stderr -----
+----- end -----

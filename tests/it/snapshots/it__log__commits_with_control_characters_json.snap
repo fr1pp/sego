@@ -1,0 +1,59 @@
+---
+source: tests/it/log.rs
+expression: ran
+---
+exit: 0
+----- stdout -----
+{
+  "behind": null,
+  "commit": "0123456789abcdef0123456789abcdef01234567",
+  "commit_a": null,
+  "commit_b": null,
+  "commits": [
+    {
+      "author": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "date": "2026-08-01",
+      "parents": [
+        "89abcdef0123456789abcdef0123456789abcdef"
+      ],
+      "subject": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "tags": [
+        "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+        "t-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+      ]
+    },
+    {
+      "author": "b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "commit": "89abcdef0123456789abcdef0123456789abcdef",
+      "date": "a\u001bb\u202ec\u200bd\ne\r",
+      "parents": [
+        "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+      ],
+      "subject": "b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "tags": []
+    },
+    {
+      "author": "c-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "commit": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "date": "2026-07-01",
+      "parents": [],
+      "subject": "c-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "tags": [
+        "u-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+      ]
+    }
+  ],
+  "commits_more": false,
+  "commits_total": null,
+  "follow": false,
+  "mirrored_at": null,
+  "notes": [],
+  "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+  "repo": "example.com/acme/widget",
+  "rev": "v2.0.0",
+  "rev_a": null,
+  "rev_b": null
+}
+----- stderr -----
+----- end -----

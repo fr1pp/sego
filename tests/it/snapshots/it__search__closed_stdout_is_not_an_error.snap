@@ -1,0 +1,8 @@
+---
+source: tests/it/search.rs
+expression: "Case::new(&[\"search\",\n\"repo:^github\\\\.com/gorilla/mux$@v1.8.0 \\\"func NewRouter\\\"\"],\nVec::new()).stdout_closed().ran()"
+---
+exit: 0
+----- stdout -----
+----- stderr -----
+----- end -----

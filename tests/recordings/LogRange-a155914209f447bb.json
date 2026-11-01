@@ -1,0 +1,479 @@
+{
+  "date": "2026-10-27",
+  "request": {
+    "operation": "LogRange",
+    "query": "query LogRange($repo: String!, $a: String!, $b: String!, $path: String, $first: Int, $count: Boolean!, $probe: Boolean!) {\n  c: repository(name: $repo) {\n    comparison(base: $a, head: $b, fetchMissing: false) { commits(first: $first, path: $path) { ...Page } }\n  }\n  n: repository(name: $repo) {\n    commit(rev: $b) @include(if: $count) { behindAhead(revspec: $a) { ahead behind } }\n  }\n  a: repository(name: $repo) { commit(rev: $a) { oid x: path(path: $path) @include(if: $probe) { __typename } } }\n  b: repository(name: $repo) { commit(rev: $b) { oid x: path(path: $path) @include(if: $probe) { __typename } } }\n  t: repository(name: $repo) { gitRefs(type: GIT_TAG) { nodes { displayName target { oid } } } }\n}\n\nfragment Page on GitCommitConnection {\n  nodes { oid subject author { date person { displayName } } parents { oid } }\n  pageInfo { hasNextPage }\n}\n",
+    "variables": {
+      "a": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf",
+      "b": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+      "count": true,
+      "first": null,
+      "path": null,
+      "probe": false,
+      "repo": "github.com/gorilla/mux"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "a": {
+          "commit": {
+            "oid": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+          }
+        },
+        "b": {
+          "commit": {
+            "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+          }
+        },
+        "c": {
+          "comparison": {
+            "commits": {
+              "nodes": [
+                {
+                  "author": {
+                    "date": "2019-01-25T16:05:53Z",
+                    "person": {
+                      "displayName": "moeryomenko"
+                    }
+                  },
+                  "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+                  "parents": [
+                    {
+                      "oid": "797e653da60e4619dcb0ae703714147b5a7454c6"
+                    }
+                  ],
+                  "subject": "replace rr.HeaderMap by rr.Header() (#443)"
+                },
+                {
+                  "author": {
+                    "date": "2019-01-25T11:41:49Z",
+                    "person": {
+                      "displayName": "Tim"
+                    }
+                  },
+                  "oid": "797e653da60e4619dcb0ae703714147b5a7454c6",
+                  "parents": [
+                    {
+                      "oid": "08e7f807d38d6a870193019bb439056118661505"
+                    }
+                  ],
+                  "subject": "Call WriteHeader after setting other header(s) in the example (#442)"
+                },
+                {
+                  "author": {
+                    "date": "2019-01-08T14:29:30Z",
+                    "person": {
+                      "displayName": "Gregor Weckbecker"
+                    }
+                  },
+                  "oid": "08e7f807d38d6a870193019bb439056118661505",
+                  "parents": [
+                    {
+                      "oid": "f3ff42f93a451d7ffb2ff11cb9485f3f88089c83"
+                    }
+                  ],
+                  "subject": "Ignore ErrNotFound while matching Subrouters (#438)"
+                },
+                {
+                  "author": {
+                    "date": "2019-01-04T15:08:45Z",
+                    "person": {
+                      "displayName": "santsai"
+                    }
+                  },
+                  "oid": "f3ff42f93a451d7ffb2ff11cb9485f3f88089c83",
+                  "parents": [
+                    {
+                      "oid": "ef912dd76ebe9d9848c6e0fd80eaebccc9a11631"
+                    }
+                  ],
+                  "subject": "getHost() now returns full host & port information (#383)"
+                },
+                {
+                  "author": {
+                    "date": "2018-12-28T00:42:16Z",
+                    "person": {
+                      "displayName": "tomare"
+                    }
+                  },
+                  "oid": "ef912dd76ebe9d9848c6e0fd80eaebccc9a11631",
+                  "parents": [
+                    {
+                      "oid": "a31c1782bfb10b7b3799d5ec06b5ccbd98c4ec7e"
+                    }
+                  ],
+                  "subject": "[bugfix] Clear matchErr when traversing subrouters."
+                },
+                {
+                  "author": {
+                    "date": "2018-12-25T16:41:17Z",
+                    "person": {
+                      "displayName": "Raees"
+                    }
+                  },
+                  "oid": "a31c1782bfb10b7b3799d5ec06b5ccbd98c4ec7e",
+                  "parents": [
+                    {
+                      "oid": "6137e193cdcba2725f16de84eaf0db2b769d9668"
+                    }
+                  ],
+                  "subject": "Replace domain.com with example.com (#434)"
+                },
+                {
+                  "author": {
+                    "date": "2018-12-17T14:42:43Z",
+                    "person": {
+                      "displayName": "Michael Li"
+                    }
+                  },
+                  "oid": "6137e193cdcba2725f16de84eaf0db2b769d9668",
+                  "parents": [
+                    {
+                      "oid": "d2b5d13b9260193b5a5649e9f47fda645bd2bd1d"
+                    }
+                  ],
+                  "subject": "remove redundant code that remove support gorilla/context (#427)"
+                },
+                {
+                  "author": {
+                    "date": "2018-12-08T20:40:53Z",
+                    "person": {
+                      "displayName": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "d2b5d13b9260193b5a5649e9f47fda645bd2bd1d",
+                  "parents": [
+                    {
+                      "oid": "419fd9fe2a07c30b927f0183d6a99408d187b812"
+                    }
+                  ],
+                  "subject": "Update and rename stale to stale.yml (#425)"
+                },
+                {
+                  "author": {
+                    "date": "2018-12-07T16:41:48Z",
+                    "person": {
+                      "displayName": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "419fd9fe2a07c30b927f0183d6a99408d187b812",
+                  "parents": [
+                    {
+                      "oid": "758eb64354aa27cda6c1b026822c788cc755f06f"
+                    }
+                  ],
+                  "subject": "Add stalebot config (#424)"
+                },
+                {
+                  "author": {
+                    "date": "2018-12-07T15:48:26Z",
+                    "person": {
+                      "displayName": "Joe Wilner"
+                    }
+                  },
+                  "oid": "758eb64354aa27cda6c1b026822c788cc755f06f",
+                  "parents": [
+                    {
+                      "oid": "3d80bc801bb034e17cae38591335b3b1110f1c47"
+                    }
+                  ],
+                  "subject": "Improve subroute configuration propagation #422"
+                },
+                {
+                  "author": {
+                    "date": "2018-10-30T15:25:28Z",
+                    "person": {
+                      "displayName": "kanozec"
+                    }
+                  },
+                  "oid": "3d80bc801bb034e17cae38591335b3b1110f1c47",
+                  "parents": [
+                    {
+                      "oid": "521ea7b17d02faf8d3afea6737573942ceac59c5"
+                    }
+                  ],
+                  "subject": "Use subtests in mux_test.go (#415)"
+                },
+                {
+                  "author": {
+                    "date": "2018-10-24T02:08:00Z",
+                    "person": {
+                      "displayName": "Steven Nguyen"
+                    }
+                  },
+                  "oid": "521ea7b17d02faf8d3afea6737573942ceac59c5",
+                  "parents": [
+                    {
+                      "oid": "deb579d6e030503f430978ee229008b9bc912d40"
+                    }
+                  ],
+                  "subject": "Use constant for 301 status code in regexp.go (#412)"
+                },
+                {
+                  "author": {
+                    "date": "2018-10-12T15:31:51Z",
+                    "person": {
+                      "displayName": "Kamil Kisiel"
+                    }
+                  },
+                  "oid": "deb579d6e030503f430978ee229008b9bc912d40",
+                  "parents": [
+                    {
+                      "oid": "9e1f5955c0d22b55d9e20d6faa28589f83b2faca"
+                    }
+                  ],
+                  "subject": "README.md: Update site URL"
+                },
+                {
+                  "author": {
+                    "date": "2018-09-03T15:43:05Z",
+                    "person": {
+                      "displayName": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "9e1f5955c0d22b55d9e20d6faa28589f83b2faca",
+                  "parents": [
+                    {
+                      "oid": "cf6680bc62d81bcd52bbf1c991bfe8b7ec98e270"
+                    }
+                  ],
+                  "subject": "Always run on the latest stable Go version. (#402)"
+                },
+                {
+                  "author": {
+                    "date": "2018-09-02T22:36:45Z",
+                    "person": {
+                      "displayName": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "cf6680bc62d81bcd52bbf1c991bfe8b7ec98e270",
+                  "parents": [
+                    {
+                      "oid": "8771f97498c6be5fe95d2eb5fb882c18bbf7f361"
+                    }
+                  ],
+                  "subject": "Create release-drafter.yml (#399)"
+                },
+                {
+                  "author": {
+                    "date": "2018-09-02T22:22:40Z",
+                    "person": {
+                      "displayName": "Franklin Harding"
+                    }
+                  },
+                  "oid": "8771f97498c6be5fe95d2eb5fb882c18bbf7f361",
+                  "parents": [
+                    {
+                      "oid": "962c5bed0721b50f2ba42684e9600dfde174770f"
+                    }
+                  ],
+                  "subject": "Drop support for Go < 1.7: remove gorilla/context (#391)"
+                },
+                {
+                  "author": {
+                    "date": "2018-08-30T14:23:24Z",
+                    "person": {
+                      "displayName": "Shalom Yerushalmy"
+                    }
+                  },
+                  "oid": "962c5bed0721b50f2ba42684e9600dfde174770f",
+                  "parents": [
+                    {
+                      "oid": "e48e440e4c92e3251d812f8ce7858944dfa3331c"
+                    }
+                  ],
+                  "subject": "Add 1.11 to build in travis (#398)"
+                },
+                {
+                  "author": {
+                    "date": "2018-08-07T07:52:56Z",
+                    "person": {
+                      "displayName": "Kamil Kisiel"
+                    }
+                  },
+                  "oid": "e48e440e4c92e3251d812f8ce7858944dfa3331c",
+                  "parents": [
+                    {
+                      "oid": "815b8c6a2641cd336000b3fb159b5741d0dc0113"
+                    }
+                  ],
+                  "subject": "Add test for multiple calls to Name()."
+                },
+                {
+                  "author": {
+                    "date": "2018-08-07T07:50:18Z",
+                    "person": {
+                      "displayName": "Kamil Kisiel"
+                    }
+                  },
+                  "oid": "815b8c6a2641cd336000b3fb159b5741d0dc0113",
+                  "parents": [
+                    {
+                      "oid": "cb4698366aa625048f3b815af6a0dea8aef9280a"
+                    }
+                  ],
+                  "subject": "Clarify behaviour of Name method if called multiple times."
+                },
+                {
+                  "author": {
+                    "date": "2018-06-05T21:15:56Z",
+                    "person": {
+                      "displayName": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "cb4698366aa625048f3b815af6a0dea8aef9280a",
+                  "parents": [
+                    {
+                      "oid": "e0b5abaaae35242fa74372f26c24107711702a4e"
+                    }
+                  ],
+                  "subject": "Update LICENSE & AUTHORS files. (#386)"
+                },
+                {
+                  "author": {
+                    "date": "2018-05-26T22:17:21Z",
+                    "person": {
+                      "displayName": "Jim Kalafut"
+                    }
+                  },
+                  "oid": "e0b5abaaae35242fa74372f26c24107711702a4e",
+                  "parents": [
+                    {
+                      "oid": "c85619274f5d55a67491010f883a91f568b3a9b0"
+                    }
+                  ],
+                  "subject": "Initialize user map (#371)"
+                },
+                {
+                  "author": {
+                    "date": "2018-05-17T17:36:23Z",
+                    "person": {
+                      "displayName": "Matt Silverlock"
+                    }
+                  },
+                  "oid": "c85619274f5d55a67491010f883a91f568b3a9b0",
+                  "parents": [
+                    {
+                      "oid": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+                    }
+                  ],
+                  "subject": "[deps] Add go.mod for versioned Go (#376)"
+                }
+              ],
+              "pageInfo": {
+                "hasNextPage": false
+              }
+            }
+          }
+        },
+        "n": {
+          "commit": {
+            "behindAhead": {
+              "ahead": 22,
+              "behind": 0
+            }
+          }
+        },
+        "t": {
+          "gitRefs": {
+            "nodes": [
+              {
+                "displayName": "v1.8.1",
+                "target": {
+                  "oid": "b4617d0b9670ad14039b2739167fd35a60f557c5"
+                }
+              },
+              {
+                "displayName": "v1.8.0",
+                "target": {
+                  "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+                }
+              },
+              {
+                "displayName": "v1.7.4",
+                "target": {
+                  "oid": "75dcda0896e109a2a22c9315bca3bb21b87b2ba5"
+                }
+              },
+              {
+                "displayName": "v1.7.3",
+                "target": {
+                  "oid": "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15"
+                }
+              },
+              {
+                "displayName": "v1.7.2",
+                "target": {
+                  "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+                }
+              },
+              {
+                "displayName": "v1.7.1",
+                "target": {
+                  "oid": "c5c6c98bc25355028a63748a498942a6398ccd22"
+                }
+              },
+              {
+                "displayName": "v1.7.0",
+                "target": {
+                  "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+                }
+              },
+              {
+                "displayName": "v1.6.2",
+                "target": {
+                  "oid": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+                }
+              },
+              {
+                "displayName": "v1.6.1",
+                "target": {
+                  "oid": "53c1911da2b537f792e7cafcb446b05ffe33b996"
+                }
+              },
+              {
+                "displayName": "v1.6.0",
+                "target": {
+                  "oid": "7f08801859139f86dfafd1c296e2cba9a80d292e"
+                }
+              },
+              {
+                "displayName": "v1.5.0",
+                "target": {
+                  "oid": "24fca303ac6da784b9e8269f724ddeb0b2eea5e7"
+                }
+              },
+              {
+                "displayName": "v1.4.0",
+                "target": {
+                  "oid": "bcd8bc72b08df0f70df986b97f95590779502d31"
+                }
+              },
+              {
+                "displayName": "v1.3.0",
+                "target": {
+                  "oid": "392c28fe23e1c45ddba891b0320b3b5df220beea"
+                }
+              },
+              {
+                "displayName": "v1.2.0",
+                "target": {
+                  "oid": "b12896167c61cb7a17ee5f15c2ba0729d78793db"
+                }
+              },
+              {
+                "displayName": "v1.1",
+                "target": {
+                  "oid": "0eeaf8392f5b04950925b8a69fe70f110fa7cbfc"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

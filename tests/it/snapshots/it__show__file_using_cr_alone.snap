@@ -1,0 +1,10 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\", \"github.com/uliwitness/UliKit@41a918fa:LoginItemAPI.h\", \"1\"])"
+---
+exit: 0
+----- stdout -----
+github.com/uliwitness/UliKit@41a918fa2f6a:LoginItemAPI.h  lines 1 of 1
+1:#if defined(__MWERKS__)  //for use with CodeWarrior\u{d}#   include <Carbon.h> //making a carbon project so need carbon.h\u{d}#	include <SIOUX.h> //this is used for window control in CodeWarrior\u{d}#else //for use with project builder\u{d}#	import <CoreFoundation/CoreFoundation.h>  //This is the only ProjectBuilder include we really needed\u{d}#	import <CoreFoundation/CFPreferences.h>  //This is where all the CFPreference APIs come from.\u{d}#	import <stdio.h> //used when printing out to standa… (+16104 more columns; --json has the full line)
+----- stderr -----
+----- end -----

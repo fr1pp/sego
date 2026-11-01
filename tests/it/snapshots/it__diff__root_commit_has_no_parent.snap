@@ -1,0 +1,9 @@
+---
+source: tests/it/diff.rs
+expression: "answered(&[\"diff\", \"example.com/acme/widget@v0.1.0\"], [response])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: v0.1.0 is a root commit: Sourcegraph has no diff for it
+----- end -----

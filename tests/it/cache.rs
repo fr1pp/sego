@@ -7,8 +7,8 @@ use tempfile::TempDir;
 
 use sego::{Response, TransportError};
 
-use crate::support::replay::{Answers, response_of};
-use crate::support::{Ran, sego};
+use crate::common::replay::{Answers, response_of};
+use crate::common::{Ran, sego_through};
 
 const SHOW_BIG: [&str; 3] = ["show", "example.com/x/y@main:big.c", "1-5"];
 
@@ -57,7 +57,7 @@ fn raw_read(byte_size: usize) -> Script {
 
 fn show_big(cache_dir: &OsStr, script: Script) -> (Ran, Answers) {
     let server = Answers::new(script);
-    (sego(&SHOW_BIG, cache_dir, &server), server)
+    (sego_through(&SHOW_BIG, cache_dir, &server), server)
 }
 
 #[test]

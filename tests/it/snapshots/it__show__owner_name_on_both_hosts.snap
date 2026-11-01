@@ -1,0 +1,11 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\", \"wireshark/wireshark:README.md\", \"1-3\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: wireshark/wireshark exists as github.com/wireshark/wireshark and gitlab.com/wireshark/wireshark
+usage: sego show [--json] REPO[@REV]:PATH [LINES]
+       sego show [--json] REPO@REV
+----- end -----

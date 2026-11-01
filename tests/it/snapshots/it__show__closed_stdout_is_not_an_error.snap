@@ -1,0 +1,8 @@
+---
+source: tests/it/show.rs
+expression: "Case::new(&[\"show\", \"github.com/gorilla/mux@v1.8.0:mux.go\", \"1-3\"],\nVec::new()).stdout_closed().ran()"
+---
+exit: 0
+----- stdout -----
+----- stderr -----
+----- end -----

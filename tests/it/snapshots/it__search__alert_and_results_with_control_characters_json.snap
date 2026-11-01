@@ -1,0 +1,186 @@
+---
+source: tests/it/search.rs
+expression: ran
+---
+exit: 0
+----- stdout -----
+{
+  "alert": {
+    "description": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+    "kind": null,
+    "proposed": [
+      {
+        "description": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+        "query": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+      }
+    ],
+    "title": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+  },
+  "at_least": true,
+  "count": 10,
+  "elapsed_ms": 100,
+  "limit_ms": 60000,
+  "notes": [
+    "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi: a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+    "the server proposes: a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+  ],
+  "pattern_type": "keyword",
+  "query": "timeout:60s a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi ok",
+  "results": [
+    {
+      "chunk": 1,
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "line",
+      "line": 3,
+      "match": true,
+      "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "ranges": [
+        [
+          1,
+          2
+        ]
+      ],
+      "repo": "example.com/acme/widget",
+      "rev": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "text": "a\u001bb"
+    },
+    {
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "container": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "kind": "symbol",
+      "line": 3,
+      "name": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "repo": "example.com/acme/widget",
+      "rev": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "symbol_kind": "function"
+    },
+    {
+      "chunk": 1,
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "line",
+      "line": 4,
+      "match": false,
+      "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "ranges": [],
+      "repo": "example.com/acme/widget",
+      "rev": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "text": "c\u202ed"
+    },
+    {
+      "chunk": 1,
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "line",
+      "line": 5,
+      "match": false,
+      "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "ranges": [],
+      "repo": "example.com/acme/widget",
+      "rev": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "text": "e\u200bf"
+    },
+    {
+      "chunk": 1,
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "line",
+      "line": 6,
+      "match": false,
+      "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "ranges": [],
+      "repo": "example.com/acme/widget",
+      "rev": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "text": "i\u2028j"
+    },
+    {
+      "chunk": 1,
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "line",
+      "line": 7,
+      "match": false,
+      "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "ranges": [],
+      "repo": "example.com/acme/widget",
+      "rev": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "text": "k\u007fl"
+    },
+    {
+      "chunk": 1,
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "line",
+      "line": 8,
+      "match": false,
+      "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "ranges": [],
+      "repo": "example.com/acme/widget",
+      "rev": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "text": "mid\rcr"
+    },
+    {
+      "chunk": 1,
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "line",
+      "line": 9,
+      "match": false,
+      "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "ranges": [],
+      "repo": "example.com/acme/widget",
+      "rev": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "text": "tab\tok"
+    },
+    {
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "binary",
+      "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi.bin",
+      "repo": "example.com/acme/widget",
+      "rev": null
+    },
+    {
+      "author": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "commit": "fedcba9876543210fedcba9876543210fedcba98",
+      "date": "2024-01-02",
+      "highlights": [
+        [
+          1,
+          1,
+          3
+        ]
+      ],
+      "kind": "commit",
+      "lines": [
+        "a\u001bb",
+        "c\u202ed",
+        "e\u200bf",
+        "i\u2028j",
+        "k\u007fl",
+        "mid\rcr",
+        "tab\tok"
+      ],
+      "repo": "example.com/acme/widget",
+      "subject": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+    },
+    {
+      "kind": "repo",
+      "repo": "example.com/acme/widget"
+    }
+  ],
+  "server": {
+    "approximate_count": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+    "limit_hit": false,
+    "match_count": 10,
+    "timedout": [
+      "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+    ]
+  },
+  "stopped": true,
+  "unit": "matches",
+  "widen": [
+    {
+      "filter": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "repos": 2
+    }
+  ]
+}
+----- stderr -----
+sego: note: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+sego: note: the server proposes: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+----- end -----

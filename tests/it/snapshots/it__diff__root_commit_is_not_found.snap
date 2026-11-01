@@ -1,0 +1,9 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"github.com/gorilla/mux@4e8d10dc715f\"])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: 4e8d10dc715f is a root commit: Sourcegraph has no diff for it
+----- end -----

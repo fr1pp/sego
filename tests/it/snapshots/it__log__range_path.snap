@@ -1,0 +1,13 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"github.com/gorilla/mux@v1.7.0..v1.8.0\", \"mux.go\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@a7962380ca08..98cb6bf42e08:mux.go  4 commits  rev v1.7.0..v1.8.0  mirrored 2026-10-27T07:22Z
+948bec34b516  2020-05-17  Eric Skoglund  docs: Remove stale text from comment. (#568)
+f395758b854c  2019-10-24  Franklin Harding  Remove/cleanup request context helpers (#525)
+eab9c4f3d22d  2019-07-20  Christian Muehlhaeuser  Simplify code (#501)
+15a353a63672  2019-02-28  Benjamin Boudreau  adding Router.Name to create new Route (#457)
+----- stderr -----
+----- end -----

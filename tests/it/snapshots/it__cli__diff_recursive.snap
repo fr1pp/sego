@@ -1,0 +1,11 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"diff\", \"example.com/acme/widget@v1\", \"--recursive\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: diff takes no --recursive
+usage: sego diff [--json] REPO@A...B[:PATH] [PATH...]
+       sego diff [--json] REPO@REV[:PATH] [PATH...]
+----- end -----

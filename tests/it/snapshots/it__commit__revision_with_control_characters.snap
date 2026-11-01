@@ -1,0 +1,11 @@
+---
+source: tests/it/commit.rs
+expression: "sego(&[\"show\",\n\"example.com/acme/widget@a\\u{1b}b\\u{202e}c\\u{200b}d\\ne\\rf\\0g\\u{2028}h\\u{7f}i\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: invalid revision 'a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i'; a revision cannot start with - or contain whitespace or control characters
+usage: sego show [--json] REPO[@REV]:PATH [LINES]
+       sego show [--json] REPO@REV
+----- end -----

@@ -1,0 +1,453 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"github.com/select2/select2@gh-pages...master\", \".github\"])"
+---
+exit: 0
+----- stdout -----
+github.com/select2/select2@4ccdbb53e38e...13bad6eb9b21:.github  8 files  +387 -0  rev gh-pages...master  mirrored 2026-10-27T08:41Z
+A  +203 -0  .github/CONTRIBUTING.md
+A  +2 -0  .github/FUNDING.yml
+A  +20 -0  .github/ISSUE_TEMPLATE.md
+A  +13 -0  .github/PULL_REQUEST_TEMPLATE.md
+A  +18 -0  .github/stale.yml
+A  +24 -0  .github/workflows/docs-deploy.yml
+A  +49 -0  .github/workflows/main.yml
+A  +58 -0  .github/workflows/package-deploy.yml
+
+    diff --git .github/CONTRIBUTING.md .github/CONTRIBUTING.md
+    new file mode 100644
+    index 0000000000000000000000000000000000000000..1aac0d0dd52dd1ffb6d56d2c88c938359aa45ecf
+    --- /dev/null
+    +++ .github/CONTRIBUTING.md
+    @@ -0,0 +1,203 @@
+    +# Guidelines for Getting Help with Select2
+    +
+    +**Before** you open a new issue, you must **read these guidelines.**  If it is evident from your issue that you failed to research your question properly, **your issue may be closed** without being answered.
+    +
+    +## Troubleshooting
+    +
+    +There are some common problems that developers may encounter when using working with Select2 for the first time.  **If you are new to Select2**, please consult the [common problems](https://select2.org/troubleshooting/common-problems) section of the documentation first.
+    +
+    +If you don't find what you're looking for there, then please check the the [forums](https://forums.select2.org), [Stack Overflow](https://stackoverflow.com/questions/tagged/jquery-select2) and [existing issues](https://github.com/select2/select2/issues?utf8=%E2%9C%93&q=is%3Aissue), both opened and closed.  Your question may have already been asked and answered before!
+    +
+    +## Asking for Help
+    +
+    +In general, the Github issue tracker should **only** be used for **bug reports** and **feature requests**.  If you're just having trouble getting something to work, you should ask in the [forums](https://forums.select2.org) or on [Stack Overflow](https://stackoverflow.com) instead.
+    +
+    +### Rules for all community platforms
+    +
+    +1. Be polite, civil and respectful.  Select2 is built and maintained entirely by volunteers.
+    +2. If you are not conversationally proficient in English, **do not just post a machine translation** (e.g. Google Translate). Post in your native language, so that others who speak your language can help. You may post a machine translation below it for the general community to decipher.
+    +3. Any code snippets should be formatted using [Markdown code fences](https://learn.userfrosting.com/troubleshooting/getting-help#use-markdown-to-format-blocks-of-code) and properly indented. Poorly formatted code is difficult to read and reflects badly on you as a programmer.
+    +4. Check what you write for spelling and grammar issues. If you want others to take the time to read your question carefully, you must write your question carefully.
+    +5. When possible create and link to a [minimal, complete, and verifiable](https://stackoverflow.com/help/mcve) example by cloning our [JSBin template](http://jsbin.com/goqagokoye/edit?html,js,output). Code dumps, zip files, etc are NOT acceptable.
+    +6. Include relevant screenshots or animations, if possible. Drag your screenshots directly into the forums or issue tracker text box. They will automatically be uploaded and the Markdown to display them will be generated.  Avoid third-party image hosts, or links which require extra clicks to view the image.
+    +
+    +### Stack Overflow
+    +
+    +Tag your question with the `jquery-select2` tag, and optionally with tags relevant to other technologies involved, such as `jquery` or another client-side framework.  You should also mention the version of Select2 that you are using.
+    +
+    +### GitHub Issue Tracker
+    +
+    +We really appreciate clear bug reports that _consistently_ show an issue _within Select2_.  If you are reporting a bug, you **must** follow these steps:
+    +
+    +1. Make sure that your issue is a bug or feature request.  General usage and troubleshooting questions should be directed to the [forums](https://forums.select2.org) or [Stack Overflow](https://stackoverflow.com/questions/tagged/jquery-select2).  Issues asking for general support WILL BE CLOSED automatically.
+    +2. Search the current issues, both open and closed, for a similar issue. If the bug is still present but the relevant issue has been closed, you may ask us to reopen the issue. Duplicate issues will be closed automatically.
+    +3. Make sure that you are using the latest stable version of Select2 (see the [release history](https://github.com/select2/select2/releases)). Old minor/patch versions will not be supported.
+    +4. State the steps needed to reproduce the problem.
+    +5. Report any errors in detail.  Vague issues like "it doesn't work when I do this" are not helpful.  Show that you have put some effort into identifying the cause of the error.  Check your [browser console](https://learn.userfrosting.com/troubleshooting/debugging#client-side-debugging) for any Javascript error messages.
+    +6. Mention your version of Select2, as well as the browser(s) and operating system(s) in which the problem occurs.
+    +
+    +Requesting features in Select2
+    +------------------------------
+    +Select2 is a large library that carries with it a lot of functionality. Because
+    +of this, many feature requests will not be implemented in the core library.
+    +
+    +Before starting work on a major feature for Select2, **post to the [forums](https://forums.select2.org) first** or you may risk spending a considerable amount of
+    +time on something which the project developers are not interested in bringing
+    +into the project.
+    +
+    +# Contributing to Select2
+    +
+    +Select2 is made up of multiple submodules that all come together to make the
+    +standard and extended builds that are available to users. The build system uses
+    +Node.js to manage and compile the submodules, all of which is done using the
+    +Grunt build system.
+    +
+    +### Installing development dependencies
+    +
+    +Select2 can be built and developed on any system which supports Node.js. You can download Node.js at
+    +[their website][nodejs].
+    +
+    +All other required Node.js packages can be installed using [npm][npm], which comes bundled alongside Node.js.
+    +
+    +```bash
+    +cd /path/to/select2/repo
+    +npm install
+    +```
+    +
+    +You may need to install `libsass` on your system if it is not already available in order to build the SASS files which generate the CSS for themes and the main component.
+    +
+    +### Building the Select2 component
+    +
+    +Select2 uses the [Grunt][grunt] build task system and defines a few custom
+    +tasks for common routines. One of them is the `compile` task, which compiles
+    +the JavaScript and CSS and produces the final files.
+    +
+    +```bash
+    +cd /path/to/select2/repo
+    +grunt compile
+    +```
+    +
+    +You can also generate the minified versions (`.min.js` files) by executing the
+    +`minify` task after compiling.
+    +
+    +```bash
+    +cd /path/to/select2/repo
+    +grunt minify
+    +```
+    +
+    +### Running tests
+    +
+    +Select2 uses the QUnit test system to test individual components.
+    +
+    +```bash
+    +cd /path/to/selct2/repo
+    +grunt test
+    +```
+    +
+    +### Setting up the documentation repo
+    +
+    +The documentation for Select2 is maintained in a [separate repository](https://github.com/select2/docs). Select2.org is built with the flat-file CMS [Grav](http://getgrav.org), using their [RTFM skeleton](https://github.com/getgrav/grav-skeleton-rtfm-site#rtfm-skeleton).
+    +
+    +The documentation files themselves are written in Markdown, and can be found in the `pages/` subdirectory. You can submit pull requests to the `develop` branch of the repo.
+    +
+    +If you'd like to set up a local instance of the entire documentation website, you must first have a web server (Nginx, Apache, etc) and PHP installed locally. Then, follow these steps:
+    +
+    +#### Step 1 - Install Grav
+    +
+    +This application uses the [Grav](https://learn.getgrav.org/) CMS.  This repository does not contain a full Grav installation - rather, it just contains the contents of Grav's `user` directory, which is where all of our content, themes, and assets live.  This was done as per the [recommendation on Grav's blog](https://getgrav.org/blog/developing-with-github-part-2), to make it easier to deploy changes to the live server.
+    +
+    +To install this website on your computer, first [install grav core](https://getgrav.org/downloads) in a project folder called `select2-docs` under your webserver's document root folder. Then, find the `user` folder inside of your project folder.  Delete the contents of the `user` folder and clone this repository directly into the user folder.
+    +
+    +When you're done it might look something like this:
+    +
+    +```
+    +htdocs/
+    +└── select2-docs/
+    +   ├── assets/
+    +   ├── ...
+    +   ├── user/
+    +       ├── .git
+    +       ├── accounts/
+    +       ├── assets/
+    +       ├── config/
+    +       └── ...
+    +   └── ...
+    +
+    +```
+    +
+    +#### Step 2
+    +
+    +Grav needs your webserver to be able to write to certain directories.  Make sure that `backup/`, `cache/`, `images/`, `logs/`, and `tmp/` are all writeable by the user account under which your webserver runs.
+    +
+    +#### Step 3
+    +
+    +Visit the local installation in your browser!  For example, [http://localhost/select2-docs](http://localhost/select2-docs).
+    +
+    +### Submitting a pull request
+    +
+    +We use GitHub's pull request system for submitting patches. Here are some
+    +guidelines to follow when creating the pull request for your fix.
+    +
+    +1. Make sure to create a ticket for your pull request. This will serve as the
+    +bug ticket, and any discussion about the bug will take place there. Your pull
+    +request will be focused on the specific changes that fix the bug.
+    +2. Make sure to reference the ticket you are fixing within your pull request.
+    +This will allow us to close off the ticket once we merge the pull request, or
+    +follow up on the ticket if there are any related blocking issues.
+    +3. Explain why the specific change was made. Not everyone who is reviewing your
+    +pull request will be familiar with the problem it is fixing.
+    +4. Run your tests first. If your tests aren't passing, the pull request won't
+    +be able to be merged. If you're breaking existing tests, make sure that you
+    +aren't causing any breaking changes.
+    +5. Only include source changes (`src/`). Do not make changes directly to files in the `dist`
+    +directory.
+    +
+    +By following these steps, you will make it easier for your pull request to be
+    +reviewed and eventually merged.
+    +
+    +Triaging issues and pull requests
+    +---------------------------------
+    +Anyone can help the project maintainers triage issues and review pull requests.
+    +
+    +### Handling new issues
+    +
+    +Select2 regularly receives new issues which need to be tested and organized.
+    +
+    +When a new issue that comes in that is similar to another existing issue, it
+    +should be checked to make sure it is not a duplicate.  Duplicates issues should
+    +be marked by replying to the issue with "Duplicate of #[issue number]" where
+    +`[issue number]` is the url or issue number for the existing issue.  This will
+    +allow the project maintainers to quickly close off additional issues and keep
+    +the discussion focused within a single issue.
+    +
+    +If you can test issues that are reported to Select2 that contain test cases and
+    +confirm under what conditions bugs happen, that will allow others to identify
+    +what causes a bug quicker.
+    +
+    +### Reviewing pull requests
+    +
+    +It is very common for pull requests to be opened for issues that contain a clear
+    +solution to the problem.  These pull requests should be rigorously reviewed by
+    +the community before being accepted.  If you are not sure about a piece of
+    +submitted code, or know of a better way to do something, do not hesitate to make
+    +a comment on the pull request.
+    +
+    +### Reviving old tickets
+    +
+    +If you come across tickets which have not been updated for a while, you are encouraged to revive them. If you do, please include more information in your comment on the issue. Common bugs and feature requests are more likely to be fixed, whether it is by the community or the
+    +developers, so keeping tickets up to date is encouraged.
+    +
+    +Licensing
+    +---------
+    +
+    +It should also be made clear that **all code contributed to Select** must be
+    +licensable under the [MIT license][licensing].  Code that cannot be released
+    +under this license **cannot be accepted** into the project.
+    +
+    +[grunt]: http://gruntjs.com/
+    +[isolated-case]: http://css-tricks.com/6263-reduced-test-cases/
+    +[issue-search]: https://github.com/select2/select2/search?q=&type=Issues
+    +[issue-tracker]: https://github.com/select2/select2/issues
+    +[licensing]: https://github.com/select2/select2/blob/master/LICENSE.md
+    +[nodejs]: https://nodejs.org/
+    +[npm]: https://www.npmjs.com/
+    diff --git .github/FUNDING.yml .github/FUNDING.yml
+    new file mode 100644
+    index 0000000000000000000000000000000000000000..d8a62dbc730782956582d8c015c92db2574c1c51
+    --- /dev/null
+    +++ .github/FUNDING.yml
+    @@ -0,0 +1,2 @@
+    +github: kevin-brown
+    +open_collective: select2
+    diff --git .github/ISSUE_TEMPLATE.md .github/ISSUE_TEMPLATE.md
+    new file mode 100644
+    index 0000000000000000000000000000000000000000..013004a479ffd689b5c5019674cf45add4324954
+    --- /dev/null
+    +++ .github/ISSUE_TEMPLATE.md
+    @@ -0,0 +1,20 @@
+    +
+    +STOP!
+    +
+    +Before you open an issue:
+    +
+    +1. Make sure that your issue is a BUG or FEATURE REQUEST.  General usage and troubleshooting questions should be directed to the [forums](https://forums.select2.org) or [Stack Overflow](https://stackoverflow.com/questions/tagged/jquery-select2).  Issues asking for general support WILL BE CLOSED automatically.
+    +2. Search the current issues, both open and closed, for a similar issue. If the bug is still present but the relevant issue has been closed, you may ask us to reopen the issue. Duplicate issues will be closed automatically.
+    +3. Make sure that you are using the latest stable version of Select2 (see the [release history](https://github.com/select2/select2/releases)). Old minor/patch versions will not be supported.
+    +
+    +If you are CERTAIN that it is appropriate to open a new issue, you must:
+    +
+    +1. Create and link to a [minimal, complete, and verifiable](https://stackoverflow.com/help/mcve) example by cloning our [JSBin template](http://jsbin.com/goqagokoye/edit?html,js,output). Code dumps, zip files, etc are NOT acceptable.
+    +2. Any additional code snippets should be formatted using [Markdown code fences](https://learn.userfrosting.com/troubleshooting/getting-help#use-markdown-to-format-blocks-of-code) and properly indented. Poorly formatted code is difficult to read and reflects badly on you as a programmer.
+    +3. Include relevant screenshots or animations, if possible. Drag your screenshots directly into this text box. They will automatically be uploaded and the Markdown to display them will be generated.  Avoid third-party image hosts, or links which require extra clicks to view the image.
+    +4. If you are not conversationally proficient in English, do NOT just post a machine translation (e.g. Google Translate) to GitHub. Get help in crafting your question, either via the [forums](https://forums.select2.org) or in [chat](https://webchat.freenode.net/?channels=select2). If all else fails, you may post your bug report or feature request in your native language, with a machine translation below that. We will tag it with `translation-needed` so that others who speak your language can fi… (+6 more columns; --json has the full line)
+    +5. State the steps needed to reproduce the problem.
+    +6. Mention your version of Select2, as well as the browser(s) and operating system(s) in which the problem occurs.
+    +7. Clear out this placeholder text.
+    +
+    +Issues that ignore these rules will be closed without further comment!
+    diff --git .github/PULL_REQUEST_TEMPLATE.md .github/PULL_REQUEST_TEMPLATE.md
+    new file mode 100644
+    index 0000000000000000000000000000000000000000..82395c757beeb708e653efd211f46a62a9c03f4b
+    --- /dev/null
+    +++ .github/PULL_REQUEST_TEMPLATE.md
+    @@ -0,0 +1,13 @@
+    +This pull request includes a
+    +
+    +- [ ] Bug fix
+    +- [ ] New feature
+    +- [ ] Translation
+    +
+    +The following changes were made
+    +
+    +-
+    +-
+    +-
+    +
+    +If this is related to an existing ticket, include a link to it as well.
+    diff --git .github/stale.yml .github/stale.yml
+    new file mode 100644
+    index 0000000000000000000000000000000000000000..eabd6b678008b5ff6b117eccd0fad3d163f41876
+    --- /dev/null
+    +++ .github/stale.yml
+    @@ -0,0 +1,18 @@
+    +# Number of days of inactivity before an issue becomes stale
+    +daysUntilStale: 60
+    +# Number of days of inactivity before a stale issue is closed
+    +daysUntilClose: 7
+    +# List of labels that will prevent an issue from going stale
+    +exemptLabels:
+    +  - "confirmed bug"
+    +  - "accessibility"
+    +# Issues with these labels will never be considered stale
+    +# Label to use when marking an issue as stale
+    +staleLabel: "status: stale"
+    +# Comment to post when marking an issue as stale. Set to `false` to disable
+    +markComment: >
+    +  This issue has been automatically marked as stale because it has not had
+    +  recent activity. It will be closed if no further activity occurs. Thank you
+    +  for your contributions.
+    +# Comment to post when closing a stale issue. Set to `false` to disable
+    +closeComment: false
+    diff --git .github/workflows/docs-deploy.yml .github/workflows/docs-deploy.yml
+    new file mode 100644
+    index 0000000000000000000000000000000000000000..eb2599d649dcb682f080aab979a8f389d316207b
+    --- /dev/null
+    +++ .github/workflows/docs-deploy.yml
+    @@ -0,0 +1,24 @@
+    +name: Documentation Deployment
+    +
+    +on: release
+    +
+    +jobs:
+    +  grav:
+    +    name: Deploy Grav
+    +    runs-on: ubuntu-latest
+    +    steps:
+    +      - uses: maddox/actions/sleep@master
+    +        with:
+    +          args: "180"
+    +      - uses: actions/checkout@v1
+    +      - name: Copy to documentation server
+    +        uses: maxheld83/rsync@v0.1.0
+    +        env:
+    +          USERNAME: ${{ secrets.DOCUMENTATION_SSH_USERNAME }}
+    +          SSH_PRIVATE_KEY: ${{ secrets.DOCUMENTATION_SSH_KEY }}
+    +          HOST_NAME: ${{ secrets.DOCUMENTATION_SSH_HOST }}
+    +          SSH_PUBLIC_KEY: not-needed
+    +          HOST_IP: not-needed
+    +          HOST_FINGERPRINT: not-needed
+    +        with:
+    +          args: "docs/ $USERNAME@$HOST_NAME:/var/www/select2-docs/user/"
+    diff --git .github/workflows/main.yml .github/workflows/main.yml
+    new file mode 100644
+    index 0000000000000000000000000000000000000000..a2f3fe8b3662d48d55e88a6a3bfc64375f8685ef
+    --- /dev/null
+    +++ .github/workflows/main.yml
+    @@ -0,0 +1,49 @@
+    +name: CI
+    +
+    +on: [push, pull_request]
+    +
+    +jobs:
+    +  linting:
+    +    name: Linting
+    +    runs-on: ubuntu-latest
+    +    steps:
+    +      - uses: actions/checkout@v4
+    +      - name: Use Node.js 24
+    +        uses: actions/setup-node@v4
+    +        with:
+    +          node-version: 24
+    +      - name: npm install
+    +        run: npm install
+    +      - name: Run linting
+    +        run: grunt compile lint
+    +  tests:
+    +    name: Tests
+    +    runs-on: ubuntu-latest
+    +    steps:
+    +      - run: sudo apt update
+    +      - run: sudo apt install -y chromium-browser
+    +      - uses: actions/checkout@v4
+    +      - name: Use Node.js 24
+    +        uses: actions/setup-node@v4
+    +        with:
+    +          node-version: 24
+    +      - name: npm install
+    +        run: npm install
+    +      - name: Run tests
+    +        env:
+    +          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "1"
+    +          PUPPETEER_EXECUTABLE_PATH: "/usr/bin/chromium-browser"
+    +        run: grunt compile test
+    +  minification:
+    +    name: Minification
+    +    runs-on: ubuntu-latest
+    +    steps:
+    +      - uses: actions/checkout@v4
+    +      - name: Use Node.js 24
+    +        uses: actions/setup-node@v4
+    +        with:
+    +          node-version: 24
+    +      - name: npm install
+    +        run: npm install
+    +      - name: Run minification
+    +        run: grunt compile minify
+    diff --git .github/workflows/package-deploy.yml .github/workflows/package-deploy.yml
+    new file mode 100644
+    index 0000000000000000000000000000000000000000..226ff8d59858d9a4d085dd477e37df9a5e8b218a
+    --- /dev/null
+    +++ .github/workflows/package-deploy.yml
+    @@ -0,0 +1,58 @@
+    +name: Package Deployment
+    +
+    +on:
+    +  push:
+    +    branches:
+    +      - develop
+    +      - master
+    +  release: ~
+    +
+    +jobs:
+    +  deploy_github:
+    +    name: GitHub Package Registry
+    +    runs-on: ubuntu-latest
+    +    steps:
+    +      - uses: actions/checkout@v4
+    +      - name: Use Node.js 24
+    +        uses: actions/setup-node@v4
+    +        with:
+    +          node-version: 24
+    +          registry-url: https://npm.pkg.github.com/
+    +          scope: '@select2'
+    +      - name: Rename package to include private scope
+    +        run: "sed -i -e 's#\"name\": \"select2\"#\"name\": \"@select2/select2\"#' package.json"
+    +      - name: npm install
+    +        run: npm install
+    +      - name: Run linting, tests, minify
+    +        run: grunt
+    +      - name: Deploy (release)
+    +        if: github.event_name == 'release'
+    +        run: npm publish
+    +        env:
+    +          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    +      - name: Deploy (release candidate)
+    +        if: github.event_name == 'push'
+    +        run: 'sed -i -E "s/\"version\": \"(.+)\",/\"version\": \"\1-commit-$GITHUB_SHA\",/" package.json && npm publish --tag next'
+    +        env:
+    +          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    +          GITHUB_SHA: ${{github.sha}}
+    +  deploy_npm:
+    +    name: NPM
+    +    if: github.event_name == 'release'
+    +    runs-on: ubuntu-latest
+    +    permissions:
+    +      contents: read
+    +      id-token: write
+    +    steps:
+    +      - uses: actions/checkout@v4
+    +      - name: Use Node.js 24
+    +        uses: actions/setup-node@v4
+    +        with:
+    +          node-version: 24
+    +          registry-url: 'https://registry.npmjs.org'
+    +      - name: npm install
+    +        run: npm install
+    +      - name: Run linting, tests, minify
+    +        run: grunt
+    +      - name: Deploy (release)
+    +        run: npm publish --provenance --access public
+----- stderr -----
+----- end -----

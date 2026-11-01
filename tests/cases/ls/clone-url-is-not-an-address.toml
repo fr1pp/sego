@@ -1,7 +1,0 @@
-# A clone URL is not an address.
-args = ["ls", "ssh://git@github.com/gorilla/mux.git"]
-status.code = 2
-stderr = '''
-sego: error: ssh://git@github.com/gorilla/mux.git is a URL; an address is host/owner/name or owner/name
-usage: sego ls [--json] [--recursive] REPO[@REV][:PATH]
-'''

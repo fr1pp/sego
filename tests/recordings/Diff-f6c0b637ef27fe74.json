@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "Diff",
+    "query": "query Diff($repo: String!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!, $path0: String!) {\n  c: repository(name: $repo) {\n    comparison(base: $a, head: $b, fetchMissing: false) {\n      range { mergeBase { oid } }\n      ...Changes\n    }\n  }\n  a: repository(name: $repo) { commit(rev: $a) { oid p0: path(path: $path0) { __typename } } }\n  b: repository(name: $repo) { commit(rev: $b) { oid p0: path(path: $path0) { __typename } } }\n}\n\nfragment Changes on RepositoryComparison {\n  all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }\n  page: fileDiffs(first: $first, paths: $paths) {\n    nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }\n    pageInfo { hasNextPage }\n  }\n  patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }\n}\n",
+    "variables": {
+      "a": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+      "b": "c5c6c98bc25355028a63748a498942a6398ccd22",
+      "first": 200,
+      "patch": true,
+      "path0": "nope.go",
+      "paths": [
+        "nope.go"
+      ],
+      "repo": "github.com/gorilla/mux"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "a": {
+          "commit": {
+            "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+            "p0": null
+          }
+        },
+        "b": {
+          "commit": {
+            "oid": "c5c6c98bc25355028a63748a498942a6398ccd22",
+            "p0": null
+          }
+        },
+        "c": {
+          "comparison": {
+            "all": {
+              "diffStat": {
+                "added": 0,
+                "deleted": 0
+              },
+              "totalCount": 0
+            },
+            "page": {
+              "nodes": [],
+              "pageInfo": {
+                "hasNextPage": false
+              }
+            },
+            "patch": {
+              "rawDiff": ""
+            },
+            "range": {
+              "mergeBase": {
+                "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+              }
+            }
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

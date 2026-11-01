@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-27",
+  "request": {
+    "operation": "Refs",
+    "query": "query Refs($repo0: String!, $repo1: String!, $gitlab: Boolean!, $first: Int, $query: String, $unfiltered: Boolean!) {\n  r0: repository(name: $repo0) { ...Refs }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...Refs }\n}\n\nfragment Refs on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  branches(first: $first, query: $query) { ...Listing }\n  tags(first: $first, query: $query) { ...Listing }\n  all_branches: branches(first: 1) @include(if: $unfiltered) { totalCount }\n  all_tags: tags(first: 1) @include(if: $unfiltered) { totalCount }\n}\n\nfragment Listing on GitRefConnection {\n  totalCount\n  nodes { displayName target { oid } }\n}\n",
+    "variables": {
+      "first": null,
+      "gitlab": false,
+      "query": null,
+      "repo0": "github.com/ascoders/blog",
+      "repo1": "",
+      "unfiltered": false
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "branches": {
+            "nodes": [],
+            "totalCount": 0
+          },
+          "defaultBranch": null,
+          "mirrorInfo": {
+            "updatedAt": "2026-10-27T07:23:09Z"
+          },
+          "name": "github.com/ascoders/blog",
+          "tags": {
+            "nodes": [],
+            "totalCount": 0
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

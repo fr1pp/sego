@@ -1,0 +1,10 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\", \"github.com/BurntSushi/ripgrep@14.1.0:HomebrewFormula\"])"
+---
+exit: 0
+----- stdout -----
+github.com/BurntSushi/ripgrep@e50df40a1967:HomebrewFormula  lines 1 of 1  rev 14.1.0  mirrored 2026-10-31T00:33Z
+1:pkg/brew
+----- stderr -----
+----- end -----

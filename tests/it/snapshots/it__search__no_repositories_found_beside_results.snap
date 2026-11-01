@@ -1,0 +1,14 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/acme/widget type:repo\"], [response])"
+---
+exit: 0
+----- stdout -----
+1 repo  0.1 s
+query  timeout:60s repo:example.com/acme/widget type:repo
+
+example.com/acme/widget
+----- stderr -----
+sego: note: No repositories found: advice
+sego: note: the server proposes: q1
+----- end -----

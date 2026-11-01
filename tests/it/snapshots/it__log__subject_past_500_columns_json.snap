@@ -1,0 +1,36 @@
+---
+source: tests/it/log.rs
+expression: "answered(&[\"log\", \"--json\", \"example.com/acme/widget@v2\"], [response])"
+---
+exit: 0
+----- stdout -----
+{
+  "behind": null,
+  "commit": "0001000100010001000100010001000100010001",
+  "commit_a": null,
+  "commit_b": null,
+  "commits": [
+    {
+      "author": "Ada Lovelace",
+      "commit": "0001000100010001000100010001000100010001",
+      "date": "2026-08-01",
+      "parents": [
+        "0002000200020002000200020002000200020002"
+      ],
+      "subject": "sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+      "tags": []
+    }
+  ],
+  "commits_more": false,
+  "commits_total": null,
+  "follow": false,
+  "mirrored_at": null,
+  "notes": [],
+  "path": null,
+  "repo": "example.com/acme/widget",
+  "rev": "v2",
+  "rev_a": null,
+  "rev_b": null
+}
+----- stderr -----
+----- end -----

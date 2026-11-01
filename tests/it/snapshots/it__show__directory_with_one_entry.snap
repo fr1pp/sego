@@ -1,0 +1,10 @@
+---
+source: tests/it/show.rs
+expression: "answered(&[\"show\", \"example.com/acme/docs@main:docs\"], [response])"
+---
+exit: 0
+----- stdout -----
+example.com/acme/docs@d81fd54f1a2b:docs  1 entry  1 file  rev main
+file       docs/0.md
+----- stderr -----
+----- end -----

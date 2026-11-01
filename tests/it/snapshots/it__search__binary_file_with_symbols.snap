@@ -1,0 +1,15 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/app foo\"], [response])"
+---
+exit: 0
+----- stdout -----
+3 matches  1 repo  0.1 s
+query  timeout:60s repo:example.com/app foo
+
+example.com/app@0123456789ab:a.bin
+binary file; lines not shown
+3:function  S
+5:function  T
+----- stderr -----
+----- end -----

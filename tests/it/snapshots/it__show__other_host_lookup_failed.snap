@@ -1,0 +1,12 @@
+---
+source: tests/it/show.rs
+expression: "answered(&[\"show\", \"gorilla/mux:README.md\", \"1-2\"], [response])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@db9d1d0073d2:README.md  lines 1-2 of 812  mirrored 2026-10-27T07:04Z
+1:# gorilla/mux
+2:
+----- stderr -----
+sego: note: Sourcegraph failed to answer whether gitlab.com/gorilla/mux exists
+----- end -----

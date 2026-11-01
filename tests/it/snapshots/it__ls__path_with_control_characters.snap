@@ -1,0 +1,12 @@
+---
+source: tests/it/ls.rs
+expression: "answered(&[\"ls\",\n\"example.com/acme/widget:a\\u{1b}b\\u{202e}c\\u{200b}d\\ne\\rf\\0g\\u{2028}h\\u{7f}i\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+$'example.com/acme/widget@0123456789ab:a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i'  3 entries  1 dir  1 file  1 submodule
+file       $'a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i/a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i'
+dir        $'a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i/a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i-dir'/
+submodule  $'a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i/sub'  0123456789ab
+----- stderr -----
+----- end -----

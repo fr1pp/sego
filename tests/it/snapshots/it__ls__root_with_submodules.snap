@@ -1,0 +1,31 @@
+---
+source: tests/it/ls.rs
+expression: "sego(&[\"ls\",\n\"github.com/akinomyoga/ble.sh@d81fd54feb0d996fdff20dca27eaf0201f7015cc\"])"
+---
+exit: 0
+----- stdout -----
+github.com/akinomyoga/ble.sh@d81fd54feb0d  22 entries  8 dirs  13 files  1 submodule
+file       .gitattributes
+dir        .github/
+file       .gitignore
+file       .gitmodules
+file       .srcoption
+file       GNUmakefile
+file       LICENSE.md
+file       Makefile
+file       README-ja_JP.md
+file       README.md
+dir        archive/
+file       ble.pp
+file       blerc.template
+submodule  contrib  d2109203480a
+dir        docs/
+dir        lib/
+dir        make/
+file       make_command.sh
+dir        memo/
+file       note.txt
+dir        src/
+dir        test/
+----- stderr -----
+----- end -----

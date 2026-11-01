@@ -1,0 +1,477 @@
+{
+  "date": "2026-10-30",
+  "request": {
+    "operation": "CommitTags",
+    "query": "query CommitTags($repo: String!, $commit: String!) {\n  repository(name: $repo) { commit(rev: $commit) { tags { nodes { displayName } } } }\n}\n",
+    "variables": {
+      "commit": "1dc05009fe7f4e1d139b0c8394683edb54f8d082",
+      "repo": "github.com/kubernetes/kubernetes"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "repository": {
+          "commit": {
+            "tags": {
+              "nodes": [
+                {
+                  "displayName": "v1.38.0-alpha.3"
+                },
+                {
+                  "displayName": "v1.34.13"
+                },
+                {
+                  "displayName": "v1.36.6"
+                },
+                {
+                  "displayName": "v1.35.10"
+                },
+                {
+                  "displayName": "v1.37.2"
+                },
+                {
+                  "displayName": "v1.38.0-alpha.2"
+                },
+                {
+                  "displayName": "v1.38.0-alpha.1"
+                },
+                {
+                  "displayName": "v1.34.12"
+                },
+                {
+                  "displayName": "v1.35.9"
+                },
+                {
+                  "displayName": "v1.36.5"
+                },
+                {
+                  "displayName": "v1.37.1"
+                },
+                {
+                  "displayName": "v1.37.0"
+                },
+                {
+                  "displayName": "v1.35.8"
+                },
+                {
+                  "displayName": "v1.34.11"
+                },
+                {
+                  "displayName": "v1.36.4"
+                },
+                {
+                  "displayName": "v1.37.0-rc.1"
+                },
+                {
+                  "displayName": "v1.38.0-alpha.0"
+                },
+                {
+                  "displayName": "v1.37.0-rc.0"
+                },
+                {
+                  "displayName": "v1.36.3"
+                },
+                {
+                  "displayName": "v1.35.7"
+                },
+                {
+                  "displayName": "v1.34.10"
+                },
+                {
+                  "displayName": "v1.37.0-beta.0"
+                },
+                {
+                  "displayName": "v1.37.0-alpha.3"
+                },
+                {
+                  "displayName": "v1.37.0-alpha.2"
+                },
+                {
+                  "displayName": "v1.36.2"
+                },
+                {
+                  "displayName": "v1.35.6"
+                },
+                {
+                  "displayName": "v1.34.9"
+                },
+                {
+                  "displayName": "v1.33.13"
+                },
+                {
+                  "displayName": "v1.37.0-alpha.1"
+                },
+                {
+                  "displayName": "v1.36.1"
+                },
+                {
+                  "displayName": "v1.35.5"
+                },
+                {
+                  "displayName": "v1.34.8"
+                },
+                {
+                  "displayName": "v1.33.12"
+                },
+                {
+                  "displayName": "v1.36.0"
+                },
+                {
+                  "displayName": "v1.33.11"
+                },
+                {
+                  "displayName": "v1.34.7"
+                },
+                {
+                  "displayName": "v1.35.4"
+                },
+                {
+                  "displayName": "v1.36.0-rc.1"
+                },
+                {
+                  "displayName": "v1.37.0-alpha.0"
+                },
+                {
+                  "displayName": "v1.36.0-rc.0"
+                },
+                {
+                  "displayName": "v1.36.0-beta.0"
+                },
+                {
+                  "displayName": "v1.34.6"
+                },
+                {
+                  "displayName": "v1.35.3"
+                },
+                {
+                  "displayName": "v1.33.10"
+                },
+                {
+                  "displayName": "v1.32.13"
+                },
+                {
+                  "displayName": "v1.33.9"
+                },
+                {
+                  "displayName": "v1.34.5"
+                },
+                {
+                  "displayName": "v1.35.2"
+                },
+                {
+                  "displayName": "v1.36.0-alpha.2"
+                },
+                {
+                  "displayName": "v1.32.12"
+                },
+                {
+                  "displayName": "v1.33.8"
+                },
+                {
+                  "displayName": "v1.34.4"
+                },
+                {
+                  "displayName": "v1.35.1"
+                },
+                {
+                  "displayName": "v1.36.0-alpha.1"
+                },
+                {
+                  "displayName": "v1.35.0"
+                },
+                {
+                  "displayName": "v1.32.11"
+                },
+                {
+                  "displayName": "v1.34.3"
+                },
+                {
+                  "displayName": "v1.33.7"
+                },
+                {
+                  "displayName": "v1.35.0-rc.1"
+                },
+                {
+                  "displayName": "v1.36.0-alpha.0"
+                },
+                {
+                  "displayName": "v1.35.0-rc.0"
+                },
+                {
+                  "displayName": "v1.35.0-beta.0"
+                },
+                {
+                  "displayName": "v1.32.10"
+                },
+                {
+                  "displayName": "v1.31.14"
+                },
+                {
+                  "displayName": "v1.33.6"
+                },
+                {
+                  "displayName": "v1.34.2"
+                },
+                {
+                  "displayName": "v1.35.0-alpha.3"
+                },
+                {
+                  "displayName": "v1.35.0-alpha.2"
+                },
+                {
+                  "displayName": "v1.35.0-alpha.1"
+                },
+                {
+                  "displayName": "v1.31.13"
+                },
+                {
+                  "displayName": "v1.33.5"
+                },
+                {
+                  "displayName": "v1.32.9"
+                },
+                {
+                  "displayName": "v1.34.1"
+                },
+                {
+                  "displayName": "v1.34.0"
+                },
+                {
+                  "displayName": "v1.34.0-rc.2"
+                },
+                {
+                  "displayName": "v1.31.12"
+                },
+                {
+                  "displayName": "v1.32.8"
+                },
+                {
+                  "displayName": "v1.33.4"
+                },
+                {
+                  "displayName": "v1.34.0-rc.1"
+                },
+                {
+                  "displayName": "v1.35.0-alpha.0"
+                },
+                {
+                  "displayName": "v1.34.0-rc.0"
+                },
+                {
+                  "displayName": "v1.34.0-beta.0"
+                },
+                {
+                  "displayName": "v1.31.11"
+                },
+                {
+                  "displayName": "v1.32.7"
+                },
+                {
+                  "displayName": "v1.33.3"
+                },
+                {
+                  "displayName": "v1.34.0-alpha.3"
+                },
+                {
+                  "displayName": "v1.34.0-alpha.2"
+                },
+                {
+                  "displayName": "v1.32.6"
+                },
+                {
+                  "displayName": "v1.31.10"
+                },
+                {
+                  "displayName": "v1.33.2"
+                },
+                {
+                  "displayName": "v1.30.14"
+                },
+                {
+                  "displayName": "v1.34.0-alpha.1"
+                },
+                {
+                  "displayName": "v1.30.13"
+                },
+                {
+                  "displayName": "v1.31.9"
+                },
+                {
+                  "displayName": "v1.32.5"
+                },
+                {
+                  "displayName": "v1.33.1"
+                },
+                {
+                  "displayName": "v1.33.0"
+                },
+                {
+                  "displayName": "v1.30.12"
+                },
+                {
+                  "displayName": "v1.32.4"
+                },
+                {
+                  "displayName": "v1.31.8"
+                },
+                {
+                  "displayName": "v1.33.0-rc.1"
+                },
+                {
+                  "displayName": "v1.34.0-alpha.0"
+                },
+                {
+                  "displayName": "v1.33.0-rc.0"
+                },
+                {
+                  "displayName": "v1.31.7"
+                },
+                {
+                  "displayName": "v1.32.3"
+                },
+                {
+                  "displayName": "v1.30.11"
+                },
+                {
+                  "displayName": "v1.33.0-beta.0"
+                },
+                {
+                  "displayName": "v1.33.0-alpha.3"
+                },
+                {
+                  "displayName": "v1.33.0-alpha.2"
+                },
+                {
+                  "displayName": "v1.30.10"
+                },
+                {
+                  "displayName": "v1.31.6"
+                },
+                {
+                  "displayName": "v1.32.2"
+                },
+                {
+                  "displayName": "v1.33.0-alpha.1"
+                },
+                {
+                  "displayName": "v1.30.9"
+                },
+                {
+                  "displayName": "v1.31.5"
+                },
+                {
+                  "displayName": "v1.32.1"
+                },
+                {
+                  "displayName": "v1.32.0"
+                },
+                {
+                  "displayName": "v1.31.4"
+                },
+                {
+                  "displayName": "v1.30.8"
+                },
+                {
+                  "displayName": "v1.32.0-rc.2"
+                },
+                {
+                  "displayName": "v1.32.0-rc.1"
+                },
+                {
+                  "displayName": "v1.33.0-alpha.0"
+                },
+                {
+                  "displayName": "v1.32.0-rc.0"
+                },
+                {
+                  "displayName": "v1.30.7"
+                },
+                {
+                  "displayName": "v1.31.3"
+                },
+                {
+                  "displayName": "v1.32.0-beta.0"
+                },
+                {
+                  "displayName": "v1.32.0-alpha.3"
+                },
+                {
+                  "displayName": "v1.31.2"
+                },
+                {
+                  "displayName": "v1.30.6"
+                },
+                {
+                  "displayName": "v1.32.0-alpha.2"
+                },
+                {
+                  "displayName": "v1.32.0-alpha.1"
+                },
+                {
+                  "displayName": "v1.30.5"
+                },
+                {
+                  "displayName": "v1.31.1"
+                },
+                {
+                  "displayName": "v1.30.4"
+                },
+                {
+                  "displayName": "v1.31.0"
+                },
+                {
+                  "displayName": "v1.31.0-rc.1"
+                },
+                {
+                  "displayName": "v1.32.0-alpha.0"
+                },
+                {
+                  "displayName": "v1.31.0-rc.0"
+                },
+                {
+                  "displayName": "v1.30.3"
+                },
+                {
+                  "displayName": "v1.31.0-beta.0"
+                },
+                {
+                  "displayName": "v1.31.0-alpha.3"
+                },
+                {
+                  "displayName": "v1.31.0-alpha.2"
+                },
+                {
+                  "displayName": "v1.31.0-alpha.1"
+                },
+                {
+                  "displayName": "v1.30.2"
+                },
+                {
+                  "displayName": "v1.30.1"
+                },
+                {
+                  "displayName": "v1.30.0"
+                },
+                {
+                  "displayName": "v1.30.0-rc.2"
+                },
+                {
+                  "displayName": "v1.30.0-rc.1"
+                },
+                {
+                  "displayName": "v1.31.0-alpha.0"
+                },
+                {
+                  "displayName": "v1.30.0-rc.0"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

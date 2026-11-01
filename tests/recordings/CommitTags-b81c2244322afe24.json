@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-30",
+  "request": {
+    "operation": "CommitTags",
+    "query": "query CommitTags($repo: String!, $commit: String!) {\n  repository(name: $repo) { commit(rev: $commit) { tags { nodes { displayName } } } }\n}\n",
+    "variables": {
+      "commit": "abccd7e4d7c117370b7908f51e48decb38b6835b",
+      "repo": "github.com/gorilla/mux"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "repository": {
+          "commit": {
+            "tags": {
+              "nodes": [
+                {
+                  "displayName": "v1.8.1"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

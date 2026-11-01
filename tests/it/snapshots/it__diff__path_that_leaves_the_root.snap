@@ -1,0 +1,11 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"github.com/gorilla/mux@v1.8.0...v1.8.1\", \"../mux.go\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: the path ../mux.go leaves the repository's root
+usage: sego diff [--json] REPO@A...B[:PATH] [PATH...]
+       sego diff [--json] REPO@REV[:PATH] [PATH...]
+----- end -----

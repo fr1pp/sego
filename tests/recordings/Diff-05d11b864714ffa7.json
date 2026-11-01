@@ -1,0 +1,108 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "Diff",
+    "query": "query Diff($repo: String!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!) {\n  c: repository(name: $repo) {\n    comparison(base: $a, head: $b, fetchMissing: false) {\n      range { mergeBase { oid } }\n      ...Changes\n    }\n  }\n  a: repository(name: $repo) { commit(rev: $a) { oid } }\n  b: repository(name: $repo) { commit(rev: $b) { oid } }\n}\n\nfragment Changes on RepositoryComparison {\n  all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }\n  page: fileDiffs(first: $first, paths: $paths) {\n    nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }\n    pageInfo { hasNextPage }\n  }\n  patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }\n}\n",
+    "variables": {
+      "a": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+      "b": "c5c6c98bc25355028a63748a498942a6398ccd22",
+      "first": null,
+      "patch": false,
+      "paths": null,
+      "repo": "github.com/gorilla/mux"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "a": {
+          "commit": {
+            "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+          }
+        },
+        "b": {
+          "commit": {
+            "oid": "c5c6c98bc25355028a63748a498942a6398ccd22"
+          }
+        },
+        "c": {
+          "comparison": {
+            "all": {
+              "diffStat": {
+                "added": 13,
+                "deleted": 6
+              },
+              "totalCount": 4
+            },
+            "page": {
+              "nodes": [
+                {
+                  "newPath": ".travis.yml",
+                  "oldFile": {
+                    "commit": {
+                      "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+                    }
+                  },
+                  "oldPath": ".travis.yml",
+                  "stat": {
+                    "added": 2,
+                    "deleted": 2
+                  }
+                },
+                {
+                  "newPath": "mux.go",
+                  "oldFile": {
+                    "commit": {
+                      "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+                    }
+                  },
+                  "oldPath": "mux.go",
+                  "stat": {
+                    "added": 6,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newPath": "mux_test.go",
+                  "oldFile": {
+                    "commit": {
+                      "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+                    }
+                  },
+                  "oldPath": "mux_test.go",
+                  "stat": {
+                    "added": 4,
+                    "deleted": 3
+                  }
+                },
+                {
+                  "newPath": "route.go",
+                  "oldFile": {
+                    "commit": {
+                      "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+                    }
+                  },
+                  "oldPath": "route.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                }
+              ],
+              "pageInfo": {
+                "hasNextPage": false
+              }
+            },
+            "range": {
+              "mergeBase": {
+                "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+              }
+            }
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

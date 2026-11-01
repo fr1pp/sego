@@ -1,0 +1,51 @@
+---
+source: tests/it/search.rs
+expression: "sego(&[\"search\", \"--json\",\n\"repo:^github\\\\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "alert": null,
+  "at_least": false,
+  "count": 2,
+  "elapsed_ms": 18,
+  "limit_ms": 60000,
+  "notes": [],
+  "pattern_type": "keyword",
+  "query": "timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter",
+  "results": [
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "container": "mux",
+      "kind": "symbol",
+      "line": 25,
+      "name": "NewRouter",
+      "path": "mux.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0",
+      "symbol_kind": "function"
+    },
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "container": "mux",
+      "kind": "symbol",
+      "line": 41,
+      "name": "newRouteRegexp",
+      "path": "regexp.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0",
+      "symbol_kind": "function"
+    }
+  ],
+  "server": {
+    "approximate_count": "2",
+    "limit_hit": false,
+    "match_count": 2,
+    "timedout": []
+  },
+  "stopped": false,
+  "unit": "symbols",
+  "widen": []
+}
+----- stderr -----
+----- end -----

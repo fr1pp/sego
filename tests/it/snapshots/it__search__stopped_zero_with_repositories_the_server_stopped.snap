@@ -1,0 +1,9 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/acme/widget foo\"], [response])"
+---
+exit: 3
+----- stdout -----
+----- stderr -----
+sego: error: the search stopped at 1.2 s with no results
+----- end -----

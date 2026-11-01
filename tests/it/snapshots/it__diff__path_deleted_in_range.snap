@@ -1,0 +1,41 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"github.com/gorilla/mux@v1.7.2...v1.7.3\", \".travis.yml\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@ed099d423848...00bdffe0f3c7:.travis.yml  1 file  +0 -24  base ed099d423848  rev v1.7.2...v1.7.3  mirrored 2026-10-27T07:13Z
+D  +0 -24  .travis.yml
+
+    diff --git .travis.yml .travis.yml
+    deleted file mode 100644
+    index d003ad922f33f1df0d67feb59cdc4bb9f2851a21..0000000000000000000000000000000000000000
+    --- .travis.yml
+    +++ /dev/null
+    @@ -1,24 +0,0 @@
+    -language: go
+    -
+    -
+    -matrix:
+    -  include:
+    -    - go: 1.7.x
+    -    - go: 1.8.x
+    -    - go: 1.9.x
+    -    - go: 1.10.x
+    -    - go: 1.11.x
+    -    - go: 1.x
+    -      env: LATEST=true
+    -    - go: tip
+    -  allow_failures:
+    -    - go: tip
+    -
+    -install:
+    -  - # Skip
+    -
+    -script:
+    -  - go get -t -v ./...
+    -  - diff -u <(echo -n) <(gofmt -d .)
+    -  - if [[ "$LATEST" = true ]]; then go vet .; fi
+    -  - go test -v -race ./...
+----- stderr -----
+----- end -----

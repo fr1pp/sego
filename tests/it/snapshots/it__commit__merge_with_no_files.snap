@@ -1,0 +1,29 @@
+---
+source: tests/it/commit.rs
+expression: "sego(&[\"show\",\n\"github.com/gorilla/mux@306509329bce2152a92040e805ef24fd8e3f877d\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@306509329bce  2015-07-05  Clint Ryan  parents c21431a6cd00 a063f14812c8  0 files  +0 -0  diff against first parent  15 tags
+    Merge branch 'master' of https://github.com/eastwood/mux
+
+    Conflicts:
+    	mux.go
+
+tag  v1.8.1
+tag  v1.8.0
+tag  v1.7.4
+tag  v1.7.3
+tag  v1.7.2
+tag  v1.7.1
+tag  v1.7.0
+tag  v1.6.2
+tag  v1.6.1
+tag  v1.6.0
+tag  v1.5.0
+tag  v1.4.0
+tag  v1.3.0
+tag  v1.2.0
+tag  v1.1
+----- stderr -----
+----- end -----

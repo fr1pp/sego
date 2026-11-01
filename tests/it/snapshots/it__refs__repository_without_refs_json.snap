@@ -1,0 +1,22 @@
+---
+source: tests/it/refs.rs
+expression: "sego(&[\"refs\", \"--json\", \"github.com/ascoders/blog\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "branches_all": null,
+  "branches_more": false,
+  "branches_total": 0,
+  "default_branch": null,
+  "mirrored_at": "2026-10-27T07:23Z",
+  "notes": [],
+  "query": null,
+  "refs": [],
+  "repo": "github.com/ascoders/blog",
+  "tags_all": null,
+  "tags_more": false,
+  "tags_total": 0
+}
+----- stderr -----
+----- end -----

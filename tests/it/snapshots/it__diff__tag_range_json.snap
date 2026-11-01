@@ -1,0 +1,54 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"--json\", \"github.com/gorilla/mux@v1.7.0...v1.7.1\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "added": 13,
+  "base": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+  "commit_a": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+  "commit_b": "c5c6c98bc25355028a63748a498942a6398ccd22",
+  "deleted": 6,
+  "files": [
+    {
+      "added": 2,
+      "deleted": 2,
+      "new_path": ".travis.yml",
+      "old_path": ".travis.yml",
+      "status": "M"
+    },
+    {
+      "added": 6,
+      "deleted": 0,
+      "new_path": "mux.go",
+      "old_path": "mux.go",
+      "status": "M"
+    },
+    {
+      "added": 4,
+      "deleted": 3,
+      "new_path": "mux_test.go",
+      "old_path": "mux_test.go",
+      "status": "M"
+    },
+    {
+      "added": 1,
+      "deleted": 1,
+      "new_path": "route.go",
+      "old_path": "route.go",
+      "status": "M"
+    }
+  ],
+  "files_more": false,
+  "files_total": 4,
+  "mirrored_at": "2026-10-27T07:13Z",
+  "notes": [],
+  "patch": null,
+  "paths": [],
+  "repo": "github.com/gorilla/mux",
+  "rev_a": "v1.7.0",
+  "rev_b": "v1.7.1"
+}
+----- stderr -----
+----- end -----

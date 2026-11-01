@@ -1,0 +1,15 @@
+---
+source: tests/it/search.rs
+expression: ran
+---
+exit: 0
+----- stdout -----
+4 directories  1 repo  0.3 s
+query  timeout:60s repo:^github\.com/gorilla/websocket$@v1.5.3 select:file.directory upgrade
+
+github.com/gorilla/websocket@ce903f6d1d96:examples/chat/
+github.com/gorilla/websocket@ce903f6d1d96:examples/echo/
+github.com/gorilla/websocket@ce903f6d1d96:examples/command/
+github.com/gorilla/websocket@ce903f6d1d96:./
+----- stderr -----
+----- end -----

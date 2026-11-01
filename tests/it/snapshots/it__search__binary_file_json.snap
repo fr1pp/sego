@@ -1,0 +1,36 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"--json\", \"repo:example.com/app foo\"], [response])"
+---
+exit: 0
+----- stdout -----
+{
+  "alert": null,
+  "at_least": false,
+  "count": 1,
+  "elapsed_ms": 100,
+  "limit_ms": 60000,
+  "notes": [],
+  "pattern_type": "keyword",
+  "query": "timeout:60s repo:example.com/app foo",
+  "results": [
+    {
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "binary",
+      "path": "a.bin",
+      "repo": "example.com/app",
+      "rev": null
+    }
+  ],
+  "server": {
+    "approximate_count": "1",
+    "limit_hit": false,
+    "match_count": 1,
+    "timedout": []
+  },
+  "stopped": false,
+  "unit": "matches",
+  "widen": []
+}
+----- stderr -----
+----- end -----

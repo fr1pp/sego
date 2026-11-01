@@ -1,0 +1,51 @@
+---
+source: tests/it/commit.rs
+expression: "sego(&[\"show\", \"--json\", \"github.com/gorilla/mux@946b6237eb8d\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "added": 30,
+  "author": "Franklin Harding",
+  "author_date": "2019-11-14",
+  "commit": "946b6237eb8d0ce3225f502b7fd4208d0b60ce5f",
+  "committer": "Franklin Harding",
+  "committer_date": "2019-11-15",
+  "deleted": 15,
+  "files": [
+    {
+      "added": 10,
+      "deleted": 15,
+      "new_path": "middleware.go",
+      "old_path": "middleware.go",
+      "status": "M"
+    },
+    {
+      "added": 20,
+      "deleted": 0,
+      "new_path": "middleware_test.go",
+      "old_path": "middleware_test.go",
+      "status": "M"
+    }
+  ],
+  "files_more": false,
+  "files_total": 2,
+  "kind": "commit",
+  "message": "Fix the CORSMethodMiddleware bug with subrouters\n\n* Adds a test case for the repro given in issue #534\n* Fixes the logic in CORSMethodMiddleware to handle matching routes\nbetter",
+  "mirrored_at": null,
+  "notes": [],
+  "parents": [
+    "ff4e71f144166b1dfe3017a146f8ed32a82e688b"
+  ],
+  "repo": "github.com/gorilla/mux",
+  "rev": "946b6237eb8d",
+  "subject": "Fix the CORSMethodMiddleware bug with subrouters",
+  "tags": [
+    "v1.8.1",
+    "v1.8.0",
+    "v1.7.4"
+  ],
+  "tags_total": 3
+}
+----- stderr -----
+----- end -----

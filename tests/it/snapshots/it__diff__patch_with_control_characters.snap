@@ -1,0 +1,23 @@
+---
+source: tests/it/diff.rs
+expression: "answered(&[\"diff\", \"example.com/acme/widget@v1.0.0...v2.0.0\",\n\"a\\u{1b}b\\u{202e}c\\u{200b}d\\ne\\rf\\0g\\u{2028}h\\u{7f}i\"], [first, second])"
+---
+exit: 0
+----- stdout -----
+$'example.com/acme/widget@0123456789ab...89abcdef0123:a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i'  1 file  +1 -1  base fedcba987654  rev v1.0.0...v2.0.0
+M  +1 -1  $'a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i'
+
+    diff --git a\u{1b}b\u{202e}c\u{200b}d
+    e\u{d}f\u{0}g\u{2028}h\u{7f}i a\u{1b}b\u{202e}c\u{200b}d
+    e\u{d}f\u{0}g\u{2028}h\u{7f}i
+    --- a\u{1b}b\u{202e}c\u{200b}d
+    e\u{d}f\u{0}g\u{2028}h\u{7f}i
+    +++ a\u{1b}b\u{202e}c\u{200b}d
+    e\u{d}f\u{0}g\u{2028}h\u{7f}i
+    @@ -1 +1 @@
+    -a\u{1b}b\u{202e}c\u{200b}d
+    e\u{d}f\u{0}g\u{2028}h\u{7f}i
+    +a\u{1b}b\u{202e}c\u{200b}d
+    e\u{d}f\u{0}g\u{2028}h\u{7f}i
+----- stderr -----
+----- end -----

@@ -1,0 +1,10 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"github.com/gorilla/mux@v9.9.9...v1.7.1\"])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: base revision v9.9.9 not found in github.com/gorilla/mux
+  the default branch is main
+----- end -----

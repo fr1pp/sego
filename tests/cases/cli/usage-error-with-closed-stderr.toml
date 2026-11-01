@@ -1,4 +1,0 @@
-# A usage error written to a closed stderr exits quietly.
-args = ["shwo"]
-status.code = 0
-stderr.closed = true

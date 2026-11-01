@@ -1,0 +1,11 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"github.com/gorilla/mux@v1.8.0\", \"../mux.go\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: the path ../mux.go leaves the repository's root
+usage: sego log [--json] [--follow] REPO[@REV][:PATH] [PATH]
+       sego log [--json] REPO@A..B[:PATH] [PATH]
+----- end -----

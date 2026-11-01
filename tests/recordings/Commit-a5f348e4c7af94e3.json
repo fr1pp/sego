@@ -1,0 +1,100 @@
+{
+  "date": "2026-10-27",
+  "request": {
+    "operation": "Commit",
+    "query": "query Commit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $paths: [String!], $first: Int, $patch: Boolean!, $path0: String!) {\n  r0: repository(name: $repo0) { ...Commit }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...Commit }\n}\n\nfragment Commit on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\n    oid subject message\n    author { date person { displayName } }\n    committer { date person { displayName } }\n    parents { oid p0: path(path: $path0) { __typename } }\n    p0: path(path: $path0) { __typename }\n    w: tree(path: \"\") { commit { diff { ...Changes } } }\n  }\n}\n\nfragment Changes on RepositoryComparison {\n  all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }\n  page: fileDiffs(first: $first, paths: $paths) {\n    nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }\n    pageInfo { hasNextPage }\n  }\n  patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }\n}\n",
+    "variables": {
+      "first": 200,
+      "gitlab": false,
+      "patch": true,
+      "path0": "coloured_output_example.png",
+      "paths": [
+        "coloured_output_example.png"
+      ],
+      "repo0": "github.com/BurntSushi/cargo-benchcmp",
+      "repo1": "",
+      "rev": "cf84e27337f5c671f622330ed2ee1e36584d5c2e"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": {
+            "author": {
+              "date": "2017-05-17T12:08:25Z",
+              "person": {
+                "displayName": "Guillaume Fraux"
+              }
+            },
+            "committer": {
+              "date": "2017-05-17T12:39:43Z",
+              "person": {
+                "displayName": "Andrew Gallant"
+              }
+            },
+            "message": "Update README examples",
+            "oid": "cf84e27337f5c671f622330ed2ee1e36584d5c2e",
+            "p0": {
+              "__typename": "GitBlob"
+            },
+            "parents": [
+              {
+                "oid": "23d04701228d6b4aed46bf8d48e58dfecc338e25",
+                "p0": {
+                  "__typename": "GitBlob"
+                }
+              }
+            ],
+            "subject": "Update README examples",
+            "w": {
+              "commit": {
+                "diff": {
+                  "all": {
+                    "diffStat": {
+                      "added": 0,
+                      "deleted": 0
+                    },
+                    "totalCount": 1
+                  },
+                  "page": {
+                    "nodes": [
+                      {
+                        "newPath": "coloured_output_example.png",
+                        "oldFile": {
+                          "commit": {
+                            "oid": "23d04701228d6b4aed46bf8d48e58dfecc338e25"
+                          }
+                        },
+                        "oldPath": "coloured_output_example.png",
+                        "stat": {
+                          "added": 0,
+                          "deleted": 0
+                        }
+                      }
+                    ],
+                    "pageInfo": {
+                      "hasNextPage": false
+                    }
+                  },
+                  "patch": {
+                    "rawDiff": "diff --git coloured_output_example.png coloured_output_example.png\nindex a224ed001017471d230d80849a38941277c192a3..600d1940bcf9ff652b8a5615f9deba46c57170ad 100644\nBinary files coloured_output_example.png and coloured_output_example.png differ\n"
+                  }
+                }
+              }
+            }
+          },
+          "defaultBranch": {
+            "displayName": "master"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-27T01:05:32Z"
+          },
+          "name": "github.com/BurntSushi/cargo-benchcmp"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

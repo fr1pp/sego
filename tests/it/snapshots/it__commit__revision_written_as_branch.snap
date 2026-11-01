@@ -1,0 +1,12 @@
+---
+source: tests/it/commit.rs
+expression: "sego(&[\"show\", \"github.com/gorilla/mux@main\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@db9d1d0073d2  2024-05-31  Corné de Jong  parents fe14465e5077  1 file  +64 -1  no tags  rev main  mirrored 2026-10-27T07:34Z
+    added test for router in context
+
+M  +64 -1  mux_test.go
+----- stderr -----
+----- end -----

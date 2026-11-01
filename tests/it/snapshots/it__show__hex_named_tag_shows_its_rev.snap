@@ -1,0 +1,10 @@
+---
+source: tests/it/show.rs
+expression: "answered(&[\"show\", \"example.com/acme/widget@2024:a.go\"], [response])"
+---
+exit: 0
+----- stdout -----
+example.com/acme/widget@d81fd54f1a2b:a.go  lines 1 of 1  rev 2024
+1:package a
+----- stderr -----
+----- end -----

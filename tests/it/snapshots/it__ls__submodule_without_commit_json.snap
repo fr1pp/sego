@@ -1,0 +1,27 @@
+---
+source: tests/it/ls.rs
+expression: "answered(&[\"ls\", \"--json\",\n\"example.com/acme/shell@d81fd54feb0d996fdff20dca27eaf0201f7015cc:contrib\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+{
+  "commit": "d81fd54feb0d996fdff20dca27eaf0201f7015cc",
+  "entries": [
+    {
+      "kind": "submodule",
+      "path": "contrib",
+      "submodule_commit": null
+    }
+  ],
+  "entries_more": false,
+  "entries_total": 1,
+  "kind": "submodule",
+  "mirrored_at": null,
+  "notes": [],
+  "path": "contrib",
+  "recursive": false,
+  "repo": "example.com/acme/shell",
+  "rev": "d81fd54feb0d996fdff20dca27eaf0201f7015cc"
+}
+----- stderr -----
+----- end -----

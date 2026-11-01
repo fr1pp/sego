@@ -1,0 +1,88 @@
+{
+  "date": "2026-10-27",
+  "request": {
+    "operation": "Commit",
+    "query": "query Commit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $paths: [String!], $first: Int, $patch: Boolean!) {\n  r0: repository(name: $repo0) { ...Commit }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...Commit }\n}\n\nfragment Commit on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\n    oid subject message\n    author { date person { displayName } }\n    committer { date person { displayName } }\n    parents { oid }\n\n    w: tree(path: \"\") { commit { diff { ...Changes } } }\n  }\n}\n\nfragment Changes on RepositoryComparison {\n  all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }\n  page: fileDiffs(first: $first, paths: $paths) {\n    nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }\n    pageInfo { hasNextPage }\n  }\n  patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }\n}\n",
+    "variables": {
+      "first": 200,
+      "gitlab": false,
+      "patch": false,
+      "paths": null,
+      "repo0": "github.com/gorilla/mux",
+      "repo1": "",
+      "rev": "main"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": {
+            "author": {
+              "date": "2024-05-31T16:41:26Z",
+              "person": {
+                "displayName": "Corné de Jong"
+              }
+            },
+            "committer": {
+              "date": "2024-06-19T23:50:04Z",
+              "person": {
+                "displayName": "Alex Vulaj"
+              }
+            },
+            "message": "added test for router in context",
+            "oid": "db9d1d0073d27a0a2d9a8c1bc52aa0af4374d265",
+            "parents": [
+              {
+                "oid": "fe14465e50778b54b9bfafc6995fd237ea5afb6b"
+              }
+            ],
+            "subject": "added test for router in context",
+            "w": {
+              "commit": {
+                "diff": {
+                  "all": {
+                    "diffStat": {
+                      "added": 64,
+                      "deleted": 1
+                    },
+                    "totalCount": 1
+                  },
+                  "page": {
+                    "nodes": [
+                      {
+                        "newPath": "mux_test.go",
+                        "oldFile": {
+                          "commit": {
+                            "oid": "fe14465e50778b54b9bfafc6995fd237ea5afb6b"
+                          }
+                        },
+                        "oldPath": "mux_test.go",
+                        "stat": {
+                          "added": 64,
+                          "deleted": 1
+                        }
+                      }
+                    ],
+                    "pageInfo": {
+                      "hasNextPage": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "defaultBranch": {
+            "displayName": "main"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-27T07:34:45Z"
+          },
+          "name": "github.com/gorilla/mux"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

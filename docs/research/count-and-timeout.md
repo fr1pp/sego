@@ -220,7 +220,7 @@ So `limitHit true` doesn't by itself mean more matches exist. It can mean:
   - Every repository's gitserver search gets `Limit: count`, and the frontend cap counts
     highlights (§1.2). **source (snapshot)**
     - `snap:internal/search/commit/commit.go:61-67`
-  - **live-verified:** `diff-search-over-a-range.toml`.
+  - **live-verified:** `diff_search_over_a_range.toml`.
 - **`type:path`.** One unit per file. **source (snapshot)**
 - **Pinned (`repo:R@rev`, `rev:`) as against HEAD.** **source (snapshot)**
   - HEAD of an indexed repository goes to zoekt with the options in §1.3.

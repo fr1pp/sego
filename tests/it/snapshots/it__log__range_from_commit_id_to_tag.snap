@@ -1,0 +1,18 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"github.com/gorilla/context@08b5f424b927..v1.1.2\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/context@08b5f424b927..6a490e2f9d52  9 commits  rev 08b5f424b927..v1.1.2  mirrored 2026-10-26T23:51Z
+6a490e2f9d52  2023-10-18  Corey Daley  (tag: v2.0.0, tag: v1.1.2) Updating github actions workflows to test 1.20 and 1.21 (#45)
+a45ea70b19f4  2023-09-22  Corey Daley  Updating Go version and Github Actions (#44)
+1cbd4c16de64  2023-07-31  Corey Daley  Update go version, add tools for verification and testing (#43)
+39a447022b01  2023-07-15  Corey Daley  Merge pull request #41 from gorilla/coreydaley-patch-1
+a01379df10af  2023-07-15  Corey Daley  Update README.md
+8559d4a6b87e  2019-06-27  Matt Silverlock  Update README.md (#40)
+dc31bb267b79  2019-06-27  Matt Silverlock  Create config.yml (#39)
+30a41ee8e7bf  2019-06-27  Matt Silverlock  Update README.md (#38)
+51ce91d2eadd  2018-10-12  Kamil Kisiel  README.md: Update site URL
+----- stderr -----
+----- end -----

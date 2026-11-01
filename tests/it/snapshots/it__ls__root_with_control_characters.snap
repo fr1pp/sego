@@ -1,0 +1,13 @@
+---
+source: tests/it/ls.rs
+expression: "answered(&[\"ls\", \"example.com/acme/widget\"], [response])"
+---
+exit: 0
+----- stdout -----
+example.com/acme/widget@0123456789ab  4 entries  1 dir  1 file  2 submodules
+file       $'a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i'
+dir        $'a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i-dir'/
+submodule  mod  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}
+submodule  sub  0123456789ab
+----- stderr -----
+----- end -----

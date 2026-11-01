@@ -1,0 +1,9 @@
+---
+source: tests/it/diff.rs
+expression: "answered(&[\"diff\",\n\"github.com/BurntSushi/cargo-benchcmp@cf84e27337f5c671f622330ed2ee1e36584d5c2e\",\n\"coloured_output_example.png\"], [response])"
+---
+exit: 3
+----- stdout -----
+----- stderr -----
+sego: error: Sourcegraph failed to answer the path lookup
+----- end -----

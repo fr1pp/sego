@@ -1,0 +1,11 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/acme/widget foo\"], [response])"
+---
+exit: 0
+----- stdout -----
+1 match  0.1 s
+query  timeout:60s repo:example.com/acme/widget foo
+----- stderr -----
+sego: note: 1 result of kind Weird not shown
+----- end -----

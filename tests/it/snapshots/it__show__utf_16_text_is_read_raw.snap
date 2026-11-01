@@ -1,0 +1,11 @@
+---
+source: tests/it/show.rs
+expression: "answered(&[\"show\",\n\"github.com/sharkdp/bat@a9aa73d2:tests/examples/test_UTF-16LE.txt\"],\n[first.into(), second])"
+---
+exit: 0
+----- stdout -----
+github.com/sharkdp/bat@a9aa73d21545:tests/examples/test_UTF-16LE.txt  lines 1-2 of 2  not UTF-8
+1:\x{ff}\x{fe}h\u{0}e\u{0}l\u{0}l\u{0}o\u{0} \u{0}w\u{0}o\u{0}r\u{0}l\u{0}d\u{0}
+2:\u{0}
+----- stderr -----
+----- end -----

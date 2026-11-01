@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "File",
+    "query": "query File($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String!, $recursive: Boolean!, $content: Boolean!, $start: Int, $end: Int) {\n  r0: repository(name: $repo0) { ...File }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...File }\n}\n\nfragment File on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\noid\n    meta: path(path: $path) {\n      __typename\n      ... on GitBlob { path byteSize totalLines binary rawURL lfs { byteSize } submodule { commit } }\n      ... on GitTree { path entries(recursive: $recursive) { path isDirectory submodule { commit } } }\n    }\n    body: path(path: $path) @include(if: $content) {\n      __typename\n      ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }\n    }\n  }\n}\n",
+    "variables": {
+      "content": true,
+      "end": 500,
+      "gitlab": false,
+      "path": "test/fixtures/copy/utf/新建文件夹/index.js",
+      "recursive": false,
+      "repo0": "github.com/nodejs/node",
+      "repo1": "",
+      "rev": "aa1bf2cc37539bfeeef8faf80c9d31a64cb78026",
+      "start": 1
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": {
+            "body": {
+              "__typename": "GitBlob",
+              "content": "module.exports = {\n  purpose: 'testing copy'\n};\n"
+            },
+            "meta": {
+              "__typename": "GitBlob",
+              "binary": false,
+              "byteSize": 48,
+              "lfs": null,
+              "path": "test/fixtures/copy/utf/新建文件夹/index.js",
+              "rawURL": "/r/github.com/nodejs/node@aa1bf2cc37539bfeeef8faf80c9d31a64cb78026/-/raw/test/fixtures/copy/utf/%E6%96%B0%E5%BB%BA%E6%96%87%E4%BB%B6%E5%A4%B9/index.js",
+              "submodule": null,
+              "totalLines": 3
+            },
+            "oid": "aa1bf2cc37539bfeeef8faf80c9d31a64cb78026"
+          },
+          "defaultBranch": {
+            "displayName": "main"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-31T00:32:20Z"
+          },
+          "name": "github.com/nodejs/node"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

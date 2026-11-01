@@ -1,0 +1,32 @@
+---
+source: tests/it/show.rs
+expression: ran
+---
+exit: 0
+----- stdout -----
+{
+  "binary": false,
+  "byte_size": 2,
+  "commit": "0123456789abcdef0123456789abcdef01234567",
+  "crlf": false,
+  "end": 1,
+  "kind": "file",
+  "lfs_size": null,
+  "lines": [
+    {
+      "line": 1,
+      "text": "x"
+    }
+  ],
+  "mirrored_at": null,
+  "notes": [],
+  "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+  "repo": "example.com/acme/widget",
+  "rev": "0123456789abcdef0123456789abcdef01234567",
+  "start": 1,
+  "submodule": null,
+  "total_lines": 1,
+  "utf8": true
+}
+----- stderr -----
+----- end -----

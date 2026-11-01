@@ -1,0 +1,10 @@
+---
+source: tests/it/ls.rs
+expression: "sego(&[\"ls\", \"github.com/gorilla/mux@v1.8.0:mux.go\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@98cb6bf42e08:mux.go  1 entry  1 file  rev v1.8.0  mirrored 2026-10-30T23:53Z
+file       mux.go
+----- stderr -----
+----- end -----

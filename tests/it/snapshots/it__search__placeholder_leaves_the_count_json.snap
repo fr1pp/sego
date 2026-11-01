@@ -1,0 +1,63 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"--json\", \"repo:example.com/acme/widget binary\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+{
+  "alert": null,
+  "at_least": false,
+  "count": 2,
+  "elapsed_ms": 300,
+  "limit_ms": 60000,
+  "notes": [],
+  "pattern_type": "keyword",
+  "query": "timeout:60s repo:example.com/acme/widget binary",
+  "results": [
+    {
+      "chunk": 1,
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "line",
+      "line": 10,
+      "match": true,
+      "path": "src/real.txt",
+      "ranges": [
+        [
+          2,
+          8
+        ]
+      ],
+      "repo": "example.com/acme/widget",
+      "rev": null,
+      "text": "a binary value"
+    },
+    {
+      "chunk": 1,
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "line",
+      "line": 11,
+      "match": true,
+      "path": "src/real.txt",
+      "ranges": [
+        [
+          8,
+          14
+        ]
+      ],
+      "repo": "example.com/acme/widget",
+      "rev": null,
+      "text": "another binary"
+    }
+  ],
+  "server": {
+    "approximate_count": "3",
+    "limit_hit": false,
+    "match_count": 3,
+    "timedout": []
+  },
+  "stopped": false,
+  "unit": "matches",
+  "widen": []
+}
+----- stderr -----
+----- end -----

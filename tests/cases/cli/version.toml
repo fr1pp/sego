@@ -1,6 +1,0 @@
-# --version prints the version.
-args = ["--version"]
-status.code = 0
-stdout = '''
-sego 0.3.0
-'''

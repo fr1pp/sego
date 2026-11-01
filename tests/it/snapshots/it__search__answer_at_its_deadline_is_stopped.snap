@@ -1,0 +1,12 @@
+---
+source: tests/it/search.rs
+expression: ran
+---
+exit: 0
+----- stdout -----
+1+ matches  1 repo  stopped at 60.0 s
+query  timeout:60s repo:example.com/acme/widget foo
+
+example.com/acme/widget
+----- stderr -----
+----- end -----

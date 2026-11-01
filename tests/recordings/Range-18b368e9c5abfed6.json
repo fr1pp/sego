@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-27",
+  "request": {
+    "operation": "Range",
+    "query": "query Range($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!) {\n  r0: repository(name: $repo0) { ...Ends }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...Ends }\n}\n\nfragment Ends on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  a: commit(rev: $a) { oid }\n  b: commit(rev: $b) { oid }\n}\n",
+    "variables": {
+      "a": "go1.21.1",
+      "b": "go1.22.0",
+      "gitlab": false,
+      "repo0": "github.com/golang/go",
+      "repo1": ""
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "a": {
+            "oid": "2c1e5b05fe39fc5e6c730dd60e82946b8e67c6ba"
+          },
+          "b": {
+            "oid": "a10e42f219abb9c5bc4e7d86d9464700a42c7d57"
+          },
+          "defaultBranch": {
+            "displayName": "master"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-27T07:16:02Z"
+          },
+          "name": "github.com/golang/go"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

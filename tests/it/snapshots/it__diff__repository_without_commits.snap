@@ -1,0 +1,9 @@
+---
+source: tests/it/diff.rs
+expression: "answered(&[\"diff\", \"example.com/acme/widget@v1\"], [response])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: example.com/acme/widget has no commits
+----- end -----

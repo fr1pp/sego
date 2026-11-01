@@ -1,0 +1,17 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\",\n\"(repo:example.com/app type:symbol foo) or (repo:example.com/app foo)\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+2 matches  1 repo  0.1 s
+query  timeout:60s (repo:example.com/app type:symbol foo) or (repo:example.com/app foo)
+
+example.com/app@0123456789ab:a.go
+2:function  E
+3:x
+10:function  F
+
+example.com/app@0123456789ab:b.go
+----- stderr -----
+----- end -----

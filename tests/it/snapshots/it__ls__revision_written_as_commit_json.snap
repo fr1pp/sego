@@ -1,0 +1,32 @@
+---
+source: tests/it/ls.rs
+expression: "answered(&[\"ls\", \"--json\",\n\"example.com/acme/widget@98cb6bf42e086f6af920b965c38cacc07402d51b\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+{
+  "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+  "entries": [
+    {
+      "kind": "dir",
+      "path": "docs",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "mux.go",
+      "submodule_commit": null
+    }
+  ],
+  "entries_more": false,
+  "entries_total": 2,
+  "kind": "directory",
+  "mirrored_at": null,
+  "notes": [],
+  "path": null,
+  "recursive": false,
+  "repo": "example.com/acme/widget",
+  "rev": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+}
+----- stderr -----
+----- end -----

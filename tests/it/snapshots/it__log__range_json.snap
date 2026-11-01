@@ -1,0 +1,248 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"--json\", \"github.com/gorilla/mux@v1.6.2..v1.7.0\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "behind": 0,
+  "commit": null,
+  "commit_a": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf",
+  "commit_b": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+  "commits": [
+    {
+      "author": "moeryomenko",
+      "commit": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+      "date": "2019-01-25",
+      "parents": [
+        "797e653da60e4619dcb0ae703714147b5a7454c6"
+      ],
+      "subject": "replace rr.HeaderMap by rr.Header() (#443)",
+      "tags": [
+        "v1.7.0"
+      ]
+    },
+    {
+      "author": "Tim",
+      "commit": "797e653da60e4619dcb0ae703714147b5a7454c6",
+      "date": "2019-01-25",
+      "parents": [
+        "08e7f807d38d6a870193019bb439056118661505"
+      ],
+      "subject": "Call WriteHeader after setting other header(s) in the example (#442)",
+      "tags": []
+    },
+    {
+      "author": "Gregor Weckbecker",
+      "commit": "08e7f807d38d6a870193019bb439056118661505",
+      "date": "2019-01-08",
+      "parents": [
+        "f3ff42f93a451d7ffb2ff11cb9485f3f88089c83"
+      ],
+      "subject": "Ignore ErrNotFound while matching Subrouters (#438)",
+      "tags": []
+    },
+    {
+      "author": "santsai",
+      "commit": "f3ff42f93a451d7ffb2ff11cb9485f3f88089c83",
+      "date": "2019-01-04",
+      "parents": [
+        "ef912dd76ebe9d9848c6e0fd80eaebccc9a11631"
+      ],
+      "subject": "getHost() now returns full host & port information (#383)",
+      "tags": []
+    },
+    {
+      "author": "tomare",
+      "commit": "ef912dd76ebe9d9848c6e0fd80eaebccc9a11631",
+      "date": "2018-12-28",
+      "parents": [
+        "a31c1782bfb10b7b3799d5ec06b5ccbd98c4ec7e"
+      ],
+      "subject": "[bugfix] Clear matchErr when traversing subrouters.",
+      "tags": []
+    },
+    {
+      "author": "Raees",
+      "commit": "a31c1782bfb10b7b3799d5ec06b5ccbd98c4ec7e",
+      "date": "2018-12-25",
+      "parents": [
+        "6137e193cdcba2725f16de84eaf0db2b769d9668"
+      ],
+      "subject": "Replace domain.com with example.com (#434)",
+      "tags": []
+    },
+    {
+      "author": "Michael Li",
+      "commit": "6137e193cdcba2725f16de84eaf0db2b769d9668",
+      "date": "2018-12-17",
+      "parents": [
+        "d2b5d13b9260193b5a5649e9f47fda645bd2bd1d"
+      ],
+      "subject": "remove redundant code that remove support gorilla/context (#427)",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "d2b5d13b9260193b5a5649e9f47fda645bd2bd1d",
+      "date": "2018-12-08",
+      "parents": [
+        "419fd9fe2a07c30b927f0183d6a99408d187b812"
+      ],
+      "subject": "Update and rename stale to stale.yml (#425)",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "419fd9fe2a07c30b927f0183d6a99408d187b812",
+      "date": "2018-12-07",
+      "parents": [
+        "758eb64354aa27cda6c1b026822c788cc755f06f"
+      ],
+      "subject": "Add stalebot config (#424)",
+      "tags": []
+    },
+    {
+      "author": "Joe Wilner",
+      "commit": "758eb64354aa27cda6c1b026822c788cc755f06f",
+      "date": "2018-12-07",
+      "parents": [
+        "3d80bc801bb034e17cae38591335b3b1110f1c47"
+      ],
+      "subject": "Improve subroute configuration propagation #422",
+      "tags": []
+    },
+    {
+      "author": "kanozec",
+      "commit": "3d80bc801bb034e17cae38591335b3b1110f1c47",
+      "date": "2018-10-30",
+      "parents": [
+        "521ea7b17d02faf8d3afea6737573942ceac59c5"
+      ],
+      "subject": "Use subtests in mux_test.go (#415)",
+      "tags": []
+    },
+    {
+      "author": "Steven Nguyen",
+      "commit": "521ea7b17d02faf8d3afea6737573942ceac59c5",
+      "date": "2018-10-24",
+      "parents": [
+        "deb579d6e030503f430978ee229008b9bc912d40"
+      ],
+      "subject": "Use constant for 301 status code in regexp.go (#412)",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "deb579d6e030503f430978ee229008b9bc912d40",
+      "date": "2018-10-12",
+      "parents": [
+        "9e1f5955c0d22b55d9e20d6faa28589f83b2faca"
+      ],
+      "subject": "README.md: Update site URL",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "9e1f5955c0d22b55d9e20d6faa28589f83b2faca",
+      "date": "2018-09-03",
+      "parents": [
+        "cf6680bc62d81bcd52bbf1c991bfe8b7ec98e270"
+      ],
+      "subject": "Always run on the latest stable Go version. (#402)",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "cf6680bc62d81bcd52bbf1c991bfe8b7ec98e270",
+      "date": "2018-09-02",
+      "parents": [
+        "8771f97498c6be5fe95d2eb5fb882c18bbf7f361"
+      ],
+      "subject": "Create release-drafter.yml (#399)",
+      "tags": []
+    },
+    {
+      "author": "Franklin Harding",
+      "commit": "8771f97498c6be5fe95d2eb5fb882c18bbf7f361",
+      "date": "2018-09-02",
+      "parents": [
+        "962c5bed0721b50f2ba42684e9600dfde174770f"
+      ],
+      "subject": "Drop support for Go < 1.7: remove gorilla/context (#391)",
+      "tags": []
+    },
+    {
+      "author": "Shalom Yerushalmy",
+      "commit": "962c5bed0721b50f2ba42684e9600dfde174770f",
+      "date": "2018-08-30",
+      "parents": [
+        "e48e440e4c92e3251d812f8ce7858944dfa3331c"
+      ],
+      "subject": "Add 1.11 to build in travis (#398)",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "e48e440e4c92e3251d812f8ce7858944dfa3331c",
+      "date": "2018-08-07",
+      "parents": [
+        "815b8c6a2641cd336000b3fb159b5741d0dc0113"
+      ],
+      "subject": "Add test for multiple calls to Name().",
+      "tags": []
+    },
+    {
+      "author": "Kamil Kisiel",
+      "commit": "815b8c6a2641cd336000b3fb159b5741d0dc0113",
+      "date": "2018-08-07",
+      "parents": [
+        "cb4698366aa625048f3b815af6a0dea8aef9280a"
+      ],
+      "subject": "Clarify behaviour of Name method if called multiple times.",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "cb4698366aa625048f3b815af6a0dea8aef9280a",
+      "date": "2018-06-05",
+      "parents": [
+        "e0b5abaaae35242fa74372f26c24107711702a4e"
+      ],
+      "subject": "Update LICENSE & AUTHORS files. (#386)",
+      "tags": []
+    },
+    {
+      "author": "Jim Kalafut",
+      "commit": "e0b5abaaae35242fa74372f26c24107711702a4e",
+      "date": "2018-05-26",
+      "parents": [
+        "c85619274f5d55a67491010f883a91f568b3a9b0"
+      ],
+      "subject": "Initialize user map (#371)",
+      "tags": []
+    },
+    {
+      "author": "Matt Silverlock",
+      "commit": "c85619274f5d55a67491010f883a91f568b3a9b0",
+      "date": "2018-05-17",
+      "parents": [
+        "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+      ],
+      "subject": "[deps] Add go.mod for versioned Go (#376)",
+      "tags": []
+    }
+  ],
+  "commits_more": false,
+  "commits_total": 22,
+  "follow": false,
+  "mirrored_at": "2026-10-27T07:13Z",
+  "notes": [],
+  "path": null,
+  "repo": "github.com/gorilla/mux",
+  "rev": null,
+  "rev_a": "v1.6.2",
+  "rev_b": "v1.7.0"
+}
+----- stderr -----
+----- end -----

@@ -1,0 +1,10 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"ls\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: ls needs an address, like REPO[@REV][:PATH]
+usage: sego ls [--json] [--recursive] REPO[@REV][:PATH]
+----- end -----

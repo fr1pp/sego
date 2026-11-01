@@ -1,0 +1,12 @@
+---
+source: tests/it/search.rs
+expression: "sego(&[\"search\",\n\"repo:^github\\\\.com/gorilla/mux$@v1.8.0 select:file.directory NewRouter\"])"
+---
+exit: 0
+----- stdout -----
+1+ directories  1 repo  0.3 s
+query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0 select:file.directory NewRouter
+
+github.com/gorilla/mux@98cb6bf42e08:./
+----- stderr -----
+----- end -----

@@ -1,9 +1,0 @@
-# A reflog or upstream revision names nothing in a mirror.
-args = ["show", "github.com/gorilla/mux@@{upstream}:mux.go"]
-status.code = 2
-stderr = '''
-sego: error: sego can't read a reflog or upstream revision: Sourcegraph's mirror has none
-usage: sego show [--json] REPO[@REV]:PATH [LINES]
-       sego show [--json] REPO@REV
-'''
-

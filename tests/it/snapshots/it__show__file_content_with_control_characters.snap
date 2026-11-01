@@ -1,0 +1,18 @@
+---
+source: tests/it/show.rs
+expression: "answered(&[\"show\",\n\"example.com/acme/widget@0123456789abcdef0123456789abcdef01234567:f.txt\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+example.com/acme/widget@0123456789ab:f.txt  lines 1-9 of 9
+1:a\u{1b}b
+2:c\u{202e}d
+3:e\u{200b}f
+4:g\u{0}h
+5:i\u{2028}j
+6:k\u{7f}l
+7:mid\u{d}cr
+8:tab	ok
+9:crlf\u{d}
+----- stderr -----
+----- end -----

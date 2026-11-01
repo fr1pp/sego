@@ -1,0 +1,30 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\", \"github.com/gorilla/mux@v1.8.0:.\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@98cb6bf42e08  21 entries  2 dirs  19 files  rev v1.8.0  mirrored 2026-10-31T00:35Z
+dir        .circleci/
+dir        .github/
+file       AUTHORS
+file       LICENSE
+file       README.md
+file       bench_test.go
+file       doc.go
+file       example_authentication_middleware_test.go
+file       example_cors_method_middleware_test.go
+file       example_route_test.go
+file       go.mod
+file       middleware.go
+file       middleware_test.go
+file       mux.go
+file       mux_httpserver_test.go
+file       mux_test.go
+file       old_test.go
+file       regexp.go
+file       regexp_test.go
+file       route.go
+file       test_helpers.go
+----- stderr -----
+----- end -----

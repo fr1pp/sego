@@ -1,0 +1,10 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"github.com/gorilla/mux@c5c6c98\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@15a353a63672...c5c6c98bc253  1 file  +1 -1  base 15a353a63672
+M  +1 -1  .travis.yml
+----- stderr -----
+----- end -----

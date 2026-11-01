@@ -14,13 +14,13 @@ The rules every change to sego follows. Where an ADR holds the reason, the rule 
 
 - A module's unit tests sit inline, as a `#[cfg(test)] mod tests { use super::*; … }` at the end of
   its file, whatever the file's size.
-- What an agent sees on the command line is pinned by a case
+- What an agent sees on the command line is pinned by a snapshot
   ([ADR 0010](docs/adr/0010-tests-replay-recorded-responses.md)). A help text is pinned only by its
-  case.
-- A module test is kept only where a case can't pin the behaviour well: a pure function with a large
+  snapshot.
+- A module test is kept only where a snapshot can't pin the behaviour well: a pure function with a large
   input space (query reading, argument parsing, addresses, escaping), the reading of server
   responses with their combinations of errors, and what the command line can't reach (the cache's
-  file handling, the HTTP transport). A module test that repeats a case is deleted.
+  file handling, the HTTP transport). A module test that repeats a snapshot is deleted.
 - A test's name is a sentence that states the behaviour: `a_hit_needs_the_exact_size`.
 
 ## Names

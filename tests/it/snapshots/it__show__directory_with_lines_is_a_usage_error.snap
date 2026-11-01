@@ -1,0 +1,11 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\", \"github.com/gorilla/mux@v1.8.0:.github\", \"1-5\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: .github is a directory at github.com/gorilla/mux@98cb6bf42e08; LINES apply to a file
+usage: sego show [--json] REPO[@REV]:PATH [LINES]
+       sego show [--json] REPO@REV
+----- end -----

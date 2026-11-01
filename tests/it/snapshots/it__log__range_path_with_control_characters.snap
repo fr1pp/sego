@@ -1,0 +1,12 @@
+---
+source: tests/it/log.rs
+expression: "answered(&[\"log\",\n\"example.com/acme/widget@v1.0.0..v2.0.0:a\\u{1b}b\\u{202e}c\\u{200b}d\\ne\\rf\\0g\\u{2028}h\\u{7f}i\"],\n[first, second])"
+---
+exit: 0
+----- stdout -----
+$'example.com/acme/widget@fedcba987654..0123456789ab:a\033b\342\200\256c\342\200\213d\ne\015f\000g\342\200\250h\177i'  3 commits  rev v1.0.0..v2.0.0
+0123456789ab  2026-08-01  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i  (tag: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i, tag: t-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i) a\u{1b}b\u{202e}c\u{200b}d\u{a}e\u{d}f\u{0}g\u{2028}h\u{7f}i
+89abcdef0123  a\u{1b}b\u{202e}c\u{200b}d e\u{d}  b-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i  b-a\u{1b}b\u{202e}c\u{200b}d\u{a}e\u{d}f\u{0}g\u{2028}h\u{7f}i
+a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}  2026-07-01  c-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i  (tag: u-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i) c-a\u{1b}b\u{202e}c\u{200b}d\u{a}e\u{d}f\u{0}g\u{2028}h\u{7f}i
+----- stderr -----
+----- end -----

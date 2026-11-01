@@ -1,0 +1,10 @@
+---
+source: tests/it/refs.rs
+expression: "sego(&[\"refs\",\n\"example.com/acme/widgeta\\u{1b}b\\u{202e}c\\u{200b}d\\ne\\rf\\0g\\u{2028}h\\u{7f}i\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: invalid repository name 'example.com/acme/widgeta\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i'
+usage: sego refs [--json] REPO [TEXT]
+----- end -----

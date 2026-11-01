@@ -1,0 +1,12 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\",\n\"repo:example.com/acme/widget select:file.directory foo count:all\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+1 directory  1 repo  0.7 s
+query  timeout:60s repo:example.com/acme/widget select:file.directory foo count:all
+
+example.com/acme/widget@0123456789ab:src/
+----- stderr -----
+----- end -----

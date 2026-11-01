@@ -1,0 +1,11 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/widen foo\"], [response])"
+---
+exit: 0
+----- stdout -----
+0 matches  0.1 s
+query  timeout:60s repo:example.com/widen foo
+widen  fork:yes (4 repos)  archived:yes (68912 repos)
+----- stderr -----
+----- end -----

@@ -1,0 +1,11 @@
+---
+source: tests/it/show.rs
+expression: "answered(&[\"show\", \"example.com/acme/widget@main:big.c\", \"2-3\"],\n[first.into(), second])"
+---
+exit: 0
+----- stdout -----
+example.com/acme/widget@d81fd54f1a2b:big.c  lines 2-3 of 5  CRLF  rev main
+2:2
+3:3
+----- stderr -----
+----- end -----

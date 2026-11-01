@@ -1,0 +1,9 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"github.com/gorilla/mux@v1.7.4...v1.8.0\", \"nope/\"])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: nope/ not found in github.com/gorilla/mux@75dcda0896e1 or @98cb6bf42e08
+----- end -----

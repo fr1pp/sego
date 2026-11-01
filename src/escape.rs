@@ -9,7 +9,7 @@ mod table;
 
 pub const CUT_COLUMNS: usize = 500;
 
-pub fn is_unsafe(c: char) -> bool {
+pub fn needs_escape(c: char) -> bool {
     table::UNSAFE
         .binary_search_by(|&(first, last)| {
             if last < c {
@@ -24,7 +24,7 @@ pub fn is_unsafe(c: char) -> bool {
 }
 
 fn push_escaped(out: &mut String, c: char) {
-    if is_unsafe(c) {
+    if needs_escape(c) {
         let _ = write!(out, "\\u{{{:x}}}", u32::from(c));
     } else {
         out.push(c);
@@ -32,7 +32,7 @@ fn push_escaped(out: &mut String, c: char) {
 }
 
 pub fn escape(s: &str) -> Cow<'_, str> {
-    if !s.chars().any(is_unsafe) {
+    if !s.chars().any(needs_escape) {
         return Cow::Borrowed(s);
     }
     let mut out = String::with_capacity(s.len() + 8);
@@ -87,7 +87,7 @@ fn units(line: &str, focus: Option<usize>) -> Vec<Unit> {
         push_escaped(&mut piece, c);
         let indicator = ('\u{1f1e6}'..='\u{1f1ff}').contains(&c);
         let modifier = ('\u{1f3fb}'..='\u{1f3ff}').contains(&c);
-        let attaches = !is_unsafe(c)
+        let attaches = !needs_escape(c)
             && (after_joiner
                 || modifier
                 || UnicodeWidthChar::width(c) == Some(0)
@@ -186,7 +186,7 @@ fn is_bare(c: char) -> bool {
 }
 
 fn needs_ansi_c(c: char) -> bool {
-    c.is_control() || is_unsafe(c)
+    c.is_control() || needs_escape(c)
 }
 
 pub fn shell_word(s: &str) -> Cow<'_, str> {
@@ -251,7 +251,7 @@ mod tests {
     }
 
     #[test]
-    fn controls_separators_and_invisible_characters_are_unsafe() {
+    fn controls_separators_and_invisible_characters_need_escaping() {
         let cases = [
             ('\u{1b}', true),
             ('\u{7f}', true),
@@ -268,12 +268,12 @@ mod tests {
             ('日', false),
         ];
         for (c, expected) in cases {
-            assert_eq!(is_unsafe(c), expected, "{c:?}");
+            assert_eq!(needs_escape(c), expected, "{c:?}");
         }
     }
 
     #[test]
-    fn an_unsafe_character_is_written_as_a_unicode_escape() {
+    fn a_character_that_needs_escaping_is_written_as_a_unicode_escape() {
         let cases = [
             ("a\u{1b}[0m", "a\\u{1b}[0m"),
             ("\u{202e}x", "\\u{202e}x"),
@@ -285,7 +285,7 @@ mod tests {
     }
 
     #[test]
-    fn text_with_nothing_unsafe_is_returned_as_it_is() {
+    fn text_with_nothing_to_escape_is_returned_as_it_is() {
         assert!(matches!(escape("plain"), Cow::Borrowed("plain")));
     }
 

@@ -1,0 +1,92 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"github.com/gorilla/mux@v1.7.2...v1.7.3\",\n\".circleci/config.yml\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@ed099d423848...00bdffe0f3c7:.circleci/config.yml  1 file  +75 -0  base ed099d423848  rev v1.7.2...v1.7.3  mirrored 2026-10-27T07:13Z
+A  +75 -0  .circleci/config.yml
+
+    diff --git .circleci/config.yml .circleci/config.yml
+    new file mode 100644
+    index 0000000000000000000000000000000000000000..d7d96d14d9980db2af389ab4d29e8b108234144a
+    --- /dev/null
+    +++ .circleci/config.yml
+    @@ -0,0 +1,75 @@
+    +version: 2.0
+    +
+    +jobs:
+    +  # Base test configuration for Go library tests Each distinct version should
+    +  # inherit this base, and override (at least) the container image used.
+    +  "test": &test
+    +    docker:
+    +      - image: circleci/golang:latest
+    +    working_directory: /go/src/github.com/gorilla/mux
+    +    steps: &steps
+    +      - checkout
+    +      - run: go version
+    +      - run: go get -t -v ./...
+    +      # Only run gofmt, vet & lint against the latest Go version
+    +      - run: >
+    +          if [[ "$LATEST" = true ]]; then
+    +            go get -u golang.org/x/lint/golint
+    +            golint ./...
+    +          fi
+    +      - run: >
+    +          if [[ "$LATEST" = true ]]; then
+    +            diff -u <(echo -n) <(gofmt -d .)
+    +          fi
+    +      - run: >
+    +          if [[ "$LATEST" = true ]]; then
+    +            go vet -v .
+    +          fi
+    +      - run: go test -v -race ./...
+    +
+    +  "latest":
+    +    <<: *test
+    +    environment:
+    +      LATEST: true
+    +
+    +  "1.12":
+    +    <<: *test
+    +    docker:
+    +      - image: circleci/golang:1.12
+    +
+    +  "1.11":
+    +    <<: *test
+    +    docker:
+    +      - image: circleci/golang:1.11
+    +
+    +  "1.10":
+    +    <<: *test
+    +    docker:
+    +      - image: circleci/golang:1.10
+    +
+    +  "1.9":
+    +    <<: *test
+    +    docker:
+    +      - image: circleci/golang:1.9
+    +
+    +  "1.8":
+    +    <<: *test
+    +    docker:
+    +      - image: circleci/golang:1.8
+    +
+    +  "1.7":
+    +    <<: *test
+    +    docker:
+    +      - image: circleci/golang:1.7
+    +
+    +workflows:
+    +  version: 2
+    +  build:
+    +    jobs:
+    +      - "latest"
+    +      - "1.12"
+    +      - "1.11"
+    +      - "1.10"
+    +      - "1.9"
+    +      - "1.8"
+    +      - "1.7"
+----- stderr -----
+----- end -----

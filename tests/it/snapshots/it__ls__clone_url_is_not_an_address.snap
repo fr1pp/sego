@@ -1,0 +1,10 @@
+---
+source: tests/it/ls.rs
+expression: "sego(&[\"ls\", \"ssh://git@github.com/gorilla/mux.git\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: ssh://git@github.com/gorilla/mux.git is a URL; an address is host/owner/name or owner/name
+usage: sego ls [--json] [--recursive] REPO[@REV][:PATH]
+----- end -----

@@ -1,0 +1,11 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"show\", \"example.com/acme/widget:a.go\", \"--limit\", \"5\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: unknown option --limit
+usage: sego show [--json] REPO[@REV]:PATH [LINES]
+       sego show [--json] REPO@REV
+----- end -----

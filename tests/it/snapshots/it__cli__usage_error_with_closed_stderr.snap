@@ -1,0 +1,8 @@
+---
+source: tests/it/cli.rs
+expression: "Case::new(&[\"shwo\"], Vec::new()).stderr_closed().ran()"
+---
+exit: 0
+----- stdout -----
+----- stderr -----
+----- end -----

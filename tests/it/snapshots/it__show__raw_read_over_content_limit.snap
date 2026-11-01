@@ -1,0 +1,14 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\",\n\"github.com/torvalds/linux@c339f4010dea8b0d754f84ace70cd1b089878ef8:drivers/gpu/drm/amd/include/asic_reg/nbif/nbif_7_10_0_offset.h\",\n\"1-5\"])"
+---
+exit: 0
+----- stdout -----
+github.com/torvalds/linux@c339f4010dea:drivers/gpu/drm/amd/include/asic_reg/nbif/nbif_7_10_0_offset.h  lines 1-5 of 15938
+1:/*
+2: * Copyright 2026 Advanced Micro Devices, Inc.
+3: *
+4: * Permission is hereby granted, free of charge, to any person obtaining a
+5: * copy of this software and associated documentation files (the "Software"),
+----- stderr -----
+----- end -----

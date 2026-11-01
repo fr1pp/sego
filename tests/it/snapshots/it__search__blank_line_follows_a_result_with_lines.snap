@@ -1,0 +1,27 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\",\n\"(repo:example.com/acme/widget foo) or (repo:example.com/acme/widget type:path foo) or (repo:example.com/acme/widget type:commit foo)\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+6 files  3 repos  0.7 s
+query  timeout:60s (repo:example.com/acme/widget foo) or (repo:example.com/acme/widget type:path foo) or (repo:example.com/acme/widget type:commit foo)
+
+example.com/acme/widget@0123456789ab:a.go
+10:x
+
+example.com/acme/widget@0123456789ab:b.go
+20:x
+
+example.com/acme/widget@0123456789ab:p1
+example.com/acme/widget@0123456789ab:p2
+example.com/acme/widget@0123456789ab:c.go
+30:x
+
+example.com/acme/widget@aaaaaaaaaaaa  2024-05-06  Ann  Fix it
+    Fix it
+
+example.com/acme/gadget
+example.com/acme/lib
+----- stderr -----
+----- end -----

@@ -1,0 +1,114 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "Search",
+    "query": "query Search($query: String!) {\n  search(query: $query, version: V3, patternType: keyword) {\n    results {\n      matchCount approximateResultCount limitHit\n      timedout { name }\n      alert { title description kind proposedQueries { description query } }\n      elapsedMilliseconds\n      dynamicFilters { value count kind }\n      results {\n        __typename\n        ... on FileMatch {\n          repository { name }\n          file { path commit { oid } }\n          pathMatches { start { line } }\n          revSpec { ... on GitRevSpecExpr { expr } }\n          chunkMatches { content contentStart { line }\n            ranges { start { line character } end { line character } } }\n          symbols { name kind containerName location { range { start { line } } } }\n        }\n        ... on CommitSearchResult {\n          commit { oid subject author { date person { displayName } } repository { name } }\n          matches { body { text } highlights { line character length } }\n        }\n        ... on Repository { name }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "query": "timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 type:symbol NewRouter"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "search": {
+          "results": {
+            "alert": null,
+            "approximateResultCount": "2",
+            "dynamicFilters": [
+              {
+                "count": 2,
+                "kind": "type",
+                "value": "type:symbol"
+              },
+              {
+                "count": 2,
+                "kind": "lang",
+                "value": "lang:go"
+              },
+              {
+                "count": 2,
+                "kind": "repo",
+                "value": "repo:^github\\.com/gorilla/mux$@v1.8.0"
+              },
+              {
+                "count": 2,
+                "kind": "symbol type",
+                "value": "select:symbol.function"
+              }
+            ],
+            "elapsedMilliseconds": 18,
+            "limitHit": false,
+            "matchCount": 2,
+            "results": [
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [],
+                "file": {
+                  "commit": {
+                    "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+                  },
+                  "path": "mux.go"
+                },
+                "pathMatches": [],
+                "repository": {
+                  "name": "github.com/gorilla/mux"
+                },
+                "revSpec": {
+                  "expr": "v1.8.0"
+                },
+                "symbols": [
+                  {
+                    "containerName": "mux",
+                    "kind": "FUNCTION",
+                    "location": {
+                      "range": {
+                        "start": {
+                          "line": 24
+                        }
+                      }
+                    },
+                    "name": "NewRouter"
+                  }
+                ]
+              },
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [],
+                "file": {
+                  "commit": {
+                    "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+                  },
+                  "path": "regexp.go"
+                },
+                "pathMatches": [],
+                "repository": {
+                  "name": "github.com/gorilla/mux"
+                },
+                "revSpec": {
+                  "expr": "v1.8.0"
+                },
+                "symbols": [
+                  {
+                    "containerName": "mux",
+                    "kind": "FUNCTION",
+                    "location": {
+                      "range": {
+                        "start": {
+                          "line": 40
+                        }
+                      }
+                    },
+                    "name": "newRouteRegexp"
+                  }
+                ]
+              }
+            ],
+            "timedout": []
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

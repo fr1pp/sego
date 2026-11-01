@@ -1,0 +1,9 @@
+---
+source: tests/it/show.rs
+expression: "answered(&[\"show\", \"example.com/acme/widget@main:big.c\", \"1-2\"],\n[first.into(), second])"
+---
+exit: 3
+----- stdout -----
+----- stderr -----
+sego: error: sourcegraph.com answered HTTP 502
+----- end -----

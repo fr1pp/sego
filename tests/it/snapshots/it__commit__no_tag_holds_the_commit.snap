@@ -1,0 +1,14 @@
+---
+source: tests/it/commit.rs
+expression: "sego(&[\"show\", \"github.com/gorilla/mux@374bd703c990\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@374bd703c990  2023-08-24  Tit Petric  parents 976b536446a7  3 files  +73 -3  no tags
+    Add RegexpCompileFunc to override regexp.Compile
+
+M  +5 -1  mux.go
+M  +2 -2  regexp.go
+A  +66 -0  route_test.go
+----- stderr -----
+----- end -----

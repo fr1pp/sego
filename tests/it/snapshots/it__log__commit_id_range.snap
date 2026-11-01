@@ -1,0 +1,10 @@
+---
+source: tests/it/log.rs
+expression: "answered(&[\"log\", \"example.com/acme/widget@0123456789ab..456789abcdef\"],\n[first, second])"
+---
+exit: 0
+----- stdout -----
+example.com/acme/widget@0123456789ab..456789abcdef  1 commit
+456789abcdef  2026-09-14  Ada Lovelace  Add the widget
+----- stderr -----
+----- end -----

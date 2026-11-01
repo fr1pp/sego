@@ -1,0 +1,85 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "Diff",
+    "query": "query Diff($repo: String!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!, $path0: String!, $path1: String!) {\n  c: repository(name: $repo) {\n    comparison(base: $a, head: $b, fetchMissing: false) {\n      range { mergeBase { oid } }\n      ...Changes\n    }\n  }\n  a: repository(name: $repo) { commit(rev: $a) { oid p0: path(path: $path0) { __typename } p1: path(path: $path1) { __typename } } }\n  b: repository(name: $repo) { commit(rev: $b) { oid p0: path(path: $path0) { __typename } p1: path(path: $path1) { __typename } } }\n}\n\nfragment Changes on RepositoryComparison {\n  all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }\n  page: fileDiffs(first: $first, paths: $paths) {\n    nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }\n    pageInfo { hasNextPage }\n  }\n  patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }\n}\n",
+    "variables": {
+      "a": "509b737647ad4f404aee6f0bb49e940530eaaf9c",
+      "b": "c43361a52db7af1d75f5e877cb0e4bd803d28e77",
+      "first": 200,
+      "patch": true,
+      "path0": "internal/run/controller/filters/detect_text.go",
+      "path1": "internal/run/controller/filter/detect_text.go",
+      "paths": [
+        "internal/run/controller/filters/detect_text.go",
+        "internal/run/controller/filter/detect_text.go"
+      ],
+      "repo": "github.com/evilmartians/lefthook"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "a": {
+          "commit": {
+            "oid": "509b737647ad4f404aee6f0bb49e940530eaaf9c",
+            "p0": {
+              "__typename": "GitBlob"
+            },
+            "p1": null
+          }
+        },
+        "b": {
+          "commit": {
+            "oid": "c43361a52db7af1d75f5e877cb0e4bd803d28e77",
+            "p0": null,
+            "p1": {
+              "__typename": "GitBlob"
+            }
+          }
+        },
+        "c": {
+          "comparison": {
+            "all": {
+              "diffStat": {
+                "added": 1,
+                "deleted": 1
+              },
+              "totalCount": 1
+            },
+            "page": {
+              "nodes": [
+                {
+                  "newPath": "internal/run/controller/filter/detect_text.go",
+                  "oldFile": {
+                    "commit": {
+                      "oid": "509b737647ad4f404aee6f0bb49e940530eaaf9c"
+                    }
+                  },
+                  "oldPath": "internal/run/controller/filters/detect_text.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                }
+              ],
+              "pageInfo": {
+                "hasNextPage": false
+              }
+            },
+            "patch": {
+              "rawDiff": "diff --git internal/run/controller/filters/detect_text.go internal/run/controller/filter/detect_text.go\nsimilarity index 98%\nrename from internal/run/controller/filters/detect_text.go\nrename to internal/run/controller/filter/detect_text.go\nindex 193c5cea6154cf7419273e17c25f4a3a6655b79a..2875a0ff7e579acaefa1a108138e854582e34062 100644\n--- internal/run/controller/filters/detect_text.go\n+++ internal/run/controller/filter/detect_text.go\n@@ -1,4 +1,4 @@\n-package filters\n+package filter\n \n import (\n \t\"bytes\"\n"
+            },
+            "range": {
+              "mergeBase": {
+                "oid": "509b737647ad4f404aee6f0bb49e940530eaaf9c"
+              }
+            }
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

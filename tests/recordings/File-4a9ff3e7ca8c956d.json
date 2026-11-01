@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "File",
+    "query": "query File($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String!, $recursive: Boolean!, $content: Boolean!, $start: Int, $end: Int) {\n  r0: repository(name: $repo0) { ...File }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...File }\n}\n\nfragment File on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\noid\n    meta: path(path: $path) {\n      __typename\n      ... on GitBlob { path byteSize totalLines binary rawURL lfs { byteSize } submodule { commit } }\n      ... on GitTree { path entries(recursive: $recursive) { path isDirectory submodule { commit } } }\n    }\n    body: path(path: $path) @include(if: $content) {\n      __typename\n      ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }\n    }\n  }\n}\n",
+    "variables": {
+      "content": true,
+      "end": 500,
+      "gitlab": false,
+      "path": "src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso",
+      "recursive": false,
+      "repo0": "github.com/golang/go",
+      "repo1": "",
+      "rev": "6885bad7dd86",
+      "start": 1
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": {
+            "body": null,
+            "meta": {
+              "__typename": "GitBlob",
+              "binary": true,
+              "byteSize": 2555664,
+              "lfs": null,
+              "path": "src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso",
+              "rawURL": "/r/github.com/golang/go@6885bad7dd86880be6929c02085e5c7a67ff2887/-/raw/src/crypto/internal/boring/syso/goboringcrypto_linux_amd64.syso",
+              "submodule": null,
+              "totalLines": 3790
+            },
+            "oid": "6885bad7dd86880be6929c02085e5c7a67ff2887"
+          },
+          "defaultBranch": {
+            "displayName": "master"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-30T23:46:21Z"
+          },
+          "name": "github.com/golang/go"
+        }
+      },
+      "errors": [
+        {
+          "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
+          "path": [
+            "r0",
+            "commit",
+            "body",
+            "content"
+          ]
+        },
+        {
+          "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
+          "path": [
+            "r0",
+            "commit",
+            "meta",
+            "lfs"
+          ]
+        }
+      ]
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

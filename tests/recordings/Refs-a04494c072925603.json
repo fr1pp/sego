@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-27",
+  "request": {
+    "operation": "Refs",
+    "query": "query Refs($repo0: String!, $repo1: String!, $gitlab: Boolean!, $first: Int, $query: String, $unfiltered: Boolean!) {\n  r0: repository(name: $repo0) { ...Refs }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...Refs }\n}\n\nfragment Refs on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  branches(first: $first, query: $query) { ...Listing }\n  tags(first: $first, query: $query) { ...Listing }\n  all_branches: branches(first: 1) @include(if: $unfiltered) { totalCount }\n  all_tags: tags(first: 1) @include(if: $unfiltered) { totalCount }\n}\n\nfragment Listing on GitRefConnection {\n  totalCount\n  nodes { displayName target { oid } }\n}\n",
+    "variables": {
+      "first": 100,
+      "gitlab": false,
+      "query": "2.6.11",
+      "repo0": "github.com/torvalds/linux",
+      "repo1": "",
+      "unfiltered": true
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "all_branches": {
+            "totalCount": 2
+          },
+          "all_tags": {
+            "totalCount": 953
+          },
+          "branches": {
+            "nodes": [],
+            "totalCount": 0
+          },
+          "defaultBranch": {
+            "displayName": "master"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-27T06:14:04Z"
+          },
+          "name": "github.com/torvalds/linux",
+          "tags": {
+            "nodes": [
+              {
+                "displayName": "v2.6.11-tree",
+                "target": {
+                  "oid": "c39ae07f393806ccf406ef966e9a15afc43cc36a"
+                }
+              },
+              {
+                "displayName": "v2.6.11",
+                "target": {
+                  "oid": "c39ae07f393806ccf406ef966e9a15afc43cc36a"
+                }
+              }
+            ],
+            "totalCount": 2
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

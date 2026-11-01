@@ -1,0 +1,12 @@
+---
+source: tests/it/refs.rs
+expression: "answered(&[\"refs\", \"example.com/acme/widget\"], [response])"
+---
+exit: 0
+----- stdout -----
+example.com/acme/widget  3 branches  0 tags  default b0
+branch  000000000000  b1
+branch  000000000000  b0  (default)
+branch  000000000000  b2
+----- stderr -----
+----- end -----

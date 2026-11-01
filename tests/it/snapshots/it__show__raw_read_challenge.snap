@@ -1,0 +1,9 @@
+---
+source: tests/it/show.rs
+expression: "answered(&[\"show\", \"example.com/acme/widget@main:big.c\", \"1-4\"],\n[first.into(), second])"
+---
+exit: 3
+----- stdout -----
+----- stderr -----
+sego: error: sourcegraph.com's edge refused the request (HTTP 429, Cloudflare challenge)
+----- end -----

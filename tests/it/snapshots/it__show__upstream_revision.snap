@@ -1,0 +1,11 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\", \"github.com/gorilla/mux@@{upstream}:mux.go\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: sego can't read a reflog or upstream revision: Sourcegraph's mirror has none
+usage: sego show [--json] REPO[@REV]:PATH [LINES]
+       sego show [--json] REPO@REV
+----- end -----

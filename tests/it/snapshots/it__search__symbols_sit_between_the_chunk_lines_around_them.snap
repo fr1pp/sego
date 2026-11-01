@@ -1,0 +1,25 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\",\n\"(repo:example.com/acme/widget type:symbol one) or (repo:example.com/acme/widget one)\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+6 matches  1 repo  0.7 s
+query  timeout:60s (repo:example.com/acme/widget type:symbol one) or (repo:example.com/acme/widget one)
+
+example.com/acme/widget@0123456789ab:a.rs
+9-a
+10:fn one() {
+10:function  one
+11:b
+20:struct  Mid
+23-c
+24-d
+25:e
+25:function  inner
+26-f
+26:function  edge
+30:g
+40:struct  Tail
+----- stderr -----
+----- end -----

@@ -1,0 +1,10 @@
+---
+source: tests/it/diff.rs
+expression: "answered(&[\"diff\", \"example.com/acme/widget@0123456789ab...456789abcdef\"],\n[first, second])"
+---
+exit: 0
+----- stdout -----
+example.com/acme/widget@0123456789ab...456789abcdef  1 file  +3 -1  base 0123456789ab
+M  +3 -1  widget.go
+----- stderr -----
+----- end -----

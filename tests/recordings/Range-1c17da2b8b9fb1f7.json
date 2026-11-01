@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-27",
+  "request": {
+    "operation": "Range",
+    "query": "query Range($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!) {\n  r0: repository(name: $repo0) { ...Ends }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...Ends }\n}\n\nfragment Ends on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  a: commit(rev: $a) { oid }\n  b: commit(rev: $b) { oid }\n}\n",
+    "variables": {
+      "a": "v1.7.2",
+      "b": "v1.7.3",
+      "gitlab": false,
+      "repo0": "github.com/gorilla/mux",
+      "repo1": ""
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "a": {
+            "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+          },
+          "b": {
+            "oid": "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15"
+          },
+          "defaultBranch": {
+            "displayName": "main"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-27T07:13:56Z"
+          },
+          "name": "github.com/gorilla/mux"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

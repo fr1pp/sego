@@ -1,0 +1,1242 @@
+{
+  "date": "2026-10-27",
+  "request": {
+    "operation": "Refs",
+    "query": "query Refs($repo0: String!, $repo1: String!, $gitlab: Boolean!, $first: Int, $query: String, $unfiltered: Boolean!) {\n  r0: repository(name: $repo0) { ...Refs }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...Refs }\n}\n\nfragment Refs on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  branches(first: $first, query: $query) { ...Listing }\n  tags(first: $first, query: $query) { ...Listing }\n  all_branches: branches(first: 1) @include(if: $unfiltered) { totalCount }\n  all_tags: tags(first: 1) @include(if: $unfiltered) { totalCount }\n}\n\nfragment Listing on GitRefConnection {\n  totalCount\n  nodes { displayName target { oid } }\n}\n",
+    "variables": {
+      "first": 100,
+      "gitlab": false,
+      "query": null,
+      "repo0": "github.com/microsoft/vscode",
+      "repo1": "",
+      "unfiltered": false
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "branches": {
+            "nodes": [
+              {
+                "displayName": "main",
+                "target": {
+                  "oid": "4bda7217fc83e8e838b1edd9ebaf21bb9b498c7e"
+                }
+              },
+              {
+                "displayName": "anthonykim1/separate-system-steering",
+                "target": {
+                  "oid": "9cb2f82b8b2a78d1c780f30b9237a82f8301b82c"
+                }
+              },
+              {
+                "displayName": "automation/copilot-sdk-main-evaluation",
+                "target": {
+                  "oid": "b867e09386a099c05d68b67c8ac2e58c8c1d7bfd"
+                }
+              },
+              {
+                "displayName": "cherry-pick/344444",
+                "target": {
+                  "oid": "9e2b078773c2169fef412169239e6dffb0da6613"
+                }
+              },
+              {
+                "displayName": "release/1.144",
+                "target": {
+                  "oid": "abc2b20cb3e724689f78f5d2a3c231589b25483c"
+                }
+              },
+              {
+                "displayName": "copilot/investigate-status-bar-regression",
+                "target": {
+                  "oid": "581fe13d68ead61acf97fcda32ddbb37f4a2e19c"
+                }
+              },
+              {
+                "displayName": "kycutler/browser-agents-window-proxy",
+                "target": {
+                  "oid": "602fb8a5833a465dbc3dbe771d4cd78f947223c7"
+                }
+              },
+              {
+                "displayName": "bhavya/remove-legacy-panel-simulations",
+                "target": {
+                  "oid": "52bfb6a514151536998c7372a7fc905c5146c46e"
+                }
+              },
+              {
+                "displayName": "automation/bump-copilot-sdk-1.0.27",
+                "target": {
+                  "oid": "9e60390e99f9b80590d4be4b9fb0cf5a6d015178"
+                }
+              },
+              {
+                "displayName": "agents/typescript-web-plugin-name-guard",
+                "target": {
+                  "oid": "110c279c2dd06335614295231dc9d5d04276ace3"
+                }
+              },
+              {
+                "displayName": "agents/release-fix-cloud-new-session",
+                "target": {
+                  "oid": "402bf6df7c0195e141cdb5d152326bf164d94f63"
+                }
+              },
+              {
+                "displayName": "hediet/agent-host-session-new-link",
+                "target": {
+                  "oid": "262f95c657faf5d50aece285a64f8e59fd6ee573"
+                }
+              },
+              {
+                "displayName": "hediet/untitled-breadcrumbs-reopen-with",
+                "target": {
+                  "oid": "b5545f4adf593ffeab43731c425e8003903185ef"
+                }
+              },
+              {
+                "displayName": "bhavyau/agent-host-managed-semantic-search",
+                "target": {
+                  "oid": "954f524fdab22daa5e423303534337561eeed5fc"
+                }
+              },
+              {
+                "displayName": "agents/implement-it",
+                "target": {
+                  "oid": "f2da6a29a3011ab99f00b65b28dcc96b8a3e844b"
+                }
+              },
+              {
+                "displayName": "agents/hide-copilot-marketplace-when-github-feed-enable",
+                "target": {
+                  "oid": "ee50d3a61f3bdbb8f681c06280a6f57fafa7c48f"
+                }
+              },
+              {
+                "displayName": "copilot/vscode/smoke-exit-kill-tree",
+                "target": {
+                  "oid": "86f14ca635fc7b220228716748fe5c22beb50b43"
+                }
+              },
+              {
+                "displayName": "bhavya/remove-workspace-generation",
+                "target": {
+                  "oid": "c761ef0ace523a024ffb60ca9f8954044211b6f9"
+                }
+              },
+              {
+                "displayName": "copilot/vscode/validate-copilot-npm-retry",
+                "target": {
+                  "oid": "3a7dd3b211468cd76a94cfbcecd01e24a40e10a0"
+                }
+              },
+              {
+                "displayName": "copilot/vscode/copilot-setup-npm-retry",
+                "target": {
+                  "oid": "62430bb2e9829286907c66d924aa2f436ceecaa9"
+                }
+              },
+              {
+                "displayName": "dependabot/npm_and_yarn/extensions/markdown-language-features/vscode/markdown-editor-0.0.2-144",
+                "target": {
+                  "oid": "3dd1cd91e5972080ecd48fe79f373d829a104ba8"
+                }
+              },
+              {
+                "displayName": "automation/bump-copilot-sdk-1.0.27-preview.4",
+                "target": {
+                  "oid": "2d3af21ddf0cda6eca31084a9461a3212d95262b"
+                }
+              },
+              {
+                "displayName": "copilot/vscode/ado-playwright-cache",
+                "target": {
+                  "oid": "b3a9723a21056a74d955dce3b93672ceb03e91ce"
+                }
+              },
+              {
+                "displayName": "lramos15/fix-renderer-model-disposal",
+                "target": {
+                  "oid": "464999815d038fc58fe1a66b944bc2dea8e3b219"
+                }
+              },
+              {
+                "displayName": "copilot/vscode/gh-playwright-cache",
+                "target": {
+                  "oid": "17f6350a45d4f3d28700b6356c85c3b10ca599a5"
+                }
+              },
+              {
+                "displayName": "dependabot/npm_and_yarn/test/scenario/shell-quote-1.12.0",
+                "target": {
+                  "oid": "ee8f76b24dfb24d322d62dec5b42d14bbb6cbe23"
+                }
+              },
+              {
+                "displayName": "dependabot/npm_and_yarn/test/automation/shell-quote-1.12.0",
+                "target": {
+                  "oid": "5e1102f95ac3a1402fc3a70900d23a2c80770656"
+                }
+              },
+              {
+                "displayName": "hediet/external-uri-opener-cleanup",
+                "target": {
+                  "oid": "ecf83cba9bd490f1dc307925860dc37f0d30e4bb"
+                }
+              },
+              {
+                "displayName": "copilot/fix-output-model-already-exists-322399-bd13b4c1776eed73",
+                "target": {
+                  "oid": "698f4d1bab49893f30a28a2cecd9b0b3221e7055"
+                }
+              },
+              {
+                "displayName": "dependabot/npm_and_yarn/katex-0.18.2",
+                "target": {
+                  "oid": "8e01e4209e1e37f17826bde74c70b0369a526606"
+                }
+              },
+              {
+                "displayName": "quarrelsome-pike",
+                "target": {
+                  "oid": "2ef3e28fd00d7c3b3b3402a9bb31ce98d3d2da52"
+                }
+              },
+              {
+                "displayName": "benibenj/chat-background-telemetry-1.144",
+                "target": {
+                  "oid": "f9040ade441fba20cbd25d94f68b49a7d5b234bf"
+                }
+              },
+              {
+                "displayName": "copilot/add-chat-run-automation-action",
+                "target": {
+                  "oid": "3aa6cacd11133d0f1d028956a50d6d56b7ce03c4"
+                }
+              },
+              {
+                "displayName": "bhavyaus/ws-snapshot-large-file-markers",
+                "target": {
+                  "oid": "8d4dc950d05ada3ea6c77756bd2ec474cb762581"
+                }
+              },
+              {
+                "displayName": "bhavyaus/ws-snapshot-read-guidance",
+                "target": {
+                  "oid": "e25d41c8b2c2bd35c7311d3d71ee7f63a02af479"
+                }
+              },
+              {
+                "displayName": "agents/artifact-integrator-merge-debug",
+                "target": {
+                  "oid": "88e320c000618aa579f2db5aba97dc264325d6b9"
+                }
+              },
+              {
+                "displayName": "bv/tpi-344187-pending-actions",
+                "target": {
+                  "oid": "0be1ab8218513a0da1602a7586a261489937db23"
+                }
+              },
+              {
+                "displayName": "DileepY/sandbox-resume-fix",
+                "target": {
+                  "oid": "53da12fd23b2170a20d9a608a80e951b65c6033c"
+                }
+              },
+              {
+                "displayName": "cherry-pick/342713",
+                "target": {
+                  "oid": "7ed3dc895db8f1899880f95281142013410256b5"
+                }
+              },
+              {
+                "displayName": "cherry-pick/344435",
+                "target": {
+                  "oid": "71e26c882cd6f26025941fc8d57c908bc2591db1"
+                }
+              },
+              {
+                "displayName": "cherry-pick/339903",
+                "target": {
+                  "oid": "5615df1b80f4b31b152630b4a7620ccbd2ac6455"
+                }
+              },
+              {
+                "displayName": "agents/remove-automation-prioritized-notifications",
+                "target": {
+                  "oid": "b0d97de7d4de6772b6ca92367207581b7b19eaa7"
+                }
+              },
+              {
+                "displayName": "agents/fix-dictation-issue-history-analysis",
+                "target": {
+                  "oid": "df2dbe7fcc95cd956c30ec01c3ed0b0928d2473b"
+                }
+              },
+              {
+                "displayName": "copilot/vscode/sdk-validation-binskim",
+                "target": {
+                  "oid": "b73f617497891eb262e9dabccc8027936e5d5da5"
+                }
+              },
+              {
+                "displayName": "agents/apply-feedback-pr-344000",
+                "target": {
+                  "oid": "acfaf16a99610e202afcc8318f710292060fa667"
+                }
+              },
+              {
+                "displayName": "hediet/mermaid-markdown-editor",
+                "target": {
+                  "oid": "f6d4809eda8172f8c30f13189df4eecec710130d"
+                }
+              },
+              {
+                "displayName": "copilot/hello",
+                "target": {
+                  "oid": "122ec4fe4431e8435c42e9b609e3a43a60877383"
+                }
+              },
+              {
+                "displayName": "copilot/vscode/validate-azure-feed-retry",
+                "target": {
+                  "oid": "aeaf98b882431b1fe6c63fc76d32fb8badd73f4b"
+                }
+              },
+              {
+                "displayName": "agents/fix-customizations-sidebar-outline-clip",
+                "target": {
+                  "oid": "f35c06f5bed12bf993b72f5582043b86a89b02f6"
+                }
+              },
+              {
+                "displayName": "tricky-jellyfish",
+                "target": {
+                  "oid": "7f198a905fafe4c942b8d6f301b3122ae62ad1c5"
+                }
+              },
+              {
+                "displayName": "copilot/vscode/azure-feed-retry",
+                "target": {
+                  "oid": "ffad4f2f3d2af215fc129f74ad7c0643f6c42909"
+                }
+              },
+              {
+                "displayName": "copilot/vscode/image-reveal-timing-flake",
+                "target": {
+                  "oid": "e925b13e660744d4e79a52a1c95655af5969810f"
+                }
+              },
+              {
+                "displayName": "lramos15/watcher-exclude-gitignore",
+                "target": {
+                  "oid": "9b805a96e34f721ccfdb5480a7c9566cdb0b8485"
+                }
+              },
+              {
+                "displayName": "lramos15/agent-host-watch-gitignore",
+                "target": {
+                  "oid": "e458950e81c97acf89b7dce3165bf4a4ba76495f"
+                }
+              },
+              {
+                "displayName": "lramos15/gitignore-parser",
+                "target": {
+                  "oid": "87d843f10af362b9480e36de86cb78a992181b58"
+                }
+              },
+              {
+                "displayName": "copilot/vscode/validate-clippy-timeout",
+                "target": {
+                  "oid": "271301cc7d7bb91cc5a2046b5586934c5c85e634"
+                }
+              },
+              {
+                "displayName": "copilot/vscode/clippy-hang-timeout",
+                "target": {
+                  "oid": "7152b7563905ee28c7ed3fa12fd6b4e9e853e8ca"
+                }
+              },
+              {
+                "displayName": "copilot/fix-ci-windows-clippy-hang",
+                "target": {
+                  "oid": "e13a88acb731cf7ebe68f18e96f0db75c682e8cc"
+                }
+              },
+              {
+                "displayName": "agents/customization-modal-organization-update",
+                "target": {
+                  "oid": "0d26c5870808f18f172c6876cecb9ec46b3984e1"
+                }
+              },
+              {
+                "displayName": "copilot/fix-mcp-authentication-hint-accessibility",
+                "target": {
+                  "oid": "d4bdf4436d683a54caea667776e32cdff6230806"
+                }
+              },
+              {
+                "displayName": "agents/customizations-modal-sidebar-updates",
+                "target": {
+                  "oid": "bbdb30431053c9aa38f43a95e04c618d4665dbb2"
+                }
+              },
+              {
+                "displayName": "lramos15/codex-snapshot-wait-test-speed",
+                "target": {
+                  "oid": "29ce7783a14b8ff5f63addacdacbd5ce770da9b2"
+                }
+              },
+              {
+                "displayName": "jolly-bug",
+                "target": {
+                  "oid": "691ea0c5ff166ca9d64f39c62e1d459b2631ae27"
+                }
+              },
+              {
+                "displayName": "agents/settings-ui-error-handling",
+                "target": {
+                  "oid": "2f801b72f46ed37b97d0ef1391a0f3b0b5cabcde"
+                }
+              },
+              {
+                "displayName": "agents/ripple-flaky-test-detection-20x",
+                "target": {
+                  "oid": "a0b5eb8c82264c30fbdea921e61f10b9d4c0fbed"
+                }
+              },
+              {
+                "displayName": "agents/improve-windows-folder-structure",
+                "target": {
+                  "oid": "09531972317b455a2a92d7457ac0937ea0c8e807"
+                }
+              },
+              {
+                "displayName": "agents/electron-stealth-update-implementation",
+                "target": {
+                  "oid": "54b7f513e0408153824a87329c803319545b1937"
+                }
+              },
+              {
+                "displayName": "agents/pr-checks-optimization-flaky-tests",
+                "target": {
+                  "oid": "ae8a6dd979f35cae747effb349f61997a58ae284"
+                }
+              },
+              {
+                "displayName": "chrmarti/agent-host-client-certificates",
+                "target": {
+                  "oid": "e0883ebb5e20311e1d1cc29bfce92896a1882f2f"
+                }
+              },
+              {
+                "displayName": "dependabot/github_actions/actions/download-artifact-8.0.2",
+                "target": {
+                  "oid": "f802d3433d84d3311887f8a4b88f763d1d2ad4db"
+                }
+              },
+              {
+                "displayName": "dependabot/github_actions/actions/upload-artifact-7.0.2",
+                "target": {
+                  "oid": "a5bc16d48633c6ff2bedfa39835502bdf6ba2340"
+                }
+              },
+              {
+                "displayName": "alexdima/skills-demo-video-guidance",
+                "target": {
+                  "oid": "5a852a810fb0c058c050df29882d2499e3d4a3ab"
+                }
+              },
+              {
+                "displayName": "lramos15/split-browser-unit-and-agent-host-e2e",
+                "target": {
+                  "oid": "4b91a687b5db60023f03a51d82d013daa58a9a88"
+                }
+              },
+              {
+                "displayName": "validate-gate/planner-fails-open",
+                "target": {
+                  "oid": "a7a0a5f749877000645a2daeb6ecec580ea8fb3b"
+                }
+              },
+              {
+                "displayName": "validate-gate/cli-rerun-cancel",
+                "target": {
+                  "oid": "043983ac5da199e329a0f2675cc54cc06d216536"
+                }
+              },
+              {
+                "displayName": "intact-quail",
+                "target": {
+                  "oid": "7501a728fa25e5d84d488507474673427bee2241"
+                }
+              },
+              {
+                "displayName": "willowy-beaver",
+                "target": {
+                  "oid": "0ea8f179ac05e96283a06cda17da4b02968eb5a9"
+                }
+              },
+              {
+                "displayName": "imaginative-parrotfish",
+                "target": {
+                  "oid": "14fea53f4f270392c7823352468cc11b99cb0c72"
+                }
+              },
+              {
+                "displayName": "profitable-mink",
+                "target": {
+                  "oid": "7fbb2b590c857d836456d45324a75f96bf83dcee"
+                }
+              },
+              {
+                "displayName": "ripple/recall-warning",
+                "target": {
+                  "oid": "2aa76bd5e615e99f3d30478f482ef8afbf44dae3"
+                }
+              },
+              {
+                "displayName": "automation/bump-copilot-sdk-1.0.27-preview.3",
+                "target": {
+                  "oid": "e5361d77618ad2334aaabb213aca1f6d38b472e9"
+                }
+              },
+              {
+                "displayName": "connor/remote-attachment-uri-followup",
+                "target": {
+                  "oid": "925f930cc1b96202dd2526bd1bcdcc3f3a39c53a"
+                }
+              },
+              {
+                "displayName": "dependabot/npm_and_yarn/test/monaco/fast-uri-3.1.9",
+                "target": {
+                  "oid": "9f6ea4720024d55317e23ff3abfa9431804f49a0"
+                }
+              },
+              {
+                "displayName": "dependabot/npm_and_yarn/remote/undici-7.30.1",
+                "target": {
+                  "oid": "33ddba4b2d65426dab4db653534336d0c216ef09"
+                }
+              },
+              {
+                "displayName": "dependabot/npm_and_yarn/test/sanity/multi-0a3c4c2672",
+                "target": {
+                  "oid": "94c738c3f10aa0ad996823ba3b5749ae33c20e56"
+                }
+              },
+              {
+                "displayName": "automation/bump-copilot-sdk-1.0.27-preview.2",
+                "target": {
+                  "oid": "5227b30693903e6045c3bcc9bc76e2681e314a31"
+                }
+              },
+              {
+                "displayName": "agents/fix-copilot-plugin-enablement-issue",
+                "target": {
+                  "oid": "994587f4d1a5de56852ad939e092ccbc70246991"
+                }
+              },
+              {
+                "displayName": "automation/bump-copilot-sdk-1.0.27-preview.1",
+                "target": {
+                  "oid": "c55bd7020f9f00d5593eb77f382dec2a159a8e2a"
+                }
+              },
+              {
+                "displayName": "dependabot/npm_and_yarn/extensions/copilot/electron-42.11.16",
+                "target": {
+                  "oid": "b8195efea66bbdf32f3bf7e987add68b5be03362"
+                }
+              },
+              {
+                "displayName": "dependabot/npm_and_yarn/build/agent-sdk/agents/claude/body-parser-2.4.0",
+                "target": {
+                  "oid": "b14943cf0f4b0032d78032a1ecf546863f53b8f4"
+                }
+              },
+              {
+                "displayName": "chrmarti/remotes-left-aligned-actions",
+                "target": {
+                  "oid": "8edfa06b8338d8a85f9f41a0891f936832e44186"
+                }
+              },
+              {
+                "displayName": "automation/bump-copilot-sdk-1.0.27-preview.0",
+                "target": {
+                  "oid": "e400096f0cc86d27f7da6d5752f34622c42486a4"
+                }
+              },
+              {
+                "displayName": "aeschli/agents/fix-vscode-issue-343342",
+                "target": {
+                  "oid": "38b288dd9c49224c6ab33246d4e2e52e8db102db"
+                }
+              },
+              {
+                "displayName": "dependabot/npm_and_yarn/extensions/copilot/zod-4.6.6",
+                "target": {
+                  "oid": "d686989dbd13f158db8ee4f2a06398bd6bdf6afc"
+                }
+              },
+              {
+                "displayName": "karthiknadig/sensitive-edit-locations-pingpong",
+                "target": {
+                  "oid": "a4f7b809a1f7e69da0d64240272fad9a67e8201b"
+                }
+              },
+              {
+                "displayName": "copilot/vscode/cdp-roundtrip-flake",
+                "target": {
+                  "oid": "0beada13b0570e8e21862fc9b110194b07555987"
+                }
+              },
+              {
+                "displayName": "copilot/vscode/ci-windows-trim-test-setup",
+                "target": {
+                  "oid": "fd56a39e0eeab5190abac279945d3f81de50b48a"
+                }
+              },
+              {
+                "displayName": "copilot/vscode/copilot-setup-retry",
+                "target": {
+                  "oid": "27630768dadcb5e8dcb86be0b76503aed0071f8e"
+                }
+              },
+              {
+                "displayName": "bv/reimplement-337757-on-main",
+                "target": {
+                  "oid": "287a65065812947716e097320fa9b980e96c89ec"
+                }
+              },
+              {
+                "displayName": "sandy081/agents/show-pr-issue-actions-in-activity-bar",
+                "target": {
+                  "oid": "c719e52eb1c2e6359ee72c1988ba03db1888d6cc"
+                }
+              }
+            ],
+            "totalCount": 5797
+          },
+          "defaultBranch": {
+            "displayName": "main"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-27T07:25:29Z"
+          },
+          "name": "github.com/microsoft/vscode",
+          "tags": {
+            "nodes": [
+              {
+                "displayName": "1.143.1",
+                "target": {
+                  "oid": "e646868227c3e3a9e3f24277c8c7220be42c0be7"
+                }
+              },
+              {
+                "displayName": "1.143.0",
+                "target": {
+                  "oid": "2d0b7506a36c1d6db9a466440131a8e01eab2289"
+                }
+              },
+              {
+                "displayName": "1.141.2",
+                "target": {
+                  "oid": "16507d91be0dc1ce4f94c04d4d0430210b8685d9"
+                }
+              },
+              {
+                "displayName": "1.142.0",
+                "target": {
+                  "oid": "d956e8a6ac5d904486557eea07e1d6bd62a4d36f"
+                }
+              },
+              {
+                "displayName": "1.141.1",
+                "target": {
+                  "oid": "7baac39ec3ca969dab74ac12c097f6a486e46593"
+                }
+              },
+              {
+                "displayName": "1.141.0",
+                "target": {
+                  "oid": "2a59476c9bfcb90b3ddc372c36762471b7dfad1c"
+                }
+              },
+              {
+                "displayName": "1.140.0",
+                "target": {
+                  "oid": "07f806f999227108933c2e30515b26eecc1fda74"
+                }
+              },
+              {
+                "displayName": "1.139.1",
+                "target": {
+                  "oid": "04c0d99f4fb0d8afe6ce4f0c58e31e183ac3e4b1"
+                }
+              },
+              {
+                "displayName": "1.139.0",
+                "target": {
+                  "oid": "2242ebbb54efeeb0129e08e919e7e8d43033cd83"
+                }
+              },
+              {
+                "displayName": "1.138.0",
+                "target": {
+                  "oid": "7debcd0e2acdea1c52de81bf9ee1620444407dda"
+                }
+              },
+              {
+                "displayName": "1.137.0",
+                "target": {
+                  "oid": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c"
+                }
+              },
+              {
+                "displayName": "1.136.2",
+                "target": {
+                  "oid": "88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f"
+                }
+              },
+              {
+                "displayName": "1.136.1",
+                "target": {
+                  "oid": "a44adf7f53e00964ab890f9f8758a334f1fc15bc"
+                }
+              },
+              {
+                "displayName": "1.136.0",
+                "target": {
+                  "oid": "520fb30b2d3d324b4cb2342f6e88e2cd93751de1"
+                }
+              },
+              {
+                "displayName": "1.135.0",
+                "target": {
+                  "oid": "08d4889f9ec4a1685d257b9b95de036c8e1ce1e5"
+                }
+              },
+              {
+                "displayName": "1.134.0",
+                "target": {
+                  "oid": "474a349ad5b745e512ef86b864d1c74f7264dd7a"
+                }
+              },
+              {
+                "displayName": "1.133.0",
+                "target": {
+                  "oid": "a5b500951314efd502d07465bd138dfbd714a960"
+                }
+              },
+              {
+                "displayName": "1.132.1",
+                "target": {
+                  "oid": "c2d1b13fdc4a77628e5f3bb70173351c8f2fbad1"
+                }
+              },
+              {
+                "displayName": "1.132.0",
+                "target": {
+                  "oid": "df53daabb18cd157bdb08c7f01c34df936cf12f4"
+                }
+              },
+              {
+                "displayName": "1.131.0",
+                "target": {
+                  "oid": "3a03d6f72d628a7741c29f456b4ddbb5ae68502c"
+                }
+              },
+              {
+                "displayName": "1.130.0",
+                "target": {
+                  "oid": "1b6a188127eeaf9194f945eb6eb89a657e93c54c"
+                }
+              },
+              {
+                "displayName": "1.129.1",
+                "target": {
+                  "oid": "8a7abeba6e03ea3af87bfbce9a1b7e48fed567b8"
+                }
+              },
+              {
+                "displayName": "1.129.0",
+                "target": {
+                  "oid": "125df4672b8a6a34975303c6b0baa124e560a4f7"
+                }
+              },
+              {
+                "displayName": "1.128.1",
+                "target": {
+                  "oid": "5264f2156cbcd7aea5fd004d29eaa10209155d66"
+                }
+              },
+              {
+                "displayName": "1.128.0",
+                "target": {
+                  "oid": "fc3def6774c76082adf699d366f31a557ce5573f"
+                }
+              },
+              {
+                "displayName": "1.127.0",
+                "target": {
+                  "oid": "a22d00300655c17490ce63dffc28bcdcedcd82c4"
+                }
+              },
+              {
+                "displayName": "1.126.0",
+                "target": {
+                  "oid": "7e7950df89d055b5a378379db9ee14290772148a"
+                }
+              },
+              {
+                "displayName": "1.125.0",
+                "target": {
+                  "oid": "93cfdd489c3b228840d0f86ec77c3636277c93ea"
+                }
+              },
+              {
+                "displayName": "1.124.2",
+                "target": {
+                  "oid": "6928394f91b684055b873eecb8bc281365131f1c"
+                }
+              },
+              {
+                "displayName": "1.123.2",
+                "target": {
+                  "oid": "73b30e61dd53c0223a1f112031f2fec0267b4dff"
+                }
+              },
+              {
+                "displayName": "1.124.0",
+                "target": {
+                  "oid": "1b50d58d73426c9171299ec4037d01365d995b78"
+                }
+              },
+              {
+                "displayName": "1.123.1",
+                "target": {
+                  "oid": "8b5bd2a8dd195a2bc76e8848f7ce8a3c323c020a"
+                }
+              },
+              {
+                "displayName": "1.123.0",
+                "target": {
+                  "oid": "6a44c352bd24569c417e530095901b649960f9f8"
+                }
+              },
+              {
+                "displayName": "1.122.1",
+                "target": {
+                  "oid": "8761a5560cfd65fdd19ce7e2bd18dab5c0a4d84e"
+                }
+              },
+              {
+                "displayName": "1.122.0",
+                "target": {
+                  "oid": "6a49527b96e326fe62fbdb56f60e16877c9aa724"
+                }
+              },
+              {
+                "displayName": "1.121.0",
+                "target": {
+                  "oid": "987c9597516278c9fcf10d963a0592ce1384ab93"
+                }
+              },
+              {
+                "displayName": "1.120.0",
+                "target": {
+                  "oid": "0958016b2af9f09bb4257e0df4a95e2f90590f9f"
+                }
+              },
+              {
+                "displayName": "1.119.1",
+                "target": {
+                  "oid": "3fe68d450d4918f375c155b26a3a8e08f25b4e92"
+                }
+              },
+              {
+                "displayName": "1.119.0",
+                "target": {
+                  "oid": "8b640eef5a6c6089c029249d48efa5c99adf7d51"
+                }
+              },
+              {
+                "displayName": "1.118.1",
+                "target": {
+                  "oid": "034f571df509819cc10b0c8129f66ef77a542f0e"
+                }
+              },
+              {
+                "displayName": "1.118.0",
+                "target": {
+                  "oid": "9b8ae15a8cf95b9bce1b590b42954530f440e816"
+                }
+              },
+              {
+                "displayName": "v0.45.1",
+                "target": {
+                  "oid": "356d9f0a1f27b7ee5c2e9e47b23d1f92b6cbeb49"
+                }
+              },
+              {
+                "displayName": "1.117.0",
+                "target": {
+                  "oid": "10c8e557c8b9f9ed0a87f61f1c9a44bde731c409"
+                }
+              },
+              {
+                "displayName": "v0.44.2",
+                "target": {
+                  "oid": "8ff9a84c4a9cd0b694aee8f374aa531f7a9d0d08"
+                }
+              },
+              {
+                "displayName": "v0.44.1",
+                "target": {
+                  "oid": "f89829d8f4bfbd2157a2916d3069f479f6dda69b"
+                }
+              },
+              {
+                "displayName": "1.116.0",
+                "target": {
+                  "oid": "560a9dba96f961efea7b1612916f89e5d5d4d679"
+                }
+              },
+              {
+                "displayName": "1.115.0",
+                "target": {
+                  "oid": "41dd792b5e652393e7787322889ed5fdc58bd75b"
+                }
+              },
+              {
+                "displayName": "1.114.0",
+                "target": {
+                  "oid": "e7fb5e96c0730b9deb70b33781f98e2f35975036"
+                }
+              },
+              {
+                "displayName": "1.113.0",
+                "target": {
+                  "oid": "cfbea10c5ffb233ea9177d34726e6056e89913dc"
+                }
+              },
+              {
+                "displayName": "1.112.0",
+                "target": {
+                  "oid": "07ff9d6178ede9a1bd12ad3399074d726ebe6e43"
+                }
+              },
+              {
+                "displayName": "1.111.0",
+                "target": {
+                  "oid": "ce099c1ed25d9eb3076c11e4a280f3eb52b4fbeb"
+                }
+              },
+              {
+                "displayName": "1.110.1",
+                "target": {
+                  "oid": "61b3d0ab13be7dda2389f1d3e60a119c7f660cc3"
+                }
+              },
+              {
+                "displayName": "1.110",
+                "target": {
+                  "oid": "0870c2a0c7c0564e7631bfed2675573a94ba4455"
+                }
+              },
+              {
+                "displayName": "1.109.5",
+                "target": {
+                  "oid": "072586267e68ece9a47aa43f8c108e0dcbf44622"
+                }
+              },
+              {
+                "displayName": "1.109.4",
+                "target": {
+                  "oid": "c3a26841a84f20dfe0850d0a5a9bd01da4f003ea"
+                }
+              },
+              {
+                "displayName": "1.109.2",
+                "target": {
+                  "oid": "591199df409fbf59b4b52d5ad4ee0470152a9b31"
+                }
+              },
+              {
+                "displayName": "1.109.1",
+                "target": {
+                  "oid": "6534f6ba7604bf324f94cc9a590727f39a4af040"
+                }
+              },
+              {
+                "displayName": "1.109.0",
+                "target": {
+                  "oid": "bdd88df003631aaa0bcbe057cb0a940b80a476fa"
+                }
+              },
+              {
+                "displayName": "1.108.2",
+                "target": {
+                  "oid": "c9d77990917f3102ada88be140d28b038d1dd7c7"
+                }
+              },
+              {
+                "displayName": "1.108.1",
+                "target": {
+                  "oid": "585eba7c0c34fd6b30faac7c62a42050bfbc0086"
+                }
+              },
+              {
+                "displayName": "1.108.0",
+                "target": {
+                  "oid": "94e8ae2b28cb5cc932b86e1070569c4463565c37"
+                }
+              },
+              {
+                "displayName": "1.107.1",
+                "target": {
+                  "oid": "994fd12f8d3a5aa16f17d42c041e5809167e845a"
+                }
+              },
+              {
+                "displayName": "1.107.0",
+                "target": {
+                  "oid": "618725e67565b290ba4da6fe2d29f8fa1d4e3622"
+                }
+              },
+              {
+                "displayName": "1.106.3",
+                "target": {
+                  "oid": "bf9252a2fb45be6893dd8870c0bf37e2e1766d61"
+                }
+              },
+              {
+                "displayName": "1.106.2",
+                "target": {
+                  "oid": "1e3c50d64110be466c0b4a45222e81d2c9352888"
+                }
+              },
+              {
+                "displayName": "1.106.1",
+                "target": {
+                  "oid": "cb1933bbc38d329b3595673a600fab5c7368f0a7"
+                }
+              },
+              {
+                "displayName": "1.106.0",
+                "target": {
+                  "oid": "ac4cbdf48759c7d8c3eb91ffe6bb04316e263c57"
+                }
+              },
+              {
+                "displayName": "1.105.1",
+                "target": {
+                  "oid": "7d842fb85a0275a4a8e4d7e040d2625abbf7f084"
+                }
+              },
+              {
+                "displayName": "1.105.0",
+                "target": {
+                  "oid": "03c265b1adee71ac88f833e065f7bb956b60550a"
+                }
+              },
+              {
+                "displayName": "1.104.3",
+                "target": {
+                  "oid": "385651c938df8a906869babee516bffd0ddb9829"
+                }
+              },
+              {
+                "displayName": "1.104.2",
+                "target": {
+                  "oid": "e3a5acfb517a443235981655413d566533107e92"
+                }
+              },
+              {
+                "displayName": "1.104.1",
+                "target": {
+                  "oid": "0f0d87fa9e96c856c5212fc86db137ac0d783365"
+                }
+              },
+              {
+                "displayName": "1.104.0",
+                "target": {
+                  "oid": "f220831ea2d946c0dcb0f3eaa480eb435a2c1260"
+                }
+              },
+              {
+                "displayName": "1.103.2",
+                "target": {
+                  "oid": "6f17636121051a53c88d3e605c491d22af2ba755"
+                }
+              },
+              {
+                "displayName": "1.103.1",
+                "target": {
+                  "oid": "e3550cfac4b63ca4eafca7b601f0d2885817fd1f"
+                }
+              },
+              {
+                "displayName": "1.103.0",
+                "target": {
+                  "oid": "e3550cfac4b63ca4eafca7b601f0d2885817fd1f"
+                }
+              },
+              {
+                "displayName": "1.102.3",
+                "target": {
+                  "oid": "488a1f239235055e34e673291fb8d8c810886f81"
+                }
+              },
+              {
+                "displayName": "1.102.2",
+                "target": {
+                  "oid": "c306e94f98122556ca081f527b466015e1bc37b0"
+                }
+              },
+              {
+                "displayName": "1.102.1",
+                "target": {
+                  "oid": "7adae6a56e34cb64d08899664b814cf620465925"
+                }
+              },
+              {
+                "displayName": "1.102.0",
+                "target": {
+                  "oid": "cb0c47c0cfaad0757385834bd89d410c78a856c0"
+                }
+              },
+              {
+                "displayName": "1.101.2",
+                "target": {
+                  "oid": "2901c5ac6db8a986a5666c3af51ff804d05af0d4"
+                }
+              },
+              {
+                "displayName": "1.101.1",
+                "target": {
+                  "oid": "18e3a1ec544e6907be1e944a94c496e302073435"
+                }
+              },
+              {
+                "displayName": "1.101.0",
+                "target": {
+                  "oid": "dfaf44141ea9deb3b4096f7cd6d24e00c147a4b1"
+                }
+              },
+              {
+                "displayName": "1.100.3",
+                "target": {
+                  "oid": "258e40fedc6cb8edf399a463ce3a9d32e7e1f6f3"
+                }
+              },
+              {
+                "displayName": "1.100.2",
+                "target": {
+                  "oid": "848b80aeb52026648a8ff9f7c45a9b0a80641e2e"
+                }
+              },
+              {
+                "displayName": "1.100.1",
+                "target": {
+                  "oid": "91fa95bccb027ece6a968589bb1d662fa9c8e170"
+                }
+              },
+              {
+                "displayName": "1.100.0",
+                "target": {
+                  "oid": "19e0f9e681ecb8e5c09d8784acaa601316ca4571"
+                }
+              },
+              {
+                "displayName": "1.99.3",
+                "target": {
+                  "oid": "17baf841131aa23349f217ca7c570c76ee87b957"
+                }
+              },
+              {
+                "displayName": "1.99.2",
+                "target": {
+                  "oid": "4949701c880d4bdb949e3c0e6b400288da7f474b"
+                }
+              },
+              {
+                "displayName": "1.99.1",
+                "target": {
+                  "oid": "7c6fdfb0b8f2f675eb0b47f3d95eeca78962565b"
+                }
+              },
+              {
+                "displayName": "1.99.0",
+                "target": {
+                  "oid": "4437686ffebaf200fa4a6e6e67f735f3edf24ada"
+                }
+              },
+              {
+                "displayName": "1.98.2",
+                "target": {
+                  "oid": "ddc367ed5c8936efe395cffeec279b04ffd7db78"
+                }
+              },
+              {
+                "displayName": "1.98.1",
+                "target": {
+                  "oid": "2fc07b811f760549dab9be9d2bedd06c51dfcb9a"
+                }
+              },
+              {
+                "displayName": "1.98.0",
+                "target": {
+                  "oid": "6609ac3d66f4eade5cf376d1cb76f13985724bcb"
+                }
+              },
+              {
+                "displayName": "1.97.2",
+                "target": {
+                  "oid": "e54c774e0add60467559eb0d1e229c6452cf8447"
+                }
+              },
+              {
+                "displayName": "1.97.1",
+                "target": {
+                  "oid": "e249dada235c2083c83813bd65b7f4707fb97b76"
+                }
+              },
+              {
+                "displayName": "1.97.0",
+                "target": {
+                  "oid": "33fc5a94a3f99ebe7087e8fe79fbe1d37a251016"
+                }
+              },
+              {
+                "displayName": "1.96.4",
+                "target": {
+                  "oid": "cd4ee3b1c348a13bafd8f9ad8060705f6d4b9cba"
+                }
+              },
+              {
+                "displayName": "1.96.3",
+                "target": {
+                  "oid": "91fbdddc47bc9c09064bf7acf133d22631cbf083"
+                }
+              },
+              {
+                "displayName": "1.96.2",
+                "target": {
+                  "oid": "fabdb6a30b49f79a7aba0f2ad9df9b399473380f"
+                }
+              }
+            ],
+            "totalCount": 400
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

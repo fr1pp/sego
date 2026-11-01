@@ -1,0 +1,10 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"lang:javascript Foo count:2\"], [response])"
+---
+exit: 0
+----- stdout -----
+0+ matches  0.1 s
+query  timeout:60s lang:javascript Foo count:2
+----- stderr -----
+----- end -----

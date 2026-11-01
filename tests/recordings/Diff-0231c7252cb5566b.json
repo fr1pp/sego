@@ -1,0 +1,84 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "Diff",
+    "query": "query Diff($repo: String!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!, $path0: String!) {\n  c: repository(name: $repo) {\n    comparison(base: $a, head: $b, fetchMissing: false) {\n      range { mergeBase { oid } }\n      ...Changes\n    }\n  }\n  a: repository(name: $repo) { commit(rev: $a) { oid p0: path(path: $path0) { __typename } } }\n  b: repository(name: $repo) { commit(rev: $b) { oid p0: path(path: $path0) { __typename } } }\n}\n\nfragment Changes on RepositoryComparison {\n  all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }\n  page: fileDiffs(first: $first, paths: $paths) {\n    nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }\n    pageInfo { hasNextPage }\n  }\n  patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }\n}\n",
+    "variables": {
+      "a": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf",
+      "b": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+      "first": 200,
+      "patch": true,
+      "path0": ".github",
+      "paths": [
+        ".github"
+      ],
+      "repo": "github.com/gorilla/mux"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "a": {
+          "commit": {
+            "oid": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf",
+            "p0": null
+          }
+        },
+        "b": {
+          "commit": {
+            "oid": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+            "p0": {
+              "__typename": "GitTree"
+            }
+          }
+        },
+        "c": {
+          "comparison": {
+            "all": {
+              "diffStat": {
+                "added": 20,
+                "deleted": 0
+              },
+              "totalCount": 2
+            },
+            "page": {
+              "nodes": [
+                {
+                  "newPath": ".github/release-drafter.yml",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 8,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newPath": ".github/stale.yml",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 12,
+                    "deleted": 0
+                  }
+                }
+              ],
+              "pageInfo": {
+                "hasNextPage": false
+              }
+            },
+            "patch": {
+              "rawDiff": "diff --git .github/release-drafter.yml .github/release-drafter.yml\nnew file mode 100644\nindex 0000000000000000000000000000000000000000..2db2e1397ec7b63ebe94d7536548cba72f20e7bd\n--- /dev/null\n+++ .github/release-drafter.yml\n@@ -0,0 +1,8 @@\n+# Config for https://github.com/apps/release-drafter\n+template: |\n+  \n+  <summary of changes here>\n+  \n+  ## CHANGELOG\n+\n+  $CHANGES\ndiff --git .github/stale.yml .github/stale.yml\nnew file mode 100644\nindex 0000000000000000000000000000000000000000..de8a67804bf3b119c5d4926d2acddd958ae0b5cd\n--- /dev/null\n+++ .github/stale.yml\n@@ -0,0 +1,12 @@\n+daysUntilStale: 60\n+daysUntilClose: 7\n+# Issues with these labels will never be considered stale\n+exemptLabels:\n+  - v2\n+  - needs-review\n+  - work-required\n+staleLabel: stale\n+markComment: >\n+  This issue has been automatically marked as stale because it hasn't seen\n+  a recent update. It'll be automatically closed in a few days.\n+closeComment: false\n"
+            },
+            "range": {
+              "mergeBase": {
+                "oid": "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+              }
+            }
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

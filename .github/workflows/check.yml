@@ -21,8 +21,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@v2
         with:
-          tool: just
+          tool: just,cargo-insta@1.49.0
       - run: just check
+      - name: Fail on a snapshot no test uses
+        run: cargo insta test --check --unreferenced=reject
       - name: Fail if the check changed a file
         run: |
           git status --porcelain

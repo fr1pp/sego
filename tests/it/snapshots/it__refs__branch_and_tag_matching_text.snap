@@ -1,0 +1,10 @@
+---
+source: tests/it/refs.rs
+expression: "answered(&[\"refs\", \"example.com/acme/widget\", \"release\"], [response])"
+---
+exit: 0
+----- stdout -----
+example.com/acme/widget  1 of 1 branch match "release"  0 of 1 tag match "release"  default release
+branch  000000000000  release  (default)
+----- stderr -----
+----- end -----

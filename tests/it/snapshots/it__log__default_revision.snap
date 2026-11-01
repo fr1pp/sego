@@ -1,0 +1,67 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"github.com/gorilla/context\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/context@6a490e2f9d52  58 commits  mirrored 2026-10-26T23:51Z
+6a490e2f9d52  2023-10-18  Corey Daley  (tag: v2.0.0, tag: v1.1.2) Updating github actions workflows to test 1.20 and 1.21 (#45)
+a45ea70b19f4  2023-09-22  Corey Daley  Updating Go version and Github Actions (#44)
+1cbd4c16de64  2023-07-31  Corey Daley  Update go version, add tools for verification and testing (#43)
+39a447022b01  2023-07-15  Corey Daley  Merge pull request #41 from gorilla/coreydaley-patch-1
+a01379df10af  2023-07-15  Corey Daley  Update README.md
+8559d4a6b87e  2019-06-27  Matt Silverlock  Update README.md (#40)
+dc31bb267b79  2019-06-27  Matt Silverlock  Create config.yml (#39)
+30a41ee8e7bf  2019-06-27  Matt Silverlock  Update README.md (#38)
+51ce91d2eadd  2018-10-12  Kamil Kisiel  README.md: Update site URL
+08b5f424b927  2016-08-17  Matt Silverlock  (tag: v1.1.1) [docs] godoc fix. (#34)
+f81bcf7f9da1  2016-08-17  Matt Silverlock  [docs] Note http.Request.WithContext() conflict. (#33)
+01ef6ff48fdc  2016-08-16  Kamil Kisiel  .travis.yml: Add go1.7
+aed02d124ae4  2016-05-25  Kamil Kisiel  Merge pull request #31 from yuokada/fix/typo
+531bdb2bdc86  2016-05-25  Yukihiro Okada (Yuki)  Fix typo
+a8d44e7d8e4d  2016-04-22  Matt Silverlock  [ci] .travis.yml go vet fix.
+ffc4422d763f  2016-04-22  Matt Silverlock  [ci] .travis.yml go vet fix.
+1ea25387ff6f  2016-02-26  Matt Silverlock  (tag: v1.1) Merge pull request #28 from gorilla/ci/travis-go-1.6
+b53bb424a1b6  2016-02-26  Matt Silverlock  Update .travis.yml to build Go 1.6
+1c83b3eabd45  2015-08-20  Kamil Kisiel  Update .travis.yml
+215affda49ad  2014-12-17  Kamil Kisiel  Merge pull request #20 from areski/pr-fix-test-version
+ecbca1cc2472  2014-12-17  areski  Add Travis-ci tests build on Go version 1.3 / 1.4
+50c25fb3b2b3  2014-11-26  Kamil Kisiel  benchmark: fix parallelWriter.
+14f550f51af5  2014-06-04  Kamil Kisiel  Merge pull request #14 from LK4D4/fix_race_in_get
+9af56363a72d  2014-06-04  Alexandr Morozov  Fix racy code in Get
+1f3e8a46c5bb  2014-05-22  Kamil Kisiel  Return a shallow copy of the result in GetAll and GetAllOk.
+b06ed15e1c7a  2014-05-20  Kamil Kisiel  Merge pull request #12 from tylerb/master
+13ce75261f2d  2014-05-20  Tyler Bunnell  More comprehensive benchmarking
+ee79a2c21bb7  2014-05-20  Tyler Bunnell  Fix golint warning
+6e5f0a5765dc  2014-05-20  Tyler Bunnell  Remove defer
+dad32f953222  2014-05-20  Tyler Bunnell  Switch to RWMutex
+cffbf44e851f  2014-05-20  Tyler Bunnell  Add mutex benchmark
+1be7a086a5fd  2014-03-06  Kamil Kisiel  Merge pull request #11 from adammck/add_getall
+116fc839c218  2014-03-06  Adam Mckaig  Add tests for GetAllOk
+8b602e76415d  2014-03-06  Adam Mckaig  Fix docstring
+b680aaae68ec  2013-07-15  Pieter Joost van de Sande  Return map instead of pointer value
+08e2e8a9bc63  2013-07-15  Pieter Joost van de Sande  Remove GetAllOk method and GetAll now returns nil for invalid request
+77bafb62fdfb  2013-07-14  Pieter Joost van de Sande  Adds GetAllOk
+3e810b0ccc2a  2013-07-13  Pieter Joost van de Sande  Return empty map when there are no values
+6405b672ffe0  2013-07-13  Pieter Joost van de Sande  Adds test for GetAll for empty request
+fac5866e5038  2013-07-13  Pieter Joost van de Sande  Adds test for GetAll for existing request
+da513c322191  2013-07-13  pjvds  Adds GetAll method
+a08edd30ad9e  2013-12-05  Kamil Kisiel  Add go 1.2 to travis.yml
+bb1bb4d8798c  2013-11-30  Kamil Kisiel  Add Travis badge
+37ad08d49581  2013-11-30  Kamil Kisiel  Merge branch 'master' of github.com:gorilla/context
+257e3549c53c  2013-11-30  Kamil Kisiel  Add travis.yml
+9192307f0e67  2013-11-30  Kamil Kisiel  Merge pull request #8 from andrewsmedina/gofmt
+b8a1d5a34aa0  2013-11-30  Andrews Medina  go fmt.
+708054d61e5a  2013-05-31  rodrigo moraes  Merge pull request #5 from DmitryBochkarev/GetOk
+989863b11f7f  2013-05-30  Dmitry Bochkarev  fix doc.go
+3968bf33e768  2013-05-30  Dmitry Bochkarev  GetOk(r, key) (value, ok)
+a8662172a384  2013-04-09  rodrigo moraes  Update README.md
+12bc3a0632e8  2013-03-20  Kamil Kisiel  Fix up grammar in docs.
+c6c09957da62  2013-03-20  Kamil Kisiel  Revert "Added a Context type for non-global contexts."
+bf37eee315a5  2013-03-20  Kamil Kisiel  Merge commit 'cdee84d'
+cdee84d5cb02  2013-03-20  Kamil Kisiel  Documented that gorilla/pat also clears the context as of 9ff7555
+bbd3ed316824  2012-12-19  Kamil Kisiel  Added a Context type for non-global contexts.
+11ae2122d92b  2012-10-03  moraes  Initial files.
+652e24b8c857  2012-10-02  rodrigo moraes  Initial commit
+----- stderr -----
+----- end -----

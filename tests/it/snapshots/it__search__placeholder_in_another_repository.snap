@@ -1,0 +1,13 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/ binary\"], [response])"
+---
+exit: 0
+----- stdout -----
+1 match  1 repo  0.1 s
+query  timeout:60s repo:example.com/ binary
+
+example.com/b@0123456789ab:a.go
+5:a binary
+----- stderr -----
+----- end -----

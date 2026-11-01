@@ -6,15 +6,17 @@ A code search CLI for agents, built on Sourcegraph.
 
 Read [GLOSSARY.md](GLOSSARY.md) for the domain's terms, the ADRs in `docs/adr/` that touch the
 area, and [CODING_STANDARDS.md](CODING_STANDARDS.md). [CONTRIBUTING.md](CONTRIBUTING.md) covers
-cases, bless, recording and live checks. Before relying on how sourcegraph.com behaves, check
+tests, bless, recording and live checks. Before relying on how sourcegraph.com behaves, check
 `docs/research/`, which holds what has been established, with its sources.
 
 ## Commands
 
 - `just check`: rustfmt, clippy and the offline tests. Run it before every commit.
-- `just bless`: rewrite the case list, what cases expect and the documents; read the diff it prints.
-- `just record`: record from sourcegraph.com the responses cases lack or whose request changed.
-- `just live [PATH…]`: re-send recorded requests and fail on drift; PATH as in `show/lfs-pointer`.
+- `just bless [FILTER]`: write the snapshots; read the diff it prints.
+- `just record [FILTER]`: record the requests that have no recording and remove those no case uses;
+  with FILTER, record the matching tests' responses again.
+- `just live [FILTER]`: re-send each recording's request, and with no FILTER check the live rules;
+  fail on drift.
 - `just escape-table`: regenerate `src/escape/table.rs` from the pinned Unicode data.
 - `just schema`: fetch sourcegraph.com's full GraphQL schema into `target/schema.json`.
 

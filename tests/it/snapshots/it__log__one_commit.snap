@@ -1,0 +1,10 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"github.com/gorilla/context@652e24b8c857\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/context@652e24b8c857  1 commit
+652e24b8c857  2012-10-02  rodrigo moraes  Initial commit
+----- stderr -----
+----- end -----

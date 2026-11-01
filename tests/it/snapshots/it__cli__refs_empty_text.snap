@@ -1,0 +1,10 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"refs\", \"example.com/acme/widget\", \"\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: the TEXT operand is empty
+usage: sego refs [--json] REPO [TEXT]
+----- end -----

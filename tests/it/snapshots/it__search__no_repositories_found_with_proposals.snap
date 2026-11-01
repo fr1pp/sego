@@ -1,0 +1,11 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/acme/widget foo\"], [response])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: No repositories found
+  the server proposes: foo
+  the server proposes: repo:example.com/acme foo
+----- end -----

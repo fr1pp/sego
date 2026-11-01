@@ -1,0 +1,35 @@
+---
+source: tests/it/show.rs
+expression: "answered(&[\"show\", \"--json\",\n\"github.com/sharkdp/bat@a9aa73d2:tests/snapshots/sample.modified.rs\", \"14\"],\n[first.into(), second])"
+---
+exit: 0
+----- stdout -----
+{
+  "binary": false,
+  "byte_size": 533,
+  "commit": "a9aa73d215455a479f072da75dd39f19826acfea",
+  "crlf": false,
+  "end": 14,
+  "kind": "file",
+  "lfs_size": null,
+  "lines": [
+    {
+      "line": 14,
+      "text": "    println!(r#\"This line contains invalid utf8:  \"�����\"#;"
+    }
+  ],
+  "mirrored_at": null,
+  "notes": [
+    "U+FFFD may stand for bytes that aren't UTF-8: Sourcegraph failed to answer the raw read"
+  ],
+  "path": "tests/snapshots/sample.modified.rs",
+  "repo": "github.com/sharkdp/bat",
+  "rev": "a9aa73d2",
+  "start": 14,
+  "submodule": null,
+  "total_lines": 23,
+  "utf8": null
+}
+----- stderr -----
+sego: note: U+FFFD may stand for bytes that aren't UTF-8: Sourcegraph failed to answer the raw read
+----- end -----

@@ -1,0 +1,35 @@
+---
+source: tests/it/diff.rs
+expression: ran
+---
+exit: 0
+----- stdout -----
+{
+  "added": 1,
+  "base": "fedcba9876543210fedcba9876543210fedcba98",
+  "commit_a": "0123456789abcdef0123456789abcdef01234567",
+  "commit_b": "89abcdef0123456789abcdef0123456789abcdef",
+  "deleted": 1,
+  "files": [
+    {
+      "added": 1,
+      "deleted": 1,
+      "new_path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "old_path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "status": "M"
+    }
+  ],
+  "files_more": false,
+  "files_total": 1,
+  "mirrored_at": null,
+  "notes": [],
+  "patch": "diff --git a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi\n--- a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi\n+++ a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi\n@@ -1 +1 @@\n-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi\n+a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi\n",
+  "paths": [
+    "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+  ],
+  "repo": "example.com/acme/widget",
+  "rev_a": "v1.0.0",
+  "rev_b": "v2.0.0"
+}
+----- stderr -----
+----- end -----

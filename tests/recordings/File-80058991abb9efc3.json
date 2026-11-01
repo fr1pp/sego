@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "File",
+    "query": "query File($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String!, $recursive: Boolean!, $content: Boolean!, $start: Int, $end: Int) {\n  r0: repository(name: $repo0) { ...File }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...File }\n}\n\nfragment File on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\noid\n    meta: path(path: $path) {\n      __typename\n      ... on GitBlob { path byteSize totalLines binary rawURL lfs { byteSize } submodule { commit } }\n      ... on GitTree { path entries(recursive: $recursive) { path isDirectory submodule { commit } } }\n    }\n    body: path(path: $path) @include(if: $content) {\n      __typename\n      ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }\n    }\n  }\n}\n",
+    "variables": {
+      "content": true,
+      "end": 9,
+      "gitlab": false,
+      "path": "options/gitignore/macOS",
+      "recursive": false,
+      "repo0": "github.com/go-gitea/gitea",
+      "repo1": "",
+      "rev": "965d7522",
+      "start": 5
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": {
+            "body": {
+              "__typename": "GitBlob",
+              "content": "\n# Icon must end with two \\r\nIcon\r\r\n\n# Thumbnails\n"
+            },
+            "meta": {
+              "__typename": "GitBlob",
+              "binary": false,
+              "byteSize": 402,
+              "lfs": null,
+              "path": "options/gitignore/macOS",
+              "rawURL": "/r/github.com/go-gitea/gitea@965d7522e0b3d323ea2da6615e7d4b39684d16e5/-/raw/options/gitignore/macOS",
+              "submodule": null,
+              "totalLines": 26
+            },
+            "oid": "965d7522e0b3d323ea2da6615e7d4b39684d16e5"
+          },
+          "defaultBranch": {
+            "displayName": "main"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-31T00:31:10Z"
+          },
+          "name": "github.com/go-gitea/gitea"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

@@ -1,0 +1,10 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\", \"github.com/gorilla/mux@49c0:mux.go\"])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: revision 49c0 not found in github.com/gorilla/mux: no ref has that name and no single commit starts with it
+  the default branch is main
+----- end -----

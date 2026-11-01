@@ -1,0 +1,10 @@
+---
+source: tests/it/search.rs
+expression: "sego(&[\"search\", \"(repo:^github\\\\.com/gorilla/mux$ zqxv)or useState\"])"
+---
+exit: 0
+----- stdout -----
+0 matches  1.0 s
+query  timeout:60s (repo:^github\.com/gorilla/mux$ zqxv)or useState
+----- stderr -----
+----- end -----

@@ -1,0 +1,127 @@
+---
+source: tests/it/ls.rs
+expression: "sego(&[\"ls\", \"--json\", \"github.com/gorilla/mux@v1.8.0\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+  "entries": [
+    {
+      "kind": "dir",
+      "path": ".circleci",
+      "submodule_commit": null
+    },
+    {
+      "kind": "dir",
+      "path": ".github",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "AUTHORS",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "LICENSE",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "README.md",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "bench_test.go",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "doc.go",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "example_authentication_middleware_test.go",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "example_cors_method_middleware_test.go",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "example_route_test.go",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "go.mod",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "middleware.go",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "middleware_test.go",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "mux.go",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "mux_httpserver_test.go",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "mux_test.go",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "old_test.go",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "regexp.go",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "regexp_test.go",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "route.go",
+      "submodule_commit": null
+    },
+    {
+      "kind": "file",
+      "path": "test_helpers.go",
+      "submodule_commit": null
+    }
+  ],
+  "entries_more": false,
+  "entries_total": 21,
+  "kind": "directory",
+  "mirrored_at": "2026-10-30T23:53Z",
+  "notes": [],
+  "path": null,
+  "recursive": false,
+  "repo": "github.com/gorilla/mux",
+  "rev": "v1.8.0"
+}
+----- stderr -----
+----- end -----

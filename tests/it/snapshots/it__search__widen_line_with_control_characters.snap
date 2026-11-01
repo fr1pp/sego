@@ -1,0 +1,11 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"lang:go Foo\"], [response])"
+---
+exit: 0
+----- stdout -----
+0 matches  0.7 s
+query  timeout:60s lang:go Foo
+widen  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i (2 repos)
+----- stderr -----
+----- end -----

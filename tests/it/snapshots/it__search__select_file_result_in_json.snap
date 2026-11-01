@@ -1,0 +1,134 @@
+---
+source: tests/it/search.rs
+expression: "sego(&[\"search\", \"--json\",\n\"repo:^github\\\\.com/gorilla/mux$@v1.8.0 Route select:file count:all\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "alert": null,
+  "at_least": false,
+  "count": 15,
+  "elapsed_ms": 71,
+  "limit_ms": 60000,
+  "notes": [],
+  "pattern_type": "keyword",
+  "query": "timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 Route select:file count:all",
+  "results": [
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "file",
+      "path": "old_test.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0"
+    },
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "file",
+      "path": "example_route_test.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0"
+    },
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "file",
+      "path": "test_helpers.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0"
+    },
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "file",
+      "path": "example_cors_method_middleware_test.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0"
+    },
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "file",
+      "path": "example_authentication_middleware_test.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0"
+    },
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "file",
+      "path": "README.md",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0"
+    },
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "file",
+      "path": "bench_test.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0"
+    },
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "file",
+      "path": "doc.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0"
+    },
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "file",
+      "path": "middleware.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0"
+    },
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "file",
+      "path": "middleware_test.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0"
+    },
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "file",
+      "path": "mux.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0"
+    },
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "file",
+      "path": "mux_httpserver_test.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0"
+    },
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "file",
+      "path": "mux_test.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0"
+    },
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "file",
+      "path": "regexp.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0"
+    },
+    {
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "file",
+      "path": "route.go",
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0"
+    }
+  ],
+  "server": {
+    "approximate_count": "15",
+    "limit_hit": false,
+    "match_count": 15,
+    "timedout": []
+  },
+  "stopped": false,
+  "unit": "files",
+  "widen": []
+}
+----- stderr -----
+----- end -----

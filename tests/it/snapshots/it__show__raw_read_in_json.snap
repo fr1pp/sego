@@ -1,0 +1,48 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\", \"--json\",\n\"github.com/torvalds/linux@c339f4010dea8b0d754f84ace70cd1b089878ef8:drivers/gpu/drm/amd/include/asic_reg/nbif/nbif_7_10_0_offset.h\",\n\"1-5\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "binary": false,
+  "byte_size": 1585814,
+  "commit": "c339f4010dea8b0d754f84ace70cd1b089878ef8",
+  "crlf": false,
+  "end": 5,
+  "kind": "file",
+  "lfs_size": null,
+  "lines": [
+    {
+      "line": 1,
+      "text": "/*"
+    },
+    {
+      "line": 2,
+      "text": " * Copyright 2026 Advanced Micro Devices, Inc."
+    },
+    {
+      "line": 3,
+      "text": " *"
+    },
+    {
+      "line": 4,
+      "text": " * Permission is hereby granted, free of charge, to any person obtaining a"
+    },
+    {
+      "line": 5,
+      "text": " * copy of this software and associated documentation files (the \"Software\"),"
+    }
+  ],
+  "mirrored_at": null,
+  "notes": [],
+  "path": "drivers/gpu/drm/amd/include/asic_reg/nbif/nbif_7_10_0_offset.h",
+  "repo": "github.com/torvalds/linux",
+  "rev": "c339f4010dea8b0d754f84ace70cd1b089878ef8",
+  "start": 1,
+  "submodule": null,
+  "total_lines": 15938,
+  "utf8": true
+}
+----- stderr -----
+----- end -----

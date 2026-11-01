@@ -1,0 +1,42 @@
+---
+source: tests/it/ls.rs
+expression: ran
+---
+exit: 0
+----- stdout -----
+{
+  "commit": "0123456789abcdef0123456789abcdef01234567",
+  "entries": [
+    {
+      "kind": "file",
+      "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "submodule_commit": null
+    },
+    {
+      "kind": "dir",
+      "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi-dir",
+      "submodule_commit": null
+    },
+    {
+      "kind": "submodule",
+      "path": "mod",
+      "submodule_commit": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+    },
+    {
+      "kind": "submodule",
+      "path": "sub",
+      "submodule_commit": "0123456789abcdef0123456789abcdef01234567"
+    }
+  ],
+  "entries_more": false,
+  "entries_total": 4,
+  "kind": "directory",
+  "mirrored_at": null,
+  "notes": [],
+  "path": null,
+  "recursive": false,
+  "repo": "example.com/acme/widget",
+  "rev": null
+}
+----- stderr -----
+----- end -----

@@ -1,0 +1,12 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\",\n\"repo:^example\\\\.com/app$ type:diff select:repo foo count:30\"], [response])"
+---
+exit: 0
+----- stdout -----
+1 repo  0.4 s
+query  timeout:60s repo:^example\.com/app$ type:diff select:repo foo count:30
+
+example.com/app
+----- stderr -----
+----- end -----

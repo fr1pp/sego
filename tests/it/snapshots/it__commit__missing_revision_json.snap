@@ -1,0 +1,10 @@
+---
+source: tests/it/commit.rs
+expression: "sego(&[\"show\", \"--json\", \"github.com/gorilla/mux@deadbeefdeadbeef\"])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: revision deadbeefdeadbeef not found in github.com/gorilla/mux: no ref has that name and no single commit starts with it
+  the default branch is main
+----- end -----

@@ -23,7 +23,7 @@ use crate::cache::{Cache, Entry};
 use crate::error::{Error, Kind};
 use graphql::{Envelope, Request};
 
-pub use commits::{Change, CommitSummary, Comparison, History, Tag};
+pub use commits::{Change, CommitSummary, Diff, History, Tag};
 pub use files::{Content, File, Submodule, Window};
 pub use graphql::regexp_reason;
 pub use http::Ureq;
@@ -146,13 +146,13 @@ impl<'a> Client<'a> {
     /// its first parent, with the commit, or a range's head's against its
     /// base, listing at most `first` files or all for `None`. A range is read
     /// by its commits' IDs once both ends resolve.
-    pub fn comparison(
+    pub fn diff(
         self,
         repo: &Repo,
         revisions: Revisions<'_>,
         paths: &[String],
         first: Option<u32>,
-    ) -> Result<Comparison, Error> {
+    ) -> Result<Diff, Error> {
         let ends = match revisions {
             Revisions::One(rev) => {
                 let rev = rev.unwrap_or("HEAD");
@@ -161,8 +161,8 @@ impl<'a> Client<'a> {
             }
             Revisions::Range { base, head } => self.ends(repo, base, head)?,
         };
-        let request = commits::comparison_request(&ends, paths, first);
-        commits::read_comparison(&self.exchange(&request)?, ends, paths)
+        let request = commits::diff_request(&ends, paths, first);
+        commits::read_diff(&self.exchange(&request)?, ends, paths)
     }
 
     /// The commit `rev` names, its changes against its first parent, listing
@@ -170,17 +170,17 @@ impl<'a> Client<'a> {
     /// The tags are asked for once the commit resolves, under
     /// `TAGS_DEADLINE`: on an old commit of a repository with thousands of
     /// tags they can take over a minute.
-    pub fn commit(self, repo: &Repo, rev: &str, first: Option<u32>) -> Result<Comparison, Error> {
+    pub fn commit(self, repo: &Repo, rev: &str, first: Option<u32>) -> Result<Diff, Error> {
         let request = commits::commit_request(repo, rev, &[], first);
-        let mut comparison = commits::read_commit(&self.exchange(&request)?, repo, rev, &[])?;
-        let request = commits::commit_tags_request(&comparison.head);
+        let mut diff = commits::read_commit(&self.exchange(&request)?, repo, rev, &[])?;
+        let request = commits::commit_tags_request(&diff.head);
         let tags = self
             .exchange_within(&request, TAGS_DEADLINE)
             .and_then(|envelope| commits::read_commit_tags(&envelope));
-        if let Some(commit) = comparison.commit.as_mut() {
+        if let Some(commit) = diff.commit.as_mut() {
             commit.tags = Some(tags);
         }
-        Ok(comparison)
+        Ok(diff)
     }
 
     /// The commits `revisions` covers touching `path`, across renames when
@@ -473,8 +473,8 @@ mod tests {
         ask(client)
     }
 
-    fn range(client: Client<'_>) -> Result<Comparison, Error> {
-        client.comparison(
+    fn range(client: Client<'_>) -> Result<Diff, Error> {
+        client.diff(
             &Repo::Exact("github.com/gorilla/mux".to_owned()),
             Revisions::Range { base: "a", head: "b" },
             &[],
@@ -548,9 +548,9 @@ mod tests {
             Duration::ZERO,
         );
         let repo = Repo::Exact("github.com/gorilla/mux".to_owned());
-        let comparison = run(&script, DEADLINE, |client| client.commit(&repo, "a", None))
+        let diff = run(&script, DEADLINE, |client| client.commit(&repo, "a", None))
             .unwrap_or_else(|e| panic!("{e}"));
-        let tags = comparison.commit.and_then(|commit| commit.tags);
+        let tags = diff.commit.and_then(|commit| commit.tags);
         assert_eq!(tags, Some(Err(Error::deadline_within("sourcegraph.com", 10))));
         let deadlines = script.deadlines.borrow();
         let gap = deadlines[0].saturating_duration_since(deadlines[1]);

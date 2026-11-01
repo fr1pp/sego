@@ -52,11 +52,11 @@ query CommitTags($repo: String!, $commit: String!) {
 }
 ";
 
-/// The comparison of two commits named by their full IDs, which never
+/// The diff of two commits named by their full IDs, which never
 /// fetch, with the merge base, and whether each path `#` exists at each.
 /// The count has its own `first: 0` alias, as in `COMMIT`.
-const COMPARISON: &str = "\
-query Comparison($repo: String!, $a: String!, $b: String!, $paths: [String!], $first: Int, \
+const DIFF: &str = "\
+query Diff($repo: String!, $a: String!, $b: String!, $paths: [String!], $first: Int, \
 $patch: Boolean!{declared}) {
   c: repository(name: $repo) {
     comparison(base: $a, head: $b, fetchMissing: false) {
@@ -98,7 +98,7 @@ pub struct Commit {
 /// The files that changed between two commits: a revision and its first
 /// parent, or a range's base and head.
 #[derive(Debug, PartialEq, Eq)]
-pub struct Comparison {
+pub struct Diff {
     /// The revision, or the range's head.
     pub head: Resolved,
     /// The range's base; `None` for a revision.
@@ -115,14 +115,14 @@ pub struct Comparison {
     pub patch: Option<String>,
 }
 
-impl Comparison {
+impl Diff {
     /// The lookup of the repository, as either end read it.
     pub fn lookup(&self) -> Lookup {
         self.head.lookup_with(self.base.as_ref())
     }
 }
 
-/// The files a comparison changed, and their totals.
+/// The files a diff changed, and their totals.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Changes {
     pub added: u64,
@@ -171,17 +171,17 @@ pub fn commit_request(repo: &Repo, rev: &str, paths: &[String], first: Option<u3
     Request::new("Commit", document, variables)
 }
 
-/// The comparison of a range's resolved ends, by their full IDs, over
+/// The diff of a range's resolved ends, by their full IDs, over
 /// `paths`, listing at most `first` files or all for `None`.
-pub fn comparison_request(ends: &Ends, paths: &[String], first: Option<u32>) -> Request {
+pub fn diff_request(ends: &Ends, paths: &[String], first: Option<u32>) -> Request {
     let mut variables = ends_variables(ends);
     variables.insert("first".to_owned(), json!(first));
     let (probes, declared) = probed(paths, &mut variables);
-    let document = COMPARISON.replace("{declared}", &declared).replace(
+    let document = DIFF.replace("{declared}", &declared).replace(
         "{probes}",
         &repeated(" p#: path(path: $path#) { __typename }", probes).replace('\n', ""),
     );
-    Request::new("Comparison", document, variables)
+    Request::new("Diff", document, variables)
 }
 
 #[derive(Deserialize)]
@@ -348,7 +348,7 @@ fn in_neither(path: &str, repo: &str, a: &str, b: &str) -> String {
     format!("{path} not found in {} or @{}", pinned(repo, a, None), short(b))
 }
 
-/// The error for a path in neither commit of a comparison.
+/// The error for a path in neither commit of a diff.
 fn path_not_found(path: &str, repo: &str, a: &str, b: &str) -> Error {
     Error::not_found(in_neither(path, repo, a, b))
 }
@@ -360,7 +360,7 @@ pub fn read_commit(
     repo: &Repo,
     rev: &str,
     paths: &[String],
-) -> Result<Comparison, Error> {
+) -> Result<Diff, Error> {
     let found = resolve::repository(repo, envelope, resolve::roots(repo))?;
     let root = found.root.clone();
     let oid = resolve::commit(envelope, &found, &[&root, "commit"], rev)?;
@@ -384,7 +384,7 @@ pub fn read_commit(
         tags: None,
     };
     let Some(parent) = commit.parents.first().cloned() else {
-        return Ok(Comparison {
+        return Ok(Diff {
             head,
             base: None,
             commit: Some(commit),
@@ -410,7 +410,7 @@ pub fn read_commit(
     if !paths.is_empty() && patch.is_none() {
         return Err(failed());
     }
-    Ok(Comparison {
+    Ok(Diff {
         head,
         base: None,
         commit: Some(commit),
@@ -420,13 +420,13 @@ pub fn read_commit(
     })
 }
 
-/// The comparison of a range's ends, from the response to
-/// `comparison_request`.
-pub fn read_comparison(
+/// The diff of a range's ends, from the response to
+/// `diff_request`.
+pub fn read_diff(
     envelope: &Envelope,
     Ends { base, head }: Ends,
     paths: &[String],
-) -> Result<Comparison, Error> {
+) -> Result<Diff, Error> {
     let (at_a, at_b) = (envelope.get(&["a", "commit"]), envelope.get(&["b", "commit"]));
     if at_a.is_none() || at_b.is_none() {
         return Err(Error::failed("the comparison"));
@@ -454,7 +454,7 @@ pub fn read_comparison(
     if !paths.is_empty() && patch.is_none() {
         return Err(failed());
     }
-    Ok(Comparison { head, base: Some(base), commit: None, from, changes: Some(changes), patch })
+    Ok(Diff { head, base: Some(base), commit: None, from, changes: Some(changes), patch })
 }
 
 /// The tags that hold the resolved commit `at`.

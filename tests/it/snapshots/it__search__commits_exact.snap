@@ -1,0 +1,19 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/app type:commit fix count:30\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+2 commits  1 repo  0.1 s
+query  timeout:60s repo:example.com/app type:commit fix count:30
+
+example.com/app@aaaaaaaaaaaa  2024-05-06  Ann  fix the parser
+    fix the parser
+    fix the lexer
+
+example.com/app@bbbbbbbbbbbb  2024-05-06  Ann  fix the printer
+    fix the printer
+    fix the cache
+    fix docs
+----- stderr -----
+----- end -----

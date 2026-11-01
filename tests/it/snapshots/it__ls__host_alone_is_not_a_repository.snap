@@ -1,0 +1,10 @@
+---
+source: tests/it/ls.rs
+expression: "sego(&[\"ls\", \"github.com:gorilla/mux\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: invalid repository name 'github.com'
+usage: sego ls [--json] [--recursive] REPO[@REV][:PATH]
+----- end -----

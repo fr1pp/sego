@@ -1,0 +1,165 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "Diff",
+    "query": "query Diff($repo: String!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!) {\n  c: repository(name: $repo) {\n    comparison(base: $a, head: $b, fetchMissing: false) {\n      range { mergeBase { oid } }\n      ...Changes\n    }\n  }\n  a: repository(name: $repo) { commit(rev: $a) { oid } }\n  b: repository(name: $repo) { commit(rev: $b) { oid } }\n}\n\nfragment Changes on RepositoryComparison {\n  all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }\n  page: fileDiffs(first: $first, paths: $paths) {\n    nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }\n    pageInfo { hasNextPage }\n  }\n  patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }\n}\n",
+    "variables": {
+      "a": "ed099d42384823742bba0bf9a72b53b55c9e2e38",
+      "b": "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15",
+      "first": 200,
+      "patch": false,
+      "paths": null,
+      "repo": "github.com/gorilla/mux"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "a": {
+          "commit": {
+            "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+          }
+        },
+        "b": {
+          "commit": {
+            "oid": "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15"
+          }
+        },
+        "c": {
+          "comparison": {
+            "all": {
+              "diffStat": {
+                "added": 518,
+                "deleted": 257
+              },
+              "totalCount": 9
+            },
+            "page": {
+              "nodes": [
+                {
+                  "newPath": ".circleci/config.yml",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 75,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newPath": ".github/stale.yml",
+                  "oldFile": {
+                    "commit": {
+                      "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+                    }
+                  },
+                  "oldPath": ".github/stale.yml",
+                  "stat": {
+                    "added": 5,
+                    "deleted": 5
+                  }
+                },
+                {
+                  "newPath": null,
+                  "oldFile": {
+                    "commit": {
+                      "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+                    }
+                  },
+                  "oldPath": ".travis.yml",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 24
+                  }
+                },
+                {
+                  "newPath": null,
+                  "oldFile": {
+                    "commit": {
+                      "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+                    }
+                  },
+                  "oldPath": "ISSUE_TEMPLATE.md",
+                  "stat": {
+                    "added": 0,
+                    "deleted": 11
+                  }
+                },
+                {
+                  "newPath": "README.md",
+                  "oldFile": {
+                    "commit": {
+                      "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+                    }
+                  },
+                  "oldPath": "README.md",
+                  "stat": {
+                    "added": 69,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newPath": "doc.go",
+                  "oldFile": {
+                    "commit": {
+                      "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+                    }
+                  },
+                  "oldPath": "doc.go",
+                  "stat": {
+                    "added": 1,
+                    "deleted": 1
+                  }
+                },
+                {
+                  "newPath": "example_cors_method_middleware_test.go",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 37,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newPath": "middleware.go",
+                  "oldFile": {
+                    "commit": {
+                      "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+                    }
+                  },
+                  "oldPath": "middleware.go",
+                  "stat": {
+                    "added": 34,
+                    "deleted": 27
+                  }
+                },
+                {
+                  "newPath": "middleware_test.go",
+                  "oldFile": {
+                    "commit": {
+                      "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+                    }
+                  },
+                  "oldPath": "middleware_test.go",
+                  "stat": {
+                    "added": 297,
+                    "deleted": 189
+                  }
+                }
+              ],
+              "pageInfo": {
+                "hasNextPage": false
+              }
+            },
+            "range": {
+              "mergeBase": {
+                "oid": "ed099d42384823742bba0bf9a72b53b55c9e2e38"
+              }
+            }
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

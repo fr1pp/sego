@@ -1,0 +1,48 @@
+---
+source: tests/it/refs.rs
+expression: "answered(&[\"refs\", \"--json\", \"example.com/acme/widget\", \"release\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+{
+  "branches_all": 16,
+  "branches_more": false,
+  "branches_total": 2,
+  "default_branch": "main",
+  "mirrored_at": null,
+  "notes": [],
+  "query": "release",
+  "refs": [
+    {
+      "kind": "branch",
+      "name": "release-1.1",
+      "target": "0000000000000000000000000000000000000001"
+    },
+    {
+      "kind": "branch",
+      "name": "release-1.0",
+      "target": "0000000000000000000000000000000000000002"
+    },
+    {
+      "kind": "tag",
+      "name": "v1.2-release",
+      "target": "0000000000000000000000000000000000000003"
+    },
+    {
+      "kind": "tag",
+      "name": "v1.1-release",
+      "target": "0000000000000000000000000000000000000004"
+    },
+    {
+      "kind": "tag",
+      "name": "v1.0-release",
+      "target": "0000000000000000000000000000000000000005"
+    }
+  ],
+  "repo": "example.com/acme/widget",
+  "tags_all": 40,
+  "tags_more": false,
+  "tags_total": 3
+}
+----- stderr -----
+----- end -----

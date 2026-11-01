@@ -1,0 +1,9 @@
+---
+source: tests/it/log.rs
+expression: "answered(&[\"log\",\n\"example.com/acme/widget@v2.0.0:a\\u{1b}b\\u{202e}c\\u{200b}d\\ne\\rf\\0g\\u{2028}h\\u{7f}i-gone\"],\n[response])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i-gone not found in example.com/acme/widget@0123456789ab
+----- end -----

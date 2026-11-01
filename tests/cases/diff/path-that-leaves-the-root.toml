@@ -1,9 +1,0 @@
-# A path operand that leaves the repository's root names nothing.
-args = ["diff", "github.com/gorilla/mux@v1.8.0...v1.8.1", "../mux.go"]
-status.code = 2
-stderr = '''
-sego: error: the path ../mux.go leaves the repository's root
-usage: sego diff [--json] REPO@A...B[:PATH] [PATH...]
-       sego diff [--json] REPO@REV[:PATH] [PATH...]
-'''
-

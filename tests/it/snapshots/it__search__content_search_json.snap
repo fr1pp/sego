@@ -1,0 +1,111 @@
+---
+source: tests/it/search.rs
+expression: "sego(&[\"search\", \"--json\",\n\"repo:^github\\\\.com/gorilla/mux$@v1.8.0 \\\"func NewRouter\\\"\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "alert": null,
+  "at_least": false,
+  "count": 2,
+  "elapsed_ms": 102,
+  "limit_ms": 60000,
+  "notes": [],
+  "pattern_type": "keyword",
+  "query": "timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 \"func NewRouter\"",
+  "results": [
+    {
+      "chunk": 1,
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "line",
+      "line": 24,
+      "match": false,
+      "path": "mux.go",
+      "ranges": [],
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0",
+      "text": "// NewRouter returns a new router instance."
+    },
+    {
+      "chunk": 1,
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "line",
+      "line": 25,
+      "match": true,
+      "path": "mux.go",
+      "ranges": [
+        [
+          0,
+          14
+        ]
+      ],
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0",
+      "text": "func NewRouter() *Router {"
+    },
+    {
+      "chunk": 1,
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "line",
+      "line": 26,
+      "match": false,
+      "path": "mux.go",
+      "ranges": [],
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0",
+      "text": "\treturn &Router{namedRoutes: make(map[string]*Route)}"
+    },
+    {
+      "chunk": 1,
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "line",
+      "line": 40,
+      "match": false,
+      "path": "regexp.go",
+      "ranges": [],
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0",
+      "text": "// name and pattern can't be empty, and names can't contain a colon."
+    },
+    {
+      "chunk": 1,
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "line",
+      "line": 41,
+      "match": true,
+      "path": "regexp.go",
+      "ranges": [
+        [
+          0,
+          14
+        ]
+      ],
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0",
+      "text": "func newRouteRegexp(tpl string, typ regexpType, options routeRegexpOptions) (*routeRegexp, error) {"
+    },
+    {
+      "chunk": 1,
+      "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+      "kind": "line",
+      "line": 42,
+      "match": false,
+      "path": "regexp.go",
+      "ranges": [],
+      "repo": "github.com/gorilla/mux",
+      "rev": "v1.8.0",
+      "text": "\t// Check if it is well-formed."
+    }
+  ],
+  "server": {
+    "approximate_count": "2",
+    "limit_hit": false,
+    "match_count": 2,
+    "timedout": []
+  },
+  "stopped": false,
+  "unit": "matches",
+  "widen": []
+}
+----- stderr -----
+----- end -----

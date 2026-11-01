@@ -1,0 +1,9 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"github.com/gorilla/mux@v1.7.0...v1.7.1\", \"README.md\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@a7962380ca08...c5c6c98bc253:README.md  0 files  +0 -0  base a7962380ca08  rev v1.7.0...v1.7.1  mirrored 2026-10-27T07:13Z
+----- stderr -----
+----- end -----

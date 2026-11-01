@@ -1,8 +1,0 @@
-# An unknown option is named and nothing else is said about it.
-args = ["show", "--verbose", "example.com/acme/widget:a.go"]
-status.code = 2
-stderr = '''
-sego: error: unknown option --verbose
-usage: sego show [--json] REPO[@REV]:PATH [LINES]
-       sego show [--json] REPO@REV
-'''

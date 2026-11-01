@@ -1,0 +1,13 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:^github\\\\.com/gorilla/mux$ zqxv Or(NewRouter)\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+30+ matches  1 repo  0.8 s
+query  timeout:60s repo:^github\.com/gorilla/mux$ zqxv Or(NewRouter)
+
+example.com/acme/server@0123456789ab:main.go
+12:	r := mux.NewRouter()
+----- stderr -----
+----- end -----

@@ -1,0 +1,64 @@
+---
+source: tests/it/show.rs
+expression: "answered(&[\"show\", \"--json\",\n\"example.com/acme/widget@0123456789abcdef0123456789abcdef01234567:f.txt\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+{
+  "binary": false,
+  "byte_size": 50,
+  "commit": "0123456789abcdef0123456789abcdef01234567",
+  "crlf": false,
+  "end": 9,
+  "kind": "file",
+  "lfs_size": null,
+  "lines": [
+    {
+      "line": 1,
+      "text": "a\u001bb"
+    },
+    {
+      "line": 2,
+      "text": "c\u202ed"
+    },
+    {
+      "line": 3,
+      "text": "e\u200bf"
+    },
+    {
+      "line": 4,
+      "text": "g\u0000h"
+    },
+    {
+      "line": 5,
+      "text": "i\u2028j"
+    },
+    {
+      "line": 6,
+      "text": "k\u007fl"
+    },
+    {
+      "line": 7,
+      "text": "mid\rcr"
+    },
+    {
+      "line": 8,
+      "text": "tab\tok"
+    },
+    {
+      "line": 9,
+      "text": "crlf\r"
+    }
+  ],
+  "mirrored_at": null,
+  "notes": [],
+  "path": "f.txt",
+  "repo": "example.com/acme/widget",
+  "rev": "0123456789abcdef0123456789abcdef01234567",
+  "start": 1,
+  "submodule": null,
+  "total_lines": 9,
+  "utf8": true
+}
+----- stderr -----
+----- end -----

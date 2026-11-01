@@ -1,0 +1,14 @@
+---
+source: tests/it/refs.rs
+expression: "answered(&[\"refs\", \"example.com/acme/widget\",\n\"a\\u{1b}b\\u{202e}c\\u{200b}d\\ne\\rf\\0g\\u{2028}h\\u{7f}i\"], [response])"
+---
+exit: 0
+----- stdout -----
+example.com/acme/widget  2 of 9 branches match "a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i"  3 of 12 tags match "a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i"  default a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+branch  0123456789ab  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i  (default)
+branch  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}  b-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+tag     0123456789ab  t-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+tag     0123456789ab  a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+tag     0123456789ab  u-a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+----- stderr -----
+----- end -----

@@ -1,0 +1,159 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"--follow\",\n\"github.com/sharkdp/bat@fc9546854f5a:src/bin/bat/main.rs\"])"
+---
+exit: 0
+----- stdout -----
+github.com/sharkdp/bat@fc9546854f5a:src/bin/bat/main.rs  150 commits shown; more exist  follow
+d929becefcdc  2023-07-09  Peter Hebden  Fix signatures
+26111950b368  2023-08-05  einfachIrgendwer0815  Add environment variable `BAT_PAGING`
+da3aa4e2fdbe  2023-03-23  Constantin Nickel  Use `nu-ansi-term` instead of `ansi_term`
+e39178b101d4  2022-11-03  Miles Liu  Fix `bat cache --clear` not clearing the `--target` dir if specified
+48541b850768  2022-09-03  David Peter  Fix clippy suggestions
+3d398b35c35f  2022-09-02  Ed Page  refactor: Switch from is_present to actions
+6099f2c14611  2022-09-02  Ed Page  refactor: Move off of value_of
+2323804f7e72  2022-09-01  Ed Page  refactor: Port to clap3
+520081a92c73  2022-04-02  Martin Nordholts  Print info about custom assets in --diagnostics
+5ed64444e3fe  2021-10-06  Patrick Pichler  Add systemwide config file support
+9ab378b5dc7f  2022-03-03  Martin Nordholts  Include contents of custom assets `metadata.yaml` in `--diagnostics`
+68528983d773  2022-01-02  Martin Nordholts  Mark `MappingTarget` as `#[non_exhaustive]` for increased semver flexibility
+a3ea79824669  2021-12-11  Martin Nordholts  Credit syntax definition and theme authors with new `--acknowledgements` option (#1971)
+7fe4fdf33df3  2021-10-25  cbolgiano  Introduce MapExtensionToUnknown MappingTarget (#1889)
+ed3246c42393  2021-10-17  rhysd  Make grep-cli optional dependency
+554374667e92  2021-10-03  Martin Nordholts  Deny unsafe code in lib and bin
+405a80f3eeab  2021-09-25  Martin Nordholts  HighlightingAssets: Turn get_syntax_for_path() into public API
+7956485e37c8  2021-09-10  Marcin Puc  Improve iterator usage
+372e42f3509c  2021-09-10  Marcin Puc  Reduce nesting in if blocks by short circuiting
+19c3e82abf70  2021-08-26  Martin Nordholts  Replace deprecated 'error-chain' with 'thiserror' (#1820)
+f1c0fd7343c6  2021-08-24  Martin Nordholts  Don't take a HighlightingAssets detour to build assets (#1802)
+ba8a694314b9  2021-08-22  Martin Nordholts  Add LANG and LC_ALL to --diagnostics output
+ed09f90e5e3b  2021-08-18  Martin Nordholts  Fix all lints that are new with Rust 1.54
+25fa577cd06c  2021-08-10  Martin Nordholts  Make 'build-assets' an optional capability for application
+905902d81160  2021-08-08  Martin Nordholts  bin: Allow to build without bugreport
+d8b813c0bf1c  2021-08-08  Martin Nordholts  When returning a SyntaxReference, also return the SyntaxSet that contains it (#1776)
+b040efff79b6  2021-07-27  Martin Nordholts  Support a hidden arg --no-custom-assets that skips loading assets from the cache
+a81009607a30  2021-07-27  Martin Nordholts  HighlightingAssets: Make .syntaxes() and syntax_for_file_name() failable
+3fa09dbe2e17  2021-07-12  David Peter  Use resolved path for --diagnostic as well
+e04fbd199222  2021-03-17  Martin Nordholts  Include LESS in --diagnostic
+35347c231094  2021-03-02  Aleksey Kladov  Improve readability
+9ad401be872f  2021-02-16  David Peter  Fix clippy suggestion
+f874c8e4dbb1  2021-01-10  Ethan P  Use less binary specified in bat config for --diagnostic
+c5c28eb05b89  2021-01-09  sharkdp  --diagnostic: add MANPAGER environment variable
+fed30b1b36e4  2021-01-07  Csaba Henk  Fix theme dir hint in --list-themes output
+6a52f69b5816  2021-01-06  sharkdp  Update to bugreport 0.3.0
+60406c7c2d58  2021-01-01  sharkdp  Exhaustive list of relevant environment variables
+dec94b4111ea  2021-01-01  sharkdp  Add config file, compile time info and less version
+ebb97e94a9f3  2020-12-31  sharkdp  Add --diagnostic option to bat
+9c1657134736  2020-12-28  Martin Nordholts  bat --list-languages: remove unnecessary format!() call
+bf96e6e642ce  2020-11-27  Stefan Kunkel  make bat -L use plain style
+cffacad306c1  2020-11-27  Stefan Kunkel  make bat -L use pager
+84b070239951  2020-12-16  rsteube  only print themes hint in interactive mode
+8e8131590ca9  2020-10-29  Nicholas L  Use platform based path concatenation
+3acfe790b94b  2020-10-29  Nicholas L  Add extra themes help to output
+f84aceec3d9b  2020-09-20  sharkdp  Fix unwrap error
+83c775065657  2020-09-06  Kienyew  Use unwrap
+c477e23fe9c8  2020-09-06  Kienyew  Handle file extension conflicts in --list-languages
+31fb7087f176  2020-09-06  Kienyew  Revert to previous commit
+52d6701f8fe7  2020-08-16  Kienyew  Fix undesired behavior
+f97634011e9f  2020-08-08  Kienyew  Handle file extension conflicts in --list-languages (#1076)
+6017989c4cb1  2020-09-12  Alexander Karlis  removed printlns, updated Changelog, updated man
+d349974089dc  2020-09-12  Alexander Karlis  updated PR based on comments
+19aa878a0875  2020-06-03  sharkdp  Remove explicit type annotation
+9f52012443bb  2020-06-03  sharkdp  Prevent allocation of additional Strings
+e57e9b6dbbc7  2020-06-03  sharkdp  Use 'or_insert_with'
+ec2722d46520  2020-06-03  sharkdp  Use 'if let' instead of 'match'
+9e2ea5fdd43d  2020-06-01  Alex Novak  Incorporating feedback
+48b4a6a9064b  2020-05-30  Alex Novak  Adds a little logic to main to get other mappings from config
+9d08c0102eba  2020-05-27  Ethan P  Replace Input::stdin_as_file with bat-application functions
+a3357547ea78  2020-05-27  Ethan P  Remove unused with_name for theme preview file
+589c94aa934c  2020-05-16  Ethan P  Fix regression with --list-themes and --language
+798b742617fe  2020-05-16  Ethan P  Refactor InputDescription API into Input API
+0319149b4d05  2020-05-15  Ethan P  [breaking] Remove special handling for theme previews
+48a7ce3bf23e  2020-04-25  sharkdp  Write error messages to pager, if attached
+e37e9c12141a  2020-04-24  Lzu Tao  Fix some clippy lints
+702cb198da98  2020-04-22  sharkdp  Rename error module
+6a124591df48  2020-04-22  sharkdp  Easier configuration of style components
+26c951fec485  2020-04-22  sharkdp  Fix warnings, sort imports, input from string
+590960f7f5b5  2020-04-22  sharkdp  Completely refactor 'input' module
+f8d0956893a0  2020-04-21  sharkdp  Rename InputFile => Input
+1dc328ad495e  2020-04-21  sharkdp  Separate inputs from config
+2e9cf63a5fd6  2020-04-21  sharkdp  Fix compilation of library
+72618db179e7  2020-04-21  sharkdp  Add metadata information to cached assets
+90e7d2fe3350  2020-04-11  sharkdp  Rename field name, new constructors
+04fa84aea7d0  2020-04-05  Kyle Criddle  Moved user_provided_filename to be contained within OrdinaryFile struct
+495fab24a57b  2020-04-11  sharkdp  cargo fmt
+570805bc9852  2020-03-30  David Tolnay  Strip dependencies of bat-as-a-library
+40a827ebcb8d  2020-03-26  Josh Mickley  Graceful handling of error conditions
+376c5568628c  2020-03-24  Josh Mickley  Add option to generate a default config file, fixes #870
+2c2861db6abf  2020-03-21  sharkdp  Further simplify module structure
+bb0a3d586ef0  2020-03-21  sharkdp  Simplify public API module structure
+84ba323b1c3c  2020-03-21  sharkdp  Rename output component to 'style compinent', move wrap to separate module
+acf51bd7b3fd  2020-03-21  sharkdp  Rename methods and parameters
+094c526a0e52  2020-03-21  sharkdp  Hide some methods from HighlightingAssets
+62f2d0c10069  2020-03-21  sharkdp  Do not export syntax_set and theme_set
+fc1ca0875a56  2020-03-21  sharkdp  Move error handling to a callback
+a7338e2ea2b6  2020-03-21  sharkdp  Run cargo fmt
+9b8ddb24d1de  2020-03-21  sharkdp  move Config struct to separate file
+06b7be7ee90a  2020-03-21  sharkdp  Major restructuring of theme/syntax handling
+ca066bf7cd99  2020-02-28  sharkdp  Run 'cargo fmt'
+7779d9f6221b  2020-02-12  sharkdp  Allow for non-unicode filenames, closes #225
+e5426211250c  2019-10-06  Fahmi Akbar Wildana  Move back printer.rs and others into lib
+26439b41d2b5  2019-10-06  Fahmi Akbar Wildana  Move Config,PagingMode from app.rs into lib.rs
+a2ee753b2502  2019-10-06  Fahmi Akbar Wildana  Move config.rs into src/bin/bat/
+837d0998da6c  2019-10-06  Fahmi Akbar Wildana  Remove unused macros in bin/bat
+23d80f9e8473  2019-10-06  Fahmi Akbar Wildana  Fix all compile errors in bin/bat ➕
+e981bd88c1ec  2019-10-06  Fahmi Akbar Wildana  Move src/bin/* into src/bin/bat/
+fc0ad4db2e34  2019-10-06  Fahmi Akbar Wildana  Move {main,app,clap_app}.rs into src/bin/
+9d53ce6be6bc  2019-05-14  sharkdp  Fix warning
+493a4e719e40  2019-05-10  Ethan P  Added non-interactive mode for `--list-languages`
+82f14121bd70  2019-03-08  Daniele Esposti  Applied linter fixes
+a21ae614e667  2019-03-08  Daniele Esposti  Migrated to Rust 2018
+10c5f796407b  2019-02-11  Reid Wagner  Revert "Check result of read_until, and return Error if 0, which indicates EOF was found before delimeter."
+e09499b3df63  2019-02-07  sharkdp  (tag: v0.10.0) Move config-dir and cache-dir from 'bat cache' to 'bat'
+cff01d81fa21  2019-02-07  sharkdp  Rename 'bat cache --init' to 'bat cache --build'
+54143d1403b7  2019-02-07  sharkdp  Add --cache-dir option
+6a8e4757b75e  2019-01-31  Lavi  Updated bat config dir for MacOs
+61e888de7fd1  2019-02-02  Reid Wagner  Check result of read_until, and return Error if 0, which indicates EOF was found before delimeter.
+6b6a8f8e160e  2018-11-27  Ole Martin Ruud  Fix doc comment typo
+8dc7e2efa349  2018-10-17  sharkdp  Add --config-file option
+10965a6122e3  2018-10-17  sharkdp  Implement syntax mapping
+866b9e16a866  2018-10-11  sharkdp  Add error handling
+5af176c94f3e  2018-10-11  sharkdp  Move transpose to util module
+c19c704a4329  2018-10-11  sharkdp  Add more tests
+8275b0436d95  2018-10-07  sharkdp  Add simple configuration file
+25d96da4a216  2018-10-07  sharkdp  Add support for UTF-16LE and UTF-16BE
+ce96df00b6e7  2018-10-07  sharkdp  Do not display binary files in interactive mode
+860f3e90068a  2018-10-07  sharkdp  Move InputFile to separate module
+b39e28d2c855  2018-10-03  Richard Hozák  Add support for wildcards in Windows CMD (#329)
+0d7196861523  2018-10-03  davideGiovannini  Generate shell completions with clap during build (#327)
+b23ff24ebcca  2018-09-11  eth-p  Added tab expansion preprocessing step.
+53d0c1deca0c  2018-09-05  Shreyansh Chouhan  Can read files named "cache" now, cache subcommand working too (#275)
+e3c990f11e48  2018-08-31  sharkdp  Respect color settings for list-themes and list-languages
+90c7d0c3659e  2018-08-31  sharkdp  Use stdout locks
+56002267d26d  2018-08-31  mchlrhw  Fix panic when running `bat --list-languages | head`
+8cacd9b43209  2018-08-28  sharkdp  Include theme_preview file in binary
+6f67444c992e  2018-08-28  sharkdp  Run cargo fmt
+fd2b376ea0f6  2018-08-28  sharkdp  Small style changes to --list-themes
+cda54e4f61c3  2018-08-28  sharkdp  Fix build for Rust 1.26
+3b90ada7354a  2018-08-27  ms2300  Mutation done correctly
+1837d364fe25  2018-08-27  ms2300  Added bold to theme titles
+4ea3e6bbb74f  2018-08-27  ms2300  Changed preview code
+38544ed735df  2018-08-27  ms2300  Changed to plain style
+5444b0dfedfa  2018-08-27  ms2300  Fixes mut issue
+f3dde0185d82  2018-08-26  ms2300  Modifying changing config for efficiency
+2e3784aa30ce  2018-08-26  ms2300  #213 : output hello world for each theme when --list-theme is flagged
+246cf79dbd78  2018-08-23  sharkdp  Split into Controller and Printer
+ea955c734dd9  2018-08-23  sharkdp  Refactoring, introduce Printer trait
+9316f2a758d0  2018-08-22  sharkdp  Major refactoring and cleanup
+2df3305b94ff  2018-08-20  sharkdp  Add new '--blank' option for 'bat cache --init'
+26dbdf4fa075  2018-06-04  Taylor Skinner  update line-ranges
+a348a9f68e66  2018-05-25  sharkdp  Handle syntax-set loading errors
+2712d63a4bb2  2018-05-21  Ezinwa Okpoechi  Move asset clearing to assets module
+b21fb6bca860  2018-05-21  Ezinwa Okpoechi  Extract features to separate module
+120b33a9dbc8  2018-05-21  Ezinwa Okpoechi  Move output to separate module
+2a9f5a24edb1  2018-05-19  sharkdp  Permissive error handling, closes #17
+96cc391f2d58  2018-05-19  sharkdp  Skip '--quit-if-one-screen' for --paging=always
+247dfbee8309  2018-05-18  Ezinwa Okpoechi  Extract syntax finding to assets module
+12cb438aa4bc  2018-05-18  Ezinwa Okpoechi  Handle line with invalid UTF-8
+----- stderr -----
+----- end -----

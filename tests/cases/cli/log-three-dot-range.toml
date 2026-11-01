@@ -1,8 +1,0 @@
-# log takes A..B; a three-dot range is a usage error and no request is made.
-args = ["log", "example.com/acme/widget@a...b"]
-status.code = 2
-stderr = '''
-sego: error: log takes A..B, not A...B
-usage: sego log [--json] [--follow] REPO[@REV][:PATH] [PATH]
-       sego log [--json] REPO@A..B[:PATH] [PATH]
-'''

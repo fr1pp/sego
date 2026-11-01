@@ -1,0 +1,10 @@
+---
+source: tests/it/log.rs
+expression: "answered(&[\"log\", \"example.com/acme/widget@v2\"], [response])"
+---
+exit: 0
+----- stdout -----
+example.com/acme/widget@000100010001  1 commit  rev v2
+000100010001  2026-08-01  Ada Lovelace  ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss… (+33 more columns; --json has the full line)
+----- stderr -----
+----- end -----

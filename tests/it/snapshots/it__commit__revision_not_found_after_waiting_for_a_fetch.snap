@@ -1,0 +1,10 @@
+---
+source: tests/it/commit.rs
+expression: "answered(&[\"show\", \"example.com/acme/widget@v1\"], [response])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: revision v1 not found in example.com/acme/widget
+  the default branch is main
+----- end -----

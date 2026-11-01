@@ -1,0 +1,12 @@
+---
+source: tests/it/log.rs
+expression: "answered(&[\"log\", \"example.com/acme/widget@v2\"], [response])"
+---
+exit: 0
+----- stdout -----
+example.com/acme/widget@000100010001  3 commits  rev v2
+000100010001  2026-08-01  Ada Lovelace
+000200020002  2026-08-01  Ada Lovelace  (tag: v2)
+000300030003  2026-08-01  Ada Lovelace
+----- stderr -----
+----- end -----

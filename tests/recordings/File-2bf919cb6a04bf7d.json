@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "File",
+    "query": "query File($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String!, $recursive: Boolean!, $content: Boolean!, $start: Int, $end: Int) {\n  r0: repository(name: $repo0) { ...File }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...File }\n}\n\nfragment File on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\noid\n    meta: path(path: $path) {\n      __typename\n      ... on GitBlob { path byteSize totalLines binary rawURL lfs { byteSize } submodule { commit } }\n      ... on GitTree { path entries(recursive: $recursive) { path isDirectory submodule { commit } } }\n    }\n    body: path(path: $path) @include(if: $content) {\n      __typename\n      ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }\n    }\n  }\n}\n",
+    "variables": {
+      "content": true,
+      "end": 5,
+      "gitlab": false,
+      "path": "src/cmd/go/testdata/script/go_version.txt",
+      "recursive": false,
+      "repo0": "github.com/golang/go",
+      "repo1": "",
+      "rev": "e3c3d2f9e7ca88e6f240fe00faa67efb03d851a1",
+      "start": 1
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": {
+            "body": {
+              "__typename": "GitBlob",
+              "content": "# test that go version doesn't panic on non-go binaries\r\n# See Issue #49181\r\n\r\n[exec:/bin/true] cp /bin/true true\r\n[exec:C:\\windows\\system32\\help.exe] cp C:\\windows\\system32\\help.exe help.exe\r\n"
+            },
+            "meta": {
+              "__typename": "GitBlob",
+              "binary": false,
+              "byteSize": 236,
+              "lfs": null,
+              "path": "src/cmd/go/testdata/script/go_version.txt",
+              "rawURL": "/r/github.com/golang/go@e3c3d2f9e7ca88e6f240fe00faa67efb03d851a1/-/raw/src/cmd/go/testdata/script/go_version.txt",
+              "submodule": null,
+              "totalLines": 9
+            },
+            "oid": "e3c3d2f9e7ca88e6f240fe00faa67efb03d851a1"
+          },
+          "defaultBranch": {
+            "displayName": "master"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-30T23:46:21Z"
+          },
+          "name": "github.com/golang/go"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

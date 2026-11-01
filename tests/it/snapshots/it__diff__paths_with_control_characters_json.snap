@@ -1,0 +1,54 @@
+---
+source: tests/it/diff.rs
+expression: "answered(&[\"diff\", \"--json\", \"example.com/acme/widget@v1.0.0...v2.0.0\"],\n[first, second])"
+---
+exit: 0
+----- stdout -----
+{
+  "added": 7,
+  "base": "fedcba9876543210fedcba9876543210fedcba98",
+  "commit_a": "0123456789abcdef0123456789abcdef01234567",
+  "commit_b": "89abcdef0123456789abcdef0123456789abcdef",
+  "deleted": 7,
+  "files": [
+    {
+      "added": 1,
+      "deleted": 1,
+      "new_path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "old_path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "status": "M"
+    },
+    {
+      "added": 2,
+      "deleted": 2,
+      "new_path": "n-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "old_path": "o-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "status": "R"
+    },
+    {
+      "added": 4,
+      "deleted": 0,
+      "new_path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi-added",
+      "old_path": null,
+      "status": "A"
+    },
+    {
+      "added": 0,
+      "deleted": 4,
+      "new_path": null,
+      "old_path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi-deleted",
+      "status": "D"
+    }
+  ],
+  "files_more": false,
+  "files_total": 4,
+  "mirrored_at": null,
+  "notes": [],
+  "patch": null,
+  "paths": [],
+  "repo": "example.com/acme/widget",
+  "rev_a": "v1.0.0",
+  "rev_b": "v2.0.0"
+}
+----- stderr -----
+----- end -----

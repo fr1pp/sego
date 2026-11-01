@@ -1,0 +1,60 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"log\", \"--help\"])"
+---
+exit: 0
+----- stdout -----
+usage: sego log [--json] [--follow] REPO[@REV][:PATH] [PATH]
+       sego log [--json] REPO@A..B[:PATH] [PATH]
+
+operands:
+  REPO       host/owner/name or owner/name
+  REPO@REV   commits reachable from REV, in git log order; the default
+             branch without @REV
+  REPO@A..B  commits reachable from B and not from A, as git log A..B
+  PATH       one path, as git log REV -- PATH, which simplifies history
+
+options:
+  --json       one JSON document on stdout
+  --follow     follow PATH back through renames, as git log --follow; one
+               revision and one plain path; merges aren't listed
+  -h, --help   this help, or a command's help after its name
+  --version    sego's version
+
+text:
+  REPO@COMMIT[:PATH]  N commits  behind B  follow  rev REV  mirrored T,
+  then a row per commit, "COMMIT  DATE  AUTHOR  SUBJECT", with
+  "(tag: NAME)" before the subject of a tagged commit. behind B: commits
+  in A and not in B, for a range with no PATH.
+  Text and JSON list the first 150 commits of a REV, and without --follow
+  a note names what lists the rest; a range lists them all in JSON.
+
+json:
+  repo rev commit rev_a rev_b commit_a commit_b path follow behind
+  commits_total commits_more commits[{commit date author subject parents
+  tags}]; date is the UTC day of the author date; tags is null when the
+  tag list couldn't be read; mirrored_at notes
+
+examples:
+  sego log github.com/gorilla/mux:mux.go
+  sego log github.com/gorilla/mux@v1.7.4..v1.8.0 mux.go
+
+errors:
+  An error's indented lines state facts, such as the default branch, and
+  can name the sego command or filter that finds what it couldn't.
+
+exit codes:
+  0  answered, even when the answer is empty or a lower bound
+  1  not found: what the command line names doesn't exist on
+     Sourcegraph; asking again won't help, a different address may
+  2  usage error: the command line is malformed, names what no mirror
+     can hold, or is ambiguous, and must change
+  3  failure: Sourcegraph or the network didn't answer, or the answer
+     couldn't be written; asking again later may help
+
+escapes:
+  Text from Sourcegraph prints a control, separator or invisible
+  character as \u{h}, and a byte that isn't UTF-8 as \x{hh}; a word
+  printed for pasting is quoted for bash. --json keeps the exact text.
+----- stderr -----
+----- end -----

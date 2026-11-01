@@ -1,0 +1,12 @@
+---
+source: tests/it/search.rs
+expression: "sego(&[\"search\", \"repo:^github\\\\.com/gorilla/mux$ type:repo\"])"
+---
+exit: 0
+----- stdout -----
+1 repo  0.0 s
+query  timeout:60s repo:^github\.com/gorilla/mux$ type:repo
+
+github.com/gorilla/mux
+----- stderr -----
+----- end -----

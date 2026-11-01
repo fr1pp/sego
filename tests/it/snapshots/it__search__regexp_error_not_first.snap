@@ -1,0 +1,9 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/acme/widget@v1 /f/\"], [response])"
+---
+exit: 3
+----- stdout -----
+----- stderr -----
+sego: error: Sourcegraph failed to answer the search
+----- end -----

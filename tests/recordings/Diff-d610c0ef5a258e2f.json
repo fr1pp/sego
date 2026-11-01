@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "Diff",
+    "query": "query Diff($repo: String!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!, $path0: String!) {\n  c: repository(name: $repo) {\n    comparison(base: $a, head: $b, fetchMissing: false) {\n      range { mergeBase { oid } }\n      ...Changes\n    }\n  }\n  a: repository(name: $repo) { commit(rev: $a) { oid p0: path(path: $path0) { __typename } } }\n  b: repository(name: $repo) { commit(rev: $b) { oid p0: path(path: $path0) { __typename } } }\n}\n\nfragment Changes on RepositoryComparison {\n  all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }\n  page: fileDiffs(first: $first, paths: $paths) {\n    nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }\n    pageInfo { hasNextPage }\n  }\n  patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }\n}\n",
+    "variables": {
+      "a": "2c1e5b05fe39fc5e6c730dd60e82946b8e67c6ba",
+      "b": "a10e42f219abb9c5bc4e7d86d9464700a42c7d57",
+      "first": 200,
+      "patch": true,
+      "path0": "VERSION",
+      "paths": [
+        "VERSION"
+      ],
+      "repo": "github.com/golang/go"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "a": {
+          "commit": {
+            "oid": "2c1e5b05fe39fc5e6c730dd60e82946b8e67c6ba",
+            "p0": {
+              "__typename": "GitBlob"
+            }
+          }
+        },
+        "b": {
+          "commit": {
+            "oid": "a10e42f219abb9c5bc4e7d86d9464700a42c7d57",
+            "p0": {
+              "__typename": "GitBlob"
+            }
+          }
+        },
+        "c": {
+          "comparison": {
+            "all": {
+              "diffStat": {
+                "added": 2,
+                "deleted": 0
+              },
+              "totalCount": 1
+            },
+            "page": {
+              "nodes": [
+                {
+                  "newPath": "VERSION",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 2,
+                    "deleted": 0
+                  }
+                }
+              ],
+              "pageInfo": {
+                "hasNextPage": false
+              }
+            },
+            "patch": {
+              "rawDiff": "diff --git VERSION VERSION\nnew file mode 100644\nindex 0000000000000000000000000000000000000000..a86e94ed522ccfc70eb86bb213ae6bbb4690a160\n--- /dev/null\n+++ VERSION\n@@ -0,0 +1,2 @@\n+go1.22.0\n+time 2024-02-02T18:09:55Z\n"
+            },
+            "range": {
+              "mergeBase": {
+                "oid": "2639a17f146cc7df0778298c6039156d7ca68202"
+              }
+            }
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

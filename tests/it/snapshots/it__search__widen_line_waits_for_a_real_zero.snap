@@ -1,0 +1,12 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"lang:go Foo\"], [response])"
+---
+exit: 0
+----- stdout -----
+0 matches  1 repo  0.7 s
+query  timeout:60s lang:go Foo
+
+example.com/acme/widget@0123456789ab:main.go
+----- stderr -----
+----- end -----

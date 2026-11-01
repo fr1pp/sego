@@ -1,0 +1,10 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"search\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: search needs a query
+usage: sego search [--json] QUERY...
+----- end -----

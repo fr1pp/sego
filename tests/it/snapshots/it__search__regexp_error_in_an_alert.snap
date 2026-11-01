@@ -1,0 +1,10 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/acme/widget /(a/\"], [response])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: the search's regular expression doesn't compile: missing closing ): `(a`
+usage: sego search [--json] QUERY...
+----- end -----

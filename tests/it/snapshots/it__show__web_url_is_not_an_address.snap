@@ -1,0 +1,11 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\", \"https://github.com/gorilla/mux/blob/v1.8.0/mux.go#L10-L20\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: https://github.com/gorilla/mux/blob/v1.8.0/mux.go#L10-L20 is a URL; an address is host/owner/name or owner/name
+usage: sego show [--json] REPO[@REV]:PATH [LINES]
+       sego show [--json] REPO@REV
+----- end -----

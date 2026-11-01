@@ -1,0 +1,27 @@
+---
+source: tests/it/ls.rs
+expression: "sego(&[\"ls\", \"--json\", \"github.com/gorilla/mux@v1.8.0:mux.go\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "commit": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+  "entries": [
+    {
+      "kind": "file",
+      "path": "mux.go",
+      "submodule_commit": null
+    }
+  ],
+  "entries_more": false,
+  "entries_total": 1,
+  "kind": "file",
+  "mirrored_at": "2026-10-30T23:53Z",
+  "notes": [],
+  "path": "mux.go",
+  "recursive": false,
+  "repo": "github.com/gorilla/mux",
+  "rev": "v1.8.0"
+}
+----- stderr -----
+----- end -----

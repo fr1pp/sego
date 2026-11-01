@@ -1,0 +1,11 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"show\", \"example.com/acme/widget@v1...v2\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: a range is only valid in log (A..B) and diff (A...B): v1...v2
+usage: sego show [--json] REPO[@REV]:PATH [LINES]
+       sego show [--json] REPO@REV
+----- end -----

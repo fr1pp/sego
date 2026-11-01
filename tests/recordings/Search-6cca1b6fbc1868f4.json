@@ -1,0 +1,145 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "Search",
+    "query": "query Search($query: String!) {\n  search(query: $query, version: V3, patternType: keyword) {\n    results {\n      matchCount approximateResultCount limitHit\n      timedout { name }\n      alert { title description kind proposedQueries { description query } }\n      elapsedMilliseconds\n      dynamicFilters { value count kind }\n      results {\n        __typename\n        ... on FileMatch {\n          repository { name }\n          file { path commit { oid } }\n          pathMatches { start { line } }\n          revSpec { ... on GitRevSpecExpr { expr } }\n          chunkMatches { content contentStart { line }\n            ranges { start { line character } end { line character } } }\n          symbols { name kind containerName location { range { start { line } } } }\n        }\n        ... on CommitSearchResult {\n          commit { oid subject author { date person { displayName } } repository { name } }\n          matches { body { text } highlights { line character length } }\n        }\n        ... on Repository { name }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "query": "timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0 Route count:5"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "search": {
+          "results": {
+            "alert": null,
+            "approximateResultCount": "5+",
+            "dynamicFilters": [
+              {
+                "count": 5,
+                "kind": "type",
+                "value": "type:file"
+              },
+              {
+                "count": 5,
+                "kind": "file",
+                "value": "-file:_test\\.\\w+$"
+              },
+              {
+                "count": 5,
+                "kind": "lang",
+                "value": "lang:go"
+              },
+              {
+                "count": 5,
+                "kind": "repo",
+                "value": "repo:^github\\.com/gorilla/mux$@v1.8.0"
+              }
+            ],
+            "elapsedMilliseconds": 54,
+            "limitHit": true,
+            "matchCount": 5,
+            "results": [
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [
+                  {
+                    "content": "type urlBuildingTest struct {\n\troute *Route\n\tvars  []string\n",
+                    "contentStart": {
+                      "line": 362
+                    },
+                    "ranges": [
+                      {
+                        "end": {
+                          "character": 6,
+                          "line": 363
+                        },
+                        "start": {
+                          "character": 1,
+                          "line": 363
+                        }
+                      },
+                      {
+                        "end": {
+                          "character": 13,
+                          "line": 363
+                        },
+                        "start": {
+                          "character": 8,
+                          "line": 363
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "content": "\nfunc TestRouteMatchers(t *testing.T) {\n\tvar scheme, host, path, query, method string\n",
+                    "contentStart": {
+                      "line": 65
+                    },
+                    "ranges": [
+                      {
+                        "end": {
+                          "character": 14,
+                          "line": 66
+                        },
+                        "start": {
+                          "character": 9,
+                          "line": 66
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "content": "\nfunc TestMatchedRouteName(t *testing.T) {\n\trouteName := \"stock\"\n\trouter := NewRouter()\n\troute := router.NewRoute().Path(\"/products/\").Name(routeName)\n\n",
+                    "contentStart": {
+                      "line": 545
+                    },
+                    "ranges": [
+                      {
+                        "end": {
+                          "character": 21,
+                          "line": 546
+                        },
+                        "start": {
+                          "character": 16,
+                          "line": 546
+                        }
+                      },
+                      {
+                        "end": {
+                          "character": 6,
+                          "line": 547
+                        },
+                        "start": {
+                          "character": 1,
+                          "line": 547
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "file": {
+                  "commit": {
+                    "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+                  },
+                  "path": "old_test.go"
+                },
+                "pathMatches": [],
+                "repository": {
+                  "name": "github.com/gorilla/mux"
+                },
+                "revSpec": {
+                  "expr": "v1.8.0"
+                },
+                "symbols": []
+              }
+            ],
+            "timedout": []
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

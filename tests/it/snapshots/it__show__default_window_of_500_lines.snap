@@ -1,0 +1,509 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\", \"github.com/gorilla/mux@v1.8.0:mux.go\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@98cb6bf42e08:mux.go  lines 1-500 of 606 (1- for all)  rev v1.8.0  mirrored 2026-10-31T00:34Z
+1:// Copyright 2012 The Gorilla Authors. All rights reserved.
+2:// Use of this source code is governed by a BSD-style
+3:// license that can be found in the LICENSE file.
+4:
+5:package mux
+6:
+7:import (
+8:	"context"
+9:	"errors"
+10:	"fmt"
+11:	"net/http"
+12:	"path"
+13:	"regexp"
+14:)
+15:
+16:var (
+17:	// ErrMethodMismatch is returned when the method in the request does not match
+18:	// the method defined against the route.
+19:	ErrMethodMismatch = errors.New("method is not allowed")
+20:	// ErrNotFound is returned when no route match is found.
+21:	ErrNotFound = errors.New("no matching route was found")
+22:)
+23:
+24:// NewRouter returns a new router instance.
+25:func NewRouter() *Router {
+26:	return &Router{namedRoutes: make(map[string]*Route)}
+27:}
+28:
+29:// Router registers routes to be matched and dispatches a handler.
+30://
+31:// It implements the http.Handler interface, so it can be registered to serve
+32:// requests:
+33://
+34://     var router = mux.NewRouter()
+35://
+36://     func main() {
+37://         http.Handle("/", router)
+38://     }
+39://
+40:// Or, for Google App Engine, register it in a init() function:
+41://
+42://     func init() {
+43://         http.Handle("/", router)
+44://     }
+45://
+46:// This will send all incoming requests to the router.
+47:type Router struct {
+48:	// Configurable Handler to be used when no route matches.
+49:	NotFoundHandler http.Handler
+50:
+51:	// Configurable Handler to be used when the request method does not match the route.
+52:	MethodNotAllowedHandler http.Handler
+53:
+54:	// Routes to be matched, in order.
+55:	routes []*Route
+56:
+57:	// Routes by name for URL building.
+58:	namedRoutes map[string]*Route
+59:
+60:	// If true, do not clear the request context after handling the request.
+61:	//
+62:	// Deprecated: No effect, since the context is stored on the request itself.
+63:	KeepContext bool
+64:
+65:	// Slice of middlewares to be called after a match is found
+66:	middlewares []middleware
+67:
+68:	// configuration shared with `Route`
+69:	routeConf
+70:}
+71:
+72:// common route configuration shared between `Router` and `Route`
+73:type routeConf struct {
+74:	// If true, "/path/foo%2Fbar/to" will match the path "/path/{var}/to"
+75:	useEncodedPath bool
+76:
+77:	// If true, when the path pattern is "/path/", accessing "/path" will
+78:	// redirect to the former and vice versa.
+79:	strictSlash bool
+80:
+81:	// If true, when the path pattern is "/path//to", accessing "/path//to"
+82:	// will not redirect
+83:	skipClean bool
+84:
+85:	// Manager for the variables from host and path.
+86:	regexp routeRegexpGroup
+87:
+88:	// List of matchers.
+89:	matchers []matcher
+90:
+91:	// The scheme used when building URLs.
+92:	buildScheme string
+93:
+94:	buildVarsFunc BuildVarsFunc
+95:}
+96:
+97:// returns an effective deep copy of `routeConf`
+98:func copyRouteConf(r routeConf) routeConf {
+99:	c := r
+100:
+101:	if r.regexp.path != nil {
+102:		c.regexp.path = copyRouteRegexp(r.regexp.path)
+103:	}
+104:
+105:	if r.regexp.host != nil {
+106:		c.regexp.host = copyRouteRegexp(r.regexp.host)
+107:	}
+108:
+109:	c.regexp.queries = make([]*routeRegexp, 0, len(r.regexp.queries))
+110:	for _, q := range r.regexp.queries {
+111:		c.regexp.queries = append(c.regexp.queries, copyRouteRegexp(q))
+112:	}
+113:
+114:	c.matchers = make([]matcher, len(r.matchers))
+115:	copy(c.matchers, r.matchers)
+116:
+117:	return c
+118:}
+119:
+120:func copyRouteRegexp(r *routeRegexp) *routeRegexp {
+121:	c := *r
+122:	return &c
+123:}
+124:
+125:// Match attempts to match the given request against the router's registered routes.
+126://
+127:// If the request matches a route of this router or one of its subrouters the Route,
+128:// Handler, and Vars fields of the the match argument are filled and this function
+129:// returns true.
+130://
+131:// If the request does not match any of this router's or its subrouters' routes
+132:// then this function returns false. If available, a reason for the match failure
+133:// will be filled in the match argument's MatchErr field. If the match failure type
+134:// (eg: not found) has a registered handler, the handler is assigned to the Handler
+135:// field of the match argument.
+136:func (r *Router) Match(req *http.Request, match *RouteMatch) bool {
+137:	for _, route := range r.routes {
+138:		if route.Match(req, match) {
+139:			// Build middleware chain if no error was found
+140:			if match.MatchErr == nil {
+141:				for i := len(r.middlewares) - 1; i >= 0; i-- {
+142:					match.Handler = r.middlewares[i].Middleware(match.Handler)
+143:				}
+144:			}
+145:			return true
+146:		}
+147:	}
+148:
+149:	if match.MatchErr == ErrMethodMismatch {
+150:		if r.MethodNotAllowedHandler != nil {
+151:			match.Handler = r.MethodNotAllowedHandler
+152:			return true
+153:		}
+154:
+155:		return false
+156:	}
+157:
+158:	// Closest match for a router (includes sub-routers)
+159:	if r.NotFoundHandler != nil {
+160:		match.Handler = r.NotFoundHandler
+161:		match.MatchErr = ErrNotFound
+162:		return true
+163:	}
+164:
+165:	match.MatchErr = ErrNotFound
+166:	return false
+167:}
+168:
+169:// ServeHTTP dispatches the handler registered in the matched route.
+170://
+171:// When there is a match, the route variables can be retrieved calling
+172:// mux.Vars(request).
+173:func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+174:	if !r.skipClean {
+175:		path := req.URL.Path
+176:		if r.useEncodedPath {
+177:			path = req.URL.EscapedPath()
+178:		}
+179:		// Clean path to canonical form and redirect.
+180:		if p := cleanPath(path); p != path {
+181:
+182:			// Added 3 lines (Philip Schlump) - It was dropping the query string and #whatever from query.
+183:			// This matches with fix in go 1.2 r.c. 4 for same problem.  Go Issue:
+184:			// http://code.google.com/p/go/issues/detail?id=5252
+185:			url := *req.URL
+186:			url.Path = p
+187:			p = url.String()
+188:
+189:			w.Header().Set("Location", p)
+190:			w.WriteHeader(http.StatusMovedPermanently)
+191:			return
+192:		}
+193:	}
+194:	var match RouteMatch
+195:	var handler http.Handler
+196:	if r.Match(req, &match) {
+197:		handler = match.Handler
+198:		req = requestWithVars(req, match.Vars)
+199:		req = requestWithRoute(req, match.Route)
+200:	}
+201:
+202:	if handler == nil && match.MatchErr == ErrMethodMismatch {
+203:		handler = methodNotAllowedHandler()
+204:	}
+205:
+206:	if handler == nil {
+207:		handler = http.NotFoundHandler()
+208:	}
+209:
+210:	handler.ServeHTTP(w, req)
+211:}
+212:
+213:// Get returns a route registered with the given name.
+214:func (r *Router) Get(name string) *Route {
+215:	return r.namedRoutes[name]
+216:}
+217:
+218:// GetRoute returns a route registered with the given name. This method
+219:// was renamed to Get() and remains here for backwards compatibility.
+220:func (r *Router) GetRoute(name string) *Route {
+221:	return r.namedRoutes[name]
+222:}
+223:
+224:// StrictSlash defines the trailing slash behavior for new routes. The initial
+225:// value is false.
+226://
+227:// When true, if the route path is "/path/", accessing "/path" will perform a redirect
+228:// to the former and vice versa. In other words, your application will always
+229:// see the path as specified in the route.
+230://
+231:// When false, if the route path is "/path", accessing "/path/" will not match
+232:// this route and vice versa.
+233://
+234:// The re-direct is a HTTP 301 (Moved Permanently). Note that when this is set for
+235:// routes with a non-idempotent method (e.g. POST, PUT), the subsequent re-directed
+236:// request will be made as a GET by most clients. Use middleware or client settings
+237:// to modify this behaviour as needed.
+238://
+239:// Special case: when a route sets a path prefix using the PathPrefix() method,
+240:// strict slash is ignored for that route because the redirect behavior can't
+241:// be determined from a prefix alone. However, any subrouters created from that
+242:// route inherit the original StrictSlash setting.
+243:func (r *Router) StrictSlash(value bool) *Router {
+244:	r.strictSlash = value
+245:	return r
+246:}
+247:
+248:// SkipClean defines the path cleaning behaviour for new routes. The initial
+249:// value is false. Users should be careful about which routes are not cleaned
+250://
+251:// When true, if the route path is "/path//to", it will remain with the double
+252:// slash. This is helpful if you have a route like: /fetch/http://xkcd.com/534/
+253://
+254:// When false, the path will be cleaned, so /fetch/http://xkcd.com/534/ will
+255:// become /fetch/http/xkcd.com/534
+256:func (r *Router) SkipClean(value bool) *Router {
+257:	r.skipClean = value
+258:	return r
+259:}
+260:
+261:// UseEncodedPath tells the router to match the encoded original path
+262:// to the routes.
+263:// For eg. "/path/foo%2Fbar/to" will match the path "/path/{var}/to".
+264://
+265:// If not called, the router will match the unencoded path to the routes.
+266:// For eg. "/path/foo%2Fbar/to" will match the path "/path/foo/bar/to"
+267:func (r *Router) UseEncodedPath() *Router {
+268:	r.useEncodedPath = true
+269:	return r
+270:}
+271:
+272:// ----------------------------------------------------------------------------
+273:// Route factories
+274:// ----------------------------------------------------------------------------
+275:
+276:// NewRoute registers an empty route.
+277:func (r *Router) NewRoute() *Route {
+278:	// initialize a route with a copy of the parent router's configuration
+279:	route := &Route{routeConf: copyRouteConf(r.routeConf), namedRoutes: r.namedRoutes}
+280:	r.routes = append(r.routes, route)
+281:	return route
+282:}
+283:
+284:// Name registers a new route with a name.
+285:// See Route.Name().
+286:func (r *Router) Name(name string) *Route {
+287:	return r.NewRoute().Name(name)
+288:}
+289:
+290:// Handle registers a new route with a matcher for the URL path.
+291:// See Route.Path() and Route.Handler().
+292:func (r *Router) Handle(path string, handler http.Handler) *Route {
+293:	return r.NewRoute().Path(path).Handler(handler)
+294:}
+295:
+296:// HandleFunc registers a new route with a matcher for the URL path.
+297:// See Route.Path() and Route.HandlerFunc().
+298:func (r *Router) HandleFunc(path string, f func(http.ResponseWriter,
+299:	*http.Request)) *Route {
+300:	return r.NewRoute().Path(path).HandlerFunc(f)
+301:}
+302:
+303:// Headers registers a new route with a matcher for request header values.
+304:// See Route.Headers().
+305:func (r *Router) Headers(pairs ...string) *Route {
+306:	return r.NewRoute().Headers(pairs...)
+307:}
+308:
+309:// Host registers a new route with a matcher for the URL host.
+310:// See Route.Host().
+311:func (r *Router) Host(tpl string) *Route {
+312:	return r.NewRoute().Host(tpl)
+313:}
+314:
+315:// MatcherFunc registers a new route with a custom matcher function.
+316:// See Route.MatcherFunc().
+317:func (r *Router) MatcherFunc(f MatcherFunc) *Route {
+318:	return r.NewRoute().MatcherFunc(f)
+319:}
+320:
+321:// Methods registers a new route with a matcher for HTTP methods.
+322:// See Route.Methods().
+323:func (r *Router) Methods(methods ...string) *Route {
+324:	return r.NewRoute().Methods(methods...)
+325:}
+326:
+327:// Path registers a new route with a matcher for the URL path.
+328:// See Route.Path().
+329:func (r *Router) Path(tpl string) *Route {
+330:	return r.NewRoute().Path(tpl)
+331:}
+332:
+333:// PathPrefix registers a new route with a matcher for the URL path prefix.
+334:// See Route.PathPrefix().
+335:func (r *Router) PathPrefix(tpl string) *Route {
+336:	return r.NewRoute().PathPrefix(tpl)
+337:}
+338:
+339:// Queries registers a new route with a matcher for URL query values.
+340:// See Route.Queries().
+341:func (r *Router) Queries(pairs ...string) *Route {
+342:	return r.NewRoute().Queries(pairs...)
+343:}
+344:
+345:// Schemes registers a new route with a matcher for URL schemes.
+346:// See Route.Schemes().
+347:func (r *Router) Schemes(schemes ...string) *Route {
+348:	return r.NewRoute().Schemes(schemes...)
+349:}
+350:
+351:// BuildVarsFunc registers a new route with a custom function for modifying
+352:// route variables before building a URL.
+353:func (r *Router) BuildVarsFunc(f BuildVarsFunc) *Route {
+354:	return r.NewRoute().BuildVarsFunc(f)
+355:}
+356:
+357:// Walk walks the router and all its sub-routers, calling walkFn for each route
+358:// in the tree. The routes are walked in the order they were added. Sub-routers
+359:// are explored depth-first.
+360:func (r *Router) Walk(walkFn WalkFunc) error {
+361:	return r.walk(walkFn, []*Route{})
+362:}
+363:
+364:// SkipRouter is used as a return value from WalkFuncs to indicate that the
+365:// router that walk is about to descend down to should be skipped.
+366:var SkipRouter = errors.New("skip this router")
+367:
+368:// WalkFunc is the type of the function called for each route visited by Walk.
+369:// At every invocation, it is given the current route, and the current router,
+370:// and a list of ancestor routes that lead to the current route.
+371:type WalkFunc func(route *Route, router *Router, ancestors []*Route) error
+372:
+373:func (r *Router) walk(walkFn WalkFunc, ancestors []*Route) error {
+374:	for _, t := range r.routes {
+375:		err := walkFn(t, r, ancestors)
+376:		if err == SkipRouter {
+377:			continue
+378:		}
+379:		if err != nil {
+380:			return err
+381:		}
+382:		for _, sr := range t.matchers {
+383:			if h, ok := sr.(*Router); ok {
+384:				ancestors = append(ancestors, t)
+385:				err := h.walk(walkFn, ancestors)
+386:				if err != nil {
+387:					return err
+388:				}
+389:				ancestors = ancestors[:len(ancestors)-1]
+390:			}
+391:		}
+392:		if h, ok := t.handler.(*Router); ok {
+393:			ancestors = append(ancestors, t)
+394:			err := h.walk(walkFn, ancestors)
+395:			if err != nil {
+396:				return err
+397:			}
+398:			ancestors = ancestors[:len(ancestors)-1]
+399:		}
+400:	}
+401:	return nil
+402:}
+403:
+404:// ----------------------------------------------------------------------------
+405:// Context
+406:// ----------------------------------------------------------------------------
+407:
+408:// RouteMatch stores information about a matched route.
+409:type RouteMatch struct {
+410:	Route   *Route
+411:	Handler http.Handler
+412:	Vars    map[string]string
+413:
+414:	// MatchErr is set to appropriate matching error
+415:	// It is set to ErrMethodMismatch if there is a mismatch in
+416:	// the request method and route method
+417:	MatchErr error
+418:}
+419:
+420:type contextKey int
+421:
+422:const (
+423:	varsKey contextKey = iota
+424:	routeKey
+425:)
+426:
+427:// Vars returns the route variables for the current request, if any.
+428:func Vars(r *http.Request) map[string]string {
+429:	if rv := r.Context().Value(varsKey); rv != nil {
+430:		return rv.(map[string]string)
+431:	}
+432:	return nil
+433:}
+434:
+435:// CurrentRoute returns the matched route for the current request, if any.
+436:// This only works when called inside the handler of the matched route
+437:// because the matched route is stored in the request context which is cleared
+438:// after the handler returns.
+439:func CurrentRoute(r *http.Request) *Route {
+440:	if rv := r.Context().Value(routeKey); rv != nil {
+441:		return rv.(*Route)
+442:	}
+443:	return nil
+444:}
+445:
+446:func requestWithVars(r *http.Request, vars map[string]string) *http.Request {
+447:	ctx := context.WithValue(r.Context(), varsKey, vars)
+448:	return r.WithContext(ctx)
+449:}
+450:
+451:func requestWithRoute(r *http.Request, route *Route) *http.Request {
+452:	ctx := context.WithValue(r.Context(), routeKey, route)
+453:	return r.WithContext(ctx)
+454:}
+455:
+456:// ----------------------------------------------------------------------------
+457:// Helpers
+458:// ----------------------------------------------------------------------------
+459:
+460:// cleanPath returns the canonical path for p, eliminating . and .. elements.
+461:// Borrowed from the net/http package.
+462:func cleanPath(p string) string {
+463:	if p == "" {
+464:		return "/"
+465:	}
+466:	if p[0] != '/' {
+467:		p = "/" + p
+468:	}
+469:	np := path.Clean(p)
+470:	// path.Clean removes trailing slash except for root;
+471:	// put the trailing slash back if necessary.
+472:	if p[len(p)-1] == '/' && np != "/" {
+473:		np += "/"
+474:	}
+475:
+476:	return np
+477:}
+478:
+479:// uniqueVars returns an error if two slices contain duplicated strings.
+480:func uniqueVars(s1, s2 []string) error {
+481:	for _, v1 := range s1 {
+482:		for _, v2 := range s2 {
+483:			if v1 == v2 {
+484:				return fmt.Errorf("mux: duplicated route variable %q", v2)
+485:			}
+486:		}
+487:	}
+488:	return nil
+489:}
+490:
+491:// checkPairs returns the count of strings passed in, and an error if
+492:// the count is not an even number.
+493:func checkPairs(pairs ...string) (int, error) {
+494:	length := len(pairs)
+495:	if length%2 != 0 {
+496:		return length, fmt.Errorf(
+497:			"mux: number of parameters must be multiple of 2, got %v", pairs)
+498:	}
+499:	return length, nil
+500:}
+----- stderr -----
+----- end -----

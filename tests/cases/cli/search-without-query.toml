@@ -1,7 +1,0 @@
-# A search with no query text is a usage error.
-args = ["search"]
-status.code = 2
-stderr = '''
-sego: error: search needs a query
-usage: sego search [--json] QUERY...
-'''

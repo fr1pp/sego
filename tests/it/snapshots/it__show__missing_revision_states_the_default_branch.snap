@@ -1,0 +1,10 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\", \"github.com/gorilla/mux@release/1.8:mux.go\"])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: revision release/1.8 not found in github.com/gorilla/mux
+  the default branch is main
+----- end -----

@@ -1,0 +1,13 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/app foo count:1000\"], [response])"
+---
+exit: 0
+----- stdout -----
+1 match  1 repo  59.5 s
+query  timeout:60s repo:example.com/app foo count:1000
+
+example.com/app@0123456789ab:main.go
+1:foo 0
+----- stderr -----
+----- end -----

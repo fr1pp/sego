@@ -1,0 +1,88 @@
+{
+  "date": "2026-10-27",
+  "request": {
+    "operation": "Commit",
+    "query": "query Commit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $paths: [String!], $first: Int, $patch: Boolean!) {\n  r0: repository(name: $repo0) { ...Commit }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...Commit }\n}\n\nfragment Commit on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\n    oid subject message\n    author { date person { displayName } }\n    committer { date person { displayName } }\n    parents { oid }\n\n    w: tree(path: \"\") { commit { diff { ...Changes } } }\n  }\n}\n\nfragment Changes on RepositoryComparison {\n  all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }\n  page: fileDiffs(first: $first, paths: $paths) {\n    nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }\n    pageInfo { hasNextPage }\n  }\n  patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }\n}\n",
+    "variables": {
+      "first": 200,
+      "gitlab": false,
+      "patch": false,
+      "paths": null,
+      "repo0": "github.com/gorilla/mux",
+      "repo1": "",
+      "rev": "948bec3"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": {
+            "author": {
+              "date": "2020-05-17T04:02:54Z",
+              "person": {
+                "displayName": "Eric Skoglund"
+              }
+            },
+            "committer": {
+              "date": "2020-05-17T04:02:54Z",
+              "person": {
+                "displayName": "GitHub"
+              }
+            },
+            "message": "docs: Remove stale text from comment. (#568)\n\nComment for CurrentRoute claimed that setting the KeepContext option would propagate\r\nthe Route even after the request. The KeepContext option is deprecated and has no effect.",
+            "oid": "948bec34b5168796bf3fc4dbb09215baa970351a",
+            "parents": [
+              {
+                "oid": "75dcda0896e109a2a22c9315bca3bb21b87b2ba5"
+              }
+            ],
+            "subject": "docs: Remove stale text from comment. (#568)",
+            "w": {
+              "commit": {
+                "diff": {
+                  "all": {
+                    "diffStat": {
+                      "added": 1,
+                      "deleted": 2
+                    },
+                    "totalCount": 1
+                  },
+                  "page": {
+                    "nodes": [
+                      {
+                        "newPath": "mux.go",
+                        "oldFile": {
+                          "commit": {
+                            "oid": "75dcda0896e109a2a22c9315bca3bb21b87b2ba5"
+                          }
+                        },
+                        "oldPath": "mux.go",
+                        "stat": {
+                          "added": 1,
+                          "deleted": 2
+                        }
+                      }
+                    ],
+                    "pageInfo": {
+                      "hasNextPage": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "defaultBranch": {
+            "displayName": "main"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-27T07:34:45Z"
+          },
+          "name": "github.com/gorilla/mux"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

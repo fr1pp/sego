@@ -1,8 +1,0 @@
-# No option takes a value.
-args = ["show", "--json=1", "example.com/acme/widget:a.go"]
-status.code = 2
-stderr = '''
-sego: error: --json takes no value
-usage: sego show [--json] REPO[@REV]:PATH [LINES]
-       sego show [--json] REPO@REV
-'''

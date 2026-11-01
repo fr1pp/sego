@@ -1,0 +1,10 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"github.com/gorilla/mux@dead...beef\"])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: revisions dead and beef not found in github.com/gorilla/mux: no ref has either name and no single commit starts with either
+  the default branch is main
+----- end -----

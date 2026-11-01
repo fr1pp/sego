@@ -1,0 +1,94 @@
+{
+  "date": "2026-10-29",
+  "request": {
+    "operation": "Commit",
+    "query": "query Commit($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $paths: [String!], $first: Int, $patch: Boolean!, $path0: String!) {\n  r0: repository(name: $repo0) { ...Commit }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...Commit }\n}\n\nfragment Commit on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\n    oid subject message\n    author { date person { displayName } }\n    committer { date person { displayName } }\n    parents { oid p0: path(path: $path0) { __typename } }\n    p0: path(path: $path0) { __typename }\n    w: tree(path: \"\") { commit { diff { ...Changes } } }\n  }\n}\n\nfragment Changes on RepositoryComparison {\n  all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }\n  page: fileDiffs(first: $first, paths: $paths) {\n    nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }\n    pageInfo { hasNextPage }\n  }\n  patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }\n}\n",
+    "variables": {
+      "first": 200,
+      "gitlab": false,
+      "patch": true,
+      "path0": "tools/testing/selftests/devices/probe/boards/Dell Inc.,XPS 13 9300.yaml",
+      "paths": [
+        "tools/testing/selftests/devices/probe/boards/Dell Inc.,XPS 13 9300.yaml"
+      ],
+      "repo0": "github.com/torvalds/linux",
+      "repo1": "",
+      "rev": "0debb20c5c812f8750c20c3406bc94a1e8ea4742"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": {
+            "author": {
+              "date": "2024-07-05T23:29:54Z",
+              "person": {
+                "displayName": "Nícolas F. R. A. Prado"
+              }
+            },
+            "committer": {
+              "date": "2024-07-12T08:59:06Z",
+              "person": {
+                "displayName": "Greg Kroah-Hartman"
+              }
+            },
+            "message": "kselftest: devices: Move discoverable devices test to subdirectory\n\nMove the discoverable devices test to a subdirectory to allow other\nrelated tests to be added to the devices directory.\n\nSigned-off-by: Nícolas F. R. A. Prado <nfraprado@collabora.com>\nAcked-by: Shuah Khan <skhan@linuxfoundation.org>\nAcked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>\nLink: https://lore.kernel.org/r/20240705-dev-err-log-selftest-v2-1-163b9cd7b3c1@collabora.com\nSigned-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>",
+            "oid": "0debb20c5c812f8750c20c3406bc94a1e8ea4742",
+            "p0": {
+              "__typename": "GitBlob"
+            },
+            "parents": [
+              {
+                "oid": "e60284b63245b84c3ae352427ed5ff8b79266b91",
+                "p0": null
+              }
+            ],
+            "subject": "kselftest: devices: Move discoverable devices test to subdirectory",
+            "w": {
+              "commit": {
+                "diff": {
+                  "all": {
+                    "diffStat": {
+                      "added": 40,
+                      "deleted": 0
+                    },
+                    "totalCount": 1
+                  },
+                  "page": {
+                    "nodes": [
+                      {
+                        "newPath": "tools/testing/selftests/devices/probe/boards/Dell Inc.,XPS 13 9300.yaml",
+                        "oldFile": null,
+                        "oldPath": null,
+                        "stat": {
+                          "added": 40,
+                          "deleted": 0
+                        }
+                      }
+                    ],
+                    "pageInfo": {
+                      "hasNextPage": false
+                    }
+                  },
+                  "patch": {
+                    "rawDiff": "diff --git tools/testing/selftests/devices/probe/boards/Dell Inc.,XPS 13 9300.yaml tools/testing/selftests/devices/probe/boards/Dell Inc.,XPS 13 9300.yaml\nnew file mode 100644\nindex 0000000000000000000000000000000000000000..ff932eb19f0b1380413e3ffa2f8763e840f0c23c\n--- /dev/null\n+++ tools/testing/selftests/devices/probe/boards/Dell Inc.,XPS 13 9300.yaml\n@@ -0,0 +1,40 @@\n+# SPDX-License-Identifier: GPL-2.0\n+#\n+# This is the device definition for the XPS 13 9300.\n+# The filename \"Dell Inc.,XPS 13 9300\" was chosen following the format\n+# \"Vendor,Product\", where Vendor comes from\n+# /sys/devices/virtual/dmi/id/sys_vendor, and Product comes from\n+# /sys/devices/virtual/dmi/id/product_name.\n+#\n+# See google,spherion.yaml for more information.\n+#\n+- type: pci-controller\n+  # This machine has a single PCI host controller so it's valid to not have any\n+  # key to identify the controller. If it had more than one controller, the UID\n+  # of the controller from ACPI could be used to distinguish as follows:\n+  #acpi-uid: 0\n+  devices:\n+    - path: 14.0\n+      type: usb-controller\n+      usb-version: 2\n+      devices:\n+        - path: 9\n+          name: camera\n+          interfaces: [0, 1, 2, 3]\n+        - path: 10\n+          name: bluetooth\n+          interfaces: [0, 1]\n+    - path: 2.0\n+      name: gpu\n+    - path: 4.0\n+      name: thermal\n+    - path: 12.0\n+      name: sensors\n+    - path: 14.3\n+      name: wifi\n+    - path: 1d.0/0.0\n+      name: ssd\n+    - path: 1d.7/0.0\n+      name: sdcard-reader\n+    - path: 1f.3\n+      name: audio\n"
+                  }
+                }
+              }
+            }
+          },
+          "defaultBranch": {
+            "displayName": "master"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-29T00:28:03Z"
+          },
+          "name": "github.com/torvalds/linux"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

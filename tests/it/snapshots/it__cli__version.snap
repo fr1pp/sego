@@ -1,0 +1,9 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"--version\"])"
+---
+exit: 0
+----- stdout -----
+sego 0.3.0
+----- stderr -----
+----- end -----

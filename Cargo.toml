@@ -28,8 +28,7 @@ ureq = "3.5.0"
 rustix = { version = "1", default-features = false, features = ["fs", "std"] }
 
 [dev-dependencies]
-similar = "3"
-toml_edit = "0.25"
+insta = { version = "1.49", default-features = false }
 
 [lints.rust]
 unsafe_code = "forbid"

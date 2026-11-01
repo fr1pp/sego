@@ -1,0 +1,14 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\", \"github.com/go-gitea/gitea@965d7522:options/gitignore/macOS\",\n\"5-9\"])"
+---
+exit: 0
+----- stdout -----
+github.com/go-gitea/gitea@965d7522e0b3:options/gitignore/macOS  lines 5-9 of 26
+5:
+6:# Icon must end with two \r
+7:Icon\u{d}\u{d}
+8:
+9:# Thumbnails
+----- stderr -----
+----- end -----

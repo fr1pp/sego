@@ -1,0 +1,13 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"github.com/gorilla/mux@a796238...v1.7.1\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@a7962380ca08...c5c6c98bc253  4 files  +13 -6  base a7962380ca08  rev a796238...v1.7.1  mirrored 2026-10-27T07:13Z
+M  +2 -2  .travis.yml
+M  +6 -0  mux.go
+M  +4 -3  mux_test.go
+M  +1 -1  route.go
+----- stderr -----
+----- end -----

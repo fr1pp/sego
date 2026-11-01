@@ -1,0 +1,120 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"--json\", \"repo:example.com/app foo\"], [response])"
+---
+exit: 0
+----- stdout -----
+{
+  "alert": null,
+  "at_least": false,
+  "count": 2,
+  "elapsed_ms": 100,
+  "limit_ms": 60000,
+  "notes": [],
+  "pattern_type": "keyword",
+  "query": "timeout:60s repo:example.com/app foo",
+  "results": [
+    {
+      "chunk": 1,
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "line",
+      "line": 1,
+      "match": false,
+      "path": "a.go",
+      "ranges": [],
+      "repo": "example.com/app",
+      "rev": null,
+      "text": "a"
+    },
+    {
+      "chunk": 1,
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "line",
+      "line": 2,
+      "match": true,
+      "path": "a.go",
+      "ranges": [
+        [
+          0,
+          1
+        ]
+      ],
+      "repo": "example.com/app",
+      "rev": null,
+      "text": "b"
+    },
+    {
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "container": null,
+      "kind": "symbol",
+      "line": 2,
+      "name": "T",
+      "path": "a.go",
+      "repo": "example.com/app",
+      "rev": null,
+      "symbol_kind": "function"
+    },
+    {
+      "chunk": 1,
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "line",
+      "line": 3,
+      "match": false,
+      "path": "a.go",
+      "ranges": [],
+      "repo": "example.com/app",
+      "rev": null,
+      "text": "c"
+    },
+    {
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "container": null,
+      "kind": "symbol",
+      "line": 9,
+      "name": "S",
+      "path": "a.go",
+      "repo": "example.com/app",
+      "rev": null,
+      "symbol_kind": "function"
+    },
+    {
+      "chunk": 2,
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "line",
+      "line": 21,
+      "match": true,
+      "path": "a.go",
+      "ranges": [
+        [
+          0,
+          1
+        ]
+      ],
+      "repo": "example.com/app",
+      "rev": null,
+      "text": "z"
+    },
+    {
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "container": null,
+      "kind": "symbol",
+      "line": null,
+      "name": "N",
+      "path": "a.go",
+      "repo": "example.com/app",
+      "rev": null,
+      "symbol_kind": "function"
+    }
+  ],
+  "server": {
+    "approximate_count": "2",
+    "limit_hit": false,
+    "match_count": 2,
+    "timedout": []
+  },
+  "stopped": false,
+  "unit": "matches",
+  "widen": []
+}
+----- stderr -----
+----- end -----

@@ -1,0 +1,42 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"github.com/gorilla/mux@v1.7.0...v1.7.1:mux.go\", \"route.go\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@a7962380ca08...c5c6c98bc253  2 files  +7 -1  paths mux.go route.go  base a7962380ca08  rev v1.7.0...v1.7.1  mirrored 2026-10-27T07:13Z
+M  +6 -0  mux.go
+M  +1 -1  route.go
+
+    diff --git mux.go mux.go
+    index 8aca972d2f6187d95e4726eaee631384ffec240f..a2cd193e4870256ae36709056aeb70aa410b7990 100644
+    --- mux.go
+    +++ mux.go
+    @@ -283,6 +283,12 @@ func (r *Router) NewRoute() *Route {
+     	return route
+     }
+     
+    +// Name registers a new route with a name.
+    +// See Route.Name().
+    +func (r *Router) Name(name string) *Route {
+    +	return r.NewRoute().Name(name)
+    +}
+    +
+     // Handle registers a new route with a matcher for the URL path.
+     // See Route.Path() and Route.Handler().
+     func (r *Router) Handle(path string, handler http.Handler) *Route {
+    diff --git route.go route.go
+    index 16a7cdf4eadc120fcf92a86cb3c623c6785aa516..8479c68c1df7e866c42981389c610b488a179041 100644
+    --- route.go
+    +++ route.go
+    @@ -383,7 +383,7 @@ func (r *Route) PathPrefix(tpl string) *Route {
+     // The above route will only match if the URL contains the defined queries
+     // values, e.g.: ?foo=bar&id=42.
+     //
+    -// It the value is an empty string, it will match any value if the key is set.
+    +// If the value is an empty string, it will match any value if the key is set.
+     //
+     // Variables can define an optional regexp pattern to be matched:
+     //
+----- stderr -----
+----- end -----

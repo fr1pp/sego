@@ -1,0 +1,13 @@
+---
+source: tests/it/show.rs
+expression: "answered(&[\"show\",\n\"github.com/sharkdp/bat@a9aa73d2:tests/snapshots/sample.modified.rs\",\n\"12-15\"], [first.into(), second])"
+---
+exit: 0
+----- stdout -----
+github.com/sharkdp/bat@a9aa73d21545:tests/snapshots/sample.modified.rs  lines 12-15 of 23  not UTF-8
+12:        perimeter(&rect1)
+13:    );
+14:    println!(r#"This line contains invalid utf8:  "\x{f8}\x{88}\x{80}\x{80}\x{80}"#;
+15:}
+----- stderr -----
+----- end -----

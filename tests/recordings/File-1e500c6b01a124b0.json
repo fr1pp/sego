@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "File",
+    "query": "query File($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String!, $recursive: Boolean!, $content: Boolean!, $start: Int, $end: Int) {\n  r0: repository(name: $repo0) { ...File }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...File }\n}\n\nfragment File on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\noid\n    meta: path(path: $path) {\n      __typename\n      ... on GitBlob { path byteSize totalLines binary rawURL lfs { byteSize } submodule { commit } }\n      ... on GitTree { path entries(recursive: $recursive) { path isDirectory submodule { commit } } }\n    }\n    body: path(path: $path) @include(if: $content) {\n      __typename\n      ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }\n    }\n  }\n}\n",
+    "variables": {
+      "content": true,
+      "end": 2,
+      "gitlab": true,
+      "path": "README.md",
+      "recursive": false,
+      "repo0": "github.com/gorilla/mux",
+      "repo1": "gitlab.com/gorilla/mux",
+      "rev": "HEAD",
+      "start": 1
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": {
+            "body": {
+              "__typename": "GitBlob",
+              "content": "# gorilla/mux\n\n"
+            },
+            "meta": {
+              "__typename": "GitBlob",
+              "binary": false,
+              "byteSize": 25673,
+              "lfs": null,
+              "path": "README.md",
+              "rawURL": "/r/github.com/gorilla/mux@db9d1d0073d27a0a2d9a8c1bc52aa0af4374d265/-/raw/README.md",
+              "submodule": null,
+              "totalLines": 812
+            },
+            "oid": "db9d1d0073d27a0a2d9a8c1bc52aa0af4374d265"
+          },
+          "defaultBranch": {
+            "displayName": "main"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-31T00:35:11Z"
+          },
+          "name": "github.com/gorilla/mux"
+        },
+        "r1": null
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

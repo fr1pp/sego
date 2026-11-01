@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "Refs",
+    "query": "query Refs($repo0: String!, $repo1: String!, $gitlab: Boolean!, $first: Int, $query: String, $unfiltered: Boolean!) {\n  r0: repository(name: $repo0) { ...Refs }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...Refs }\n}\n\nfragment Refs on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  branches(first: $first, query: $query) { ...Listing }\n  tags(first: $first, query: $query) { ...Listing }\n  all_branches: branches(first: 1) @include(if: $unfiltered) { totalCount }\n  all_tags: tags(first: 1) @include(if: $unfiltered) { totalCount }\n}\n\nfragment Listing on GitRefConnection {\n  totalCount\n  nodes { displayName target { oid } }\n}\n",
+    "variables": {
+      "first": 100,
+      "gitlab": false,
+      "query": "14.1",
+      "repo0": "github.com/BurntSushi/ripgrep",
+      "repo1": "",
+      "unfiltered": true
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "all_branches": {
+            "totalCount": 16
+          },
+          "all_tags": {
+            "totalCount": 274
+          },
+          "branches": {
+            "nodes": [],
+            "totalCount": 0
+          },
+          "defaultBranch": {
+            "displayName": "master"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-31T08:22:10Z"
+          },
+          "name": "github.com/BurntSushi/ripgrep",
+          "tags": {
+            "nodes": [
+              {
+                "displayName": "14.1.1",
+                "target": {
+                  "oid": "4649aa9700619f94cf9c66876e9549d83420e16c"
+                }
+              },
+              {
+                "displayName": "14.1.0",
+                "target": {
+                  "oid": "e50df40a1967708b9781486b1c017e48040bceb0"
+                }
+              }
+            ],
+            "totalCount": 2
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

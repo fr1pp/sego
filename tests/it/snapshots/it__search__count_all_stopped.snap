@@ -1,0 +1,19 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/app foo count:all\"], [response])"
+---
+exit: 0
+----- stdout -----
+3472+ matches  1 repo  stopped at 62.2 s
+query  timeout:60s repo:example.com/app foo count:all
+
+example.com/app@0123456789ab:a.go
+1:foo 0
+2:foo 1
+3:foo 2
+
+example.com/app@0123456789ab:b.go
+1:foo 0
+2:foo 1
+----- stderr -----
+----- end -----

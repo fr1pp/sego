@@ -1,0 +1,16 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/acme/widget type:repo\"], [response])"
+---
+exit: 0
+----- stdout -----
+1 repo  0.1 s
+query  timeout:60s repo:example.com/acme/widget type:repo
+
+example.com/acme/widget
+----- stderr -----
+sego: note: Heads up: text
+sego: note: the server proposes: q
+sego: note: 2 results of kind NewKind not shown
+sego: note: 1 result of kind Other not shown
+----- end -----

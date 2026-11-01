@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-27",
+  "request": {
+    "operation": "Range",
+    "query": "query Range($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!) {\n  r0: repository(name: $repo0) { ...Ends }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...Ends }\n}\n\nfragment Ends on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  a: commit(rev: $a) { oid }\n  b: commit(rev: $b) { oid }\n}\n",
+    "variables": {
+      "a": "v1",
+      "b": "v2",
+      "gitlab": false,
+      "repo0": "github.com/ascoders/blog",
+      "repo1": ""
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "a": null,
+          "b": null,
+          "defaultBranch": null,
+          "mirrorInfo": {
+            "updatedAt": "2026-10-27T07:13:58Z"
+          },
+          "name": "github.com/ascoders/blog"
+        }
+      },
+      "errors": [
+        {
+          "message": "revision not found after waiting for a fetch already in progress: repo 714773",
+          "path": [
+            "r0",
+            "a"
+          ]
+        }
+      ]
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

@@ -402,14 +402,14 @@ mod tests {
         ),
         ("not a blob: \".github\"", GqlErrorKind::Other),
         ("not a directory: \"mux.go\"", GqlErrorKind::Other),
-        // Recorded 2026-10-27 in show/upstream-revision: git exit 128 at a
+        // Recorded 2026-10-27 in show/upstream_revision: git exit 128 at a
         // revision lookup.
         (
             "rpc error: code = Unknown desc = git command [git -c gc.auto=0 -c \
              maintenance.auto=0 rev-parse @{upstream}^0 --] failed with status code 128",
             GqlErrorKind::Other,
         ),
-        // Recorded 2026-10-27 in diff/path-that-leaves-the-root: git exit 128
+        // Recorded 2026-10-27 in diff/path_that_leaves_the_root: git exit 128
         // at a path probe.
         (
             "rpc error: code = Unknown desc = git command [git -c gc.auto=0 -c \

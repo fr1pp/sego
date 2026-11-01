@@ -1,0 +1,17 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/acme/widget type:commit m\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+1 commit  1 repo  0.7 s
+query  timeout:60s repo:example.com/acme/widget type:commit m
+
+example.com/acme/widget@aaaaaaaaaaaa  2024-05-06  Ann  Fix it
+    m1
+    x2
+--
+    y3
+    m4
+----- stderr -----
+----- end -----

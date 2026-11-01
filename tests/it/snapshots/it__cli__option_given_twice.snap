@@ -1,0 +1,11 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"show\", \"--json\", \"example.com/acme/widget:a.go\", \"--json\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: --json given twice
+usage: sego show [--json] REPO[@REV]:PATH [LINES]
+       sego show [--json] REPO@REV
+----- end -----

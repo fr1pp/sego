@@ -1,0 +1,9 @@
+---
+source: tests/it/diff.rs
+expression: "answered(&[\"diff\", \"example.com/acme/widget@v1.0.0...v2.0.0\",\n\"a\\u{1b}b\\u{202e}c\\u{200b}d\\ne\\rf\\0g\\u{2028}h\\u{7f}i-gone\"], [first, second])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i-gone not found in example.com/acme/widget@0123456789ab or @89abcdef0123
+----- end -----

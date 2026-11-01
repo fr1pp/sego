@@ -1,0 +1,136 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "Diff",
+    "query": "query Diff($repo: String!, $a: String!, $b: String!, $paths: [String!], $first: Int, $patch: Boolean!, $path0: String!) {\n  c: repository(name: $repo) {\n    comparison(base: $a, head: $b, fetchMissing: false) {\n      range { mergeBase { oid } }\n      ...Changes\n    }\n  }\n  a: repository(name: $repo) { commit(rev: $a) { oid p0: path(path: $path0) { __typename } } }\n  b: repository(name: $repo) { commit(rev: $b) { oid p0: path(path: $path0) { __typename } } }\n}\n\nfragment Changes on RepositoryComparison {\n  all: fileDiffs(first: 0, paths: $paths) { totalCount diffStat { added deleted } }\n  page: fileDiffs(first: $first, paths: $paths) {\n    nodes { oldPath newPath stat { added deleted } oldFile { ... on GitBlob { commit { oid } } } }\n    pageInfo { hasNextPage }\n  }\n  patch: fileDiffs(paths: $paths) @include(if: $patch) { rawDiff }\n}\n",
+    "variables": {
+      "a": "4ccdbb53e38e168b61338eab7a8fa0a3d0572684",
+      "b": "13bad6eb9b212e8566dc467fb8b20c6d72f4bfa3",
+      "first": null,
+      "patch": true,
+      "path0": ".github",
+      "paths": [
+        ".github"
+      ],
+      "repo": "github.com/select2/select2"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "a": {
+          "commit": {
+            "oid": "4ccdbb53e38e168b61338eab7a8fa0a3d0572684",
+            "p0": null
+          }
+        },
+        "b": {
+          "commit": {
+            "oid": "13bad6eb9b212e8566dc467fb8b20c6d72f4bfa3",
+            "p0": {
+              "__typename": "GitTree"
+            }
+          }
+        },
+        "c": {
+          "comparison": {
+            "all": {
+              "diffStat": {
+                "added": 387,
+                "deleted": 0
+              },
+              "totalCount": 8
+            },
+            "page": {
+              "nodes": [
+                {
+                  "newPath": ".github/CONTRIBUTING.md",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 203,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newPath": ".github/FUNDING.yml",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 2,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newPath": ".github/ISSUE_TEMPLATE.md",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 20,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newPath": ".github/PULL_REQUEST_TEMPLATE.md",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 13,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newPath": ".github/stale.yml",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 18,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newPath": ".github/workflows/docs-deploy.yml",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 24,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newPath": ".github/workflows/main.yml",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 49,
+                    "deleted": 0
+                  }
+                },
+                {
+                  "newPath": ".github/workflows/package-deploy.yml",
+                  "oldFile": null,
+                  "oldPath": null,
+                  "stat": {
+                    "added": 58,
+                    "deleted": 0
+                  }
+                }
+              ],
+              "pageInfo": {
+                "hasNextPage": false
+              }
+            },
+            "patch": {
+              "rawDiff": "diff --git .github/CONTRIBUTING.md .github/CONTRIBUTING.md\nnew file mode 100644\nindex 0000000000000000000000000000000000000000..1aac0d0dd52dd1ffb6d56d2c88c938359aa45ecf\n--- /dev/null\n+++ .github/CONTRIBUTING.md\n@@ -0,0 +1,203 @@\n+# Guidelines for Getting Help with Select2\n+\n+**Before** you open a new issue, you must **read these guidelines.**  If it is evident from your issue that you failed to research your question properly, **your issue may be closed** without being answered.\n+\n+## Troubleshooting\n+\n+There are some common problems that developers may encounter when using working with Select2 for the first time.  **If you are new to Select2**, please consult the [common problems](https://select2.org/troubleshooting/common-problems) section of the documentation first.\n+\n+If you don't find what you're looking for there, then please check the the [forums](https://forums.select2.org), [Stack Overflow](https://stackoverflow.com/questions/tagged/jquery-select2) and [existing issues](https://github.com/select2/select2/issues?utf8=%E2%9C%93&q=is%3Aissue), both opened and closed.  Your question may have already been asked and answered before!\n+\n+## Asking for Help\n+\n+In general, the Github issue tracker should **only** be used for **bug reports** and **feature requests**.  If you're just having trouble getting something to work, you should ask in the [forums](https://forums.select2.org) or on [Stack Overflow](https://stackoverflow.com) instead.\n+\n+### Rules for all community platforms\n+\n+1. Be polite, civil and respectful.  Select2 is built and maintained entirely by volunteers.\n+2. If you are not conversationally proficient in English, **do not just post a machine translation** (e.g. Google Translate). Post in your native language, so that others who speak your language can help. You may post a machine translation below it for the general community to decipher.\n+3. Any code snippets should be formatted using [Markdown code fences](https://learn.userfrosting.com/troubleshooting/getting-help#use-markdown-to-format-blocks-of-code) and properly indented. Poorly formatted code is difficult to read and reflects badly on you as a programmer.\n+4. Check what you write for spelling and grammar issues. If you want others to take the time to read your question carefully, you must write your question carefully.\n+5. When possible create and link to a [minimal, complete, and verifiable](https://stackoverflow.com/help/mcve) example by cloning our [JSBin template](http://jsbin.com/goqagokoye/edit?html,js,output). Code dumps, zip files, etc are NOT acceptable.\n+6. Include relevant screenshots or animations, if possible. Drag your screenshots directly into the forums or issue tracker text box. They will automatically be uploaded and the Markdown to display them will be generated.  Avoid third-party image hosts, or links which require extra clicks to view the image.\n+\n+### Stack Overflow\n+\n+Tag your question with the `jquery-select2` tag, and optionally with tags relevant to other technologies involved, such as `jquery` or another client-side framework.  You should also mention the version of Select2 that you are using.\n+\n+### GitHub Issue Tracker\n+\n+We really appreciate clear bug reports that _consistently_ show an issue _within Select2_.  If you are reporting a bug, you **must** follow these steps:\n+\n+1. Make sure that your issue is a bug or feature request.  General usage and troubleshooting questions should be directed to the [forums](https://forums.select2.org) or [Stack Overflow](https://stackoverflow.com/questions/tagged/jquery-select2).  Issues asking for general support WILL BE CLOSED automatically.\n+2. Search the current issues, both open and closed, for a similar issue. If the bug is still present but the relevant issue has been closed, you may ask us to reopen the issue. Duplicate issues will be closed automatically.\n+3. Make sure that you are using the latest stable version of Select2 (see the [release history](https://github.com/select2/select2/releases)). Old minor/patch versions will not be supported.\n+4. State the steps needed to reproduce the problem.\n+5. Report any errors in detail.  Vague issues like \"it doesn't work when I do this\" are not helpful.  Show that you have put some effort into identifying the cause of the error.  Check your [browser console](https://learn.userfrosting.com/troubleshooting/debugging#client-side-debugging) for any Javascript error messages.\n+6. Mention your version of Select2, as well as the browser(s) and operating system(s) in which the problem occurs.\n+\n+Requesting features in Select2\n+------------------------------\n+Select2 is a large library that carries with it a lot of functionality. Because\n+of this, many feature requests will not be implemented in the core library.\n+\n+Before starting work on a major feature for Select2, **post to the [forums](https://forums.select2.org) first** or you may risk spending a considerable amount of\n+time on something which the project developers are not interested in bringing\n+into the project.\n+\n+# Contributing to Select2\n+\n+Select2 is made up of multiple submodules that all come together to make the\n+standard and extended builds that are available to users. The build system uses\n+Node.js to manage and compile the submodules, all of which is done using the\n+Grunt build system.\n+\n+### Installing development dependencies\n+\n+Select2 can be built and developed on any system which supports Node.js. You can download Node.js at\n+[their website][nodejs].\n+\n+All other required Node.js packages can be installed using [npm][npm], which comes bundled alongside Node.js.\n+\n+```bash\n+cd /path/to/select2/repo\n+npm install\n+```\n+\n+You may need to install `libsass` on your system if it is not already available in order to build the SASS files which generate the CSS for themes and the main component.\n+\n+### Building the Select2 component\n+\n+Select2 uses the [Grunt][grunt] build task system and defines a few custom\n+tasks for common routines. One of them is the `compile` task, which compiles\n+the JavaScript and CSS and produces the final files.\n+\n+```bash\n+cd /path/to/select2/repo\n+grunt compile\n+```\n+\n+You can also generate the minified versions (`.min.js` files) by executing the\n+`minify` task after compiling.\n+\n+```bash\n+cd /path/to/select2/repo\n+grunt minify\n+```\n+\n+### Running tests\n+\n+Select2 uses the QUnit test system to test individual components.\n+\n+```bash\n+cd /path/to/selct2/repo\n+grunt test\n+```\n+\n+### Setting up the documentation repo\n+\n+The documentation for Select2 is maintained in a [separate repository](https://github.com/select2/docs). Select2.org is built with the flat-file CMS [Grav](http://getgrav.org), using their [RTFM skeleton](https://github.com/getgrav/grav-skeleton-rtfm-site#rtfm-skeleton).\n+\n+The documentation files themselves are written in Markdown, and can be found in the `pages/` subdirectory. You can submit pull requests to the `develop` branch of the repo.\n+\n+If you'd like to set up a local instance of the entire documentation website, you must first have a web server (Nginx, Apache, etc) and PHP installed locally. Then, follow these steps:\n+\n+#### Step 1 - Install Grav\n+\n+This application uses the [Grav](https://learn.getgrav.org/) CMS.  This repository does not contain a full Grav installation - rather, it just contains the contents of Grav's `user` directory, which is where all of our content, themes, and assets live.  This was done as per the [recommendation on Grav's blog](https://getgrav.org/blog/developing-with-github-part-2), to make it easier to deploy changes to the live server.\n+\n+To install this website on your computer, first [install grav core](https://getgrav.org/downloads) in a project folder called `select2-docs` under your webserver's document root folder. Then, find the `user` folder inside of your project folder.  Delete the contents of the `user` folder and clone this repository directly into the user folder.\n+\n+When you're done it might look something like this:\n+\n+```\n+htdocs/\n+└── select2-docs/\n+   ├── assets/\n+   ├── ...\n+   ├── user/\n+       ├── .git\n+       ├── accounts/\n+       ├── assets/\n+       ├── config/\n+       └── ...\n+   └── ...\n+\n+```\n+\n+#### Step 2\n+\n+Grav needs your webserver to be able to write to certain directories.  Make sure that `backup/`, `cache/`, `images/`, `logs/`, and `tmp/` are all writeable by the user account under which your webserver runs.\n+\n+#### Step 3\n+\n+Visit the local installation in your browser!  For example, [http://localhost/select2-docs](http://localhost/select2-docs).\n+\n+### Submitting a pull request\n+\n+We use GitHub's pull request system for submitting patches. Here are some\n+guidelines to follow when creating the pull request for your fix.\n+\n+1. Make sure to create a ticket for your pull request. This will serve as the\n+bug ticket, and any discussion about the bug will take place there. Your pull\n+request will be focused on the specific changes that fix the bug.\n+2. Make sure to reference the ticket you are fixing within your pull request.\n+This will allow us to close off the ticket once we merge the pull request, or\n+follow up on the ticket if there are any related blocking issues.\n+3. Explain why the specific change was made. Not everyone who is reviewing your\n+pull request will be familiar with the problem it is fixing.\n+4. Run your tests first. If your tests aren't passing, the pull request won't\n+be able to be merged. If you're breaking existing tests, make sure that you\n+aren't causing any breaking changes.\n+5. Only include source changes (`src/`). Do not make changes directly to files in the `dist`\n+directory.\n+\n+By following these steps, you will make it easier for your pull request to be\n+reviewed and eventually merged.\n+\n+Triaging issues and pull requests\n+---------------------------------\n+Anyone can help the project maintainers triage issues and review pull requests.\n+\n+### Handling new issues\n+\n+Select2 regularly receives new issues which need to be tested and organized.\n+\n+When a new issue that comes in that is similar to another existing issue, it\n+should be checked to make sure it is not a duplicate.  Duplicates issues should\n+be marked by replying to the issue with \"Duplicate of #[issue number]\" where\n+`[issue number]` is the url or issue number for the existing issue.  This will\n+allow the project maintainers to quickly close off additional issues and keep\n+the discussion focused within a single issue.\n+\n+If you can test issues that are reported to Select2 that contain test cases and\n+confirm under what conditions bugs happen, that will allow others to identify\n+what causes a bug quicker.\n+\n+### Reviewing pull requests\n+\n+It is very common for pull requests to be opened for issues that contain a clear\n+solution to the problem.  These pull requests should be rigorously reviewed by\n+the community before being accepted.  If you are not sure about a piece of\n+submitted code, or know of a better way to do something, do not hesitate to make\n+a comment on the pull request.\n+\n+### Reviving old tickets\n+\n+If you come across tickets which have not been updated for a while, you are encouraged to revive them. If you do, please include more information in your comment on the issue. Common bugs and feature requests are more likely to be fixed, whether it is by the community or the\n+developers, so keeping tickets up to date is encouraged.\n+\n+Licensing\n+---------\n+\n+It should also be made clear that **all code contributed to Select** must be\n+licensable under the [MIT license][licensing].  Code that cannot be released\n+under this license **cannot be accepted** into the project.\n+\n+[grunt]: http://gruntjs.com/\n+[isolated-case]: http://css-tricks.com/6263-reduced-test-cases/\n+[issue-search]: https://github.com/select2/select2/search?q=&type=Issues\n+[issue-tracker]: https://github.com/select2/select2/issues\n+[licensing]: https://github.com/select2/select2/blob/master/LICENSE.md\n+[nodejs]: https://nodejs.org/\n+[npm]: https://www.npmjs.com/\ndiff --git .github/FUNDING.yml .github/FUNDING.yml\nnew file mode 100644\nindex 0000000000000000000000000000000000000000..d8a62dbc730782956582d8c015c92db2574c1c51\n--- /dev/null\n+++ .github/FUNDING.yml\n@@ -0,0 +1,2 @@\n+github: kevin-brown\n+open_collective: select2\ndiff --git .github/ISSUE_TEMPLATE.md .github/ISSUE_TEMPLATE.md\nnew file mode 100644\nindex 0000000000000000000000000000000000000000..013004a479ffd689b5c5019674cf45add4324954\n--- /dev/null\n+++ .github/ISSUE_TEMPLATE.md\n@@ -0,0 +1,20 @@\n+\n+STOP!\n+\n+Before you open an issue:\n+\n+1. Make sure that your issue is a BUG or FEATURE REQUEST.  General usage and troubleshooting questions should be directed to the [forums](https://forums.select2.org) or [Stack Overflow](https://stackoverflow.com/questions/tagged/jquery-select2).  Issues asking for general support WILL BE CLOSED automatically.\n+2. Search the current issues, both open and closed, for a similar issue. If the bug is still present but the relevant issue has been closed, you may ask us to reopen the issue. Duplicate issues will be closed automatically.\n+3. Make sure that you are using the latest stable version of Select2 (see the [release history](https://github.com/select2/select2/releases)). Old minor/patch versions will not be supported.\n+\n+If you are CERTAIN that it is appropriate to open a new issue, you must:\n+\n+1. Create and link to a [minimal, complete, and verifiable](https://stackoverflow.com/help/mcve) example by cloning our [JSBin template](http://jsbin.com/goqagokoye/edit?html,js,output). Code dumps, zip files, etc are NOT acceptable.\n+2. Any additional code snippets should be formatted using [Markdown code fences](https://learn.userfrosting.com/troubleshooting/getting-help#use-markdown-to-format-blocks-of-code) and properly indented. Poorly formatted code is difficult to read and reflects badly on you as a programmer.\n+3. Include relevant screenshots or animations, if possible. Drag your screenshots directly into this text box. They will automatically be uploaded and the Markdown to display them will be generated.  Avoid third-party image hosts, or links which require extra clicks to view the image.\n+4. If you are not conversationally proficient in English, do NOT just post a machine translation (e.g. Google Translate) to GitHub. Get help in crafting your question, either via the [forums](https://forums.select2.org) or in [chat](https://webchat.freenode.net/?channels=select2). If all else fails, you may post your bug report or feature request in your native language, with a machine translation below that. We will tag it with `translation-needed` so that others who speak your language can find it.\n+5. State the steps needed to reproduce the problem.\n+6. Mention your version of Select2, as well as the browser(s) and operating system(s) in which the problem occurs.\n+7. Clear out this placeholder text.\n+\n+Issues that ignore these rules will be closed without further comment!\ndiff --git .github/PULL_REQUEST_TEMPLATE.md .github/PULL_REQUEST_TEMPLATE.md\nnew file mode 100644\nindex 0000000000000000000000000000000000000000..82395c757beeb708e653efd211f46a62a9c03f4b\n--- /dev/null\n+++ .github/PULL_REQUEST_TEMPLATE.md\n@@ -0,0 +1,13 @@\n+This pull request includes a\n+\n+- [ ] Bug fix\n+- [ ] New feature\n+- [ ] Translation\n+\n+The following changes were made\n+\n+-\n+-\n+-\n+\n+If this is related to an existing ticket, include a link to it as well.\ndiff --git .github/stale.yml .github/stale.yml\nnew file mode 100644\nindex 0000000000000000000000000000000000000000..eabd6b678008b5ff6b117eccd0fad3d163f41876\n--- /dev/null\n+++ .github/stale.yml\n@@ -0,0 +1,18 @@\n+# Number of days of inactivity before an issue becomes stale\n+daysUntilStale: 60\n+# Number of days of inactivity before a stale issue is closed\n+daysUntilClose: 7\n+# List of labels that will prevent an issue from going stale\n+exemptLabels:\n+  - \"confirmed bug\"\n+  - \"accessibility\"\n+# Issues with these labels will never be considered stale\n+# Label to use when marking an issue as stale\n+staleLabel: \"status: stale\"\n+# Comment to post when marking an issue as stale. Set to `false` to disable\n+markComment: >\n+  This issue has been automatically marked as stale because it has not had\n+  recent activity. It will be closed if no further activity occurs. Thank you\n+  for your contributions.\n+# Comment to post when closing a stale issue. Set to `false` to disable\n+closeComment: false\ndiff --git .github/workflows/docs-deploy.yml .github/workflows/docs-deploy.yml\nnew file mode 100644\nindex 0000000000000000000000000000000000000000..eb2599d649dcb682f080aab979a8f389d316207b\n--- /dev/null\n+++ .github/workflows/docs-deploy.yml\n@@ -0,0 +1,24 @@\n+name: Documentation Deployment\n+\n+on: release\n+\n+jobs:\n+  grav:\n+    name: Deploy Grav\n+    runs-on: ubuntu-latest\n+    steps:\n+      - uses: maddox/actions/sleep@master\n+        with:\n+          args: \"180\"\n+      - uses: actions/checkout@v1\n+      - name: Copy to documentation server\n+        uses: maxheld83/rsync@v0.1.0\n+        env:\n+          USERNAME: ${{ secrets.DOCUMENTATION_SSH_USERNAME }}\n+          SSH_PRIVATE_KEY: ${{ secrets.DOCUMENTATION_SSH_KEY }}\n+          HOST_NAME: ${{ secrets.DOCUMENTATION_SSH_HOST }}\n+          SSH_PUBLIC_KEY: not-needed\n+          HOST_IP: not-needed\n+          HOST_FINGERPRINT: not-needed\n+        with:\n+          args: \"docs/ $USERNAME@$HOST_NAME:/var/www/select2-docs/user/\"\ndiff --git .github/workflows/main.yml .github/workflows/main.yml\nnew file mode 100644\nindex 0000000000000000000000000000000000000000..a2f3fe8b3662d48d55e88a6a3bfc64375f8685ef\n--- /dev/null\n+++ .github/workflows/main.yml\n@@ -0,0 +1,49 @@\n+name: CI\n+\n+on: [push, pull_request]\n+\n+jobs:\n+  linting:\n+    name: Linting\n+    runs-on: ubuntu-latest\n+    steps:\n+      - uses: actions/checkout@v4\n+      - name: Use Node.js 24\n+        uses: actions/setup-node@v4\n+        with:\n+          node-version: 24\n+      - name: npm install\n+        run: npm install\n+      - name: Run linting\n+        run: grunt compile lint\n+  tests:\n+    name: Tests\n+    runs-on: ubuntu-latest\n+    steps:\n+      - run: sudo apt update\n+      - run: sudo apt install -y chromium-browser\n+      - uses: actions/checkout@v4\n+      - name: Use Node.js 24\n+        uses: actions/setup-node@v4\n+        with:\n+          node-version: 24\n+      - name: npm install\n+        run: npm install\n+      - name: Run tests\n+        env:\n+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: \"1\"\n+          PUPPETEER_EXECUTABLE_PATH: \"/usr/bin/chromium-browser\"\n+        run: grunt compile test\n+  minification:\n+    name: Minification\n+    runs-on: ubuntu-latest\n+    steps:\n+      - uses: actions/checkout@v4\n+      - name: Use Node.js 24\n+        uses: actions/setup-node@v4\n+        with:\n+          node-version: 24\n+      - name: npm install\n+        run: npm install\n+      - name: Run minification\n+        run: grunt compile minify\ndiff --git .github/workflows/package-deploy.yml .github/workflows/package-deploy.yml\nnew file mode 100644\nindex 0000000000000000000000000000000000000000..226ff8d59858d9a4d085dd477e37df9a5e8b218a\n--- /dev/null\n+++ .github/workflows/package-deploy.yml\n@@ -0,0 +1,58 @@\n+name: Package Deployment\n+\n+on:\n+  push:\n+    branches:\n+      - develop\n+      - master\n+  release: ~\n+\n+jobs:\n+  deploy_github:\n+    name: GitHub Package Registry\n+    runs-on: ubuntu-latest\n+    steps:\n+      - uses: actions/checkout@v4\n+      - name: Use Node.js 24\n+        uses: actions/setup-node@v4\n+        with:\n+          node-version: 24\n+          registry-url: https://npm.pkg.github.com/\n+          scope: '@select2'\n+      - name: Rename package to include private scope\n+        run: \"sed -i -e 's#\\\"name\\\": \\\"select2\\\"#\\\"name\\\": \\\"@select2/select2\\\"#' package.json\"\n+      - name: npm install\n+        run: npm install\n+      - name: Run linting, tests, minify\n+        run: grunt\n+      - name: Deploy (release)\n+        if: github.event_name == 'release'\n+        run: npm publish\n+        env:\n+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}\n+      - name: Deploy (release candidate)\n+        if: github.event_name == 'push'\n+        run: 'sed -i -E \"s/\\\"version\\\": \\\"(.+)\\\",/\\\"version\\\": \\\"\\1-commit-$GITHUB_SHA\\\",/\" package.json && npm publish --tag next'\n+        env:\n+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}\n+          GITHUB_SHA: ${{github.sha}}\n+  deploy_npm:\n+    name: NPM\n+    if: github.event_name == 'release'\n+    runs-on: ubuntu-latest\n+    permissions:\n+      contents: read\n+      id-token: write\n+    steps:\n+      - uses: actions/checkout@v4\n+      - name: Use Node.js 24\n+        uses: actions/setup-node@v4\n+        with:\n+          node-version: 24\n+          registry-url: 'https://registry.npmjs.org'\n+      - name: npm install\n+        run: npm install\n+      - name: Run linting, tests, minify\n+        run: grunt\n+      - name: Deploy (release)\n+        run: npm publish --provenance --access public\n"
+            },
+            "range": {
+              "mergeBase": null
+            }
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

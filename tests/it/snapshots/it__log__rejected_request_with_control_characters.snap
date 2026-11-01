@@ -1,0 +1,9 @@
+---
+source: tests/it/log.rs
+expression: "answered(&[\"log\", \"example.com/acme/widget@v2.0.0\"], [response])"
+---
+exit: 3
+----- stdout -----
+----- stderr -----
+sego: error: Sourcegraph rejected sego's request: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
+----- end -----

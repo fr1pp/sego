@@ -1,0 +1,10 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\",\n\"(repo:example.com/app type:diff foo) or (repo:example.com/app bar)\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+0 matches  0.4 s
+query  timeout:60s (repo:example.com/app type:diff foo) or (repo:example.com/app bar)
+----- stderr -----
+----- end -----

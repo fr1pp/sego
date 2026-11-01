@@ -1,0 +1,31 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"--json\", \"repo:example.com/app foo\"], [response])"
+---
+exit: 0
+----- stdout -----
+{
+  "alert": null,
+  "at_least": false,
+  "count": 1,
+  "elapsed_ms": 100,
+  "limit_ms": 60000,
+  "notes": [
+    "1 result of kind Weird not shown"
+  ],
+  "pattern_type": "keyword",
+  "query": "timeout:60s repo:example.com/app foo",
+  "results": [],
+  "server": {
+    "approximate_count": "1",
+    "limit_hit": false,
+    "match_count": 1,
+    "timedout": []
+  },
+  "stopped": false,
+  "unit": "matches",
+  "widen": []
+}
+----- stderr -----
+sego: note: 1 result of kind Weird not shown
+----- end -----

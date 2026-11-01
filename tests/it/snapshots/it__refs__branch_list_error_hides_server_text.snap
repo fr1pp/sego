@@ -1,0 +1,9 @@
+---
+source: tests/it/refs.rs
+expression: "answered(&[\"refs\", \"example.com/acme/widget\"], [response])"
+---
+exit: 3
+----- stdout -----
+----- stderr -----
+sego: error: Sourcegraph failed to answer the branch list
+----- end -----

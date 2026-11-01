@@ -1,0 +1,14 @@
+---
+source: tests/it/ls.rs
+expression: "sego(&[\"ls\", \"github.com/gorilla/websocket@v1.5.3:examples\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/websocket@ce903f6d1d96:examples  5 entries  5 dirs  rev v1.5.3  mirrored 2026-10-30T21:27Z
+dir        examples/autobahn/
+dir        examples/chat/
+dir        examples/command/
+dir        examples/echo/
+dir        examples/filewatch/
+----- stderr -----
+----- end -----

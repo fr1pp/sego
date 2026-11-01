@@ -1,0 +1,11 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"sh\\u{1b}wo\\0\\n\\r\\t\\u{7f}\\u{202e}\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: unknown command 'sh\u{1b}wo\u{0} \u{d}	\u{7f}\u{202e}'
+  commands: search, show, ls, refs, log, diff
+usage: sego COMMAND [--json] ...
+----- end -----

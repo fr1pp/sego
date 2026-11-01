@@ -1,0 +1,9 @@
+---
+source: tests/it/diff.rs
+expression: "answered(&[\"diff\", \"example.com/acme/widget@v1...v2\", \"nope.go\"],\n[first, second])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: nope.go not found in example.com/acme/widget@0123456789ab or @89abcdef0123
+----- end -----

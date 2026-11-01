@@ -1,0 +1,10 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"-x\", \"search\", \"widget\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: unknown option -x
+usage: sego COMMAND [--json] ...
+----- end -----

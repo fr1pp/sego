@@ -1,0 +1,21 @@
+---
+source: tests/it/diff.rs
+expression: "answered(&[\"diff\", \"example.com/acme/widget@v1...v2\", \"dir/a b.go\"],\n[first, second])"
+---
+exit: 0
+----- stdout -----
+'example.com/acme/widget@0123456789ab...89abcdef0123:dir/a b.go'  1 file  +2 -1  base 0123456789ab  rev v1...v2
+M  +2 -1  'dir/a b.go'
+
+    diff --git dir/a b.go dir/a b.go
+    index 1111111..2222222 100644
+    --- dir/a b.go
+    +++ dir/a b.go
+    @@ -1,2 +1,2 @@
+    --- foo
+    +-- bar
+     ctx
+    +red\u{1b}[31m
+    \ No newline at end of file
+----- stderr -----
+----- end -----

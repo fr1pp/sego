@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "File",
+    "query": "query File($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String!, $recursive: Boolean!, $content: Boolean!, $start: Int, $end: Int) {\n  r0: repository(name: $repo0) { ...File }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...File }\n}\n\nfragment File on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\noid\n    meta: path(path: $path) {\n      __typename\n      ... on GitBlob { path byteSize totalLines binary rawURL lfs { byteSize } submodule { commit } }\n      ... on GitTree { path entries(recursive: $recursive) { path isDirectory submodule { commit } } }\n    }\n    body: path(path: $path) @include(if: $content) {\n      __typename\n      ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }\n    }\n  }\n}\n",
+    "variables": {
+      "content": true,
+      "end": 5,
+      "gitlab": false,
+      "path": "drivers/gpu/drm/amd/include/asic_reg/nbif/nbif_7_10_0_offset.h",
+      "recursive": false,
+      "repo0": "github.com/torvalds/linux",
+      "repo1": "",
+      "rev": "c339f4010dea8b0d754f84ace70cd1b089878ef8",
+      "start": 1
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": {
+            "body": null,
+            "meta": {
+              "__typename": "GitBlob",
+              "binary": false,
+              "byteSize": 1585814,
+              "lfs": null,
+              "path": "drivers/gpu/drm/amd/include/asic_reg/nbif/nbif_7_10_0_offset.h",
+              "rawURL": "/r/github.com/torvalds/linux@c339f4010dea8b0d754f84ace70cd1b089878ef8/-/raw/drivers/gpu/drm/amd/include/asic_reg/nbif/nbif_7_10_0_offset.h",
+              "submodule": null,
+              "totalLines": 15938
+            },
+            "oid": "c339f4010dea8b0d754f84ace70cd1b089878ef8"
+          },
+          "defaultBranch": {
+            "displayName": "master"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-31T00:31:51Z"
+          },
+          "name": "github.com/torvalds/linux"
+        }
+      },
+      "errors": [
+        {
+          "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
+          "path": [
+            "r0",
+            "commit",
+            "body",
+            "content"
+          ]
+        },
+        {
+          "message": "file exceeded size limit: BytesRead=1572865 (may be lower than file size)",
+          "path": [
+            "r0",
+            "commit",
+            "meta",
+            "lfs"
+          ]
+        }
+      ]
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

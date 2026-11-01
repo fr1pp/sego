@@ -1,0 +1,9 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\", \"github.com/sharkdp/bat@a9aa73d2:assets/syntaxes/01_Packages\"])"
+---
+exit: 0
+----- stdout -----
+github.com/sharkdp/bat@a9aa73d21545:assets/syntaxes/01_Packages  submodule  759d6eed9b4b
+----- stderr -----
+----- end -----

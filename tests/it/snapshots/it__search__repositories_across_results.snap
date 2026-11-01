@@ -1,0 +1,24 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/ foo\"], [response])"
+---
+exit: 0
+----- stdout -----
+5 matches  3 repos  0.1 s
+query  timeout:60s repo:example.com/ foo
+
+example.com/a@0123456789ab:a.go
+1:foo
+
+example.com/a@0123456789ab:b.go
+1:foo
+
+example.com/z@0123456789ab:b.go
+1:foo
+
+example.com/commits@0123456789ab  2024-05-06  Ann  fix
+    foo
+
+example.com/a
+----- stderr -----
+----- end -----

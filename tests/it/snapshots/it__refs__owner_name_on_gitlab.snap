@@ -1,0 +1,10 @@
+---
+source: tests/it/refs.rs
+expression: "answered(&[\"refs\", \"acme/widget\"], [response])"
+---
+exit: 0
+----- stdout -----
+gitlab.com/acme/widget  1 branch  0 tags  default main
+branch  000000000000  main  (default)
+----- stderr -----
+----- end -----

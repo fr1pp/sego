@@ -1,0 +1,52 @@
+---
+source: tests/it/search.rs
+expression: "sego(&[\"search\", \"repo:^github\\\\.com/sharkdp/bat$ NOT-INDEXED count:all\"])"
+---
+exit: 0
+----- stdout -----
+14 matches  1 repo  0.1 s
+query  timeout:60s repo:^github\.com/sharkdp/bat$ NOT-INDEXED count:all
+
+github.com/sharkdp/bat@8f5727ea3869:assets/themes.bin
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@8f5727ea3869:assets/syntaxes.bin
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@8f5727ea3869:tests/examples/test.binary
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@8f5727ea3869:assets/acknowledgements.bin
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@8f5727ea3869:tests/examples/nonprintable.txt
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@8f5727ea3869:tests/examples/test_UTF-16BE.txt
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@8f5727ea3869:tests/examples/test_UTF-16LE.txt
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@8f5727ea3869:tests/examples/control_characters.txt
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@8f5727ea3869:tests/examples/test_UTF-16BE-complicated.txt
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@8f5727ea3869:tests/examples/test_UTF-16LE-complicated.txt
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@8f5727ea3869:tests/syntax-tests/source/PowerShell/test.ps1
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@8f5727ea3869:tests/examples/regression_tests/issue_3631.txt
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@8f5727ea3869:tests/syntax-tests/source/Plaintext/plaintext.txt
+NOT-INDEXED: contains binary content
+
+github.com/sharkdp/bat@8f5727ea3869:tests/benchmarks/highlighting-speed-src/grep-output-ansi-sequences.txt
+NOT-INDEXED: contains too many trigrams
+----- stderr -----
+----- end -----

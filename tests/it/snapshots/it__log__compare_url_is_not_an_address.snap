@@ -1,0 +1,11 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"https://github.com/gorilla/mux/compare/v1.7.0...v1.7.1\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: https://github.com/gorilla/mux/compare/v1.7.0...v1.7.1 is a URL; an address is host/owner/name or owner/name
+usage: sego log [--json] [--follow] REPO[@REV][:PATH] [PATH]
+       sego log [--json] REPO@A..B[:PATH] [PATH]
+----- end -----

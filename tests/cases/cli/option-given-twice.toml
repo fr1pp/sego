@@ -1,8 +1,0 @@
-# An option given twice is a usage error.
-args = ["show", "--json", "example.com/acme/widget:a.go", "--json"]
-status.code = 2
-stderr = '''
-sego: error: --json given twice
-usage: sego show [--json] REPO[@REV]:PATH [LINES]
-       sego show [--json] REPO@REV
-'''

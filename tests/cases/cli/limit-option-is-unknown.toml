@@ -1,8 +1,0 @@
-# --limit is an unknown option.
-args = ["show", "example.com/acme/widget:a.go", "--limit", "5"]
-status.code = 2
-stderr = '''
-sego: error: unknown option --limit
-usage: sego show [--json] REPO[@REV]:PATH [LINES]
-       sego show [--json] REPO@REV
-'''

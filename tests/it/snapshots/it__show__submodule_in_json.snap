@@ -1,0 +1,29 @@
+---
+source: tests/it/show.rs
+expression: "sego(&[\"show\", \"--json\", \"github.com/akinomyoga/ble.sh@d81fd54feb0d:contrib\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "binary": false,
+  "byte_size": 0,
+  "commit": "d81fd54feb0d996fdff20dca27eaf0201f7015cc",
+  "crlf": false,
+  "end": null,
+  "kind": "submodule",
+  "lfs_size": null,
+  "lines": [],
+  "mirrored_at": null,
+  "notes": [],
+  "path": "contrib",
+  "repo": "github.com/akinomyoga/ble.sh",
+  "rev": "d81fd54feb0d",
+  "start": null,
+  "submodule": {
+    "commit": "d2109203480a7dfe1dead5f5f8f9f15a9146c90d"
+  },
+  "total_lines": 0,
+  "utf8": true
+}
+----- stderr -----
+----- end -----

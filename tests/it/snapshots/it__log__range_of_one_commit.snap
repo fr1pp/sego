@@ -1,0 +1,10 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"github.com/gorilla/context@a45ea70b19f4..6a490e2f9d52\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/context@a45ea70b19f4..6a490e2f9d52  1 commit
+6a490e2f9d52  2023-10-18  Corey Daley  (tag: v2.0.0, tag: v1.1.2) Updating github actions workflows to test 1.20 and 1.21 (#45)
+----- stderr -----
+----- end -----

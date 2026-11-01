@@ -1,0 +1,9 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"lang:go foo\"], [response])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: No repositories found
+----- end -----

@@ -1,0 +1,200 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "Search",
+    "query": "query Search($query: String!) {\n  search(query: $query, version: V3, patternType: keyword) {\n    results {\n      matchCount approximateResultCount limitHit\n      timedout { name }\n      alert { title description kind proposedQueries { description query } }\n      elapsedMilliseconds\n      dynamicFilters { value count kind }\n      results {\n        __typename\n        ... on FileMatch {\n          repository { name }\n          file { path commit { oid } }\n          pathMatches { start { line } }\n          revSpec { ... on GitRevSpecExpr { expr } }\n          chunkMatches { content contentStart { line }\n            ranges { start { line character } end { line character } } }\n          symbols { name kind containerName location { range { start { line } } } }\n        }\n        ... on CommitSearchResult {\n          commit { oid subject author { date person { displayName } } repository { name } }\n          matches { body { text } highlights { line character length } }\n        }\n        ... on Repository { name }\n      }\n    }\n  }\n}\n",
+    "variables": {
+      "query": "timeout:60s repo:^github\\.com/gorilla/mux$@v1.8.0:v1.7.4 \"func NewRouter\""
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "search": {
+          "results": {
+            "alert": null,
+            "approximateResultCount": "4",
+            "dynamicFilters": [
+              {
+                "count": 4,
+                "kind": "type",
+                "value": "type:file"
+              },
+              {
+                "count": 4,
+                "kind": "lang",
+                "value": "lang:go"
+              },
+              {
+                "count": 2,
+                "kind": "repo",
+                "value": "repo:^github\\.com/gorilla/mux$@v1.7.4"
+              },
+              {
+                "count": 2,
+                "kind": "repo",
+                "value": "repo:^github\\.com/gorilla/mux$@v1.8.0"
+              }
+            ],
+            "elapsedMilliseconds": 60,
+            "limitHit": false,
+            "matchCount": 4,
+            "results": [
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [
+                  {
+                    "content": "// NewRouter returns a new router instance.\nfunc NewRouter() *Router {\n\treturn &Router{namedRoutes: make(map[string]*Route)}\n",
+                    "contentStart": {
+                      "line": 23
+                    },
+                    "ranges": [
+                      {
+                        "end": {
+                          "character": 14,
+                          "line": 24
+                        },
+                        "start": {
+                          "character": 0,
+                          "line": 24
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "file": {
+                  "commit": {
+                    "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+                  },
+                  "path": "mux.go"
+                },
+                "pathMatches": [],
+                "repository": {
+                  "name": "github.com/gorilla/mux"
+                },
+                "revSpec": {
+                  "expr": "v1.8.0"
+                },
+                "symbols": []
+              },
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [
+                  {
+                    "content": "// name and pattern can't be empty, and names can't contain a colon.\nfunc newRouteRegexp(tpl string, typ regexpType, options routeRegexpOptions) (*routeRegexp, error) {\n\t// Check if it is well-formed.\n",
+                    "contentStart": {
+                      "line": 39
+                    },
+                    "ranges": [
+                      {
+                        "end": {
+                          "character": 14,
+                          "line": 40
+                        },
+                        "start": {
+                          "character": 0,
+                          "line": 40
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "file": {
+                  "commit": {
+                    "oid": "98cb6bf42e086f6af920b965c38cacc07402d51b"
+                  },
+                  "path": "regexp.go"
+                },
+                "pathMatches": [],
+                "repository": {
+                  "name": "github.com/gorilla/mux"
+                },
+                "revSpec": {
+                  "expr": "v1.8.0"
+                },
+                "symbols": []
+              },
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [
+                  {
+                    "content": "// NewRouter returns a new router instance.\nfunc NewRouter() *Router {\n\treturn &Router{namedRoutes: make(map[string]*Route)}\n",
+                    "contentStart": {
+                      "line": 23
+                    },
+                    "ranges": [
+                      {
+                        "end": {
+                          "character": 14,
+                          "line": 24
+                        },
+                        "start": {
+                          "character": 0,
+                          "line": 24
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "file": {
+                  "commit": {
+                    "oid": "75dcda0896e109a2a22c9315bca3bb21b87b2ba5"
+                  },
+                  "path": "mux.go"
+                },
+                "pathMatches": [],
+                "repository": {
+                  "name": "github.com/gorilla/mux"
+                },
+                "revSpec": {
+                  "expr": "v1.7.4"
+                },
+                "symbols": []
+              },
+              {
+                "__typename": "FileMatch",
+                "chunkMatches": [
+                  {
+                    "content": "// name and pattern can't be empty, and names can't contain a colon.\nfunc newRouteRegexp(tpl string, typ regexpType, options routeRegexpOptions) (*routeRegexp, error) {\n\t// Check if it is well-formed.\n",
+                    "contentStart": {
+                      "line": 39
+                    },
+                    "ranges": [
+                      {
+                        "end": {
+                          "character": 14,
+                          "line": 40
+                        },
+                        "start": {
+                          "character": 0,
+                          "line": 40
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "file": {
+                  "commit": {
+                    "oid": "75dcda0896e109a2a22c9315bca3bb21b87b2ba5"
+                  },
+                  "path": "regexp.go"
+                },
+                "pathMatches": [],
+                "repository": {
+                  "name": "github.com/gorilla/mux"
+                },
+                "revSpec": {
+                  "expr": "v1.7.4"
+                },
+                "symbols": []
+              }
+            ],
+            "timedout": []
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

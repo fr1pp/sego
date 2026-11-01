@@ -1,0 +1,15 @@
+---
+source: tests/it/show.rs
+expression: "Case::new(&[\"show\", \"example.com/acme/widget@main:big.c\", \"1-5\"],\nvec![first.into(), second]).cache_dir(\"rel\").ran()"
+---
+exit: 0
+----- stdout -----
+example.com/acme/widget@d81fd54f1a2b:big.c  lines 1-5 of 5  rev main
+1:1
+2:2
+3:3
+4:4
+5:5
+----- stderr -----
+sego: note: cache unavailable: SEGO_CACHE_DIR is not an absolute path
+----- end -----

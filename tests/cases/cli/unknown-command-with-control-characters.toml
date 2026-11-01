@@ -1,8 +1,0 @@
-# The control characters of an unknown command are written as escapes, and a newline as a space.
-args = ["sh\u001Bwo\u0000\n\r	\u007F\u202E"]
-status.code = 2
-stderr = '''
-sego: error: unknown command 'sh\u{1b}wo\u{0} \u{d}	\u{7f}\u{202e}'
-  commands: search, show, ls, refs, log, diff
-usage: sego COMMAND [--json] ...
-'''

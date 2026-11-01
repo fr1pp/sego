@@ -1,0 +1,10 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"example.com/acme/gadget@v1...v2\"])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: example.com/acme/gadget is not on sourcegraph.com
+  sourcegraph.com serves indexed repositories from github.com, gitlab.com and a few other hosts; a renamed repository appears only under its new name
+----- end -----

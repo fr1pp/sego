@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "File",
+    "query": "query File($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String!, $recursive: Boolean!, $content: Boolean!, $start: Int, $end: Int) {\n  r0: repository(name: $repo0) { ...File }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...File }\n}\n\nfragment File on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\noid\n    meta: path(path: $path) {\n      __typename\n      ... on GitBlob { path byteSize totalLines binary rawURL lfs { byteSize } submodule { commit } }\n      ... on GitTree { path entries(recursive: $recursive) { path isDirectory submodule { commit } } }\n    }\n    body: path(path: $path) @include(if: $content) {\n      __typename\n      ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }\n    }\n  }\n}\n",
+    "variables": {
+      "content": false,
+      "gitlab": false,
+      "path": "contrib",
+      "recursive": false,
+      "repo0": "github.com/akinomyoga/ble.sh",
+      "repo1": "",
+      "rev": "d81fd54feb0d996fdff20dca27eaf0201f7015cc"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": {
+            "meta": {
+              "__typename": "GitBlob",
+              "binary": false,
+              "byteSize": 0,
+              "lfs": null,
+              "path": "contrib",
+              "rawURL": "/r/github.com/akinomyoga/ble.sh@d81fd54feb0d996fdff20dca27eaf0201f7015cc/-/raw/contrib",
+              "submodule": {
+                "commit": "d2109203480a7dfe1dead5f5f8f9f15a9146c90d"
+              },
+              "totalLines": 1
+            },
+            "oid": "d81fd54feb0d996fdff20dca27eaf0201f7015cc"
+          },
+          "defaultBranch": {
+            "displayName": "master"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-30T22:14:05Z"
+          },
+          "name": "github.com/akinomyoga/ble.sh"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

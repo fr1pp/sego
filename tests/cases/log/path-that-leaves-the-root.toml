@@ -1,9 +1,0 @@
-# A path operand that leaves the repository's root names nothing.
-args = ["log", "github.com/gorilla/mux@v1.8.0", "../mux.go"]
-status.code = 2
-stderr = '''
-sego: error: the path ../mux.go leaves the repository's root
-usage: sego log [--json] [--follow] REPO[@REV][:PATH] [PATH]
-       sego log [--json] REPO@A..B[:PATH] [PATH]
-'''
-

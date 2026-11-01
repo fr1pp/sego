@@ -1,0 +1,11 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"log\", \"example.com/acme/widget:src\", \"lib\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: log takes one path
+usage: sego log [--json] [--follow] REPO[@REV][:PATH] [PATH]
+       sego log [--json] REPO@A..B[:PATH] [PATH]
+----- end -----

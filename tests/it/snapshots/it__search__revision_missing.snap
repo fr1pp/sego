@@ -1,0 +1,9 @@
+---
+source: tests/it/search.rs
+expression: "sego(&[\"search\", \"repo:^github\\\\.com/gorilla/mux$@v9.9.9 NewRouter\"])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: revision v9.9.9 not found in github.com/gorilla/mux
+----- end -----

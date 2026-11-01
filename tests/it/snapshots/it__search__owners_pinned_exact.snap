@@ -1,0 +1,13 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"repo:example.com/app@v1 select:file.owners NewRouter\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+2 files  1 repo  0.4 s
+query  timeout:60s repo:example.com/app@v1 select:file.owners NewRouter
+
+example.com/app@0123456789ab:a.go
+example.com/app@0123456789ab:b.go
+----- stderr -----
+----- end -----

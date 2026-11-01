@@ -1,0 +1,158 @@
+---
+source: tests/it/search.rs
+expression: "sego(&[\"search\",\n\"(repo:^github\\\\.com/gorilla/mux$ StrictSlash) or (repo:^github\\\\.com/gorilla/handlers$ Handler)\"])"
+---
+exit: 0
+----- stdout -----
+60+ matches  2 repos  0.5 s
+query  timeout:60s (repo:^github\.com/gorilla/mux$ StrictSlash) or (repo:^github\.com/gorilla/handlers$ Handler)
+
+github.com/gorilla/mux@db9d1d0073d2:mux.go
+87-	// redirect to the former and vice versa.
+88:	strictSlash bool
+89-
+--
+241-
+242:// StrictSlash defines the trailing slash behavior for new routes. The initial
+243-// value is false.
+--
+259-// be determined from a prefix alone. However, any subrouters created from that
+260:// route inherit the original StrictSlash setting.
+261:func (r *Router) StrictSlash(value bool) *Router {
+262:	r.strictSlash = value
+263-	return r
+
+github.com/gorilla/mux@db9d1d0073d2:regexp.go
+17-type routeRegexpOptions struct {
+18:	strictSlash    bool
+19-	useEncodedPath bool
+--
+57-	if typ != regexpTypePath {
+58:		options.strictSlash = false
+59-	}
+60:	// Set a flag for strictSlash.
+61-	endSlash := false
+62:	if options.strictSlash && strings.HasSuffix(tpl, "/") {
+63-		tpl = tpl[:len(tpl)-1]
+--
+116-	pattern.WriteString(regexp.QuoteMeta(raw))
+117:	if options.strictSlash {
+118-		pattern.WriteString("[/]?")
+--
+368-		// Check if we should redirect.
+369:		if v.path.options.strictSlash {
+370-			p1 := strings.HasSuffix(path, "/")
+
+github.com/gorilla/mux@db9d1d0073d2:route.go
+259-	rr, err := newRouteRegexp(tpl, typ, routeRegexpOptions{
+260:		strictSlash:    r.strictSlash,
+261-		useEncodedPath: r.useEncodedPath,
+--
+439-//
+440:// Also note that the setting of Router.StrictSlash() has no effect on routes
+441-// with a PathPrefix matcher.
+
+github.com/gorilla/mux@db9d1d0073d2:old_test.go
+601-
+602:	r.StrictSlash(false)
+603-	route = r.NewRoute()
+604:	if route.strictSlash != false {
+605-		t.Errorf("Expected false redirectSlash.")
+--
+607-
+608:	r.StrictSlash(true)
+609-	route = r.NewRoute()
+610:	if route.strictSlash != true {
+611-		t.Errorf("Expected true redirectSlash.")
+--
+614-	route = new(Route)
+615:	route.strictSlash = true
+616-	route.Path("/{arg1}/{arg2:[0-9]+}/")
+
+github.com/gorilla/mux@db9d1d0073d2:mux_test.go
+1466-
+1467:func TestStrictSlash(t *testing.T) {
+1468-	r := NewRouter()
+1469:	r.StrictSlash(true)
+1470-
+--
+1512-		{
+1513:			title:          "Propagate StrictSlash to subrouters",
+1514-			route:          r.NewRoute().PathPrefix("/static/").Subrouter().Path("/images/"),
+--
+1522-		{
+1523:			title:          "Ignore StrictSlash for path prefix",
+1524-			route:          r.NewRoute().PathPrefix("/static/"),
+--
+2327-
+2328:// TestMethodsSubrouterStrictSlash matches handlers on subrouters with
+2329-// strict-slash matchers.
+2330:func TestMethodsSubrouterStrictSlash(t *testing.T) {
+2331-	t.Parallel()
+--
+2334-	sub := router.PathPrefix("/").Subrouter()
+2335:	sub.StrictSlash(true).Path("/foo").Methods("GET").Subrouter().HandleFunc("", methodHandler("GET"))
+2336:	sub.StrictSlash(true).Path("/foo/").Methods("PUT").Subrouter().HandleFunc("/", methodHandler("PUT"))
+2337:	sub.StrictSlash(true).Path("/foo/").Methods("POST").Subrouter().HandleFunc("/", methodHandler("POST"))
+2338-
+--
+2802-				useEncodedPath: true,
+2803:				strictSlash:    true,
+2804-				skipClean:      true,
+--
+2811-				useEncodedPath: true,
+2812:				strictSlash:    true,
+2813-				skipClean:      true,
+
+github.com/gorilla/handlers@9c61bd81e701:logging.go
+4-
+5:package handlers
+6-
+--
+29-
+30:// LogFormatter gives the signature of the formatter function passed to CustomLoggingHandler.
+31-type LogFormatter func(writer io.Writer, params LogFormatterParams)
+32-
+33:// loggingHandler is the http.Handler implementation for LoggingHandlerTo and its
+34-// friends
+35-
+36:type loggingHandler struct {
+37-	writer    io.Writer
+38:	handler   http.Handler
+39-	formatter LogFormatter
+--
+41-
+42:func (h loggingHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+43-	t := time.Now()
+--
+46-
+47:	h.handler.ServeHTTP(w, req)
+48-	if req.MultipartForm != nil {
+--
+216-
+217:// CombinedLoggingHandler return a http.Handler that wraps h and logs requests to out in
+218-// Apache Combined Log Format.
+--
+221-//
+222:// LoggingHandler always sets the ident field of the log to -.
+223:func CombinedLoggingHandler(out io.Writer, h http.Handler) http.Handler {
+224:	return loggingHandler{out, h, writeCombinedLog}
+225-}
+226-
+227:// LoggingHandler return a http.Handler that wraps h and logs requests to out in
+228-// Apache Common Log Format (CLF).
+--
+239-//	})
+240://	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
+241-//	http.ListenAndServe(":1123", loggedRouter)
+242:func LoggingHandler(out io.Writer, h http.Handler) http.Handler {
+243:	return loggingHandler{out, h, writeLog}
+244-}
+245-
+246:// CustomLoggingHandler provides a way to supply a custom log formatter
+247-// while taking advantage of the mechanisms in this package.
+248:func CustomLoggingHandler(out io.Writer, h http.Handler, f LogFormatter) http.Handler {
+249:	return loggingHandler{out, h, f}
+250-}
+----- stderr -----
+----- end -----

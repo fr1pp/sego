@@ -1,0 +1,13 @@
+---
+source: tests/it/commit.rs
+expression: "answered(&[\"show\", \"example.com/acme/widget@v1\"], [first, second])"
+---
+exit: 0
+----- stdout -----
+example.com/acme/widget@affe2b9b7c60  2026-09-09  Jonathan Davies  parents 6b668aa526af  1 file  +1 -1  rev v1
+    Add the parser
+
+M  +1 -1  a.go
+----- stderr -----
+sego: note: tags not listed: Sourcegraph failed to answer the tag list
+----- end -----

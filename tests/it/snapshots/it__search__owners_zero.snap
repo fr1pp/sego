@@ -1,0 +1,11 @@
+---
+source: tests/it/search.rs
+expression: "sego(&[\"search\",\n\"repo:^github\\\\.com/gorilla/mux$@v1.8.0 select:file.owners NewRouter\"])"
+---
+exit: 0
+----- stdout -----
+0 files  0.1 s
+query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0 select:file.owners NewRouter
+----- stderr -----
+sego: note: Some results have no owners: For some results, no ownership data was found, or no rule applied to the result. [Learn more about configuring code ownership](/help/own).
+----- end -----

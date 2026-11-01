@@ -1,0 +1,37 @@
+---
+source: tests/it/ls.rs
+expression: "answered(&[\"ls\", \"--json\",\n\"example.com/acme/widget:a\\u{1b}b\\u{202e}c\\u{200b}d\\ne\\rf\\0g\\u{2028}h\\u{7f}i\"],\n[response])"
+---
+exit: 0
+----- stdout -----
+{
+  "commit": "0123456789abcdef0123456789abcdef01234567",
+  "entries": [
+    {
+      "kind": "file",
+      "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi/a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "submodule_commit": null
+    },
+    {
+      "kind": "dir",
+      "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi/a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi-dir",
+      "submodule_commit": null
+    },
+    {
+      "kind": "submodule",
+      "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi/sub",
+      "submodule_commit": "0123456789abcdef0123456789abcdef01234567"
+    }
+  ],
+  "entries_more": false,
+  "entries_total": 3,
+  "kind": "directory",
+  "mirrored_at": null,
+  "notes": [],
+  "path": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+  "recursive": false,
+  "repo": "example.com/acme/widget",
+  "rev": null
+}
+----- stderr -----
+----- end -----

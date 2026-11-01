@@ -1,0 +1,48 @@
+---
+source: tests/it/refs.rs
+expression: "answered(&[\"refs\", \"--json\", \"example.com/acme/widget\",\n\"a\\u{1b}b\\u{202e}c\\u{200b}d\\ne\\rf\\0g\\u{2028}h\\u{7f}i\"], [response])"
+---
+exit: 0
+----- stdout -----
+{
+  "branches_all": 9,
+  "branches_more": false,
+  "branches_total": 2,
+  "default_branch": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+  "mirrored_at": null,
+  "notes": [],
+  "query": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+  "refs": [
+    {
+      "kind": "branch",
+      "name": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "target": "0123456789abcdef0123456789abcdef01234567"
+    },
+    {
+      "kind": "branch",
+      "name": "b-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "target": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi"
+    },
+    {
+      "kind": "tag",
+      "name": "t-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "target": "0123456789abcdef0123456789abcdef01234567"
+    },
+    {
+      "kind": "tag",
+      "name": "a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "target": "0123456789abcdef0123456789abcdef01234567"
+    },
+    {
+      "kind": "tag",
+      "name": "u-a\u001bb\u202ec\u200bd\ne\rf\u0000g\u2028h\u007fi",
+      "target": "0123456789abcdef0123456789abcdef01234567"
+    }
+  ],
+  "repo": "example.com/acme/widget",
+  "tags_all": 12,
+  "tags_more": false,
+  "tags_total": 3
+}
+----- stderr -----
+----- end -----

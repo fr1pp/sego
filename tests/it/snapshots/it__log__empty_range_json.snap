@@ -1,0 +1,25 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"--json\", \"github.com/gorilla/mux@v1.8.0..v1.7.0\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "behind": 30,
+  "commit": null,
+  "commit_a": "98cb6bf42e086f6af920b965c38cacc07402d51b",
+  "commit_b": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+  "commits": [],
+  "commits_more": false,
+  "commits_total": 0,
+  "follow": false,
+  "mirrored_at": "2026-10-27T07:21Z",
+  "notes": [],
+  "path": null,
+  "repo": "github.com/gorilla/mux",
+  "rev": null,
+  "rev_a": "v1.8.0",
+  "rev_b": "v1.7.0"
+}
+----- stderr -----
+----- end -----

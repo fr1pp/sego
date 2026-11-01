@@ -1,0 +1,33 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"github.com/gorilla/mux@v1.7.1..v1.7.4\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/mux@c5c6c98bc253..75dcda0896e1  24 commits  rev v1.7.1..v1.7.4  mirrored 2026-10-27T07:22Z
+75dcda0896e1  2020-01-12  Klaus Post  (tag: v1.7.4) perf: reduce allocations in (*routeRegexp).getURLQuery (#544)
+49c01487a141  2019-11-21  Veselkov Konstantin  lint: Remove golint warning (#526)
+4de8a5a4d283  2019-11-19  wangming  fix headers regexp test (#536)
+2854a05fd3e2  2019-11-17  Matt Silverlock  Merge pull request #535 from fharding1/cors-subrouter-bug
+946b6237eb8d  2019-11-14  Franklin Harding  Fix the CORSMethodMiddleware bug with subrouters
+f395758b854c  2019-10-24  Franklin Harding  Remove/cleanup request context helpers (#525)
+ff4e71f14416  2019-10-18  Euan Kemp  Guess the scheme if r.URL.Scheme is unset (#474)
+884b5ffcbd3a  2019-08-30  Vivek V  Added capacity to slice creation, when capacity is known (#516)
+e1863a64f3c6  2019-08-27  Vivek V  Modified http status codes, using constants provided by the http package (#514)
+9536e4053d76  2019-08-26  Jonas De Beukelaer  bugfix: subrouter custom methodNotAllowed handler returning 404 (#509) (#510)
+e0cdff45b7de  2019-08-24  Matt Silverlock  Update README (self-host logo) (#513)
+e67b3c02c719  2019-07-20  Matt Silverlock  Remove TravisCI badge (#503)
+7a1bf406d6f5  2019-07-20  Franklin Harding  [docs] Add documentation for using mux to serve a SPA (#493)
+eab9c4f3d22d  2019-07-20  Christian Muehlhaeuser  Simplify code (#501)
+50fbc3e7fbfc  2019-07-20  Christian Muehlhaeuser  Avoid unnecessary conversion (#502)
+d83b6ffe499a  2019-07-01  Matt Silverlock  Update config.yml (#495)
+00bdffe0f3c7  2019-06-30  Matt Silverlock  (tag: v1.7.3) Update stale.yml (#494)
+05347690167e  2019-06-29  Franklin Harding  Improve CORS Method Middleware (#477)
+d70f7b4baacb  2019-06-29  Matt Silverlock  Delete ISSUE_TEMPLATE.md (#492)
+48f941fa9994  2019-06-29  Franklin Harding  Use subtests for middleware tests (#478)
+64954673e972  2019-06-28  Matt Silverlock  Delete .travis.yml (#490)
+4248f5cd8717  2019-06-28  Franklin Harding  Fix nil panic in authentication middleware example (#489)
+212aa90d7cec  2019-06-24  Matt Silverlock  [WIP] Create CircleCI config (#484)
+ed099d423848  2019-05-17  M@  (tag: v1.7.2) host:port matching does not require a :port to be specified.
+----- stderr -----
+----- end -----

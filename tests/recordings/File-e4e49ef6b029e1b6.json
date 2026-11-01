@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "File",
+    "query": "query File($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String!, $recursive: Boolean!, $content: Boolean!, $start: Int, $end: Int) {\n  r0: repository(name: $repo0) { ...File }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...File }\n}\n\nfragment File on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\noid\n    meta: path(path: $path) {\n      __typename\n      ... on GitBlob { path byteSize totalLines binary rawURL lfs { byteSize } submodule { commit } }\n      ... on GitTree { path entries(recursive: $recursive) { path isDirectory submodule { commit } } }\n    }\n    body: path(path: $path) @include(if: $content) {\n      __typename\n      ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }\n    }\n  }\n}\n",
+    "variables": {
+      "content": true,
+      "end": 500,
+      "gitlab": false,
+      "path": "tests/data/sherlock.gz",
+      "recursive": false,
+      "repo0": "github.com/BurntSushi/ripgrep",
+      "repo1": "",
+      "rev": "14.1.0",
+      "start": 1
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": {
+            "body": {
+              "__typename": "GitBlob",
+              "content": ""
+            },
+            "meta": {
+              "__typename": "GitBlob",
+              "binary": true,
+              "byteSize": 263,
+              "lfs": null,
+              "path": "tests/data/sherlock.gz",
+              "rawURL": "/r/github.com/BurntSushi/ripgrep@e50df40a1967708b9781486b1c017e48040bceb0/-/raw/tests/data/sherlock.gz",
+              "submodule": null,
+              "totalLines": 2
+            },
+            "oid": "e50df40a1967708b9781486b1c017e48040bceb0"
+          },
+          "defaultBranch": {
+            "displayName": "master"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-31T00:33:28Z"
+          },
+          "name": "github.com/BurntSushi/ripgrep"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

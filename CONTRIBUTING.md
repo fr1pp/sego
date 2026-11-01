@@ -9,109 +9,118 @@ cargo build --release   # target/release/sego
 just check              # rustfmt, clippy with warnings denied, and every offline test
 ```
 
-## Cases
+## Tests
 
-Behaviour an agent can see is tested by cases
-([ADR 0010](docs/adr/0010-tests-replay-recorded-responses.md)). A case is one TOML file in
-`tests/cases/<command>/`:
+Behaviour an agent can see is tested by ordinary `#[test]` functions in `tests/it/<command>.rs`
+([ADR 0010](docs/adr/0010-tests-replay-recorded-responses.md)), each pinning what sego prints with an
+[insta](https://insta.rs) snapshot:
 
-```toml
-# What the case shows, in one sentence.
-args = ["refs", "github.com/gorilla/mux", "v1.8"]
-status.code = 0
-stdout = '''
-…
-'''
-
-[[exchange]]
-operation = "Refs"
-variables = '{"repo0":"github.com/gorilla/mux"}'
-document = "Refs-fed5d5bc"
-status = 200
-content-type = "application/json"
-recorded = { date = 2026-10-07, endpoint = "https://sourcegraph.com" }
-response = '''
-{ … }
-'''
+```rust
+/// A single line.
+#[test]
+fn single_line() {
+    assert_snapshot!(sego(&["show", "github.com/gorilla/mux@v1.8.0:mux.go", "10"]));
+}
 ```
 
-- `document` names the query's text, stored once in `tests/documents/` as
-  `<operation>-<hash>.graphql`. Bless and record write new documents; bless deletes those no case
-  names.
-- `env` sets `SEGO_CACHE_DIR`.
-- `stdout.closed = true` or `stderr.closed = true` runs the case with that pipe's reader gone.
-- A raw read has `get = "<path>"` in place of the GraphQL request, and names its body with
-  `body = "<file>.body"`, relative to the case's directory. Cases may share a body file.
-- `live = "values"` in `recorded` makes `just live` compare the response's values as well as its
-  shape.
+Keep `assert_snapshot!` in the test itself: inside a helper function, snapshots are named after the
+helper. `cargo test --test it show::single_line` runs one test.
 
-Each case is a test in `tests/it/cases.rs`, so `cargo test --test it show::empty_file` runs one.
-To add a case, write its `args` and `status.code`, then:
+A snapshot in `tests/it/snapshots/` holds the exit code, stdout and stderr, written by `just bless`.
+A JSON answer is laid out there with its keys sorted, so that a diff shows the field that changed, so
+each command also pins the exact text of one `--json` answer with `assert_eq!`. Read the snapshot's
+diff before committing it.
 
-- **Record its responses** with `just record`. It sends sourcegraph.com each request that no
-  exchange answers, and each whose recorded request changed, two a second.
-- **Bless it** with `just bless`. Bless writes the list of cases, then what each case expects from
-  what sego printed and the request of each exchange that isn't recorded, with its document, and
-  deletes the documents no case names. It prints the diff of what it wrote, new files included.
+`sego()` answers from `tests/recordings/`, which `just record` generates and nobody edits: one JSON
+file per distinct request, named for a hash of the request. Tests that send the same request share
+its recording, and a request with no recording fails the test. So to add a test:
 
-Read that diff before committing it.
+1. Write it.
+2. **Record its responses** with `just record`. It sends sourcegraph.com each request that has no
+   recording, two a second, writes only recordings, and removes those no test uses, which nothing
+   else notices. With a filter, it records the matching tests' responses again.
+3. **Bless it** with `just bless`, which takes the same filter and prints the diff.
 
 `just record` refuses a search that sego reports as stopped, because cut results vary from run to
 run: run it again. A search can also come back silently short when a search backend fails to answer
 ([ADR 0015](docs/adr/0015-failed-search-backends-are-not-detected.md)), and only the blessed diff
-shows that. A response sourcegraph.com can't be made to give on demand, such as a stopped search, is
-written by hand: an `[[exchange]]` with its `status`, `content-type` and `response`, whose request
-bless fills in. A hand-written response with a located GraphQL error names its `evidence`: a
-recorded case with the same kind of error at the same kind of path
-(`evidence = "show/binary-file-over-content-limit"`), `evidence = "GqlError::kind table: …"`, or
-`evidence = "none: REASON"`.
+shows that.
 
-Every case is also checked for:
+A response sourcegraph.com can't be made to give on demand, such as a stopped search, goes in the
+test. `answered()` serves its responses in order, whatever is asked, and any left unused fails the
+test:
 
-- the exact sequence of requests its exchanges hold, with none left unused
+```rust
+#[test]
+fn server_failure() {
+    let response = ServerResponse::new(502, "text/html", "<html>…</html>");
+    assert_snapshot!(answered(&["search", "foo"], [response]));
+}
+```
+
+A `serde_json::Value` is a successful JSON response, so `json!` covers most. A response of hundreds
+of entries is built in a loop, and its test checks the count and the edges of the answer, as in
+`tests/it/limits.rs`. `Case` runs what those two can't, such as a closed pipe:
+`Case::new(&args, responses).stdout_closed().ran()`.
+
+These all run through the rules every test keeps, and a test that breaks one panics before its
+snapshot is compared or written, so bless can't save a broken run:
+
 - no request on a usage error, except the three found from a response
 - no note or error line that ends in a period
 - every request under the one client deadline
 - `connect` given sourcegraph.com, at most once
 - a cache directory left untouched unless a raw read was sent
+- no response left unused, and no request without one
+- output that's UTF-8 with no carriage return, the two things a snapshot can't pin
+- a JSON answer on one line
 
-Every case served a GraphQL response runs a second time with a hostile corpus in the strings of its
-response ([ADR 0006](docs/adr/0006-escape-server-text.md)). It fails if an unsafe character reaches
-the output as itself, a line starts with the corpus, or a JSON value carries only part of it. Cases
-made for the purpose cover what that can't reach, such as alert titles, file contents and raw reads.
+Every test served a GraphQL response runs a second time with a corpus of characters that must never
+print as themselves in the strings of its response
+([ADR 0006](docs/adr/0006-escape-server-text.md)). It fails if an unescaped character reaches the
+output, a line starts with the corpus, or a JSON value carries only part of it. Tests made for the
+purpose cover what that can't reach, such as alert titles, file contents and raw reads.
+
+CI fails on a snapshot no test uses, as a renamed test leaves behind. Locally, with `cargo-insta`
+installed, `cargo insta test --check --unreferenced=reject` does the same. Never pass
+`--unreferenced=delete` with a test filter: it deletes the snapshots of every test that didn't run.
 
 ## Other tests
 
-The case runner lives in `tests/it/support`, inside the one test binary `tests/it`, with its own
-tests inline. Faults below HTTP, such as a dropped connection or a passed deadline, aren't cases:
-they are module tests of the transport and of the `sourcegraph` module. Besides the cases, two tests
-go through `run`: one runs the built binary, for what `main` adds, and one runs the cache across two
-runs.
+What the tests run sego through lives in `tests/it/common`, inside the one test binary `tests/it`,
+with its own tests inline. Faults below HTTP, such as a dropped connection or a passed deadline, are
+module tests of the transport and of the `sourcegraph` module. One more test runs the built binary,
+for what `main` adds, and `tests/it/cache.rs` runs the cache across two runs.
 
 ## Live checks
 
-`just live` re-sends every recorded request to sourcegraph.com and fails when a response's shape
-has changed. A response marked `live = "values"` also fails when its values change. Then it checks
-the rules search relies on. `just live PATH…` re-sends only the requests of the cases under each
-path, a case or a directory under `tests/cases` such as `show` or `show/lfs-pointer`, and skips the
-rules. Run it whole before a release.
+`just live` re-sends the request of every recording to sourcegraph.com, and fails at the end, listing
+each recording whose response's shape has changed. Its values must match too, unless the commit IDs in the
+answer have moved, since answers about the same commits should be the same. Capped searches and lists
+of refs compare only their shape: which results fill a cap varies, and refs grow without a commit
+moving. It also checks the rules search relies on, each its own test, one at a time. `just live
+FILTER` sends only the recordings whose names hold FILTER, such as `File-` for the `File` requests,
+and skips those rules, so a filter that matches nothing passes. Run it whole before a release. Every
+recording goes through one gate, two requests a second, and stops once the server
+refuses one. Nothing it runs writes a file.
 
-Before changing a command's requests, run `just live <command>`, or `just live` whole for search,
-whose rules only the whole run checks. Once it passes, the diff that `just record` and `just bless`
-then write is your change, not server drift.
+Before changing a command's requests, run `just live` for those requests. Once it passes, the diff
+that `just record` and `just bless` then write is your change, not server drift. When a recording has
+really drifted, `just record FILTER` records the matching tests' responses again.
 
-A difference counts only when a second answer shows it too, since sourcegraph.com now and then
-leaves out part of a search's answer. Three differences never count:
+A difference counts only when a second answer, a few seconds later, shows it too, since
+sourcegraph.com now and then leaves out part of a search's answer. Four differences never count:
 
 - a "revision not found after waiting for a fetch" error at a revision lookup that one answer has
   and the other doesn't, which another client's fetch can cause
 - which of two missing names waited for the fetch they share
 - the mirror's `updatedAt`, which moves on its own
+- the order of a search's results, which is whatever order the files were read in
 
 ## Generated files
 
-- `just bless` regenerates `tests/it/cases.rs` from `tests/cases`, and what each case expects and
-  the stored documents from what sego does now; see [Cases](#cases).
+- `just bless` writes `tests/it/snapshots/` from what sego does now; see [Tests](#tests).
+- `just record` regenerates `tests/recordings/`.
 - `just escape-table` regenerates `src/escape/table.rs` from the pinned Unicode data.
 - `just schema` fetches the live GraphQL schema into `target/schema.json`, for reading.
 
@@ -138,6 +147,7 @@ What the research means for how to search well goes in
 
 ## Commits and pull requests
 
+- `git config core.hooksPath .githooks` makes each commit run `just check` first.
 - A commit message is one imperative sentence that says what the change does.
 - Each commit passes `just check`.
 - A pull request says what changed and why, and links its issue.

@@ -1,0 +1,9 @@
+---
+source: tests/it/ls.rs
+expression: "answered(&[\"ls\", \"example.com/acme/widget@v1.0.0:empty\"], [response])"
+---
+exit: 0
+----- stdout -----
+example.com/acme/widget@98cb6bf42e08:empty  0 entries  rev v1.0.0
+----- stderr -----
+----- end -----

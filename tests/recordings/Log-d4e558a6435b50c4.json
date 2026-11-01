@@ -1,0 +1,2603 @@
+{
+  "date": "2026-10-27",
+  "request": {
+    "operation": "Log",
+    "query": "query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String, $follow: Boolean!, $first: Int) {\n  r0: repository(name: $repo0) { ...History }\n  t0: repository(name: $repo0) { ...Tags }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...History }\n  t1: repository(name: $repo1) @include(if: $gitlab) { ...Tags }\n}\n\nfragment History on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\n    oid\n    w: tree(path: \"\") { commit { ancestors(first: $first, path: $path, follow: $follow) { ...Page } } }\n  }\n}\n\nfragment Page on GitCommitConnection {\n  nodes { oid subject author { date person { displayName } } parents { oid } }\n  pageInfo { hasNextPage }\n}\n\nfragment Tags on Repository {\n  gitRefs(type: GIT_TAG) { nodes { displayName target { oid } } }\n}\n",
+    "variables": {
+      "first": 150,
+      "follow": false,
+      "gitlab": false,
+      "path": "Cargo.toml",
+      "repo0": "github.com/sharkdp/bat",
+      "repo1": "",
+      "rev": "fc9546854f5a"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": {
+            "oid": "fc9546854f5a7b38823f4990453c6cde386bfd3b",
+            "w": {
+              "commit": {
+                "ancestors": {
+                  "nodes": [
+                    {
+                      "author": {
+                        "date": "2023-10-10T14:54:34Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "fc9546854f5a7b38823f4990453c6cde386bfd3b",
+                      "parents": [
+                        {
+                          "oid": "32da58e723791dc6bf75ededc11aa5bee6d56503"
+                        }
+                      ],
+                      "subject": "Bump version to v0.24.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-10-01T17:44:10Z",
+                        "person": {
+                          "displayName": "Raghav-Bell"
+                        }
+                      },
+                      "oid": "8e35a567121a7186d77e12e249490210c6eb75a9",
+                      "parents": [
+                        {
+                          "oid": "9f795dd9472b24848fe1e2c087cf8163be280fa1"
+                        }
+                      ],
+                      "subject": "Updated version of `serde_yaml` to 0.9"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-10-01T02:58:21Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "721f956c1c9fdc5d4c60d5137302e347fe5dd49c",
+                      "parents": [
+                        {
+                          "oid": "db4cdc1cb82ea177d33122b2447bdb4033b03ab5"
+                        }
+                      ],
+                      "subject": "Bump once_cell from 1.17.0 to 1.18.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-10-01T02:58:13Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "db4cdc1cb82ea177d33122b2447bdb4033b03ab5",
+                      "parents": [
+                        {
+                          "oid": "e455f93a1e06507ac741f924603c8efcc8c93d12"
+                        }
+                      ],
+                      "subject": "Bump clap from 4.4.2 to 4.4.6"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-10-04T07:05:20Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "e455f93a1e06507ac741f924603c8efcc8c93d12",
+                      "parents": [
+                        {
+                          "oid": "d756d6f1ed855482fb60768ed2257d9d7f128194"
+                        }
+                      ],
+                      "subject": "Bump encoding_rs from 0.8.32 to 0.8.33"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-10-01T02:58:03Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "c7cc4b5c59db0e8129f840f26be4c3816c1c864f",
+                      "parents": [
+                        {
+                          "oid": "db76091a53bec336a8f69de04018c9137b01f999"
+                        }
+                      ],
+                      "subject": "Bump bytesize from 1.2.0 to 1.3.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-09-05T04:15:46Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "f49278cfaa811da2128a6dd6ac73ad5af02c4cca",
+                      "parents": [
+                        {
+                          "oid": "9b73eda9576a846dc6c5e6c0ac14ed38e7b5b5ce"
+                        }
+                      ],
+                      "subject": "Do not enable `lessopen` feature by default"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-09-02T06:48:26Z",
+                        "person": {
+                          "displayName": "Anomalocaridid"
+                        }
+                      },
+                      "oid": "e32ad0b048c52c81e61774266f2c19ea0feae67b",
+                      "parents": [
+                        {
+                          "oid": "3abc0c0fc4ab69c543c70db1fff9d49aed3c9010"
+                        }
+                      ],
+                      "subject": "Add `$LESSOPEN` and `$LESSCLOSE` support (#2444)"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-04-22T00:11:57Z",
+                        "person": {
+                          "displayName": "Utkarsh Gupta"
+                        }
+                      },
+                      "oid": "a721cc31f3932e6933adb86b2b02361e310af498",
+                      "parents": [
+                        {
+                          "oid": "1e52785d359c027b822710c299b8e4726b00e6ba"
+                        }
+                      ],
+                      "subject": "Replace `dirs` crate with `etcetera` crate"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-07-21T14:41:32Z",
+                        "person": {
+                          "displayName": "rhysd"
+                        }
+                      },
+                      "oid": "d33b2e158ea96fefd3be7d30916d137fed5e3e88",
+                      "parents": [
+                        {
+                          "oid": "d295b3a39435ca30f506fece678147c6d02ec1d3"
+                        }
+                      ],
+                      "subject": "Replace unmaintained `encoding` with `encoding_rs`"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-09-01T18:09:30Z",
+                        "person": {
+                          "displayName": "David Peter"
+                        }
+                      },
+                      "oid": "d295b3a39435ca30f506fece678147c6d02ec1d3",
+                      "parents": [
+                        {
+                          "oid": "81a217b1f3b98ca7d11861ebcbdd486becd7ef80"
+                        },
+                        {
+                          "oid": "7f884fa582487c3a0d8b71eaeb2c60d7e257889e"
+                        }
+                      ],
+                      "subject": "Merge pull request #2613 from sharkdp/dependabot/cargo/expect-test-1.4.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-09-01T16:04:46Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "75928d20f83a55a6904271c6d45769c241feaeaa",
+                      "parents": [
+                        {
+                          "oid": "2cc45eea1ab8519e1bc299da12726cea5694c2d8"
+                        }
+                      ],
+                      "subject": "Bump nu-ansi-term from 0.47.0 to 0.49.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-09-01T03:43:28Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "2cc45eea1ab8519e1bc299da12726cea5694c2d8",
+                      "parents": [
+                        {
+                          "oid": "7dbc6e3da4236ec6540661d233f8600c48617f84"
+                        }
+                      ],
+                      "subject": "Bump clap from 4.3.0 to 4.4.2"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-09-01T16:03:51Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "7dbc6e3da4236ec6540661d233f8600c48617f84",
+                      "parents": [
+                        {
+                          "oid": "f34b852aa80a36294df4b117cf8e945f8c914d0a"
+                        }
+                      ],
+                      "subject": "Bump tempfile from 3.5.0 to 3.8.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-09-01T03:43:28Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "f34b852aa80a36294df4b117cf8e945f8c914d0a",
+                      "parents": [
+                        {
+                          "oid": "4b04f901fe645caa1f83073993dd92a585a606d8"
+                        }
+                      ],
+                      "subject": "Bump git2 from 0.16.1 to 0.18.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-08-28T14:25:30Z",
+                        "person": {
+                          "displayName": "mataha"
+                        }
+                      },
+                      "oid": "82664e3c82492ddfde41533a829859dd129125d6",
+                      "parents": [
+                        {
+                          "oid": "1893405cbf6a0676db4cf93e64939eb29a0ca6cb"
+                        }
+                      ],
+                      "subject": "Bump MSRV to 1.70.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-07-01T02:58:07Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "7f884fa582487c3a0d8b71eaeb2c60d7e257889e",
+                      "parents": [
+                        {
+                          "oid": "8676bbf97f2832ad2231e102ca9c9b7b72267fda"
+                        }
+                      ],
+                      "subject": "Bump expect-test from 1.4.0 to 1.4.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-06-14T18:14:11Z",
+                        "person": {
+                          "displayName": "David Peter"
+                        }
+                      },
+                      "oid": "8676bbf97f2832ad2231e102ca9c9b7b72267fda",
+                      "parents": [
+                        {
+                          "oid": "70e49bd32bae2420d988316281558c7e73a94cda"
+                        }
+                      ],
+                      "subject": "Update clircle"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-06-01T02:57:05Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "5042f969e50517794fef6af1795fbae0dbabff0f",
+                      "parents": [
+                        {
+                          "oid": "876f5d411315fd7017008c479e75e403290f2702"
+                        }
+                      ],
+                      "subject": "Bump clap from 4.2.6 to 4.3.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-06-01T02:57:16Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "39d9d64e1e0f32966587bea5472fa3716f480d1e",
+                      "parents": [
+                        {
+                          "oid": "7639e8b4067ea7f3f5603b353cb307b3708580c9"
+                        }
+                      ],
+                      "subject": "Bump regex from 1.8.1 to 1.8.3"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-05-01T02:58:06Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "c5a9fdff935f0fa6d7d30341ade4269fbb3ce6a7",
+                      "parents": [
+                        {
+                          "oid": "8aac5acc0ab575bb052dcf9235104f20a479f68c"
+                        }
+                      ],
+                      "subject": "Bump regex from 1.7.0 to 1.8.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-05-12T04:06:39Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "7162e38d507257190b2173b69e148c0b7661ea2b",
+                      "parents": [
+                        {
+                          "oid": "63ac60a3a000c192d31ff764593de9fc3e62998f"
+                        }
+                      ],
+                      "subject": "Bump predicates from 3.0.2 to 3.0.3"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-04-22T12:08:20Z",
+                        "person": {
+                          "displayName": "Constantin Nickel"
+                        }
+                      },
+                      "oid": "9683bfdb3f1c3091715946b1cc51d5b7bd811c26",
+                      "parents": [
+                        {
+                          "oid": "e155f56484507430f6aeeba971d8eb79b74aa867"
+                        }
+                      ],
+                      "subject": "Update `clap` to 4.2.6"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-04-05T21:07:48Z",
+                        "person": {
+                          "displayName": "Constantin Nickel"
+                        }
+                      },
+                      "oid": "e828d7840acc8abfd3f803e9f6b50d887cc547d7",
+                      "parents": [
+                        {
+                          "oid": "52f7a5a06fc10616f21bebb5bb9ce5916f18ef2f"
+                        }
+                      ],
+                      "subject": "Use valid SPDX license expression"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-04-05T19:18:24Z",
+                        "person": {
+                          "displayName": "Constantin Nickel"
+                        }
+                      },
+                      "oid": "52f7a5a06fc10616f21bebb5bb9ce5916f18ef2f",
+                      "parents": [
+                        {
+                          "oid": "baa1476d8d37eb3f19ca794e6b1ff1553d1c6793"
+                        }
+                      ],
+                      "subject": "Update `plist` to 1.4"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-04-05T19:40:41Z",
+                        "person": {
+                          "displayName": "Constantin Nickel"
+                        }
+                      },
+                      "oid": "baa1476d8d37eb3f19ca794e6b1ff1553d1c6793",
+                      "parents": [
+                        {
+                          "oid": "6be56972b668f5f67621873ab7774ee9d3bb2e30"
+                        }
+                      ],
+                      "subject": "Update `predicates` to 3.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-04-05T19:40:00Z",
+                        "person": {
+                          "displayName": "Constantin Nickel"
+                        }
+                      },
+                      "oid": "6be56972b668f5f67621873ab7774ee9d3bb2e30",
+                      "parents": [
+                        {
+                          "oid": "08445eba91302f108f7b98b6cb78c7596e22d33b"
+                        }
+                      ],
+                      "subject": "Update `serial_test` to 2.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-04-05T19:01:01Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "2298422e852aaf1a613c3ab5a6b868e2e5ed86e9",
+                      "parents": [
+                        {
+                          "oid": "c5731b9079e7e53b1e5dbe8d732bdac6ed392a0a"
+                        }
+                      ],
+                      "subject": "Bump bytesize from 1.1.0 to 1.2.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-04-05T19:00:18Z",
+                        "person": {
+                          "displayName": "David Peter"
+                        }
+                      },
+                      "oid": "c5731b9079e7e53b1e5dbe8d732bdac6ed392a0a",
+                      "parents": [
+                        {
+                          "oid": "458e818ab4c971844dcd124e8d538c7b126c495a"
+                        },
+                        {
+                          "oid": "57cc0d843567eef566540074b391f8212d859871"
+                        }
+                      ],
+                      "subject": "Merge pull request #2530 from nickelc/deps/use_is_terminal"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-04-01T02:58:04Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "458e818ab4c971844dcd124e8d538c7b126c495a",
+                      "parents": [
+                        {
+                          "oid": "993b33b5b4556126c4300921d9c977525778b6aa"
+                        }
+                      ],
+                      "subject": "Bump walkdir from 2.3.2 to 2.3.3"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-04-01T02:57:39Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "ba95955fe64b21e3765a0aa413e5784baefb6256",
+                      "parents": [
+                        {
+                          "oid": "1b2c69aee86d4c1f58843c9ebbea0d32e3a73dd6"
+                        }
+                      ],
+                      "subject": "Bump tempfile from 3.3.0 to 3.5.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-04-05T17:26:52Z",
+                        "person": {
+                          "displayName": "Constantin Nickel"
+                        }
+                      },
+                      "oid": "57cc0d843567eef566540074b391f8212d859871",
+                      "parents": [
+                        {
+                          "oid": "1b2c69aee86d4c1f58843c9ebbea0d32e3a73dd6"
+                        }
+                      ],
+                      "subject": "Use the `is-terminal` crate instead of `atty`"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-03-25T08:43:38Z",
+                        "person": {
+                          "displayName": "David Peter"
+                        }
+                      },
+                      "oid": "58dbbd1cd400377da250eb846bddd5669103d5e8",
+                      "parents": [
+                        {
+                          "oid": "2042eace2ab4012206a7bd60d81c6b44448f8c14"
+                        }
+                      ],
+                      "subject": "Bump version to 0.23"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-03-24T21:11:56Z",
+                        "person": {
+                          "displayName": "David Peter"
+                        }
+                      },
+                      "oid": "a422fea06d7e3c3477760382996b8b0ba9f3442c",
+                      "parents": [
+                        {
+                          "oid": "4e491c4594e4f5ae309197f92b50e2e96ad443c9"
+                        },
+                        {
+                          "oid": "89c5683f8d8f31fd86b438e469fe7b3c4e642b35"
+                        }
+                      ],
+                      "subject": "Merge pull request #2506 from nickelc/ci-strip"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-03-24T21:07:47Z",
+                        "person": {
+                          "displayName": "David Peter"
+                        }
+                      },
+                      "oid": "1a142a82b4c9e0c29eaf134bd5008012c88f88d3",
+                      "parents": [
+                        {
+                          "oid": "4d9aaece0900065f8d3e68ad7fd26b056ab535bf"
+                        },
+                        {
+                          "oid": "0e148e35dd086267f54852ba2811e11d76497172"
+                        }
+                      ],
+                      "subject": "Merge pull request #2513 from nickelc/deps/dirs"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-03-24T17:13:24Z",
+                        "person": {
+                          "displayName": "Constantin Nickel"
+                        }
+                      },
+                      "oid": "0e148e35dd086267f54852ba2811e11d76497172",
+                      "parents": [
+                        {
+                          "oid": "d20405b975ee4e0927e39d4ba9ef89991a41d685"
+                        }
+                      ],
+                      "subject": "Replace `dirs-next` with the original `dirs` crate"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-03-23T09:47:38Z",
+                        "person": {
+                          "displayName": "Constantin Nickel"
+                        }
+                      },
+                      "oid": "da3aa4e2fdbe905bf74aea2922297206af3277a8",
+                      "parents": [
+                        {
+                          "oid": "d20405b975ee4e0927e39d4ba9ef89991a41d685"
+                        }
+                      ],
+                      "subject": "Use `nu-ansi-term` instead of `ansi_term`"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-03-16T12:40:34Z",
+                        "person": {
+                          "displayName": "Constantin Nickel"
+                        }
+                      },
+                      "oid": "89c5683f8d8f31fd86b438e469fe7b3c4e642b35",
+                      "parents": [
+                        {
+                          "oid": "d20405b975ee4e0927e39d4ba9ef89991a41d685"
+                        }
+                      ],
+                      "subject": "Use cargo's `strip` option to remove symbols+debuginfo from the binaries"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-03-15T06:42:01Z",
+                        "person": {
+                          "displayName": "Constantin Nickel"
+                        }
+                      },
+                      "oid": "c094cd3ee5ac35b6803b43b7ed3be391ca4b9f8b",
+                      "parents": [
+                        {
+                          "oid": "231ad86f047f8904586e3a945a831d3f529ee4ac"
+                        }
+                      ],
+                      "subject": "Update `clap` to 4.1.8"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-03-14T20:55:29Z",
+                        "person": {
+                          "displayName": "Constantin Nickel"
+                        }
+                      },
+                      "oid": "22cc6ffb5a442ba74456eb2335685bd9fa161ab8",
+                      "parents": [
+                        {
+                          "oid": "8f99a78cf1e77e16d7114466defc9cf302ceaa5a"
+                        }
+                      ],
+                      "subject": "Set `rust-version` in Cargo metadata"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-03-01T07:45:37Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "2ac584dd72629005a6394e87a6ab7221b33ac9c3",
+                      "parents": [
+                        {
+                          "oid": "a967b888825fb4643080930ce0b5555ad06b035a"
+                        }
+                      ],
+                      "subject": "Bump grep-cli from 0.1.6 to 0.1.7"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-03-01T03:58:05Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "a967b888825fb4643080930ce0b5555ad06b035a",
+                      "parents": [
+                        {
+                          "oid": "ec6e9c29ac11178854063f2177dde5392e430e2e"
+                        }
+                      ],
+                      "subject": "Bump ansi_colours from 1.1.1 to 1.2.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-03-01T07:45:48Z",
+                        "person": {
+                          "displayName": "David Peter"
+                        }
+                      },
+                      "oid": "e3d8b56c8f28d71b4a33c733e03d54409dda76a3",
+                      "parents": [
+                        {
+                          "oid": "e142ea38e3010fcfd24318a9e4ab4187ed4a896a"
+                        },
+                        {
+                          "oid": "47ab4fa9881cb0afa1a6ca0fd3fb83b1333a8412"
+                        }
+                      ],
+                      "subject": "Merge pull request #2492 from sharkdp/dependabot/cargo/clap-4.0.32"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-03-01T03:57:46Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "47ab4fa9881cb0afa1a6ca0fd3fb83b1333a8412",
+                      "parents": [
+                        {
+                          "oid": "52ef1bc0d6bead9f450efe28a457acbcb1e94d88"
+                        }
+                      ],
+                      "subject": "Bump clap from 4.0.18 to 4.0.32"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-03-01T03:57:37Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "bc714dd7a2675f542661ef17e8c49a9af6c5d0c1",
+                      "parents": [
+                        {
+                          "oid": "52ef1bc0d6bead9f450efe28a457acbcb1e94d88"
+                        }
+                      ],
+                      "subject": "Bump git2 from 0.15.0 to 0.16.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-01-05T19:58:16Z",
+                        "person": {
+                          "displayName": "BlackHoleFox"
+                        }
+                      },
+                      "oid": "1004018941eb0f3c85c2a535c2d6631ef9ef6385",
+                      "parents": [
+                        {
+                          "oid": "6122d43e793cc40bd8f2f16674888474d91c43d0"
+                        }
+                      ],
+                      "subject": "Directly read preferences instead of using the defaults CLI"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-02-01T03:01:15Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "37ae4989a27dcfa4fa0917ef7713cd58a06d9d7a",
+                      "parents": [
+                        {
+                          "oid": "d83cc3a1166af83fa4b499a0fd56efe7a4144d82"
+                        }
+                      ],
+                      "subject": "Bump nix from 0.26.1 to 0.26.2"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-02-01T03:01:29Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "d83cc3a1166af83fa4b499a0fd56efe7a4144d82",
+                      "parents": [
+                        {
+                          "oid": "105e55456cf8f1041ccd287b5c48e251bdc9b9cb"
+                        }
+                      ],
+                      "subject": "Bump console from 0.15.2 to 0.15.5"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-02-01T03:01:37Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "105e55456cf8f1041ccd287b5c48e251bdc9b9cb",
+                      "parents": [
+                        {
+                          "oid": "c012def1e43d0d431a33ba8f9caef9be0da93d7e"
+                        }
+                      ],
+                      "subject": "Bump assert_cmd from 2.0.5 to 2.0.8"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-01-17T14:29:13Z",
+                        "person": {
+                          "displayName": "David Peter"
+                        }
+                      },
+                      "oid": "5cd77662b59de5031af454312e962d220b217021",
+                      "parents": [
+                        {
+                          "oid": "09ab1905d00e0b9942e15b69b5dc29561a42bae4"
+                        },
+                        {
+                          "oid": "4e34b362f844dae57b017e56a24235d8163ffbf7"
+                        }
+                      ],
+                      "subject": "Merge pull request #2430 from Enselic/blessable-help"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-01-01T03:01:59Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "d5084cd391d62a8785d638c8ebf79480ba419a30",
+                      "parents": [
+                        {
+                          "oid": "6d40fd648276d44c88cd84cf13d52bd2ad30bd23"
+                        }
+                      ],
+                      "subject": "Bump predicates from 2.1.3 to 2.1.5"
+                    },
+                    {
+                      "author": {
+                        "date": "2023-01-01T03:01:44Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "79198e80481e0a7cef2ec4aa621fc7ba854ff1e8",
+                      "parents": [
+                        {
+                          "oid": "c6a9b01c4f32fa6adef9824261f21a7bb4793731"
+                        }
+                      ],
+                      "subject": "Bump once_cell from 1.16.0 to 1.17.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-12-30T08:16:07Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "4e34b362f844dae57b017e56a24235d8163ffbf7",
+                      "parents": [
+                        {
+                          "oid": "416845dcd0e2912854122ef00135e2f8b4dea5db"
+                        }
+                      ],
+                      "subject": "Require changes to `-h` and `--help` to be blessed"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-12-01T03:01:52Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "52764624c904543f6ef84d3b33d266590326b644",
+                      "parents": [
+                        {
+                          "oid": "5c510a20c1e7acc2c3dd75e31250746f5085d331"
+                        }
+                      ],
+                      "subject": "Bump predicates from 2.1.1 to 2.1.3"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-12-01T03:01:46Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "5c510a20c1e7acc2c3dd75e31250746f5085d331",
+                      "parents": [
+                        {
+                          "oid": "c9ac95e341d6bd9d6ad20d0febc80589c5b63638"
+                        }
+                      ],
+                      "subject": "Bump nix from 0.25.0 to 0.26.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-12-01T03:02:05Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "8e960fc59c637fb268d65734235b3804d3e97acc",
+                      "parents": [
+                        {
+                          "oid": "416845dcd0e2912854122ef00135e2f8b4dea5db"
+                        }
+                      ],
+                      "subject": "Bump regex from 1.6.0 to 1.7.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-11-02T19:57:38Z",
+                        "person": {
+                          "displayName": "David Peter"
+                        }
+                      },
+                      "oid": "b6a5004a9cbb26a3259620f0d4e3d4b04a1166f4",
+                      "parents": [
+                        {
+                          "oid": "bb2e3b52b8c0d32034d837844e197057ade98d4f"
+                        },
+                        {
+                          "oid": "600de058404675d46d19335edc7ba9f82a8ea99b"
+                        }
+                      ],
+                      "subject": "Merge pull request #2390 from sharkdp/dependabot/cargo/nix-0.25.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-11-02T19:57:15Z",
+                        "person": {
+                          "displayName": "David Peter"
+                        }
+                      },
+                      "oid": "bb2e3b52b8c0d32034d837844e197057ade98d4f",
+                      "parents": [
+                        {
+                          "oid": "12affef049c42067bc087254976bba16fd5478eb"
+                        },
+                        {
+                          "oid": "ea7cc9d82ffc9f75655327896a41e20d8e09be03"
+                        }
+                      ],
+                      "subject": "Merge pull request #2389 from sharkdp/dependabot/cargo/once_cell-1.16.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-11-01T03:04:35Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "600de058404675d46d19335edc7ba9f82a8ea99b",
+                      "parents": [
+                        {
+                          "oid": "a7b0449967f640428eced369410622d53008f463"
+                        }
+                      ],
+                      "subject": "Bump nix from 0.24.2 to 0.25.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-11-01T03:04:29Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "ea7cc9d82ffc9f75655327896a41e20d8e09be03",
+                      "parents": [
+                        {
+                          "oid": "a7b0449967f640428eced369410622d53008f463"
+                        }
+                      ],
+                      "subject": "Bump once_cell from 1.15.0 to 1.16.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-11-01T03:04:27Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "e536aa933e42d36825f23445dac216217a650ab4",
+                      "parents": [
+                        {
+                          "oid": "a7b0449967f640428eced369410622d53008f463"
+                        }
+                      ],
+                      "subject": "Bump assert_cmd from 2.0.4 to 2.0.5"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-10-01T00:08:50Z",
+                        "person": {
+                          "displayName": "Gábor Lipták"
+                        }
+                      },
+                      "oid": "1e0b0f7c5c13f034195f9117308e0f0f0cfdc077",
+                      "parents": [
+                        {
+                          "oid": "9051fc5465f2ad54d8e5de0491a70193e0ecc438"
+                        }
+                      ],
+                      "subject": "Add github-actions to Dependabot"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-10-01T07:06:40Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "42a3ef28e818523c23e1b608935365783fdb9785",
+                      "parents": [
+                        {
+                          "oid": "b9d5f3878d0a58268b73bd843bededdc566418af"
+                        }
+                      ],
+                      "subject": "Bump once_cell from 1.13.1 to 1.15.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-10-01T02:01:58Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "10ab72f8ae4279c1e58943fcb470f0d0a083a075",
+                      "parents": [
+                        {
+                          "oid": "9d39054e184756b61d620a319842343f7e0b9acc"
+                        }
+                      ],
+                      "subject": "Bump unicode-width from 0.1.9 to 0.1.10"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-10-01T02:02:08Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "c662801ad8d9d074c8ae0160e2ae08eb1d4f0f9e",
+                      "parents": [
+                        {
+                          "oid": "2dbc88d3afdacf6449f299c70f29e5456904779b"
+                        }
+                      ],
+                      "subject": "Bump console from 0.15.1 to 0.15.2"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-09-09T18:26:55Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "e5d95796141a719e208208182a5d3c2090a009c6",
+                      "parents": [
+                        {
+                          "oid": "352309b0566519ffb64adba1848fbdefce878ab6"
+                        }
+                      ],
+                      "subject": "Bump version to v0.22.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-09-06T20:22:06Z",
+                        "person": {
+                          "displayName": "David Peter"
+                        }
+                      },
+                      "oid": "3c33b28507979a909c593d4e9a47a3328d5c8e97",
+                      "parents": [
+                        {
+                          "oid": "08386daa3ae9a149ac27261579745cad11993b06"
+                        }
+                      ],
+                      "subject": "Bump version to v0.22"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-08-25T17:34:49Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "b295850cb3fef4e12b0aed8677b84d6d8aa376c2",
+                      "parents": [
+                        {
+                          "oid": "08c91a116c7513518e857c5e3b9d629e81d98f80"
+                        }
+                      ],
+                      "subject": "Bump git2 from 0.14.2 to 0.15.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-09-01T20:41:07Z",
+                        "person": {
+                          "displayName": "Ed Page"
+                        }
+                      },
+                      "oid": "2323804f7e72f34cc22cd29bd58fbf52fe14292d",
+                      "parents": [
+                        {
+                          "oid": "49875d6ce787213ad282a8168dc5e981b4bb1b6a"
+                        }
+                      ],
+                      "subject": "refactor: Port to clap3"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-09-02T17:49:35Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "3480b61eae4e74667199798f278aedfc4818c774",
+                      "parents": [
+                        {
+                          "oid": "0167ba55dd2d8d649b7e25209c8ca8212820188d"
+                        }
+                      ],
+                      "subject": "Bump wild from 2.0.4 to 2.1.0 (#2296)"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-08-12T15:07:49Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "4514a362fa0fac60b148b8e2116aa59b557cb1d3",
+                      "parents": [
+                        {
+                          "oid": "3a93798e8b5189c10058c98a2ceab32bbb734045"
+                        }
+                      ],
+                      "subject": "Bump regex from 1.5.6 to 1.6.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-08-12T14:32:44Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "44fa7a9af3af1254601dbf51a4caed8ca0fbe2ba",
+                      "parents": [
+                        {
+                          "oid": "00eb7480f7250cf98a116300358a651fa8b03507"
+                        }
+                      ],
+                      "subject": "Bump once_cell from 1.12.0 to 1.13.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-08-12T13:24:11Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "44daae4a8fd2157758c92fc057fac78075f7bc0d",
+                      "parents": [
+                        {
+                          "oid": "dd2c6e07b8f1685358dd0082800636959a087154"
+                        }
+                      ],
+                      "subject": "Bump console from 0.15.0 to 0.15.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-08-01T02:09:24Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "dd2c6e07b8f1685358dd0082800636959a087154",
+                      "parents": [
+                        {
+                          "oid": "7b2e0ece55c0ea4f5fb270c1d3cf251135f225d8"
+                        }
+                      ],
+                      "subject": "Bump nix from 0.24.1 to 0.24.2"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-06-01T02:06:29Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "17c099e5899092cfc8280d39e0f156dcaa16569c",
+                      "parents": [
+                        {
+                          "oid": "7d6aa09a567e38c00b9e47518e36447628a1d433"
+                        }
+                      ],
+                      "subject": "Bump regex from 1.5.5 to 1.5.6"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-06-01T02:06:47Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "7d6aa09a567e38c00b9e47518e36447628a1d433",
+                      "parents": [
+                        {
+                          "oid": "b99ada89187eda58c606da1926496d4d04400833"
+                        }
+                      ],
+                      "subject": "Bump once_cell from 1.10.0 to 1.12.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-05-10T15:33:49Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "d3f89bc4bcd3ac2e6f0c369bea45112808cae7e4",
+                      "parents": [
+                        {
+                          "oid": "5fe9b3e1b3df770207f1fdda7b10893c56cd9cfb"
+                        }
+                      ],
+                      "subject": "Bump to v0.21.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-05-07T11:43:11Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "7334ab45422882686212ed31df2d95c02e7585f1",
+                      "parents": [
+                        {
+                          "oid": "719248f1c1a2c1c6723b941d3a58cafccf6e3739"
+                        }
+                      ],
+                      "subject": "Bump to syntect 5.0.0 to e.g. start lazy-loading syntaxes (#2181)"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-05-01T17:12:00Z",
+                        "person": {
+                          "displayName": "Ryan Zoeller"
+                        }
+                      },
+                      "oid": "05ebf5ed26805f517d6011de4e6b623edec57f23",
+                      "parents": [
+                        {
+                          "oid": "adea8950267e2f0d242d033a1ef3140702ad01a2"
+                        }
+                      ],
+                      "subject": "Limit nix features"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-05-01T02:04:04Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "f2727d74d558c0ce842d2fdeb548412808467269",
+                      "parents": [
+                        {
+                          "oid": "735bee47ebfc98df05c48971e138ca013b467c24"
+                        }
+                      ],
+                      "subject": "Bump nix from 0.23.1 to 0.24.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-04-02T17:46:43Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "520081a92c73652653c4f2b40e9527dd36b234bb",
+                      "parents": [
+                        {
+                          "oid": "47e0dc22d20b10ade93fb15b2116d4f928a8dd54"
+                        }
+                      ],
+                      "subject": "Print info about custom assets in --diagnostics"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-04-02T18:03:54Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "47e0dc22d20b10ade93fb15b2116d4f928a8dd54",
+                      "parents": [
+                        {
+                          "oid": "33a984992b401d26e30e9dd1f578ad311ea33b79"
+                        }
+                      ],
+                      "subject": "Lock regex crate at min 1.5.5 for CVE-2022-24713"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-04-01T02:02:54Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "738304fe27075bb2a767dd9ab3db0cee548301fa",
+                      "parents": [
+                        {
+                          "oid": "a19155203111451265378ddc8bcdea5f46ae6846"
+                        }
+                      ],
+                      "subject": "Bump once_cell from 1.9.0 to 1.10.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-04-01T02:03:03Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "a19155203111451265378ddc8bcdea5f46ae6846",
+                      "parents": [
+                        {
+                          "oid": "cec7229b6a8b31c543a322027348774f4cc90d2b"
+                        }
+                      ],
+                      "subject": "Bump regex from 1.5.4 to 1.5.5"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-03-01T03:04:06Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "a153a78d7aa41555d3b52eab0b0eef83dbc03f9e",
+                      "parents": [
+                        {
+                          "oid": "3ff738602e2b5cda8df19fe6cbad030b1a6b5254"
+                        }
+                      ],
+                      "subject": "Bump shell-words from 1.0.0 to 1.1.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-03-01T03:04:19Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "3ff738602e2b5cda8df19fe6cbad030b1a6b5254",
+                      "parents": [
+                        {
+                          "oid": "282b70291f769d2e3526a9ed8d4e76c75681b284"
+                        }
+                      ],
+                      "subject": "Bump git2 from 0.13.25 to 0.14.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-03-01T05:57:40Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "97a98e037d9cbe3028c1e83585513e18901e841f",
+                      "parents": [
+                        {
+                          "oid": "3ffff8d2d80567c01b077601e3872ec7b17abf79"
+                        }
+                      ],
+                      "subject": "Bump serial_test from 0.5.1 to 0.6.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-03-01T03:04:15Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "95796a9cc091314e726f2efb00bacfef9e7ef79b",
+                      "parents": [
+                        {
+                          "oid": "7be9485c3690799ee204ec5195172f9e90f49924"
+                        }
+                      ],
+                      "subject": "Bump predicates from 2.1.0 to 2.1.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-02-26T16:27:34Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "0655ecf23d778f1455e2d79f37a805a7bcca98d2",
+                      "parents": [
+                        {
+                          "oid": "671fc952bce06474c9ebe5f4f7f4e253a34508fa"
+                        }
+                      ],
+                      "subject": "Prepare for v0.20.0 release"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-02-07T19:48:57Z",
+                        "person": {
+                          "displayName": "Mahdi Dibaiee"
+                        }
+                      },
+                      "oid": "312c8ef01f1a80f4a806629a7dacd32508b267a5",
+                      "parents": [
+                        {
+                          "oid": "f3f819493208f32b7a1374578568970ec381f5ac"
+                        }
+                      ],
+                      "subject": "Add new `--style` called `header-filesize` and display it by default (#1988)"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-02-07T05:33:17Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "6ce26c43c95a4c707a816c0a7bd49051780afe1f",
+                      "parents": [
+                        {
+                          "oid": "486510395b1b8d61edf02af717e75519e7250a35"
+                        }
+                      ],
+                      "subject": "Bump ansi_colours from 1.0.4 to 1.1.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-02-01T03:02:59Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "af44f0b3ff6d0d6a5d9cbc95e1b153413e70bc88",
+                      "parents": [
+                        {
+                          "oid": "5ae1957c0ee424136e8e00bfee85da6616b76b0a"
+                        }
+                      ],
+                      "subject": "Bump tempfile from 3.2.0 to 3.3.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-02-01T03:02:34Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "5ae1957c0ee424136e8e00bfee85da6616b76b0a",
+                      "parents": [
+                        {
+                          "oid": "36be8d5929c7b7ee80f6d8e0892e48f714b6b6b7"
+                        }
+                      ],
+                      "subject": "Bump assert_cmd from 2.0.2 to 2.0.4"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-01-07T07:43:27Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "c2232d457f977885fe6ce9bf8f86a4b79ec35bd6",
+                      "parents": [
+                        {
+                          "oid": "77f51f0ee30071e9de39f697e69114b90cc03c83"
+                        }
+                      ],
+                      "subject": "Bump to v0.19.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-01-01T03:02:42Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "079f6be88c78151ae31591c6e2d83ba5d24b1d2a",
+                      "parents": [
+                        {
+                          "oid": "c522ba78ed401fa1e07efe3f9e970274a44804b2"
+                        }
+                      ],
+                      "subject": "Bump nix from 0.23.0 to 0.23.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2022-01-01T03:02:29Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "392bff666625c31936c09bd9b402e1049b0fd3ae",
+                      "parents": [
+                        {
+                          "oid": "6dc621ec1854656260564b114c33b23b3314c5c2"
+                        }
+                      ],
+                      "subject": "Bump once_cell from 1.8.0 to 1.9.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-12-11T13:00:45Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "a3ea7982466941d746a09bafc8bf386711c48686",
+                      "parents": [
+                        {
+                          "oid": "63ad53817d2d2f3f6b33983c95d6d3ed31184ce9"
+                        }
+                      ],
+                      "subject": "Credit syntax definition and theme authors with new `--acknowledgements` option (#1971)"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-12-01T03:02:38Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "8072d5a3e34494c80f10396481703a96997bb893",
+                      "parents": [
+                        {
+                          "oid": "a5234105e55570523db9d543947acd9d09a1e392"
+                        }
+                      ],
+                      "subject": "Bump clap from 2.33.3 to 2.34.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-12-01T03:02:44Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "f5e3d9f010d4e7b3c2f7a361f62cf8f3c0944ff6",
+                      "parents": [
+                        {
+                          "oid": "6313e9ef2a95cf0dcd19c89e246d01b48dec261b"
+                        }
+                      ],
+                      "subject": "Bump predicates from 2.0.3 to 2.1.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-11-22T20:10:17Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "5519f9c7168d403c2e1c6ad7724854ff5552361b",
+                      "parents": [
+                        {
+                          "oid": "dd0925a9465978bdd4aef0da45a6f323b6d10774"
+                        }
+                      ],
+                      "subject": "Use once_cell instead of lazy_static"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-11-22T19:59:28Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "dd0925a9465978bdd4aef0da45a6f323b6d10774",
+                      "parents": [
+                        {
+                          "oid": "d7671fa8e37ff7c82cd0eff60cc98028e88b68bf"
+                        }
+                      ],
+                      "subject": "Replace lazycell with once_cell"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-11-01T04:55:36Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "7fbe090525ed3421f0da4d0e87da81e21a9a5fa7",
+                      "parents": [
+                        {
+                          "oid": "eaf64df4c659677205fd203560fe725caad6826c"
+                        }
+                      ],
+                      "subject": "Bump assert_cmd from 2.0.1 to 2.0.2"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-11-01T03:03:39Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "eaf64df4c659677205fd203560fe725caad6826c",
+                      "parents": [
+                        {
+                          "oid": "a1558fb6bf9598c9626c1ca185200bafc203f909"
+                        }
+                      ],
+                      "subject": "Bump console from 0.14.1 to 0.15.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-11-01T03:03:30Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "a1558fb6bf9598c9626c1ca185200bafc203f909",
+                      "parents": [
+                        {
+                          "oid": "18e999c92a8818c3e6d2c075034ae12a8d915c7a"
+                        }
+                      ],
+                      "subject": "Bump predicates from 2.0.2 to 2.0.3"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-10-17T04:34:49Z",
+                        "person": {
+                          "displayName": "rhysd"
+                        }
+                      },
+                      "oid": "ed3246c423932561435d45c50fd8cd9e06add7f5",
+                      "parents": [
+                        {
+                          "oid": "2339d78bf4cb32a5aa54699bc97ffe6c369eec69"
+                        }
+                      ],
+                      "subject": "Make grep-cli optional dependency"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-10-01T02:03:08Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "a6cf5235aaef07cb8f66e87b411f85363c5de87b",
+                      "parents": [
+                        {
+                          "oid": "1477338106d0620384d08d1d1dfb14f42e01343b"
+                        }
+                      ],
+                      "subject": "Bump assert_cmd from 2.0.0 to 2.0.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-10-01T02:03:18Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "1477338106d0620384d08d1d1dfb14f42e01343b",
+                      "parents": [
+                        {
+                          "oid": "418fce56835240ca9989a841d667eb02d5992c5d"
+                        }
+                      ],
+                      "subject": "Bump nix from 0.22.1 to 0.23.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-10-02T09:54:21Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "5344a32d3447286a4b809789d015930c150bf73d",
+                      "parents": [
+                        {
+                          "oid": "c9645693a4549f26c26a91dbf3abdf37dc6bc805"
+                        }
+                      ],
+                      "subject": "Bump unicode-width from 0.1.8 to 0.1.9"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-09-07T15:21:48Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "87978e7755d614bbfc6e6939df9ebbcd04925cac",
+                      "parents": [
+                        {
+                          "oid": "d935ea1cda8a2f59b8f832ed197b3c10552a11bd"
+                        }
+                      ],
+                      "subject": "Make asset compression optional at compile time (#1825)"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-09-03T16:07:54Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "960219591028984053a80fa6aeb3e506e9d791e7",
+                      "parents": [
+                        {
+                          "oid": "8ca852c728b18f0f278e064e4e90871afb530f98"
+                        }
+                      ],
+                      "subject": "Bump assert_cmd from 1.0.8 to 2.0.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-09-01T02:02:33Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "df067f7d1fa4b4b4e5afe941f62c2214215c427b",
+                      "parents": [
+                        {
+                          "oid": "a8a81e99d2fc064382025564821997b36cff700c"
+                        }
+                      ],
+                      "subject": "Bump predicates from 2.0.1 to 2.0.2"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-09-01T02:02:39Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "a8a81e99d2fc064382025564821997b36cff700c",
+                      "parents": [
+                        {
+                          "oid": "65e7c531de5e855fc3cd5a42e3d9e904e3423407"
+                        }
+                      ],
+                      "subject": "Bump nix from 0.22.0 to 0.22.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-08-26T11:12:21Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "19c3e82abf70324dcf9d1c310aed7881f44fd35f",
+                      "parents": [
+                        {
+                          "oid": "f1c0fd7343c6c4c6a5ec198e533a6e8de3369472"
+                        }
+                      ],
+                      "subject": "Replace deprecated 'error-chain' with 'thiserror' (#1820)"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-08-22T16:56:37Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "b3247d93648265d67b1f82291e2c226ae3fbc135",
+                      "parents": [
+                        {
+                          "oid": "ba8a694314b95e7792e042bf687d77675ba6ff84"
+                        },
+                        {
+                          "oid": "b146958ecbb8c8c926159509ca7fb32a8573f897"
+                        }
+                      ],
+                      "subject": "Merge the v0.18.3 hotfix release into master"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-08-21T17:54:10Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "b146958ecbb8c8c926159509ca7fb32a8573f897",
+                      "parents": [
+                        {
+                          "oid": "15c701b19625bf8f8646238eecb28c2f8f43afeb"
+                        }
+                      ],
+                      "subject": "Bump version to v0.18.3"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-08-10T20:18:47Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "25fa577cd06c9753756d116410aaa19735c95085",
+                      "parents": [
+                        {
+                          "oid": "deddc81426b155531cade6e755679c88f5bb8e8f"
+                        }
+                      ],
+                      "subject": "Make 'build-assets' an optional capability for application"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-08-08T04:35:34Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "cb4973987b238bfc7cb63e47950a13e815706592",
+                      "parents": [
+                        {
+                          "oid": "905902d81160a4abce06840293c5ec1d90ca1a96"
+                        }
+                      ],
+                      "subject": "Cargo.toml: Introduce 'quick-build-application' feature"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-08-08T04:12:45Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "c83e382eac32edfba49fefefc0eacd4d41445dff",
+                      "parents": [
+                        {
+                          "oid": "f6975e2acdb10a7c60a7668fbb8b3b43af1c0309"
+                        }
+                      ],
+                      "subject": "Cargo.toml: Only build bugreport with the app"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-08-01T21:19:18Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "b7fd55242ee3aeca3f428af8a1ebb4ea1ab13d3e",
+                      "parents": [
+                        {
+                          "oid": "8161955cc71fab12fe8f0944a69b82a259d2c18b"
+                        }
+                      ],
+                      "subject": "Bump assert_cmd from 1.0.5 to 1.0.8"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-08-01T21:19:22Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "8161955cc71fab12fe8f0944a69b82a259d2c18b",
+                      "parents": [
+                        {
+                          "oid": "3b020fd95a1e111aae66683764c0b66204d287a0"
+                        }
+                      ],
+                      "subject": "Bump nix from 0.21.0 to 0.22.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-08-02T19:55:37Z",
+                        "person": {
+                          "displayName": "Keith Hall"
+                        }
+                      },
+                      "oid": "3b020fd95a1e111aae66683764c0b66204d287a0",
+                      "parents": [
+                        {
+                          "oid": "697d106bd47069c75c18774dcac9f601877c0e2c"
+                        },
+                        {
+                          "oid": "50e1c6074f88d246c8fbc79755ed50d23f3043a0"
+                        }
+                      ],
+                      "subject": "Merge pull request #1771 from sharkdp/warn_when_missing_contexts"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-08-01T19:40:15Z",
+                        "person": {
+                          "displayName": "Keith Hall"
+                        }
+                      },
+                      "oid": "50e1c6074f88d246c8fbc79755ed50d23f3043a0",
+                      "parents": [
+                        {
+                          "oid": "5f5b77cddadc6f96a7dd3b3893385e3a3fe3b031"
+                        }
+                      ],
+                      "subject": "Warn when building assets from files if some referenced contexts are missing"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-08-01T02:10:26Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "a7fd9f4b1b425630b055a788eb065e23fc978317",
+                      "parents": [
+                        {
+                          "oid": "5f5b77cddadc6f96a7dd3b3893385e3a3fe3b031"
+                        }
+                      ],
+                      "subject": "Bump predicates from 1.0.8 to 2.0.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-08-01T02:10:34Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "5f5b77cddadc6f96a7dd3b3893385e3a3fe3b031",
+                      "parents": [
+                        {
+                          "oid": "83808a63becf7685413e37a0755f3a07d7992eef"
+                        }
+                      ],
+                      "subject": "Bump semver from 0.11.0 to 1.0.4"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-07-22T08:39:39Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "6acec2c074e0a341edb08f1014d97a84096a68c0",
+                      "parents": [
+                        {
+                          "oid": "1bac3750dfe5dbd4d54894717478e67d0dba4d83"
+                        }
+                      ],
+                      "subject": "Reduce startup time in loop-through mode with 80%-90%"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-07-12T20:07:23Z",
+                        "person": {
+                          "displayName": "David Peter"
+                        }
+                      },
+                      "oid": "a4b674902f26a606531ec3301fc7b240ad750204",
+                      "parents": [
+                        {
+                          "oid": "3fa09dbe2e1755740eda1de0900853c4a6ee5f3a"
+                        }
+                      ],
+                      "subject": "Bump version to v0.18.2"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-07-12T18:03:31Z",
+                        "person": {
+                          "displayName": "David Peter"
+                        }
+                      },
+                      "oid": "bf2b2df9c9e218e35e5a38ce3d03cffb7c363956",
+                      "parents": [
+                        {
+                          "oid": "3617c98cf5de9996c29fe73bc7fc4126768497f3"
+                        }
+                      ],
+                      "subject": "Fix for Windows: do not run binaries from CWD"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-07-01T02:02:40Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "4296d47dcbb565c2bf7785e7d24a576d945e102a",
+                      "parents": [
+                        {
+                          "oid": "42f1ef019a83dc042e7235283e0bde208f821055"
+                        }
+                      ],
+                      "subject": "Bump assert_cmd from 1.0.4 to 1.0.5"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-06-01T02:02:14Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "71f04dc0e835b097f606e1b12c56e78ac1efe516",
+                      "parents": [
+                        {
+                          "oid": "49f8bbfee4f78f8b449a515b8f6cb72dbdaa9823"
+                        }
+                      ],
+                      "subject": "Bump nix from 0.20.0 to 0.21.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-06-01T02:02:24Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "49f8bbfee4f78f8b449a515b8f6cb72dbdaa9823",
+                      "parents": [
+                        {
+                          "oid": "f4217eba73da087945bd04234cdcaf15124ba6d0"
+                        }
+                      ],
+                      "subject": "Bump assert_cmd from 1.0.3 to 1.0.4"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-05-12T20:55:25Z",
+                        "person": {
+                          "displayName": "David Peter"
+                        }
+                      },
+                      "oid": "73dab51ad1b85ae43efc6512a0599ea46f96f0f3",
+                      "parents": [
+                        {
+                          "oid": "9328007d056044b0f04821e484e4b734650dc4b3"
+                        }
+                      ],
+                      "subject": "Bump version, update dependencies"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-05-12T20:34:00Z",
+                        "person": {
+                          "displayName": "David Peter"
+                        }
+                      },
+                      "oid": "516da7719f3e298e185d83ff09fe9dd213a60b2d",
+                      "parents": [
+                        {
+                          "oid": "d4df0b4405ae3853463daa0a60fce82a0342fc84"
+                        },
+                        {
+                          "oid": "1a610dbdd252f23c28d0df6b35e89bd71f0979c4"
+                        }
+                      ],
+                      "subject": "Merge pull request #1646 from sharkdp/dependabot/cargo/bugreport-0.4.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-05-12T09:19:52Z",
+                        "person": {
+                          "displayName": "dependabot[bot]"
+                        }
+                      },
+                      "oid": "1a610dbdd252f23c28d0df6b35e89bd71f0979c4",
+                      "parents": [
+                        {
+                          "oid": "285b1556a97e0499a2b50679ac6c359942c3e6e7"
+                        }
+                      ],
+                      "subject": "Bump bugreport from 0.3.0 to 0.4.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-05-01T02:20:27Z",
+                        "person": {
+                          "displayName": "dependabot-preview[bot]"
+                        }
+                      },
+                      "oid": "d405aa98d571ff72431595435e448b6dce2c3557",
+                      "parents": [
+                        {
+                          "oid": "285b1556a97e0499a2b50679ac6c359942c3e6e7"
+                        }
+                      ],
+                      "subject": "Bump console from 0.14.0 to 0.14.1"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-03-01T03:50:56Z",
+                        "person": {
+                          "displayName": "dependabot-preview[bot]"
+                        }
+                      },
+                      "oid": "38808882860e68f9f73359159ca71c7190cea3dc",
+                      "parents": [
+                        {
+                          "oid": "5a806c2149ad89ed2547020167ac0a5e054b3da3"
+                        }
+                      ],
+                      "subject": "Bump nix from 0.19.1 to 0.20.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-02-27T14:33:13Z",
+                        "person": {
+                          "displayName": "Niklas Mohrin"
+                        }
+                      },
+                      "oid": "b8a18d3ebb5b29162c346b74174239ea077f0796",
+                      "parents": [
+                        {
+                          "oid": "694b31909a38989fbb153164f0218f1f0377d2c9"
+                        }
+                      ],
+                      "subject": "Use tempfiles for clircle tests"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-02-27T14:32:07Z",
+                        "person": {
+                          "displayName": "Niklas Mohrin"
+                        }
+                      },
+                      "oid": "694b31909a38989fbb153164f0218f1f0377d2c9",
+                      "parents": [
+                        {
+                          "oid": "a98811b6d7a648ac92f5bbe6fe76e7389d756866"
+                        }
+                      ],
+                      "subject": "Change circle detection to use new more conservative method and run in main loop instead of before the loop"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-02-28T09:16:00Z",
+                        "person": {
+                          "displayName": "David Peter"
+                        }
+                      },
+                      "oid": "cfc505e1e522df8725dc128bedba58f1c5fa292e",
+                      "parents": [
+                        {
+                          "oid": "3af35492320077b2abf7cc70117ea02aa24389a3"
+                        }
+                      ],
+                      "subject": "Bump version to v0.18.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-02-16T07:50:41Z",
+                        "person": {
+                          "displayName": "Caden Haustein"
+                        }
+                      },
+                      "oid": "573f34d757434a5580abd45f5a059c908552d0b3",
+                      "parents": [
+                        {
+                          "oid": "eac36dd3b51b28ef73b46f056aec905131c0069c"
+                        }
+                      ],
+                      "subject": "Update dependencies; replace unmaintained (#1522)"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-02-01T03:39:27Z",
+                        "person": {
+                          "displayName": "dependabot-preview[bot]"
+                        }
+                      },
+                      "oid": "a26c5b82190747c77fcae61e14b92c0b14f73019",
+                      "parents": [
+                        {
+                          "oid": "d36b091fd7c9050c80078c0fe286d09dbab0f45a"
+                        }
+                      ],
+                      "subject": "Bump predicates from 1.0.6 to 1.0.7"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-01-10T20:18:50Z",
+                        "person": {
+                          "displayName": "sharkdp"
+                        }
+                      },
+                      "oid": "b0e5828d3f6d9daa667055afd12801a182fe4a95",
+                      "parents": [
+                        {
+                          "oid": "b7d499d1be0dfa2e18a409596a89c45fbb15c1dd"
+                        }
+                      ],
+                      "subject": "Add comment regarding use of bat as a library, closes #953"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-01-07T11:56:47Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "da1016662588cae98aeb96b2ec570b14f02f9c62",
+                      "parents": [
+                        {
+                          "oid": "46487b201ff0f4cdcbfdea9d328cbac6d29a22d1"
+                        },
+                        {
+                          "oid": "b6b7262962ab67d34ad98788aff6ed78f1e763e3"
+                        }
+                      ],
+                      "subject": "Merge remote-tracking branch 'origin/master' into fix-1063"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-01-06T21:20:47Z",
+                        "person": {
+                          "displayName": "sharkdp"
+                        }
+                      },
+                      "oid": "6a52f69b5816819ae3d44f231e236e6249c4eff7",
+                      "parents": [
+                        {
+                          "oid": "60406c7c2d581cb9110e02e7388e405afc831557"
+                        }
+                      ],
+                      "subject": "Update to bugreport 0.3.0"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-01-01T21:54:53Z",
+                        "person": {
+                          "displayName": "sharkdp"
+                        }
+                      },
+                      "oid": "2465438ec32cffa03a0ce3efd04c4565937cc346",
+                      "parents": [
+                        {
+                          "oid": "99a61580e1c5c290e1e080b059cf29c55c381a6f"
+                        }
+                      ],
+                      "subject": "Bump bugreport version"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-01-01T16:41:41Z",
+                        "person": {
+                          "displayName": "sharkdp"
+                        }
+                      },
+                      "oid": "dec94b4111ea7e484df6ce52041c0a86c3f5e713",
+                      "parents": [
+                        {
+                          "oid": "ebb97e94a9f3936e7db23c211f9dba779b0daa89"
+                        }
+                      ],
+                      "subject": "Add config file, compile time info and less version"
+                    },
+                    {
+                      "author": {
+                        "date": "2020-12-31T17:17:15Z",
+                        "person": {
+                          "displayName": "sharkdp"
+                        }
+                      },
+                      "oid": "ebb97e94a9f3936e7db23c211f9dba779b0daa89",
+                      "parents": [
+                        {
+                          "oid": "5e1f9fadf4d9a45c39e41ebc0deb567fbc0427fd"
+                        }
+                      ],
+                      "subject": "Add --diagnostic option to bat"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-01-06T13:30:55Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "46487b201ff0f4cdcbfdea9d328cbac6d29a22d1",
+                      "parents": [
+                        {
+                          "oid": "478233f7952d1c634258a76589d2f8151d7c51c0"
+                        },
+                        {
+                          "oid": "b600f62ab68e0a11a9bb69dcf45648632d3f52ee"
+                        }
+                      ],
+                      "subject": "Merge remote-tracking branch 'origin/master' into fix-1063"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-01-05T09:55:22Z",
+                        "person": {
+                          "displayName": "Niklas Mohrin"
+                        }
+                      },
+                      "oid": "b600f62ab68e0a11a9bb69dcf45648632d3f52ee",
+                      "parents": [
+                        {
+                          "oid": "ace655e164a4ce383cc5b6664e8cf5e360ddae35"
+                        }
+                      ],
+                      "subject": "Add unix specific integration test about running bat without any arguments"
+                    },
+                    {
+                      "author": {
+                        "date": "2020-11-24T23:24:04Z",
+                        "person": {
+                          "displayName": "Niklas Mohrin"
+                        }
+                      },
+                      "oid": "21ae26cb17ad0dfe815ce001be84f40078c5a4a7",
+                      "parents": [
+                        {
+                          "oid": "8381945cb59aac45e4a60c597f114dbf0102cfcf"
+                        }
+                      ],
+                      "subject": "Add cycle detection with clircle, now v0.2"
+                    },
+                    {
+                      "author": {
+                        "date": "2021-01-04T20:02:51Z",
+                        "person": {
+                          "displayName": "Martin Nordholts"
+                        }
+                      },
+                      "oid": "478233f7952d1c634258a76589d2f8151d7c51c0",
+                      "parents": [
+                        {
+                          "oid": "e87c554ccd0d4eb22794e1d193b8911b1d11edb1"
+                        },
+                        {
+                          "oid": "8381945cb59aac45e4a60c597f114dbf0102cfcf"
+                        }
+                      ],
+                      "subject": "Merge remote-tracking branch 'origin/master' into fix-1063"
+                    }
+                  ],
+                  "pageInfo": {
+                    "hasNextPage": true
+                  }
+                }
+              }
+            }
+          },
+          "defaultBranch": {
+            "displayName": "master"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-27T16:41:53Z"
+          },
+          "name": "github.com/sharkdp/bat"
+        },
+        "t0": {
+          "gitRefs": {
+            "nodes": [
+              {
+                "displayName": "v0.26.1",
+                "target": {
+                  "oid": "979ba22628bc9d8171f2cffca2bd5c90c9fc0a9e"
+                }
+              },
+              {
+                "displayName": "v0.26.0",
+                "target": {
+                  "oid": "c734087e1d15fb730d7653389c841fd9e3016556"
+                }
+              },
+              {
+                "displayName": "v0.25.0",
+                "target": {
+                  "oid": "25f4f96ea3afb6fe44552f3b38ed8b1540ffa1b3"
+                }
+              },
+              {
+                "displayName": "v0.24.0",
+                "target": {
+                  "oid": "fc9546854f5a7b38823f4990453c6cde386bfd3b"
+                }
+              },
+              {
+                "displayName": "v0.23.0",
+                "target": {
+                  "oid": "871abd27aa91264e01539da849add0330b24cb9c"
+                }
+              },
+              {
+                "displayName": "v0.22.1",
+                "target": {
+                  "oid": "e5d95796141a719e208208182a5d3c2090a009c6"
+                }
+              },
+              {
+                "displayName": "v0.22.0",
+                "target": {
+                  "oid": "1f9519d8b9bd3efac979766eefa0c6fae594b984"
+                }
+              },
+              {
+                "displayName": "v0.21.0",
+                "target": {
+                  "oid": "405e5f74602d8f680168ef52350150921c696d54"
+                }
+              },
+              {
+                "displayName": "v0.20.0",
+                "target": {
+                  "oid": "0655ecf23d778f1455e2d79f37a805a7bcca98d2"
+                }
+              },
+              {
+                "displayName": "v0.19.0",
+                "target": {
+                  "oid": "59a8f58be780ba9ba04eb4791b6bf5ca14e99e99"
+                }
+              },
+              {
+                "displayName": "v0.18.3",
+                "target": {
+                  "oid": "b146958ecbb8c8c926159509ca7fb32a8573f897"
+                }
+              },
+              {
+                "displayName": "v0.18.2",
+                "target": {
+                  "oid": "589df6792fe406f91b00db5e24d35393c6527e6b"
+                }
+              },
+              {
+                "displayName": "v0.18.1",
+                "target": {
+                  "oid": "3aea51455b8acf553f4481996f93d7e219130c2b"
+                }
+              },
+              {
+                "displayName": "v0.18.0",
+                "target": {
+                  "oid": "b8a18d3ebb5b29162c346b74174239ea077f0796"
+                }
+              },
+              {
+                "displayName": "v0.17.1",
+                "target": {
+                  "oid": "6d981498d80aa0127df9547ec0ac69d8314b29e5"
+                }
+              },
+              {
+                "displayName": "v0.17.0",
+                "target": {
+                  "oid": "591eba66a3af1c211a09eefd17cbeb819b0a131f"
+                }
+              },
+              {
+                "displayName": "v0.16.0",
+                "target": {
+                  "oid": "6258dda0f851256c2e1d65cf87e997023a4f997b"
+                }
+              },
+              {
+                "displayName": "v0.15.4",
+                "target": {
+                  "oid": "9e65ecd03e60336bd54dea12fbc4354c4fb8d8b0"
+                }
+              },
+              {
+                "displayName": "v0.15.3",
+                "target": {
+                  "oid": "302707f3ce75b8846ee84175bfb5a86dac9d0304"
+                }
+              },
+              {
+                "displayName": "v0.15.2",
+                "target": {
+                  "oid": "28af18ba27c2888bd87998e703228ab2c2debbed"
+                }
+              },
+              {
+                "displayName": "v0.15.1",
+                "target": {
+                  "oid": "2596bfe7a75f6867d803c1e9af0fa3467873a0e3"
+                }
+              },
+              {
+                "displayName": "v0.15.0",
+                "target": {
+                  "oid": "696d1b3ed3eae9ea9bd94fa7c4c05306dfd621b6"
+                }
+              },
+              {
+                "displayName": "v0.14.0",
+                "target": {
+                  "oid": "59ca933aeed2a9cc2f11397cc2a63866f343a769"
+                }
+              },
+              {
+                "displayName": "v0.13.0",
+                "target": {
+                  "oid": "5edd8260e8fef887bd4c7e39c411dfe843d03894"
+                }
+              },
+              {
+                "displayName": "v0.12.1",
+                "target": {
+                  "oid": "608cefb05c2860f00397aa68f473fcd494ed21af"
+                }
+              },
+              {
+                "displayName": "v0.12.0",
+                "target": {
+                  "oid": "79f016e15cda054dffec009a4fc0900412bc1e48"
+                }
+              },
+              {
+                "displayName": "v0.11.0",
+                "target": {
+                  "oid": "416a0fd439bea69b9fcc3519e22e88f2349588af"
+                }
+              },
+              {
+                "displayName": "v0.10.0",
+                "target": {
+                  "oid": "e09499b3df6369e1a1f6e42f95ad4009fa76c00e"
+                }
+              },
+              {
+                "displayName": "v0.9.0",
+                "target": {
+                  "oid": "c073d4a11866a8d51ec19963803bb7ff5441d0e0"
+                }
+              },
+              {
+                "displayName": "v0.8.0",
+                "target": {
+                  "oid": "30b742e9845314bcac67f37664cfb3df61c1ba3f"
+                }
+              },
+              {
+                "displayName": "v0.7.1",
+                "target": {
+                  "oid": "238482e5f3990c1f5ef22a7875066822f10857f8"
+                }
+              },
+              {
+                "displayName": "v0.7.0",
+                "target": {
+                  "oid": "732750c2749ebeb2b0bea89028a171c792a2aadf"
+                }
+              },
+              {
+                "displayName": "v0.6.1",
+                "target": {
+                  "oid": "ba4d5a2e7dc38ff8475f63f254cca5e4fb969b2f"
+                }
+              },
+              {
+                "displayName": "v0.6.0",
+                "target": {
+                  "oid": "acdea97e71f9baa2801747236492ff29f1632ab6"
+                }
+              },
+              {
+                "displayName": "v0.5.0",
+                "target": {
+                  "oid": "25083232640dfe06334c929cb16333a9bd873195"
+                }
+              },
+              {
+                "displayName": "v0.4.1",
+                "target": {
+                  "oid": "195d5e0e16ba76ee3cc554d8fb30382dd22fcbf8"
+                }
+              },
+              {
+                "displayName": "v0.4.0",
+                "target": {
+                  "oid": "bf5883f06f94f5af329cb8d7a8dcac5fbfc1524b"
+                }
+              },
+              {
+                "displayName": "v0.3.0",
+                "target": {
+                  "oid": "8b9991d7808d65782844ac68a2f9c53fa4225dc6"
+                }
+              },
+              {
+                "displayName": "v0.2.3",
+                "target": {
+                  "oid": "4e8ea815af643ebfa93a3264bf228e6b92f6a254"
+                }
+              },
+              {
+                "displayName": "v0.2.2",
+                "target": {
+                  "oid": "f5a9236a47d75d336c9408b197c3f01e21f3e31d"
+                }
+              },
+              {
+                "displayName": "v0.2.1",
+                "target": {
+                  "oid": "ed09a80a731bc5b93ea047f9da098355b880e0a3"
+                }
+              },
+              {
+                "displayName": "v0.2.0",
+                "target": {
+                  "oid": "7f070c9dcb05d52482f0d1175261c40e7451daa8"
+                }
+              },
+              {
+                "displayName": "v0.1.0",
+                "target": {
+                  "oid": "9435e16a1be6e7fab41a067284d707217b42afb5"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

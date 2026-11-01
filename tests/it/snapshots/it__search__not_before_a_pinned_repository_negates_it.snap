@@ -1,0 +1,10 @@
+---
+source: tests/it/search.rs
+expression: "sego(&[\"search\", \"repo:^github\\\\.com/gorilla/mux$ not repo:fd@v1 zqxv\"])"
+---
+exit: 0
+----- stdout -----
+0 matches  0.1 s
+query  timeout:60s repo:^github\.com/gorilla/mux$ not repo:fd@v1 zqxv
+----- stderr -----
+----- end -----

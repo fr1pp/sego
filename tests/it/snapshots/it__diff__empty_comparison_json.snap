@@ -1,0 +1,25 @@
+---
+source: tests/it/diff.rs
+expression: "sego(&[\"diff\", \"--json\", \"github.com/gorilla/mux@v1.7.0...v1.7.0\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "added": 0,
+  "base": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+  "commit_a": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+  "commit_b": "a7962380ca08b5a188038c69871b8d3fbdf31e89",
+  "deleted": 0,
+  "files": [],
+  "files_more": false,
+  "files_total": 0,
+  "mirrored_at": "2026-10-27T07:13Z",
+  "notes": [],
+  "patch": null,
+  "paths": [],
+  "repo": "github.com/gorilla/mux",
+  "rev_a": "v1.7.0",
+  "rev_b": "v1.7.0"
+}
+----- stderr -----
+----- end -----

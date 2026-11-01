@@ -1,0 +1,31 @@
+---
+source: tests/it/ls.rs
+expression: "sego(&[\"ls\", \"--recursive\", \"github.com/gorilla/websocket@v1.5.3:examples\"])"
+---
+exit: 0
+----- stdout -----
+github.com/gorilla/websocket@ce903f6d1d96:examples  22 entries  6 dirs  16 files  rev v1.5.3  mirrored 2026-10-30T21:27Z
+dir        examples/autobahn/
+file       examples/autobahn/README.md
+dir        examples/autobahn/config/
+file       examples/autobahn/config/fuzzingclient.json
+file       examples/autobahn/server.go
+dir        examples/chat/
+file       examples/chat/README.md
+file       examples/chat/client.go
+file       examples/chat/home.html
+file       examples/chat/hub.go
+file       examples/chat/main.go
+dir        examples/command/
+file       examples/command/README.md
+file       examples/command/home.html
+file       examples/command/main.go
+dir        examples/echo/
+file       examples/echo/README.md
+file       examples/echo/client.go
+file       examples/echo/server.go
+dir        examples/filewatch/
+file       examples/filewatch/README.md
+file       examples/filewatch/main.go
+----- stderr -----
+----- end -----

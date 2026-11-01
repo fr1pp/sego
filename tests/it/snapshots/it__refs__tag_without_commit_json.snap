@@ -1,0 +1,38 @@
+---
+source: tests/it/refs.rs
+expression: "answered(&[\"refs\", \"--json\", \"example.com/acme/widget\"], [response])"
+---
+exit: 0
+----- stdout -----
+{
+  "branches_all": null,
+  "branches_more": false,
+  "branches_total": 1,
+  "default_branch": "main",
+  "mirrored_at": null,
+  "notes": [],
+  "query": null,
+  "refs": [
+    {
+      "kind": "branch",
+      "name": "main",
+      "target": "0000000000000000000000000000000000000001"
+    },
+    {
+      "kind": "tag",
+      "name": "v2",
+      "target": "0000000000000000000000000000000000000002"
+    },
+    {
+      "kind": "tag",
+      "name": "v1-tree",
+      "target": "0000000000000000000000000000000000000003"
+    }
+  ],
+  "repo": "example.com/acme/widget",
+  "tags_all": null,
+  "tags_more": false,
+  "tags_total": 2
+}
+----- stderr -----
+----- end -----

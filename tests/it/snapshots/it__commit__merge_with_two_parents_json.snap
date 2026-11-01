@@ -1,0 +1,43 @@
+---
+source: tests/it/commit.rs
+expression: "sego(&[\"show\", \"--json\",\n\"github.com/gorilla/mux@abccd7e4d7c117370b7908f51e48decb38b6835b\"])"
+---
+exit: 0
+----- stdout -----
+{
+  "added": 0,
+  "author": "Corey Daley",
+  "author_date": "2023-07-15",
+  "commit": "abccd7e4d7c117370b7908f51e48decb38b6835b",
+  "committer": "GitHub",
+  "committer_date": "2023-07-15",
+  "deleted": 6,
+  "files": [
+    {
+      "added": 0,
+      "deleted": 6,
+      "new_path": "README.md",
+      "old_path": "README.md",
+      "status": "M"
+    }
+  ],
+  "files_more": false,
+  "files_total": 1,
+  "kind": "commit",
+  "message": "Merge pull request #713 from gorilla/coreydaley-patch-1\n\nUpdate README.md",
+  "mirrored_at": null,
+  "notes": [],
+  "parents": [
+    "eb99d7a67714bbab6db27f896a8c8c947b51b610",
+    "7456b4e9ae7b67e27ffaa2e497941e77d39bc884"
+  ],
+  "repo": "github.com/gorilla/mux",
+  "rev": "abccd7e4d7c117370b7908f51e48decb38b6835b",
+  "subject": "Merge pull request #713 from gorilla/coreydaley-patch-1",
+  "tags": [
+    "v1.8.1"
+  ],
+  "tags_total": 1
+}
+----- stderr -----
+----- end -----

@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-31",
+  "request": {
+    "operation": "File",
+    "query": "query File($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String!, $recursive: Boolean!, $content: Boolean!, $start: Int, $end: Int) {\n  r0: repository(name: $repo0) { ...File }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...File }\n}\n\nfragment File on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  commit(rev: $rev) {\noid\n    meta: path(path: $path) {\n      __typename\n      ... on GitBlob { path byteSize totalLines binary rawURL lfs { byteSize } submodule { commit } }\n      ... on GitTree { path entries(recursive: $recursive) { path isDirectory submodule { commit } } }\n    }\n    body: path(path: $path) @include(if: $content) {\n      __typename\n      ... on GitBlob { content(startLine: $start, endLine: $end, textOnly: true) }\n    }\n  }\n}\n",
+    "variables": {
+      "content": true,
+      "end": 5,
+      "gitlab": false,
+      "path": "tests/str/__init__.py",
+      "recursive": false,
+      "repo0": "github.com/django/django",
+      "repo1": "",
+      "rev": "8c34887b1ad8bb3ec61c6e713442dab3c643d557",
+      "start": 1
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "commit": {
+            "body": {
+              "__typename": "GitBlob",
+              "content": ""
+            },
+            "meta": {
+              "__typename": "GitBlob",
+              "binary": false,
+              "byteSize": 0,
+              "lfs": null,
+              "path": "tests/str/__init__.py",
+              "rawURL": "/r/github.com/django/django@8c34887b1ad8bb3ec61c6e713442dab3c643d557/-/raw/tests/str/__init__.py",
+              "submodule": null,
+              "totalLines": 1
+            },
+            "oid": "8c34887b1ad8bb3ec61c6e713442dab3c643d557"
+          },
+          "defaultBranch": {
+            "displayName": "main"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-31T00:34:59Z"
+          },
+          "name": "github.com/django/django"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

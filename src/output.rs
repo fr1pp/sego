@@ -59,8 +59,8 @@ struct Document<'a, A> {
     notes: Vec<String>,
 }
 
-/// Writes `answer` to `out`: one JSON document with `notes` and every unsafe
-/// character escaped (ADR 0006), or its text.
+/// Writes `answer` to `out`: one JSON document with `notes` and every character
+/// that needs it escaped (ADR 0006), or its text.
 pub fn print<A: Display + Serialize>(
     answer: &A,
     json: bool,
@@ -132,7 +132,7 @@ pub enum Marker {
     Context,
 }
 
-/// Writes every unsafe character as `\u` escapes of its UTF-16 units; the
+/// Writes every character that needs escaping as `\u` escapes of its UTF-16 units; the
 /// serializer itself escapes quotes, backslashes and C0 controls.
 struct EscapingFormatter;
 
@@ -142,7 +142,7 @@ impl Formatter for EscapingFormatter {
         W: ?Sized + Write,
     {
         let mut rest = fragment;
-        while let Some(at) = rest.find(escape::is_unsafe) {
+        while let Some(at) = rest.find(escape::needs_escape) {
             CompactFormatter.write_string_fragment(writer, &rest[..at])?;
             let mut chars = rest[at..].chars();
             let c = chars.next().unwrap_or_default();
@@ -308,7 +308,7 @@ mod tests {
     }
 
     #[test]
-    fn unsafe_characters_are_escaped_and_the_parsed_value_is_unchanged() {
+    fn characters_that_need_escaping_are_escaped_and_the_parsed_value_is_unchanged() {
         let record = Record { zeta: "a\u{202e}b\u{1b}\"\u{1f600}".into(), alpha: 1, mid: None };
         let raw = written(&record);
         assert!(raw.contains("\\u202e"), "{raw}");
@@ -324,7 +324,7 @@ mod tests {
     }
 
     #[test]
-    fn an_unsafe_character_beyond_the_basic_plane_is_a_surrogate_pair() {
+    fn a_character_beyond_the_basic_plane_is_a_surrogate_pair() {
         let raw = written(&"\u{e0041}");
         assert_eq!(raw, "\"\\udb40\\udc41\"");
         let back: String = serde_json::from_str(&raw).unwrap();

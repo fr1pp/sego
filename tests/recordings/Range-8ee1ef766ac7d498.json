@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-27",
+  "request": {
+    "operation": "Range",
+    "query": "query Range($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!) {\n  r0: repository(name: $repo0) { ...Ends }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...Ends }\n}\n\nfragment Ends on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  a: commit(rev: $a) { oid }\n  b: commit(rev: $b) { oid }\n}\n",
+    "variables": {
+      "a": "v1.1.1",
+      "b": "v1.1.2",
+      "gitlab": false,
+      "repo0": "github.com/gorilla/context",
+      "repo1": ""
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "a": {
+            "oid": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
+          },
+          "b": {
+            "oid": "6a490e2f9d5230449188a699ba53618c3364b26d"
+          },
+          "defaultBranch": {
+            "displayName": "main"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-26T23:51:25Z"
+          },
+          "name": "github.com/gorilla/context"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

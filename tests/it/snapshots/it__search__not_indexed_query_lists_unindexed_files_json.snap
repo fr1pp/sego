@@ -1,0 +1,45 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", \"--json\",\n\"repo:example.com/acme/widget NOT-INDEXED count:all\"], [response])"
+---
+exit: 0
+----- stdout -----
+{
+  "alert": null,
+  "at_least": false,
+  "count": 2,
+  "elapsed_ms": 300,
+  "limit_ms": 60000,
+  "notes": [],
+  "pattern_type": "keyword",
+  "query": "timeout:60s repo:example.com/acme/widget NOT-INDEXED count:all",
+  "results": [
+    {
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "unindexed",
+      "path": "vendor/sqlite3.c",
+      "reason": "exceeds the maximum size limit",
+      "repo": "example.com/acme/widget",
+      "rev": null
+    },
+    {
+      "commit": "0123456789abcdef0123456789abcdef01234567",
+      "kind": "unindexed",
+      "path": "testdata/words.txt",
+      "reason": "contains too many trigrams",
+      "repo": "example.com/acme/widget",
+      "rev": null
+    }
+  ],
+  "server": {
+    "approximate_count": "2",
+    "limit_hit": false,
+    "match_count": 2,
+    "timedout": []
+  },
+  "stopped": false,
+  "unit": "matches",
+  "widen": []
+}
+----- stderr -----
+----- end -----

@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-27",
+  "request": {
+    "operation": "Range",
+    "query": "query Range($repo0: String!, $repo1: String!, $gitlab: Boolean!, $a: String!, $b: String!) {\n  r0: repository(name: $repo0) { ...Ends }\n  r1: repository(name: $repo1) @include(if: $gitlab) { ...Ends }\n}\n\nfragment Ends on Repository {\n  name\n  defaultBranch { displayName }\n  mirrorInfo { updatedAt }\n  a: commit(rev: $a) { oid }\n  b: commit(rev: $b) { oid }\n}\n",
+    "variables": {
+      "a": "v2.0.0",
+      "b": "v2.1.0",
+      "gitlab": false,
+      "repo0": "github.com/evilmartians/lefthook",
+      "repo1": ""
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "r0": {
+          "a": {
+            "oid": "509b737647ad4f404aee6f0bb49e940530eaaf9c"
+          },
+          "b": {
+            "oid": "c43361a52db7af1d75f5e877cb0e4bd803d28e77"
+          },
+          "defaultBranch": {
+            "displayName": "master"
+          },
+          "mirrorInfo": {
+            "updatedAt": "2026-10-27T06:19:45Z"
+          },
+          "name": "github.com/evilmartians/lefthook"
+        }
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

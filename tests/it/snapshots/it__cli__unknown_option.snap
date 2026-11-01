@@ -1,0 +1,11 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"show\", \"--verbose\", \"example.com/acme/widget:a.go\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: unknown option --verbose
+usage: sego show [--json] REPO[@REV]:PATH [LINES]
+       sego show [--json] REPO@REV
+----- end -----

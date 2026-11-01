@@ -1,0 +1,9 @@
+---
+source: tests/it/log.rs
+expression: "sego(&[\"log\", \"github.com/ascoders/blog@v1..v2\"])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: github.com/ascoders/blog has no commits
+----- end -----

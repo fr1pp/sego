@@ -1,0 +1,10 @@
+---
+source: tests/it/search.rs
+expression: "sego(&[\"search\", \"repo:^github\\\\.com/gorilla/mux$@v1.8.0 lnag:go NewRouter\"])"
+---
+exit: 0
+----- stdout -----
+0 matches  0.3 s
+query  timeout:60s repo:^github\.com/gorilla/mux$@v1.8.0 lnag:go NewRouter
+----- stderr -----
+----- end -----

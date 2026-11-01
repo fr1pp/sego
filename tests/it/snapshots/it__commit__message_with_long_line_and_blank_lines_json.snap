@@ -1,0 +1,40 @@
+---
+source: tests/it/commit.rs
+expression: "answered(&[\"show\", \"--json\", \"example.com/acme/widget@v1\"], [first, second])"
+---
+exit: 0
+----- stdout -----
+{
+  "added": 1,
+  "author": "Jonathan Davies",
+  "author_date": "2026-09-09",
+  "commit": "affe2b9b7c608f4e354d7e83d0583ed35e845650",
+  "committer": "GitHub",
+  "committer_date": "2026-09-10",
+  "deleted": 0,
+  "files": [
+    {
+      "added": 1,
+      "deleted": 0,
+      "new_path": "a.go",
+      "old_path": "a.go",
+      "status": "M"
+    }
+  ],
+  "files_more": false,
+  "files_total": 1,
+  "kind": "commit",
+  "message": "Subject\n\nfirst body line\n  \t\n\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nlast\n",
+  "mirrored_at": null,
+  "notes": [],
+  "parents": [
+    "6b668aa526afdc623c1a9ed1d6ae920e04a717ad"
+  ],
+  "repo": "example.com/acme/widget",
+  "rev": "v1",
+  "subject": "Subject",
+  "tags": [],
+  "tags_total": 0
+}
+----- stderr -----
+----- end -----

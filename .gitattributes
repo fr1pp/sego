@@ -1,2 +1,4 @@
-# Expected outputs hold trailing whitespace that is part of what sego prints.
-tests/cases/** -whitespace
+# Snapshots hold trailing whitespace that is part of what sego prints.
+tests/it/snapshots/** -whitespace
+# Recordings are generated, like a lockfile, and are compared as exact bytes.
+tests/recordings/** linguist-generated=true -whitespace

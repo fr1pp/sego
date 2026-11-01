@@ -1,0 +1,32 @@
+---
+source: tests/it/show.rs
+expression: "answered(&[\"show\", \"--json\", \"example.com/acme/widget@main:big.c\", \"5-\"],\n[first.into(), second])"
+---
+exit: 0
+----- stdout -----
+{
+  "binary": false,
+  "byte_size": 2000000,
+  "commit": "d81fd54f1a2b3c4d5e6f708192a3b4c5d6e7f809",
+  "crlf": false,
+  "end": 5,
+  "kind": "file",
+  "lfs_size": null,
+  "lines": [
+    {
+      "line": 5,
+      "text": "5"
+    }
+  ],
+  "mirrored_at": null,
+  "notes": [],
+  "path": "big.c",
+  "repo": "example.com/acme/widget",
+  "rev": "main",
+  "start": 5,
+  "submodule": null,
+  "total_lines": 5,
+  "utf8": true
+}
+----- stderr -----
+----- end -----
