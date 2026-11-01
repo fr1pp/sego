@@ -21,6 +21,8 @@ github-attestations = true
 pr-run-mode = "plan"
 # Whether to install an updater program
 install-updater = false
+publish-jobs = ["./publish-crates"]
+github-custom-job-permissions = { "publish-crates" = { contents = "read", id-token = "write" } }
 
 [dist.github-custom-runners]
 aarch64-apple-darwin = "macos-15"
