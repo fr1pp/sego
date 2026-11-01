@@ -157,7 +157,9 @@ What the research means for how to search well goes in
 
 `dist` builds a release from a tag: the archives, their checksums, the installer and the GitHub
 Release. It then publishes the crate, through trusted publishing, so a release needs no token; if
-that job fails, the GitHub Release is already live, so re-run the job.
+that job fails, the GitHub Release is already live, so re-run the job. Last, `smoke-install.yml`
+installs the release on every platform and Alpine. Published releases are immutable, so a broken one
+is fixed by a new version.
 `.github/workflows/release.yml` is generated from `dist-workspace.toml`, so change that file
 and run `dist generate`; `dist` comes from its GitHub releases, since crates.io is behind.
 

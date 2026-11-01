@@ -22,6 +22,7 @@ pr-run-mode = "plan"
 # Whether to install an updater program
 install-updater = false
 publish-jobs = ["./publish-crates"]
+post-announce-jobs = ["./smoke-install"]
 github-custom-job-permissions = { "publish-crates" = { contents = "read", id-token = "write" } }
 
 [dist.github-custom-runners]
