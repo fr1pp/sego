@@ -2,7 +2,7 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 
 # Install what the checks need and turn on the pre-commit hook.
 setup:
-    cargo install cargo-insta --version 1.49.0 --locked
+    cargo insta --version 2>/dev/null | grep -qx 'cargo-insta 1.49.0' || cargo install --force cargo-insta --version 1.49.0 --locked
     git config core.hooksPath .githooks
 
 # Format check, lints with warnings as errors, and the offline tests, never blessing and failing on a snapshot no test uses.
