@@ -156,7 +156,9 @@ What the research means for how to search well goes in
 ## Releases
 
 `dist` builds a release from a tag: the archives, their checksums, the installer and the GitHub
-Release. `.github/workflows/release.yml` is generated from `dist-workspace.toml`, so change that file
+Release. It then publishes the crate, through trusted publishing, so a release needs no token; if
+that job fails, the GitHub Release is already live, so re-run the job.
+`.github/workflows/release.yml` is generated from `dist-workspace.toml`, so change that file
 and run `dist generate`; `dist` comes from its GitHub releases, since crates.io is behind.
 
 1. Run `just live`.
