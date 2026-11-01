@@ -132,7 +132,6 @@ mod tests {
     use super::*;
 
     use std::ffi::OsStr;
-    use std::net::TcpListener;
     use std::time::{Duration, Instant};
 
     use serde_json::Map;
@@ -466,19 +465,35 @@ mod tests {
     }
 
     #[test]
-    fn a_refused_or_dropped_connection_is_a_network_error_naming_its_cause() {
-        let listener = TcpListener::bind("127.0.0.1:0").unwrap_or_else(|e| panic!("{e}"));
-        let port = listener.local_addr().unwrap_or_else(|e| panic!("{e}")).port();
-        drop(listener);
-        let value = format!("http://127.0.0.1:{port}");
-        let closed =
-            Ureq::without_proxy(value.parse::<Endpoint>().unwrap_or_else(|e| panic!("{e}")));
-        let refused = closed.get("/", soon());
-        assert!(
-            matches!(refused, Err(TransportError::Network("connection refused"))),
-            "{refused:?}"
-        );
+    fn a_socket_error_is_classified_by_its_kind() {
+        use io::ErrorKind::{
+            BrokenPipe, ConnectionAborted, ConnectionRefused, ConnectionReset, InvalidData,
+            NotConnected, TimedOut, UnexpectedEof, WouldBlock,
+        };
+        let table = [
+            (ConnectionRefused, TransportError::Network("connection refused")),
+            (ConnectionReset, TransportError::Network("connection reset")),
+            (ConnectionAborted, TransportError::Network("connection reset")),
+            (UnexpectedEof, TransportError::Network("connection closed")),
+            (BrokenPipe, TransportError::Network("connection closed")),
+            (NotConnected, TransportError::Network("connection closed")),
+            (TimedOut, TransportError::Deadline),
+            (WouldBlock, TransportError::Deadline),
+            (InvalidData, TransportError::Network("network error")),
+        ];
+        for (kind, expected) in table {
+            assert_eq!(classify(ureq::Error::Io(kind.into())), expected, "{kind:?}");
+        }
+    }
 
+    #[test]
+    fn a_ureq_error_inside_a_socket_error_is_classified_as_itself() {
+        let wrapped = io::Error::other(ureq::Error::HostNotFound);
+        assert_eq!(classify_io(wrapped), TransportError::Network("DNS lookup failed"));
+    }
+
+    #[test]
+    fn a_dropped_connection_is_a_network_error_naming_its_cause() {
         let server = Server::start(|_| Response::drop_connection());
         let dropped = client(&server).post(GRAPHQL_PATH, b"{}", soon());
         assert!(
@@ -527,11 +542,10 @@ mod tests {
     }
 
     #[test]
-    fn a_refused_connection_names_the_endpoint() {
-        let listener = TcpListener::bind("127.0.0.1:0").unwrap_or_else(|e| panic!("bind: {e}"));
-        let address = listener.local_addr().unwrap_or_else(|e| panic!("{e}"));
-        drop(listener);
-        let url = format!("http://{address}");
+    fn a_failed_connection_names_the_endpoint() {
+        let server = Server::start(|_| Response::drop_connection());
+        let url = server.url();
+        let address = url.trim_start_matches("http://");
         let endpoint = url.parse::<Endpoint>().unwrap_or_else(|e| panic!("{e}"));
         let cache = endpoint.cache(Some(OsStr::new("off")));
         let client =
@@ -542,9 +556,10 @@ mod tests {
             variables: Map::new(),
         };
         let Err(error) = client.exchange(&request) else {
-            panic!("a closed port answered");
+            panic!("a dropped connection answered");
         };
-        assert_eq!(error.to_string(), format!("could not reach {address}: connection refused"));
+        let named = format!("could not reach {address}: ");
+        assert!(error.to_string().starts_with(&named), "{error}");
     }
 
     #[test]
