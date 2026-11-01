@@ -11,7 +11,9 @@ tests, bless, recording and live checks. Before relying on how sourcegraph.com b
 
 ## Commands
 
-- `just check`: rustfmt, clippy and the offline tests. Run it before every commit.
+- `just setup`: install `cargo-insta` and turn on the pre-commit hook, once per clone.
+- `just check`: rustfmt, clippy and the offline tests, failing on a snapshot no test uses. Run it
+  before every commit.
 - `just bless [FILTER]`: write the snapshots; read the diff it prints.
 - `just record [FILTER]`: record the requests that have no recording and remove those no case uses;
   with FILTER, record the matching tests' responses again.
