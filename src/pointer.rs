@@ -2,13 +2,14 @@
 //! an answer sego cut.
 
 /// The log of `address` from where a cut log stopped, `skip` commits in,
-/// listing `count` more when the cut log was asked for a count.
-pub fn log_skip(address: &str, count: Option<u32>, skip: u64) -> String {
+/// listing `count` more when the cut log was asked for a count. `command` is
+/// the words before the options.
+pub fn log_skip(command: &str, address: &str, count: Option<u32>, skip: u64) -> String {
     let count = count.map(|count| format!("-n {count} ")).unwrap_or_default();
-    format!("sego log {count}--skip {skip} {address} continues from the last commit shown")
+    format!("{command} {count}--skip {skip} {address} continues from the last commit shown")
 }
 
 /// The followed log of `address`, which can't page, asked for `count` commits.
-pub fn log_more(address: &str, count: u32) -> String {
-    format!("sego log --follow -n {count} {address} lists more")
+pub fn log_more(command: &str, address: &str, count: u32) -> String {
+    format!("{command} --follow -n {count} {address} lists more")
 }

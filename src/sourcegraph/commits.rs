@@ -254,6 +254,8 @@ struct FileDiffPage {
 #[serde(rename_all = "camelCase")]
 struct PageInfo {
     has_next_page: bool,
+    #[serde(default)]
+    end_cursor: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -495,12 +497,24 @@ pub fn read_commit_tags(envelope: &Envelope) -> Result<Vec<String>, Error> {
 /// (docs/research/log-paging.md), so a field can still be added.
 pub const COMMIT_PAGE: u32 = 20_000;
 
+/// The fragment of every document that reads a commit list.
+macro_rules! commit_page {
+    () => {
+        "fragment Page on GitCommitConnection {
+  nodes { oid subject author { date person { displayName } } parents { oid } }
+  pageInfo { hasNextPage endCursor }
+}
+"
+    };
+}
+
 /// The roots of `HISTORY`'s tag lists, one per candidate of the address.
 const TAG_ROOTS: [&str; 2] = ["t0", "t1"];
 
 /// A revision's history, its first `$first` commits, in a wrapper whose
 /// error nulls only the wrapper, and every tag under its own root.
-const HISTORY: &str = "\
+const HISTORY: &str = concat!(
+    "\
 query Log($repo0: String!, $repo1: String!, $gitlab: Boolean!, $rev: String!, $path: String, \
 $follow: Boolean!, $first: Int, $after: String) {
   r0: repository(name: $repo0) { ...History }
@@ -519,20 +533,20 @@ fragment History on Repository {
   }
 }
 
-fragment Page on GitCommitConnection {
-  nodes { oid subject author { date person { displayName } } parents { oid } }
-  pageInfo { hasNextPage endCursor }
-}
-
+",
+    commit_page!(),
+    "
 fragment Tags on Repository {
   gitRefs(type: GIT_TAG) { nodes { displayName target { oid } } }
 }
-";
+"
+);
 
 /// The commits in a range's head and not in its base, by their full IDs,
 /// with how far each is ahead of the other when `$count`, whether the path
 /// exists at each end when `$probe`, and every tag.
-const LOG_RANGE: &str = "\
+const LOG_RANGE: &str = concat!(
+    "\
 query LogRange($repo: String!, $a: String!, $b: String!, $path: String, $first: Int, \
 $after: String, $count: Boolean!, $probe: Boolean!) {
   c: repository(name: $repo) {
@@ -546,37 +560,33 @@ $after: String, $count: Boolean!, $probe: Boolean!) {
   t: repository(name: $repo) { gitRefs(type: GIT_TAG) { nodes { displayName target { oid } } } }
 }
 
-fragment Page on GitCommitConnection {
-  nodes { oid subject author { date person { displayName } } parents { oid } }
-  pageInfo { hasNextPage endCursor }
-}
-";
+",
+    commit_page!()
+);
 
 /// A page after the first of a revision's history, by its commit's full ID.
-const LOG_PAGE: &str = "\
+const LOG_PAGE: &str = concat!(
+    "\
 query LogPage($repo: String!, $commit: String!, $path: String, $first: Int, $after: String) {
   repository(name: $repo) { commit(rev: $commit) { ancestors(first: $first, after: $after, path: $path) { ...Page } } }
 }
 
-fragment Page on GitCommitConnection {
-  nodes { oid subject author { date person { displayName } } parents { oid } }
-  pageInfo { hasNextPage endCursor }
-}
-";
+",
+    commit_page!()
+);
 
 /// A page after the first of a range's commits, by its ends' full IDs.
-const LOG_RANGE_PAGE: &str = "\
+const LOG_RANGE_PAGE: &str = concat!(
+    "\
 query LogRangePage($repo: String!, $a: String!, $b: String!, $path: String, $first: Int, $after: String) {
   repository(name: $repo) {
     comparison(base: $a, head: $b, fetchMissing: false) { commits(first: $first, after: $after, path: $path) { ...Page } }
   }
 }
 
-fragment Page on GitCommitConnection {
-  nodes { oid subject author { date person { displayName } } parents { oid } }
-  pageInfo { hasNextPage endCursor }
-}
-";
+",
+    commit_page!()
+);
 
 /// The commits of a revision, or of a range's head and not its base.
 #[derive(Debug, PartialEq, Eq)]
@@ -593,8 +603,8 @@ pub struct History {
     pub behind: Option<u64>,
     /// Where the next page starts, when the server gave it.
     pub cursor: Option<String>,
-    /// Whether the deadline passed with more of the list to read.
-    pub stopped: bool,
+    /// Whether the client deadline passed with more of the list to read.
+    pub cut_by_deadline: bool,
 }
 
 impl History {
@@ -685,15 +695,7 @@ fn ends_variables(ends: &Ends) -> serde_json::Map<String, Value> {
 #[serde(rename_all = "camelCase")]
 struct CommitPage {
     nodes: Vec<SummaryNode>,
-    page_info: CommitPageInfo,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct CommitPageInfo {
-    has_next_page: bool,
-    #[serde(default)]
-    end_cursor: Option<String>,
+    page_info: PageInfo,
 }
 
 #[derive(Deserialize)]
@@ -742,13 +744,13 @@ fn page(envelope: &Envelope, at: &[&str]) -> Option<(Page<CommitSummary>, Option
 /// A page after the first, from the response to `page_request`.
 pub fn read_page(
     envelope: &Envelope,
-    range: bool,
+    history: &History,
 ) -> Result<(Page<CommitSummary>, Option<String>), Error> {
     let failed = || Error::failed("the commit list");
     if envelope.error_beneath(&["repository"]).is_some() {
         return Err(failed());
     }
-    let at: &[&str] = if range {
+    let at: &[&str] = if history.base.is_some() {
         &["repository", "comparison", "commits"]
     } else {
         &["repository", "commit", "ancestors"]
@@ -800,7 +802,7 @@ pub fn read_history(
         return Err(Error::not_found(format!("{path} not found in {at}")));
     }
     let tags = tags(envelope, found.root_among(TAG_ROOTS));
-    Ok(History { head, base: None, commits, tags, behind: None, cursor, stopped: false })
+    Ok(History { head, base: None, commits, tags, behind: None, cursor, cut_by_deadline: false })
 }
 
 /// The commits in a range, from the response to `range_history_request`.
@@ -837,5 +839,5 @@ pub fn read_range_history(
         behind = Some(count("behind")?);
     }
     let tags = tags(envelope, "t");
-    Ok(History { head, base: Some(base), commits, tags, behind, cursor, stopped: false })
+    Ok(History { head, base: Some(base), commits, tags, behind, cursor, cut_by_deadline: false })
 }

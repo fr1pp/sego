@@ -1,0 +1,12 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"log\", \"-n\", \"0\", \"example.com/acme/widget\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: -n takes a whole number of at least 1: 0
+usage: sego log [--json] [-n N] [--skip N] REPO[@REV][:PATH] [PATH]
+       sego log [--json] [-n N] [--skip N] REPO@A..B[:PATH] [PATH]
+       sego log [--json] [-n N] --follow REPO[@REV][:PATH] [PATH]
+----- end -----

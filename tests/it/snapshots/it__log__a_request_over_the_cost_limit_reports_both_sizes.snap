@@ -1,0 +1,9 @@
+---
+source: tests/it/log.rs
+expression: "answered(&[\"log\", \"example.com/acme/widget@v2.0.0\"], [response])"
+---
+exit: 3
+----- stdout -----
+----- stderr -----
+sego: error: Sourcegraph rejected the request: Query exceeds maximum field count limit (actual 500012, limit 500000)
+----- end -----

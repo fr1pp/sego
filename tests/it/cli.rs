@@ -233,3 +233,29 @@ fn usage_error_with_closed_stderr() {
 fn version() {
     assert_snapshot!(sego(&["--version"]));
 }
+
+/// A count of zero is refused before any request is sent.
+#[test]
+fn a_count_of_zero_is_refused() {
+    assert_snapshot!(sego(&["log", "-n", "0", "example.com/acme/widget"]));
+}
+
+#[test]
+fn a_skip_that_is_not_a_whole_number_is_refused() {
+    assert_snapshot!(sego(&["log", "--skip", "-1", "example.com/acme/widget"]));
+}
+
+#[test]
+fn follow_refuses_a_skip() {
+    assert_snapshot!(sego(&["log", "--follow", "--skip", "1", "example.com/acme/widget", "a.go"]));
+}
+
+#[test]
+fn follow_refuses_a_count_past_its_limit() {
+    assert_snapshot!(sego(&["log", "--follow", "-n", "20001", "example.com/acme/widget", "a.go"]));
+}
+
+#[test]
+fn a_count_belongs_to_log() {
+    assert_snapshot!(sego(&["show", "-n", "1", "example.com/acme/widget:a.go"]));
+}

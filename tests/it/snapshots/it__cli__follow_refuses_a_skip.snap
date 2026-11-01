@@ -1,0 +1,12 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"log\", \"--follow\", \"--skip\", \"1\", \"example.com/acme/widget\", \"a.go\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: --follow takes no --skip
+usage: sego log [--json] [-n N] [--skip N] REPO[@REV][:PATH] [PATH]
+       sego log [--json] [-n N] [--skip N] REPO@A..B[:PATH] [PATH]
+       sego log [--json] [-n N] --follow REPO[@REV][:PATH] [PATH]
+----- end -----

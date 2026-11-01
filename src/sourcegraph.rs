@@ -187,8 +187,8 @@ impl<'a> Client<'a> {
     /// `follow`: after the first `skip`, the next `first`, or all for `None`.
     /// A range is read by its commits' IDs once both ends resolve. A followed
     /// history is one request, since `after:` can't page one
-    /// (docs/research/log-paging.md). If the deadline passes once a page is
-    /// read, the history is what was read, `stopped`.
+    /// (docs/research/log-paging.md). If the client deadline passes once a
+    /// page is read, the history is what was read, `cut_by_deadline`.
     pub fn history(
         self,
         repo: &Repo,
@@ -222,7 +222,7 @@ impl<'a> Client<'a> {
     }
 
     /// Reads the pages after the first until `history` holds `wanted` commits
-    /// or has no more, and marks it `stopped` if the deadline comes first.
+    /// or has no more, and marks it `cut_by_deadline` if that comes first.
     fn read_on(
         &self,
         history: &mut History,
@@ -231,19 +231,18 @@ impl<'a> Client<'a> {
     ) -> Result<(), Error> {
         while history.commits.more && history.commits.items.len() < wanted {
             let Some(after) = history.cursor.take() else {
-                return Ok(());
+                return Err(Error::failed("the commit list"));
             };
             let size = page_size(wanted - history.commits.items.len());
             let request = commits::page_request(history, path, size, &after);
-            let range = history.base.is_some();
-            match self.exchange(&request).and_then(|page| commits::read_page(&page, range)) {
+            match self.exchange(&request).and_then(|page| commits::read_page(&page, history)) {
                 Ok((page, cursor)) => {
                     history.commits.items.extend(page.items);
                     history.commits.more = page.more;
                     history.cursor = cursor;
                 }
                 Err(error) if error.kind() == Kind::Deadline => {
-                    history.stopped = true;
+                    history.cut_by_deadline = true;
                     return Ok(());
                 }
                 Err(error) => return Err(error),
@@ -700,10 +699,9 @@ mod tests {
         }
 
         fn page(history: &History, first: u32, after: &str) -> Vec<CommitSummary> {
-            let range = history.base.is_some();
             asked(|client| {
                 let request = commits::page_request(history, None, first, after);
-                commits::read_page(&client.exchange(&request)?, range)
+                commits::read_page(&client.exchange(&request)?, history)
             })
             .0
             .items

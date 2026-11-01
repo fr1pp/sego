@@ -54,7 +54,7 @@ UTC, one at a time. Each row is one sample. Snapshot citations are to
 
 - **Over the limit, the server refuses before it starts.** **live-verified**
   - HTTP 400 in about 0.25 s, `ErrQueryComplexityLimitExceeded`, `type: "field count"`,
-    `limit: 500000` and `actual` in `extensions`. No value tried timed out.
+    `limit: 500000` and `actual` in `extensions`. No value tried ran out of time.
 - **A field under the one carrying `first` costs `first`.** **live-verified**
   - `nodes` costs nothing, and `pageInfo` and its children count. The rule is in
     `cmd/frontend/graphqlbackend/rate_limit.go`.
@@ -106,5 +106,4 @@ With sego's fields, single samples from one quiet window:
 - The anonymous limiter charges 1 per request whatever the cost (`rate_limit.go:482`).
   **source (snapshot)** None of the 222 requests got a 429. **live-verified**
 
-Not tested: behaviour under load, a followed file long enough to reach the cost limit, and a range
-with both `path` and `after`.
+Not tested: behaviour under load, and a followed file long enough to reach the cost limit.

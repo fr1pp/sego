@@ -165,29 +165,30 @@ pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Err
 }
 
 /// The note that gets the rest of a cut log of `head`, or of the range from
-/// `base`: `shown` commits were listed, and `stopped` says the deadline cut
-/// them short of what was asked for.
-fn rest(
+/// `base`, which listed `shown` commits, or fewer than asked for when
+/// `cut_by_deadline`.
+fn continuation(
     head: &Resolved,
     base: Option<&Resolved>,
     args: &Args,
     shown: usize,
-    stopped: bool,
+    cut_by_deadline: bool,
 ) -> String {
     let path = args.path.as_deref().map(|path| path.trim_end_matches('/'));
     let address = match base {
         Some(base) => range_address(&head.repo, &base.commit, &head.commit, path),
         None => pinned(&head.repo, &head.commit, path).to_string(),
     };
+    let command = if args.json { "sego log --json" } else { "sego log" };
     if args.follow {
         return match args.count.unwrap_or(ROWS) {
             COMMIT_PAGE => follow_limit(),
-            count => pointer::log_more(&address, (count * 2).min(COMMIT_PAGE)),
+            count => pointer::log_more(command, &address, (count * 2).min(COMMIT_PAGE)),
         };
     }
     let listed = u32::try_from(shown).unwrap_or(u32::MAX);
-    let count = args.count.map(|count| if stopped { count - listed } else { count });
-    pointer::log_skip(&address, count, u64::from(args.skip) + shown as u64)
+    let count = args.count.map(|count| if cut_by_deadline { count - listed } else { count });
+    pointer::log_skip(command, &address, count, u64::from(args.skip) + shown as u64)
 }
 
 /// The answer for `history`, its entries marked with the tags that name
@@ -212,12 +213,12 @@ fn answer(history: History, args: &Args, notes: &mut Notes) -> Answer {
         parents: commit.parents,
     };
     let commits: Vec<Entry> = history.commits.items.into_iter().map(entry).collect();
-    if history.stopped {
-        notes.push(format!("stopped at the {} s deadline", DEADLINE.as_secs()));
+    if history.cut_by_deadline {
+        notes.push(format!("cut at the {} s client deadline", DEADLINE.as_secs()));
     }
     if history.commits.more {
-        let base = history.base.as_ref();
-        notes.push(rest(&history.head, base, args, commits.len(), history.stopped));
+        let (head, base) = (&history.head, history.base.as_ref());
+        notes.push(continuation(head, base, args, commits.len(), history.cut_by_deadline));
     }
     let at = match (&args.revs, history.base) {
         (Revs::Range { base, head }, Some(base_end)) => At {

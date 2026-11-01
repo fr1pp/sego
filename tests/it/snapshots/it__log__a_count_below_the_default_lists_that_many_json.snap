@@ -70,7 +70,7 @@ exit: 0
   "follow": false,
   "mirrored_at": "2026-11-01T08:33Z",
   "notes": [
-    "sego log -n 5 --skip 5 github.com/gorilla/mux@98cb6bf42e08 continues from the last commit shown"
+    "sego log --json -n 5 --skip 5 github.com/gorilla/mux@98cb6bf42e08 continues from the last commit shown"
   ],
   "path": null,
   "repo": "github.com/gorilla/mux",
@@ -80,5 +80,5 @@ exit: 0
   "skip": 0
 }
 ----- stderr -----
-sego: note: sego log -n 5 --skip 5 github.com/gorilla/mux@98cb6bf42e08 continues from the last commit shown
+sego: note: sego log --json -n 5 --skip 5 github.com/gorilla/mux@98cb6bf42e08 continues from the last commit shown
 ----- end -----

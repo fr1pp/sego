@@ -3,6 +3,7 @@
 use insta::assert_snapshot;
 use serde_json::json;
 
+use crate::common::recording::ServerResponse;
 use crate::common::{answered, sego};
 
 /// A failed commit count fails the range, and the server's text is not printed.
@@ -890,12 +891,12 @@ fn tags_not_marked_when_the_tag_list_fails_json() {
 
 /// A count below the default lists that many, and its pointer keeps the count.
 #[test]
-fn count_below_the_default() {
+fn a_count_below_the_default_lists_that_many() {
     assert_snapshot!(sego(&["log", "-n", "5", "github.com/gorilla/mux@v1.8.0"]));
 }
 
 #[test]
-fn count_below_the_default_json() {
+fn a_count_below_the_default_lists_that_many_json() {
     assert_snapshot!(sego(&["log", "--json", "-n", "5", "github.com/gorilla/mux@v1.8.0"]));
 }
 
@@ -906,18 +907,18 @@ fn count_of_one_says_more_exist() {
 }
 
 #[test]
-fn count_of_one_at_the_last_commit() {
+fn a_count_of_one_at_the_last_commit_says_no_more_exist() {
     assert_snapshot!(sego(&["log", "-n", "1", "--skip", "286", "github.com/gorilla/mux@v1.8.0"]));
 }
 
 /// An explicit count is the whole of what it asked for, past the default.
 #[test]
-fn count_past_the_default() {
+fn a_count_past_the_default_lists_that_many() {
     assert_snapshot!(sego(&["log", "-n", "200", "github.com/gorilla/mux@v1.8.0"]));
 }
 
 #[test]
-fn count_in_a_range() {
+fn a_count_cuts_a_range() {
     assert_snapshot!(sego(&["log", "-n", "3", "github.com/gorilla/mux@v1.7.1..v1.7.4"]));
 }
 
@@ -933,7 +934,7 @@ fn skip_continues_a_cut_log_json() {
 }
 
 #[test]
-fn skip_with_a_path() {
+fn a_skip_counts_a_paths_commits() {
     assert_snapshot!(sego(&[
         "log",
         "-n",
@@ -946,12 +947,12 @@ fn skip_with_a_path() {
 }
 
 #[test]
-fn skip_in_a_range() {
+fn a_skip_counts_a_ranges_commits() {
     assert_snapshot!(sego(&["log", "--skip", "2", "github.com/gorilla/mux@v1.7.1..v1.7.4"]));
 }
 
 #[test]
-fn skip_in_a_range_with_a_path() {
+fn a_skip_counts_a_paths_commits_in_a_range() {
     assert_snapshot!(sego(&[
         "log",
         "-n",
@@ -965,18 +966,18 @@ fn skip_in_a_range_with_a_path() {
 
 /// Past the end of a log is an empty answer.
 #[test]
-fn skip_past_the_end() {
+fn a_skip_past_the_end_lists_nothing() {
     assert_snapshot!(sego(&["log", "--skip", "5000", "github.com/gorilla/mux@v1.8.0"]));
 }
 
 /// Past the end of a path's log says nothing about the path.
 #[test]
-fn skip_past_the_end_of_a_path() {
+fn a_skip_past_the_end_of_a_path_lists_nothing() {
     assert_snapshot!(sego(&["log", "--skip", "5000", "github.com/gorilla/mux@v1.8.0", "mux.go"]));
 }
 
 #[test]
-fn skip_past_the_end_of_a_path_in_a_range() {
+fn a_skip_past_the_end_of_a_path_in_a_range_lists_nothing() {
     assert_snapshot!(sego(&[
         "log",
         "--skip",
@@ -988,7 +989,7 @@ fn skip_past_the_end_of_a_path_in_a_range() {
 
 /// `--follow` reads one request of the count asked for, past the default.
 #[test]
-fn follow_with_a_count() {
+fn follow_lists_the_count_asked_for() {
     assert_snapshot!(sego(&[
         "log",
         "--follow",
@@ -996,4 +997,21 @@ fn follow_with_a_count() {
         "200",
         "github.com/sharkdp/bat@fc9546854f5a:src/bin/bat/main.rs"
     ]));
+}
+
+/// A request over the server's cost limit says the actual cost and the limit.
+#[test]
+fn a_request_over_the_cost_limit_reports_both_sizes() {
+    let refusal = json!({"errors": [{
+        "message": "Query exceeds maximum field count limit",
+        "extensions": {
+            "code": "ErrQueryComplexityLimitExceeded",
+            "type": "field count",
+            "limit": 500_000,
+            "actual": 500_012,
+            "docs_url": "https://sourcegraph.com/help/api/graphql#cost-limits",
+        },
+    }]});
+    let response = ServerResponse::new(400, "application/json", refusal.to_string());
+    assert_snapshot!(answered(&["log", "example.com/acme/widget@v2.0.0"], [response]));
 }

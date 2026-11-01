@@ -6,3 +6,7 @@ the answer fails, since an agent can't use a file listing without its files. Whe
 can't be read, the answer is still right without it. sego prints it with a note naming what is
 unknown and why, and the fact's JSON field is `null`, never an empty value that would read as a
 fact.
+
+A log read in pages is the one exception. When the client deadline passes after its first page, the
+commits read are right, and a pointer gets the rest from exactly there, so sego prints them with
+that pointer and exits 0. Any other failure on a later page fails the answer.

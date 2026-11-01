@@ -613,10 +613,23 @@ fn log_later_page_that_fails_fails_the_answer() {
     assert_eq!(outcome.stdout, "");
 }
 
-/// What a log prints when the deadline passes after `answers`.
-fn log_cut_by_the_deadline(args: &[&str], answers: Vec<Value>) -> Ran {
+/// A next page with no cursor can't be read, so the answer fails and doesn't
+/// fall short.
+#[test]
+fn log_next_page_with_no_cursor_fails_the_answer() {
+    let log = widget_log();
+    let mut first = log_first_page(PAGE, true);
+    let ancestors = &mut first["data"]["r0"]["commit"]["w"]["commit"]["ancestors"];
+    ancestors["pageInfo"]["endCursor"] = Value::Null;
+    let outcome = answered(&["log", "-n", "20003", &log], [first]);
+    assert_eq!(outcome.code, 3);
+    assert_eq!(outcome.stdout, "");
+}
+
+/// What a log prints when the client deadline passes after `responses`.
+fn log_cut_by_the_deadline(args: &[&str], responses: Vec<Value>) -> Ran {
     let mut answers: Vec<Result<Response, TransportError>> =
-        answers.into_iter().map(|answer| Ok(ServerResponse::from(answer).served())).collect();
+        responses.into_iter().map(|response| Ok(ServerResponse::from(response).served())).collect();
     answers.push(Err(TransportError::Deadline));
     sego_through(args, OsStr::new("off"), &Answers::new(answers))
 }
@@ -632,7 +645,7 @@ fn log_at_the_deadline_prints_what_it_read() {
     assert_eq!(
         outcome.stderr,
         format!(
-            "sego: note: stopped at the 90 s deadline\n\
+            "sego: note: cut at the 90 s client deadline\n\
              sego: note: sego log -n 10000 --skip 20000 {WIDGET}@89abcdef0123 continues from \
              the last commit shown\n"
         )
@@ -643,13 +656,14 @@ fn log_at_the_deadline_prints_what_it_read() {
 fn log_range_at_the_deadline_prints_what_it_read() {
     let range = widget_range();
     let args = ["log", "--json", range.as_str()];
-    let answers = vec![log_range_ends(), log_range_first_page(PAGE, 25_000)];
-    let outcome = log_cut_by_the_deadline(&args, answers);
+    let responses = vec![log_range_ends(), log_range_first_page(PAGE, 25_000)];
+    let outcome = log_cut_by_the_deadline(&args, responses);
     assert_eq!(outcome.code, 0, "{}", outcome.stderr);
     let answer: Value = serde_json::from_str(&outcome.stdout).unwrap_or_else(|e| panic!("{e}"));
     assert_eq!(answer["commits"].as_array().map(Vec::len), Some(PAGE));
     assert_eq!(answer["commits_more"], true);
-    let pointer = format!("sego log --skip 20000 {WIDGET}@0123456789ab..89abcdef0123 continues");
+    let pointer =
+        format!("sego log --json --skip 20000 {WIDGET}@0123456789ab..89abcdef0123 continues");
     assert!(outcome.stderr.contains(&pointer), "{}", outcome.stderr);
 }
 

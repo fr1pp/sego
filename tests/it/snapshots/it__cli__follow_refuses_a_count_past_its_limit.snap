@@ -1,0 +1,12 @@
+---
+source: tests/it/cli.rs
+expression: "sego(&[\"log\", \"--follow\", \"-n\", \"20001\", \"example.com/acme/widget\", \"a.go\"])"
+---
+exit: 2
+----- stdout -----
+----- stderr -----
+sego: error: --follow lists at most 20000 commits
+usage: sego log [--json] [-n N] [--skip N] REPO[@REV][:PATH] [PATH]
+       sego log [--json] [-n N] [--skip N] REPO@A..B[:PATH] [PATH]
+       sego log [--json] [-n N] --follow REPO[@REV][:PATH] [PATH]
+----- end -----

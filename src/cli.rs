@@ -153,10 +153,12 @@ pub fn parse(args: &[OsString]) -> Result<Invocation, Error> {
     if flags.recursive && name != "ls" {
         return Err(Error::usage(format!("{name} takes no --recursive"), synopsis_of(Some(name))));
     }
-    if flags.follow && name != "log" {
-        return Err(Error::usage(format!("{name} takes no --follow"), synopsis_of(Some(name))));
-    }
-    for (given, option) in [(flags.count.is_some(), "-n"), (flags.skip.is_some(), "--skip")] {
+    let log_only = [
+        (flags.follow, "--follow"),
+        (flags.count.is_some(), "-n"),
+        (flags.skip.is_some(), "--skip"),
+    ];
+    for (given, option) in log_only {
         if given && name != "log" {
             return Err(Error::usage(format!("{name} takes no {option}"), synopsis_of(Some(name))));
         }

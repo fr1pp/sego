@@ -73,7 +73,8 @@ _Avoid_: absent, answer error
 
 **Failure**:
 A question Sourcegraph or the network didn't answer: the server failed or refused, the connection
-failed, or the client deadline passed. It exits 3, as does an answer sego couldn't write.
+failed, or the client deadline passed. It exits 3, as does an answer sego couldn't write. A log the
+client deadline cuts after its first page isn't one: it prints what it read, with a pointer.
 _Avoid_: unanswered, outage
 
 **Default limit**:
@@ -82,7 +83,7 @@ caller asks for no more.
 
 **Explicit request**:
 A request that names its own extent (a `LINES` range, a `count:`, `--recursive`, a range, a path
-given to `diff`), so no default limit cuts what is fetched.
+given to `diff`, a `-n`), so no default limit cuts what is fetched.
 
 ## Search
 

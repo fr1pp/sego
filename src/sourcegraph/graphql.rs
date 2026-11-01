@@ -24,8 +24,10 @@ pub struct GqlError {
     pub path: Vec<Segment>,
     /// `extensions.code`.
     pub code: Option<String>,
-    /// `extensions.actual` and `extensions.limit`, on a query over a limit.
-    pub over: Option<(u64, u64)>,
+    /// `extensions.actual`, on a query over a limit.
+    pub actual: Option<u64>,
+    /// `extensions.limit`, on a query over a limit.
+    pub limit: Option<u64>,
 }
 
 /// What a server error says, whatever its wording; each reader decides what
@@ -237,12 +239,19 @@ fn is_json(media: &str) -> bool {
 }
 
 fn complexity_message(body: &Value) -> Option<String> {
-    read_errors(body).into_iter().find(|error| error.kind() == GqlErrorKind::Complexity).map(
-        |error| match error.over {
-            Some((actual, limit)) => format!("{} (actual {actual}, limit {limit})", error.message),
-            None => error.message,
-        },
-    )
+    let error =
+        read_errors(body).into_iter().find(|error| error.kind() == GqlErrorKind::Complexity)?;
+    let sizes = [("actual", error.actual), ("limit", error.limit)];
+    let sizes: Vec<String> =
+        sizes.iter().filter_map(|(name, size)| Some(format!("{name} {}", (*size)?))).collect();
+    Some(match sizes.as_slice() {
+        [] => error.message,
+        sizes => format!("{} ({})", error.message, sizes.join(", ")),
+    })
+}
+
+fn extension_size(error: &Value, key: &str) -> Option<u64> {
+    error.get("extensions")?.get(key)?.as_u64()
 }
 
 fn read_errors(body: &Value) -> Vec<GqlError> {
@@ -262,10 +271,8 @@ fn read_errors(body: &Value) -> Vec<GqlError> {
                 .and_then(|e| e.get("code"))
                 .and_then(Value::as_str)
                 .map(str::to_owned),
-            over: error.get("extensions").and_then(|extensions| {
-                let number = |key: &str| extensions.get(key).and_then(Value::as_u64);
-                Some((number("actual")?, number("limit")?))
-            }),
+            actual: extension_size(error, "actual"),
+            limit: extension_size(error, "limit"),
         })
         .collect()
 }
@@ -388,7 +395,8 @@ mod tests {
             message: message.to_owned(),
             path: vec![Segment::Key("r0".to_owned())],
             code: None,
-            over: None,
+            actual: None,
+            limit: None,
         }
     }
 
@@ -531,6 +539,7 @@ mod tests {
                             "type": "field count",
                             "limit": 500_000,
                             "actual": 500_012,
+                            "docs_url": "https://sourcegraph.com/help/api/graphql#cost-limits",
                         },
                     }]}),
                 ),
