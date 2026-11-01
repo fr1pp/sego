@@ -1,10 +1,15 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
-# Format check, lints with warnings as errors, and the offline tests, never blessing.
+# Install what the checks need and turn on the pre-commit hook.
+setup:
+    cargo install cargo-insta --version 1.49.0 --locked
+    git config core.hooksPath .githooks
+
+# Format check, lints with warnings as errors, and the offline tests, never blessing and failing on a snapshot no test uses.
 check:
     cargo fmt --all --check
     cargo clippy --locked --all-targets -- -D warnings
-    INSTA_UPDATE=no cargo test --locked
+    cargo insta test --check --unreferenced=reject
 
 # Write the snapshots of the tests matching FILTER from what sego does now, and print the diff.
 [positional-arguments]

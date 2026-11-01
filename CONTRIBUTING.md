@@ -5,6 +5,7 @@
 sego builds with the stable toolchain named by `rust-version` in `Cargo.toml`.
 
 ```sh
+just setup              # once: install cargo-insta and turn on the pre-commit hook
 cargo build --release   # target/release/sego
 just check              # rustfmt, clippy with warnings denied, and every offline test
 ```
@@ -81,8 +82,7 @@ print as themselves in the strings of its response
 output, a line starts with the corpus, or a JSON value carries only part of it. Tests made for the
 purpose cover what that can't reach, such as alert titles, file contents and raw reads.
 
-CI fails on a snapshot no test uses, as a renamed test leaves behind. Locally, with `cargo-insta`
-installed, `cargo insta test --check --unreferenced=reject` does the same. Never pass
+`just check` fails on a snapshot no test uses, as a renamed test leaves behind. Never pass
 `--unreferenced=delete` with a test filter: it deletes the snapshots of every test that didn't run.
 
 ## Other tests
@@ -147,7 +147,7 @@ What the research means for how to search well goes in
 
 ## Commits and pull requests
 
-- `git config core.hooksPath .githooks` makes each commit run `just check` first.
+- `just setup` makes each commit run `just check` first.
 - A commit message is one imperative sentence that says what the change does.
 - Each commit passes `just check`.
 - A pull request says what changed and why, and links its issue.
