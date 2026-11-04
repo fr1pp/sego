@@ -1,8 +1,8 @@
 {
-  "date": "2026-10-30",
+  "date": "2026-11-04",
   "request": {
     "operation": "CommitTags",
-    "query": "query CommitTags($repo: String!, $commit: String!) {\n  repository(name: $repo) { commit(rev: $commit) { tags { nodes { displayName } } } }\n}\n",
+    "query": "query CommitTags($repo: String!, $commit: String!) {\n  repository(name: $repo) {\n    commit(rev: $commit) { tags { totalCount pageInfo { hasNextPage } nodes { displayName } } }\n  }\n}\n",
     "variables": {
       "commit": "948bec34b5168796bf3fc4dbb09215baa970351a",
       "repo": "github.com/gorilla/mux"
@@ -21,7 +21,11 @@
                 {
                   "displayName": "v1.8.0"
                 }
-              ]
+              ],
+              "pageInfo": {
+                "hasNextPage": false
+              },
+              "totalCount": 2
             }
           }
         }

@@ -250,6 +250,7 @@ const MESSAGE_INDENT: &str = "    ";
 const ROOT_NOTE: &str = "root commit: Sourcegraph has no diff for it";
 const TAGS_NOTE: &str = "tags not listed";
 const TAG_ROWS: usize = 100;
+const EARLIEST_UNKNOWN: &str = "earliest tag unknown: the server didn't list every tag";
 
 #[derive(Serialize)]
 pub struct CommitAnswer {
@@ -273,10 +274,24 @@ pub struct CommitAnswer {
     /// couldn't be read.
     tags: Option<Vec<String>>,
     tags_total: Option<u64>,
+    /// The last of `tags` in the server's order: the tag created first, where
+    /// a lightweight tag's creation date is its commit's. `None` when the
+    /// server didn't list every tag, or none holds the commit.
+    earliest_tag: Option<String>,
     mirrored_at: Option<String>,
 }
 
 impl CommitAnswer {
+    /// How many tag rows text prints.
+    fn tags_shown(&self) -> usize {
+        self.tags.as_ref().map_or(0, |tags| tags.len().min(TAG_ROWS))
+    }
+
+    /// Whether text prints fewer tags than hold the commit.
+    fn tags_cut(&self) -> bool {
+        self.tags_total.is_some_and(|total| total > self.tags_shown() as u64)
+    }
+
     fn fields(&self) -> Vec<String> {
         let mut fields = Vec::new();
         fields.push(self.author_date.clone());
@@ -300,7 +315,7 @@ impl CommitAnswer {
         if let Some(total) = self.tags_total {
             fields.push(match total {
                 0 => "no tags".to_owned(),
-                total if total > TAG_ROWS as u64 => format!("{TAG_ROWS} of {total} tags shown"),
+                total if self.tags_cut() => format!("{} of {total} tags shown", self.tags_shown()),
                 total => count(total, "tag", "tags"),
             });
         }
@@ -336,6 +351,12 @@ impl fmt::Display for CommitAnswer {
             writeln!(f)?;
             for tag in tags.iter().take(TAG_ROWS) {
                 writeln!(f, "tag  {}", one_line(tag))?;
+            }
+            if self.tags_cut() {
+                match &self.earliest_tag {
+                    Some(earliest) => writeln!(f, "earliest tag  {}", one_line(earliest))?,
+                    None => writeln!(f, "{EARLIEST_UNKNOWN}")?,
+                }
             }
         }
         Ok(())
@@ -385,6 +406,8 @@ fn commit_answer(diff: Diff, rev: &str, notes: &mut Notes) -> CommitAnswer {
         }
         None => None,
     };
+    let earliest_tag =
+        tags.as_ref().filter(|tags| tags.complete).and_then(|tags| tags.names.last().cloned());
     CommitAnswer {
         repo: diff.head.repo,
         rev: rev.to_owned(),
@@ -402,8 +425,9 @@ fn commit_answer(diff: Diff, rev: &str, notes: &mut Notes) -> CommitAnswer {
         files_more,
         added,
         deleted,
-        tags_total: tags.as_ref().map(|tags| tags.len() as u64),
-        tags,
+        tags_total: tags.as_ref().map(|tags| tags.total),
+        earliest_tag,
+        tags: tags.map(|tags| tags.names),
         mirrored_at,
     }
 }

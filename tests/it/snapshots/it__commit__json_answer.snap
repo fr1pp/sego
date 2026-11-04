@@ -12,6 +12,7 @@ exit: 0
   "committer": "GitHub",
   "committer_date": "2020-07-11",
   "deleted": 1,
+  "earliest_tag": "v1.8.0",
   "files": [
     {
       "added": 22,

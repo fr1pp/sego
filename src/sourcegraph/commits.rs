@@ -48,7 +48,9 @@ fragment Changes on RepositoryComparison {
 /// The tags that hold a commit named by its full ID, which never fetches.
 const COMMIT_TAGS: &str = "\
 query CommitTags($repo: String!, $commit: String!) {
-  repository(name: $repo) { commit(rev: $commit) { tags { nodes { displayName } } } }
+  repository(name: $repo) {
+    commit(rev: $commit) { tags { totalCount pageInfo { hasNextPage } nodes { displayName } } }
+  }
 }
 ";
 
@@ -90,9 +92,22 @@ pub struct Commit {
     /// The committer's timestamp.
     pub committer_date: Option<String>,
     pub parents: Vec<String>,
-    /// The tags that hold the commit, newest created first, when asked for;
-    /// the error when they couldn't be read.
-    pub tags: Option<Result<Vec<String>, Error>>,
+    /// The tags that hold the commit, when asked for; the error when they
+    /// couldn't be read.
+    pub tags: Option<Result<HoldingTags, Error>>,
+}
+
+/// The tags that hold a commit, in the server's order: newest created first,
+/// where a lightweight tag's creation date is its commit's
+/// (docs/research/tag-order.md).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HoldingTags {
+    pub names: Vec<String>,
+    /// How many tags hold the commit: the server's count, or `names`'s
+    /// length when it gives none.
+    pub total: u64,
+    /// Whether `names` holds every tag, so its last is the tag created first.
+    pub complete: bool,
 }
 
 /// The files that changed between two commits: a revision and its first
@@ -468,8 +483,17 @@ pub fn commit_tags_request(at: &Resolved) -> Request {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct Holding {
+    total_count: Option<u64>,
+    page_info: Option<HoldingPage>,
     nodes: Vec<HoldingTag>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct HoldingPage {
+    has_next_page: bool,
 }
 
 #[derive(Deserialize)]
@@ -480,7 +504,7 @@ struct HoldingTag {
 
 /// The tags that hold the commit, from the response to
 /// `commit_tags_request`.
-pub fn read_commit_tags(envelope: &Envelope) -> Result<Vec<String>, Error> {
+pub fn read_commit_tags(envelope: &Envelope) -> Result<HoldingTags, Error> {
     let failed = || Error::failed("the tag list");
     if envelope.error_beneath(&["repository"]).is_some() {
         return Err(failed());
@@ -489,7 +513,11 @@ pub fn read_commit_tags(envelope: &Envelope) -> Result<Vec<String>, Error> {
         .get(&["repository", "commit", "tags"])
         .and_then(|value| Holding::deserialize(value).ok())
         .ok_or_else(failed)?;
-    Ok(list.nodes.into_iter().filter_map(|node| node.display_name).collect())
+    let names: Vec<String> = list.nodes.into_iter().filter_map(|node| node.display_name).collect();
+    let listed = names.len() as u64;
+    let total = list.total_count.unwrap_or(listed);
+    let more = list.page_info.is_some_and(|page| page.has_next_page);
+    Ok(HoldingTags { names, total, complete: !more && total == listed })
 }
 
 /// The most commits one request asks for. A little below the lowest `first:`
