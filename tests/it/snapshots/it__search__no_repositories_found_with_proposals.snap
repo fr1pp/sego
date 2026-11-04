@@ -6,6 +6,7 @@ exit: 1
 ----- stdout -----
 ----- stderr -----
 sego: error: No repositories found
+  query  timeout:60s repo:example.com/acme/widget foo
   the server proposes: foo
   the server proposes: repo:example.com/acme foo
 ----- end -----

@@ -70,6 +70,12 @@ pub struct Query {
 }
 
 impl Query {
+    /// The query as sent, as an error's fact: a shell can change a query
+    /// before sego sees it, and this shows what reached the server.
+    pub fn sent(&self) -> String {
+        format!("query  {}", self.text)
+    }
+
     /// The facts about `text` that what it writes gives. A query the server
     /// rejects while reading it gives none.
     pub fn new(written: &str) -> Query {

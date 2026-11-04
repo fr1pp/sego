@@ -6,4 +6,5 @@ exit: 3
 ----- stdout -----
 ----- stderr -----
 sego: error: the search stopped at 0.0 s with no results
+  query  repo:example.com/acme/widget func timeout:1ms
 ----- end -----

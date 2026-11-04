@@ -6,4 +6,5 @@ exit: 1
 ----- stdout -----
 ----- stderr -----
 sego: error: No repositories found
+  query  timeout:60s repo:^github\.com/sego-nonexistent-0/nope$ foo
 ----- end -----

@@ -28,7 +28,10 @@ impl Answer {
                     return Err(revisions(alert));
                 }
                 if alert.title == NO_REPOSITORIES {
-                    return Err(proposals(alert, Error::not_found(&alert.title)));
+                    return Err(proposals(
+                        alert,
+                        Error::not_found(&alert.title).fact(self.query.sent()),
+                    ));
                 }
             }
         }
@@ -36,7 +39,8 @@ impl Answer {
             return Err(Error::upstream(format!(
                 "the search stopped at {} s with no results",
                 tenths(self.elapsed_ms)
-            )));
+            ))
+            .fact(self.query.sent()));
         }
         push_notes(self, notes);
         Ok(())

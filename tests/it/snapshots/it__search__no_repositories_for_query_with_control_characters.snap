@@ -6,6 +6,7 @@ exit: 1
 ----- stdout -----
 ----- stderr -----
 sego: error: No repositories found
+  query  timeout:60s repo:a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
   the server proposes: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}i
   the server proposes: a\u{1b}b\u{202e}c\u{200b}d e\u{d}f\u{0}g\u{2028}h\u{7f}ix
 ----- end -----
