@@ -90,7 +90,29 @@ fn compare(recording: &Recording, response: &Response) -> Result<(), String> {
         && !capped(&recorded)
         && !capped(&live)
         && commit_ids(&recorded) == commit_ids(&live);
-    difference(&recorded, &live, values).map_or(Ok(()), Err)
+    if let Some(found) = difference(&recorded, &live, values) {
+        return Err(found);
+    }
+    earliest_tag_difference(&recording.request, &recorded, &live).map_or(Ok(()), Err)
+}
+
+/// Where the tags that hold a commit end differently. New tags join the
+/// newest end of the server's order, so the last, which `show` names as the
+/// earliest tag, stays put; a change there is a change in the order.
+fn earliest_tag_difference(request: &Request, recorded: &Value, live: &Value) -> Option<String> {
+    if !matches!(request, Request::Graphql { operation, .. } if operation == "CommitTags") {
+        return None;
+    }
+    let last = |answer: &Value| {
+        answer
+            .pointer("/data/repository/commit/tags/nodes")
+            .and_then(Value::as_array)
+            .and_then(|nodes| nodes.last())
+            .and_then(|node| node.get("displayName"))
+            .cloned()
+    };
+    let (was, now) = (last(recorded), last(live));
+    (was != now).then(|| format!("last tag {now:?}, was {was:?}"))
 }
 
 /// Whether the answer lists refs, which grow without any commit moving.

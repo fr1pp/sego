@@ -1,6 +1,6 @@
 ---
 source: tests/it/commit.rs
-expression: "answered(&[\"show\", \"example.com/acme/widget@v1\"], [first, second])"
+expression: "answered(&[\"show\", \"example.com/acme/widget@v1\"], responses)"
 ---
 exit: 0
 ----- stdout -----

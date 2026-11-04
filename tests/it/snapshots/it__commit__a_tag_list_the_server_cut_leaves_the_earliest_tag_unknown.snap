@@ -1,0 +1,114 @@
+---
+source: tests/it/commit.rs
+expression: text
+---
+exit: 0
+----- stdout -----
+example.com/acme/widget@affe2b9b7c60  2026-09-09  Jonathan Davies  parents 6b668aa526af  1 file  +1 -1  100 of 150 tags shown  rev v1
+    Add the parser
+
+M  +1 -1  a.go
+
+tag  v1.119.0
+tag  v1.118.0
+tag  v1.117.0
+tag  v1.116.0
+tag  v1.115.0
+tag  v1.114.0
+tag  v1.113.0
+tag  v1.112.0
+tag  v1.111.0
+tag  v1.110.0
+tag  v1.109.0
+tag  v1.108.0
+tag  v1.107.0
+tag  v1.106.0
+tag  v1.105.0
+tag  v1.104.0
+tag  v1.103.0
+tag  v1.102.0
+tag  v1.101.0
+tag  v1.100.0
+tag  v1.99.0
+tag  v1.98.0
+tag  v1.97.0
+tag  v1.96.0
+tag  v1.95.0
+tag  v1.94.0
+tag  v1.93.0
+tag  v1.92.0
+tag  v1.91.0
+tag  v1.90.0
+tag  v1.89.0
+tag  v1.88.0
+tag  v1.87.0
+tag  v1.86.0
+tag  v1.85.0
+tag  v1.84.0
+tag  v1.83.0
+tag  v1.82.0
+tag  v1.81.0
+tag  v1.80.0
+tag  v1.79.0
+tag  v1.78.0
+tag  v1.77.0
+tag  v1.76.0
+tag  v1.75.0
+tag  v1.74.0
+tag  v1.73.0
+tag  v1.72.0
+tag  v1.71.0
+tag  v1.70.0
+tag  v1.69.0
+tag  v1.68.0
+tag  v1.67.0
+tag  v1.66.0
+tag  v1.65.0
+tag  v1.64.0
+tag  v1.63.0
+tag  v1.62.0
+tag  v1.61.0
+tag  v1.60.0
+tag  v1.59.0
+tag  v1.58.0
+tag  v1.57.0
+tag  v1.56.0
+tag  v1.55.0
+tag  v1.54.0
+tag  v1.53.0
+tag  v1.52.0
+tag  v1.51.0
+tag  v1.50.0
+tag  v1.49.0
+tag  v1.48.0
+tag  v1.47.0
+tag  v1.46.0
+tag  v1.45.0
+tag  v1.44.0
+tag  v1.43.0
+tag  v1.42.0
+tag  v1.41.0
+tag  v1.40.0
+tag  v1.39.0
+tag  v1.38.0
+tag  v1.37.0
+tag  v1.36.0
+tag  v1.35.0
+tag  v1.34.0
+tag  v1.33.0
+tag  v1.32.0
+tag  v1.31.0
+tag  v1.30.0
+tag  v1.29.0
+tag  v1.28.0
+tag  v1.27.0
+tag  v1.26.0
+tag  v1.25.0
+tag  v1.24.0
+tag  v1.23.0
+tag  v1.22.0
+tag  v1.21.0
+tag  v1.20.0
+earliest tag unknown: the server didn't list every tag
+----- stderr -----
+----- end -----

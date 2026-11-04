@@ -683,11 +683,10 @@ fn root_commit_with_file_list_error() {
     assert_snapshot!(answered(&["show", "example.com/acme/widget@v1.0.0"], [first, second]));
 }
 
-/// A failed tag list leaves the tags out, with a note, and the commit and its files still print.
-/// No recording shows these located errors: a server failure sourcegraph.com doesn't give on demand.
-#[test]
-fn tag_list_error_leaves_the_tags_out() {
-    let first = json!({
+/// A commit of example.com/acme/widget with one changed file, as the commit
+/// lookup answers it.
+fn widget_commit() -> serde_json::Value {
+    json!({
         "data": {
             "r0": {
                 "commit": {
@@ -723,8 +722,12 @@ fn tag_list_error_leaves_the_tags_out() {
                 "name": "example.com/acme/widget",
             },
         },
-    });
-    let second = json!({
+    })
+}
+
+/// The tag list's answer when the server fails to read it.
+fn failed_tag_list() -> serde_json::Value {
+    json!({
         "data": {"repository": {"commit": null}},
         "errors": [
             {
@@ -732,8 +735,42 @@ fn tag_list_error_leaves_the_tags_out() {
                 "path": ["repository", "commit", "tags"],
             },
         ],
+    })
+}
+
+/// A failed tag list leaves the tags out, with a note, and the commit and its files still print.
+/// No recording shows these located errors: a server failure sourcegraph.com doesn't give on demand.
+#[test]
+fn tag_list_error_leaves_the_tags_out() {
+    let responses = [widget_commit(), failed_tag_list()];
+    assert_snapshot!(answered(&["show", "example.com/acme/widget@v1"], responses));
+}
+
+/// JSON for a failed tag list holds null tags, count and earliest tag.
+#[test]
+fn tag_list_error_leaves_the_tags_out_json() {
+    let responses = [widget_commit(), failed_tag_list()];
+    assert_snapshot!(answered(&["show", "--json", "example.com/acme/widget@v1"], responses));
+}
+
+/// A tag list the server cut leaves the earliest tag unknown, never a wrong one.
+#[test]
+fn a_tag_list_the_server_cut_leaves_the_earliest_tag_unknown() {
+    let nodes: Vec<serde_json::Value> =
+        (0..120).rev().map(|n| json!({"displayName": format!("v1.{n}.0")})).collect();
+    let tags = json!({
+        "data": {
+            "repository": {
+                "commit": {
+                    "tags": {"totalCount": 150, "pageInfo": {"hasNextPage": true}, "nodes": nodes},
+                },
+            },
+        },
     });
-    assert_snapshot!(answered(&["show", "example.com/acme/widget@v1"], [first, second]));
+    let text = answered(&["show", "example.com/acme/widget@v1"], [widget_commit(), tags.clone()]);
+    assert_snapshot!(text);
+    let json = answered(&["show", "--json", "example.com/acme/widget@v1"], [widget_commit(), tags]);
+    assert!(json.to_string().contains("\"earliest_tag\": null"), "{json}");
 }
 
 /// Text prints the first 100 tags that hold a commit, says how many there are, and

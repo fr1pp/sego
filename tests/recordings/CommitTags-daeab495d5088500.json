@@ -1,8 +1,8 @@
 {
-  "date": "2026-10-30",
+  "date": "2026-11-04",
   "request": {
     "operation": "CommitTags",
-    "query": "query CommitTags($repo: String!, $commit: String!) {\n  repository(name: $repo) { commit(rev: $commit) { tags { nodes { displayName } } } }\n}\n",
+    "query": "query CommitTags($repo: String!, $commit: String!) {\n  repository(name: $repo) {\n    commit(rev: $commit) { tags { totalCount pageInfo { hasNextPage } nodes { displayName } } }\n  }\n}\n",
     "variables": {
       "commit": "1dc05009fe7f4e1d139b0c8394683edb54f8d082",
       "repo": "github.com/kubernetes/kubernetes"
@@ -465,7 +465,11 @@
                 {
                   "displayName": "v1.30.0-rc.0"
                 }
-              ]
+              ],
+              "pageInfo": {
+                "hasNextPage": false
+              },
+              "totalCount": 150
             }
           }
         }
