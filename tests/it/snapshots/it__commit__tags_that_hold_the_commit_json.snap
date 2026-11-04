@@ -12,6 +12,7 @@ exit: 0
   "committer": "Franklin Harding",
   "committer_date": "2019-11-15",
   "deleted": 15,
+  "earliest_tag": "v1.7.4",
   "files": [
     {
       "added": 10,

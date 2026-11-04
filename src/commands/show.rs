@@ -273,6 +273,9 @@ pub struct CommitAnswer {
     /// couldn't be read.
     tags: Option<Vec<String>>,
     tags_total: Option<u64>,
+    /// The tag created first, the last of `tags`: the earliest release that
+    /// holds the commit, as the server orders them by creation date.
+    earliest_tag: Option<String>,
     mirrored_at: Option<String>,
 }
 
@@ -336,6 +339,9 @@ impl fmt::Display for CommitAnswer {
             writeln!(f)?;
             for tag in tags.iter().take(TAG_ROWS) {
                 writeln!(f, "tag  {}", one_line(tag))?;
+            }
+            if let Some(earliest) = self.earliest_tag.as_ref().filter(|_| tags.len() > TAG_ROWS) {
+                writeln!(f, "earliest tag  {}", one_line(earliest))?;
             }
         }
         Ok(())
@@ -403,6 +409,7 @@ fn commit_answer(diff: Diff, rev: &str, notes: &mut Notes) -> CommitAnswer {
         added,
         deleted,
         tags_total: tags.as_ref().map(|tags| tags.len() as u64),
+        earliest_tag: tags.as_ref().and_then(|tags| tags.last().cloned()),
         tags,
         mirrored_at,
     }

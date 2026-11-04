@@ -119,7 +119,8 @@ const SHOW_FACTS: &str = r#"text:
   then the message, indented, a row per file, "STATUS  +A -D  PATH", and
   a row per tag that holds the commit, "tag  NAME", newest created first.
   A root commit has no file list: Sourcegraph has no diff for it. Text
-  prints 100 tags; --json carries every tag.
+  prints 100 tags, then "earliest tag  NAME", the tag created first, when
+  more hold it; --json carries every tag.
 
 json:
   A file: repo rev commit path kind (file or submodule) total_lines
@@ -129,7 +130,8 @@ json:
   A commit: repo rev commit kind author author_date committer
   committer_date parents subject message
   files[{status old_path new_path added deleted}] files_total files_more
-  added deleted tags tags_total, both null when the tags couldn't be read
+  added deleted tags tags_total earliest_tag, all null when the tags
+  couldn't be read; earliest_tag is null when no tag holds the commit
   Each adds mirrored_at notes.
 
 examples:

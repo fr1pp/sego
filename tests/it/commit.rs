@@ -361,7 +361,7 @@ fn message_and_names_with_control_characters_json() {
     let ran = answered(&["show", "--json", "example.com/acme/widget@v2.0.0"], [first, second]);
     assert_eq!(
         ran.stdout,
-        "{\"repo\":\"example.com/acme/widget\",\"rev\":\"v2.0.0\",\"commit\":\"89abcdef0123456789abcdef0123456789abcdef\",\"kind\":\"commit\",\"author\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"author_date\":\"a\\u001bb\\u202ec\\u200bd\\ne\\r\",\"committer\":\"c-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"committer_date\":\"2026-03-01\",\"parents\":[\"fedcba9876543210fedcba9876543210fedcba98\"],\"subject\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"message\":\"a\\u001bb\\nc\\u202ed\\ne\\u200bf\\ng\\u0000h\\ni\\u2028j\\nk\\u007fl\\nmid\\rcr\\ntab\\tok\\n\",\"files\":[{\"status\":\"M\",\"old_path\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"new_path\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"added\":1,\"deleted\":1},{\"status\":\"R\",\"old_path\":\"o-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"new_path\":\"n-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"added\":2,\"deleted\":2},{\"status\":\"A\",\"old_path\":null,\"new_path\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi-added\",\"added\":4,\"deleted\":0},{\"status\":\"D\",\"old_path\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi-deleted\",\"new_path\":null,\"added\":0,\"deleted\":4}],\"files_total\":4,\"files_more\":false,\"added\":7,\"deleted\":7,\"tags\":[],\"tags_total\":0,\"mirrored_at\":null,\"notes\":[]}\n"
+        "{\"repo\":\"example.com/acme/widget\",\"rev\":\"v2.0.0\",\"commit\":\"89abcdef0123456789abcdef0123456789abcdef\",\"kind\":\"commit\",\"author\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"author_date\":\"a\\u001bb\\u202ec\\u200bd\\ne\\r\",\"committer\":\"c-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"committer_date\":\"2026-03-01\",\"parents\":[\"fedcba9876543210fedcba9876543210fedcba98\"],\"subject\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"message\":\"a\\u001bb\\nc\\u202ed\\ne\\u200bf\\ng\\u0000h\\ni\\u2028j\\nk\\u007fl\\nmid\\rcr\\ntab\\tok\\n\",\"files\":[{\"status\":\"M\",\"old_path\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"new_path\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"added\":1,\"deleted\":1},{\"status\":\"R\",\"old_path\":\"o-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"new_path\":\"n-a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi\",\"added\":2,\"deleted\":2},{\"status\":\"A\",\"old_path\":null,\"new_path\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi-added\",\"added\":4,\"deleted\":0},{\"status\":\"D\",\"old_path\":\"a\\u001bb\\u202ec\\u200bd\\ne\\rf\\u0000g\\u2028h\\u007fi-deleted\",\"new_path\":null,\"added\":0,\"deleted\":4}],\"files_total\":4,\"files_more\":false,\"added\":7,\"deleted\":7,\"tags\":[],\"tags_total\":0,\"earliest_tag\":null,\"mirrored_at\":null,\"notes\":[]}\n"
     );
     assert_snapshot!(ran);
 }
@@ -736,7 +736,8 @@ fn tag_list_error_leaves_the_tags_out() {
     assert_snapshot!(answered(&["show", "example.com/acme/widget@v1"], [first, second]));
 }
 
-/// Text prints the first 100 tags that hold a commit and says how many there are.
+/// Text prints the first 100 tags that hold a commit, says how many there are, and
+/// names the tag created first.
 #[test]
 fn tags_past_the_default_limit() {
     assert_snapshot!(sego(&["show", "github.com/kubernetes/kubernetes@1dc05009"]));
