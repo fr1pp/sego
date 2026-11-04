@@ -6,4 +6,5 @@ exit: 1
 ----- stdout -----
 ----- stderr -----
 sego: error: No repositories found
+  query  timeout:60s lang:go foo
 ----- end -----

@@ -6,4 +6,5 @@ exit: 3
 ----- stdout -----
 ----- stderr -----
 sego: error: the search stopped at 5.0 s with no results
+  query  repo:example.com/acme/widget foo timeout:5s
 ----- end -----

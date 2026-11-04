@@ -2442,7 +2442,7 @@ fn no_repositories_for_query_with_control_characters() {
     ));
 }
 
-/// No repositories found is an error.
+/// No repositories found is an error that names the query as sent.
 #[test]
 fn no_repositories_found() {
     assert_snapshot!(sego(&["search", "repo:^github\\.com/sego-nonexistent-0/nope$ foo"]));
@@ -3596,7 +3596,7 @@ fn ranges_in_code_points_json() {
 }
 
 /// A regexp error at search, with no gRPC wrapper and no structural pattern: the
-/// reason, no fact.
+/// reason and the query as sent.
 /// Located errors as in `search::structural_regex_hole`.
 #[test]
 fn regexp_error() {
@@ -4315,8 +4315,8 @@ fn stopped_zero_when_the_server_cut_the_results() {
     assert_snapshot!(answered(&["search", "repo:example.com/acme/widget foo"], [response]));
 }
 
-/// Zero results past the deadline with nothing named timed out: an error with no
-/// fact.
+/// Zero results past the deadline with nothing named timed out: an error whose
+/// only fact is the query as sent.
 #[test]
 fn stopped_zero_with_no_repository_named() {
     let response = json!({

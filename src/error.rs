@@ -3,7 +3,7 @@ use std::io;
 
 use crate::escape::one_line;
 
-const MAX_FACTS: usize = 2;
+const MAX_FACTS: usize = 3;
 const USAGE_PREFIX: &str = "usage: ";
 
 /// Why an invocation stopped: its answer was an error, or writing failed.
@@ -188,8 +188,8 @@ mod tests {
     }
 
     #[test]
-    fn an_error_keeps_two_facts_and_drops_the_rest() {
-        let error = Error::not_found("gone").fact("one").fact("two").fact("three");
-        assert_eq!(report(&error), "sego: error: gone\n  one\n  two\n");
+    fn an_error_keeps_three_facts_and_drops_the_rest() {
+        let error = Error::not_found("gone").fact("one").fact("two").fact("three").fact("four");
+        assert_eq!(report(&error), "sego: error: gone\n  one\n  two\n  three\n");
     }
 }

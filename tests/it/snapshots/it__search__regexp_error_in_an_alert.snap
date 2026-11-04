@@ -6,5 +6,6 @@ exit: 2
 ----- stdout -----
 ----- stderr -----
 sego: error: the search's regular expression doesn't compile: missing closing ): `(a`
+  query  timeout:60s repo:example.com/acme/widget /(a/
 usage: sego search [--json] QUERY...
 ----- end -----

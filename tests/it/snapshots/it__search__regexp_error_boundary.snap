@@ -6,5 +6,6 @@ exit: 2
 ----- stdout -----
 ----- stderr -----
 sego: error: the search's regular expression doesn't compile: yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
+  query  timeout:60s repo:example.com/acme/widget@v1 /d/
 usage: sego search [--json] QUERY...
 ----- end -----

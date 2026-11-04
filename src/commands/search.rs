@@ -22,7 +22,8 @@ fn regexp_error(reason: &str, query: &Query) -> Error {
     };
     let error = Error::usage_from_response(format!(
         "the search's regular expression doesn't compile: {reason}"
-    ));
+    ))
+    .fact(query.sent());
     if query.pattern_type == PatternType::Structural {
         error
             .fact("structural search compiles each :[name~regex] hole as an RE2 regular expression")

@@ -6,6 +6,7 @@ exit: 2
 ----- stdout -----
 ----- stderr -----
 sego: error: the search's regular expression doesn't compile: invalid or unsupported Perl syntax: `(?=`
+  query  timeout:60s repo:^github\.com/gorilla/mux$ lang:go patterntype:structural fmt.:[fn~Err(?=orf)\w+](...)
   structural search compiles each :[name~regex] hole as an RE2 regular expression
 usage: sego search [--json] QUERY...
 ----- end -----
