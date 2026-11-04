@@ -221,9 +221,11 @@ fn exact_repository(written: &[Written]) -> Option<String> {
     literal_name(pattern)
 }
 
-/// The one name `pattern` matches: letters, digits, `-`, `_` and `/`, with
-/// `.` escaped as `\.`. Any other regular-expression syntax, an unescaped
-/// `.` included, matches more than one name.
+/// The one repository name `pattern` matches: a host with its dots escaped
+/// as `\.`, then at least one more part, of letters, digits, `-`, `_` and
+/// `/`. Any other regular-expression syntax, an unescaped `.` included,
+/// matches more than one name, and a name without its host isn't one the
+/// server holds, though `owner/name` names one as an address.
 fn literal_name(pattern: &str) -> Option<String> {
     let mut name = String::new();
     let mut chars = pattern.chars();
@@ -238,7 +240,8 @@ fn literal_name(pattern: &str) -> Option<String> {
         }
     }
     let parts: Vec<&str> = name.split('/').collect();
-    (parts.len() >= 2 && parts.iter().all(|part| !part.is_empty())).then_some(name)
+    let host = parts[0].contains('.');
+    (host && parts.len() >= 2 && parts.iter().all(|part| !part.is_empty())).then_some(name)
 }
 
 fn filters(written: &[Written]) -> impl Iterator<Item = &Filter> {
@@ -567,6 +570,8 @@ mod tests {
             r"repo:^github\.com/a/.*$ foo",
             r"repo:^github\.com/(a|b)/c$ foo",
             r"repo:^b$ foo",
+            r"repo:^torvalds/linux$ foo",
+            r"repo:^github/linux$ foo",
             "foo",
         ];
         for q in unnamed {

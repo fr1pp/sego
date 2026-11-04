@@ -28,7 +28,7 @@ pub use files::{Content, File, Submodule, Window};
 pub use graphql::regexp_reason;
 pub use http::Ureq;
 pub use refs::{RefList, Refs};
-pub use resolve::{Absence, Resolved};
+pub use resolve::{NameLookup, Resolved, not_on};
 pub use search::{
     Alert, CommitResult, FileMatch, Item, NO_REPOSITORIES, NOT_INDEXED, Range, Results, Search,
     Symbol,
@@ -259,7 +259,6 @@ impl<'a> Client<'a> {
         resolve::read_range(&self.exchange(&request)?, repo, base, head)
     }
 
-    /// The results of `query`.
     /// The results of `query`. When the server finds no repository and the
     /// query names exactly one, `repository`, the results also hold whether
     /// that name is on the server and what its repository search finds.
@@ -268,10 +267,10 @@ impl<'a> Client<'a> {
         if let (Search::Results(results), Some(name)) = (&mut search, repository)
             && results.finds_no_repository()
         {
-            let request = resolve::absence_request(name);
-            results.absence = Some(Box::new(
-                self.exchange_within(&request, ABSENCE_DEADLINE)
-                    .and_then(|envelope| resolve::read_absence(&envelope, name)),
+            let request = resolve::name_lookup_request(name);
+            results.name_lookup = Some(Box::new(
+                self.exchange_within(&request, NAME_LOOKUP_DEADLINE)
+                    .and_then(|envelope| resolve::read_name_lookup(&envelope, name)),
             ));
         }
         Ok(search)
@@ -299,7 +298,7 @@ pub const DEADLINE: Duration = Duration::from_secs(90);
 const TAGS_DEADLINE: Duration = Duration::from_secs(10);
 
 /// The deadline of the lookup of a repository a search found missing.
-const ABSENCE_DEADLINE: Duration = Duration::from_secs(10);
+const NAME_LOOKUP_DEADLINE: Duration = Duration::from_secs(10);
 
 pub const GRAPHQL_PATH: &str = "/.api/graphql";
 

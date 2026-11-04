@@ -3,7 +3,7 @@ use serde::de::{DeserializeOwned, Deserializer, Error as _, IgnoredAny};
 use serde_json::{Map, Value, json};
 
 use super::graphql::{Envelope, Request};
-use super::resolve::Absence;
+use super::resolve::NameLookup;
 use crate::error::Error;
 
 /// The word that starts the index's placeholder for a file it skipped.
@@ -90,7 +90,7 @@ pub struct Results {
     /// What sego looked up about the one repository the query named, when
     /// the server found no repository; `Err` when the lookup failed.
     #[serde(skip)]
-    pub absence: Option<Box<Result<Absence, Error>>>,
+    pub name_lookup: Option<Box<Result<NameLookup, Error>>>,
 }
 
 impl Results {

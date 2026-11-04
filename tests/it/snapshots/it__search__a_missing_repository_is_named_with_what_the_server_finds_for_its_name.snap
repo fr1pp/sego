@@ -8,5 +8,5 @@ exit: 1
 sego: error: No repositories found
   query  timeout:60s repo:^github\.com/nedbat/coveragepy$@7.4.4 tomllib
   github.com/nedbat/coveragepy is not on sourcegraph.com
-  repositories sourcegraph.com finds for coveragepy: github.com/coveragepy/coveragepy, github.com/coveragepy/django_coverage_plugin, src.fedoraproject.org/rpms/python-colcon-coveragepy-result
+  repositories sourcegraph.com finds for coveragepy, most stars first: github.com/coveragepy/coveragepy, github.com/coveragepy/django_coverage_plugin, src.fedoraproject.org/rpms/python-colcon-coveragepy-result
 ----- end -----

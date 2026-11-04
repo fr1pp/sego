@@ -14,19 +14,22 @@ pub const SOURCEGRAPH_COM_MIRRORS: &str = "sourcegraph.com serves indexed reposi
 /// How many names the repository search lists for a missing repository.
 const CANDIDATES: usize = 3;
 
-/// Whether a repository name is on the server, and the first names its
-/// repository search finds for the name's last part, which shows a
-/// repository renamed or spelt otherwise.
-const ABSENCE: &str = "\
-query Absence($name: String!, $text: String!, $first: Int!) {
+/// Whether a repository name is on the server, ignoring case as `repo:` does,
+/// and the names its repository search finds for the name's last part, most
+/// stars first, which shows a repository renamed or spelt otherwise.
+const NAME_LOOKUP: &str = "\
+query NameLookup($name: String!, $text: String!, $first: Int!) {
   repository(name: $name) { name }
-  repositories(query: $text, first: $first) { nodes { name } pageInfo { hasNextPage } }
+  repositories(query: $text, first: $first, orderBy: STARS, descending: true) {
+    nodes { name }
+    pageInfo { hasNextPage }
+  }
 }
 ";
 
 /// What the server holds for a repository name a search named.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Absence {
+pub struct NameLookup {
     pub name: String,
     pub host: String,
     pub exists: bool,
@@ -37,16 +40,26 @@ pub struct Absence {
     pub more: bool,
 }
 
-pub fn absence_request(name: &str) -> Request {
-    let text = name.rsplit('/').next().unwrap_or(name);
-    let mut variables = Map::new();
-    variables.insert("name".to_owned(), json!(name));
-    variables.insert("text".to_owned(), json!(text));
-    variables.insert("first".to_owned(), json!(CANDIDATES));
-    Request::new("Absence", ABSENCE.to_owned(), variables)
+/// The fact that `name` is not a repository on `host`.
+pub fn not_on(name: &str, host: &str) -> String {
+    format!("{name} is not on {host}")
 }
 
-pub fn read_absence(envelope: &Envelope, name: &str) -> Result<Absence, Error> {
+/// The last part of a repository name, which names the repository on its
+/// host.
+fn last_part(name: &str) -> &str {
+    name.rsplit('/').next().unwrap_or(name)
+}
+
+pub fn name_lookup_request(name: &str) -> Request {
+    let mut variables = Map::new();
+    variables.insert("name".to_owned(), json!(name));
+    variables.insert("text".to_owned(), json!(last_part(name)));
+    variables.insert("first".to_owned(), json!(CANDIDATES));
+    Request::new("NameLookup", NAME_LOOKUP.to_owned(), variables)
+}
+
+pub fn read_name_lookup(envelope: &Envelope, name: &str) -> Result<NameLookup, Error> {
     let failed = || Error::failed("the repository lookup");
     if envelope.error_beneath(&["repository"]).is_some() {
         return Err(failed());
@@ -61,11 +74,11 @@ pub fn read_absence(envelope: &Envelope, name: &str) -> Result<Absence, Error> {
         .get(&["repositories", "pageInfo", "hasNextPage"])
         .and_then(Value::as_bool)
         .unwrap_or(false);
-    Ok(Absence {
+    Ok(NameLookup {
         name: name.to_owned(),
         host: envelope.host.clone(),
         exists: envelope.get(&["repository", "name"]).is_some(),
-        text: name.rsplit('/').next().unwrap_or(name).to_owned(),
+        text: last_part(name).to_owned(),
         found,
         more,
     })
@@ -291,7 +304,7 @@ pub fn repository(repo: &Repo, envelope: &Envelope, roots: &[&str]) -> Result<Re
     };
     match found[..] {
         [] if (0..roots.len()).any(failed) => Err(Error::failed("the repository lookup")),
-        [] => Err(Error::not_found(format!("{} is not on {}", repo.as_written(), envelope.host))
+        [] => Err(Error::not_found(not_on(repo.as_written(), &envelope.host))
             .fact(SOURCEGRAPH_COM_MIRRORS)),
         [i] => {
             let other = (0..roots.len()).find(|&j| j != i && failed(j));

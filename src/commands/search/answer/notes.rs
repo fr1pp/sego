@@ -5,7 +5,7 @@ use crate::output::Notes;
 
 use super::text::tenths;
 use super::{Alert, Answer};
-use crate::sourcegraph::{Absence, NO_REPOSITORIES, regexp_reason};
+use crate::sourcegraph::{NO_REPOSITORIES, NameLookup, not_on, regexp_reason};
 
 const FACTS: usize = 2;
 const PROCESS_FAILURE: &str = "Unable To Process Query";
@@ -27,10 +27,9 @@ impl Answer {
                     return Err(revisions(alert));
                 }
                 if alert.title == NO_REPOSITORIES {
-                    let error = Error::not_found(&alert.title)
-                        .fact(self.query.sent())
-                        .facts(self.absence_facts(notes));
-                    return Err(proposals(alert, error));
+                    let error =
+                        proposals(alert, Error::not_found(&alert.title).fact(self.query.sent()));
+                    return Err(error.facts(self.lookup_facts(notes)));
                 }
             }
         }
@@ -49,10 +48,11 @@ impl Answer {
 impl Answer {
     /// What the lookup of the one repository the query named found: that
     /// the name isn't on the server, and what its repository search finds
-    /// for the name's last part. A failed lookup is a note (ADR 0013).
-    fn absence_facts(&self, notes: &mut Notes) -> Vec<String> {
-        match self.absence.as_deref() {
-            Some(Ok(absence)) if !absence.exists => missing(absence),
+    /// for the name's last part. They follow the server's own proposals
+    /// within an error's facts (ADR 0018). A failed lookup is a note (ADR 0013).
+    fn lookup_facts(&self, notes: &mut Notes) -> Vec<String> {
+        match self.name_lookup.as_deref() {
+            Some(Ok(name_lookup)) if !name_lookup.exists => missing(name_lookup),
             Some(Err(error)) => {
                 let name = self.query.exact_repository.as_deref().unwrap_or_default();
                 notes.push(format!("{name} not looked up: {error}"));
@@ -63,15 +63,15 @@ impl Answer {
     }
 }
 
-fn missing(absence: &Absence) -> Vec<String> {
-    let mut facts = vec![format!("{} is not on {}", absence.name, absence.host)];
-    if !absence.found.is_empty() {
-        let more = if absence.more { ", and more" } else { "" };
+fn missing(name_lookup: &NameLookup) -> Vec<String> {
+    let mut facts = vec![not_on(&name_lookup.name, &name_lookup.host)];
+    if !name_lookup.found.is_empty() {
+        let more = if name_lookup.more { ", and more" } else { "" };
         facts.push(format!(
-            "repositories {} finds for {}: {}{more}",
-            absence.host,
-            absence.text,
-            absence.found.join(", ")
+            "repositories {} finds for {}, most stars first: {}{more}",
+            name_lookup.host,
+            name_lookup.text,
+            name_lookup.found.join(", ")
         ));
     }
     facts

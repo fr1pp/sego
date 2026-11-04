@@ -1,8 +1,8 @@
 {
   "date": "2026-11-04",
   "request": {
-    "operation": "Absence",
-    "query": "query Absence($name: String!, $text: String!, $first: Int!) {\n  repository(name: $name) { name }\n  repositories(query: $text, first: $first) { nodes { name } pageInfo { hasNextPage } }\n}\n",
+    "operation": "NameLookup",
+    "query": "query NameLookup($name: String!, $text: String!, $first: Int!) {\n  repository(name: $name) { name }\n  repositories(query: $text, first: $first, orderBy: STARS, descending: true) {\n    nodes { name }\n    pageInfo { hasNextPage }\n  }\n}\n",
     "variables": {
       "first": 3,
       "name": "github.com/sego-nonexistent-0/nope",
@@ -15,13 +15,13 @@
         "repositories": {
           "nodes": [
             {
-              "name": "github.com/ActiveVisionLab/nope-nerf"
+              "name": "github.com/spmallick/learnopencv"
             },
             {
-              "name": "github.com/AllInOpenSource/All-In"
+              "name": "github.com/JoeyDeVries/LearnOpenGL"
             },
             {
-              "name": "github.com/anope/anope"
+              "name": "github.com/NopeCHALLC/nopecha-extension"
             }
           ],
           "pageInfo": {

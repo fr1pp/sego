@@ -2619,6 +2619,26 @@ fn a_named_repository_the_server_holds_adds_no_fact() {
     assert_snapshot!(answered(&["search", query], [no_repositories(), lookup]));
 }
 
+/// The server's proposals come before what sego adds from its lookup, which fills
+/// only the facts left.
+#[test]
+fn the_servers_proposals_come_before_the_named_repositorys_lookup() {
+    let mut search = no_repositories();
+    search["data"]["search"]["results"]["alert"]["proposedQueries"] =
+        json!([{"description": null, "query": "repo:^example\\.com/acme/widgets$ foo"}]);
+    let lookup = json!({
+        "data": {
+            "repository": null,
+            "repositories": {
+                "nodes": [{"name": "example.com/acme/widgets"}],
+                "pageInfo": {"hasNextPage": false},
+            },
+        },
+    });
+    let query = "repo:^example\\.com/acme/widget$ foo";
+    assert_snapshot!(answered(&["search", query], [search, lookup]));
+}
+
 /// A failed lookup of the named repository is a note beside the error.
 #[test]
 fn a_failed_repository_lookup_is_a_note() {
