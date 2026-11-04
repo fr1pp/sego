@@ -1,0 +1,11 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", query],\n[ServerResponse::from(no_repositories()), failed])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: note: example.com/acme/widget not looked up: sourcegraph.com answered HTTP 500
+sego: error: No repositories found
+  query  timeout:60s repo:^example\.com/acme/widget$ foo
+----- end -----

@@ -5,6 +5,7 @@ use serde_json::json;
 
 use crate::common::case::Case;
 use crate::common::record::stopped;
+use crate::common::recording::ServerResponse;
 use crate::common::{answered, sego};
 
 /// An alert's title, a timed-out repository, filters and results with control characters are escaped, and so is the query, given as the argument.
@@ -2564,6 +2565,69 @@ fn no_repositories_found_with_three_proposals_names_two() {
         },
     });
     assert_snapshot!(answered(&["search", "lang:go foo"], [response]));
+}
+
+/// A search that names one repository exactly, which sourcegraph.com lacks, says
+/// so and lists what sourcegraph.com's repository search finds for its last part.
+#[test]
+fn a_missing_repository_is_named_with_what_the_server_finds_for_its_name() {
+    assert_snapshot!(sego(&["search", "repo:^github\\.com/nedbat/coveragepy$@7.4.4 tomllib"]));
+}
+
+/// A repo: pattern that a shell cut short matches more than one name, so sego looks
+/// nothing up and the query as sent is the only fact.
+#[test]
+fn a_repo_pattern_without_its_end_anchor_is_not_looked_up() {
+    assert_snapshot!(sego(&["search", "repo:^github\\.com/torvalds/linuxv6.6 FS_ALLOW_IDMAP"]));
+}
+
+fn no_repositories() -> serde_json::Value {
+    json!({
+        "data": {
+            "search": {
+                "results": {
+                    "alert": {
+                        "description": null,
+                        "kind": null,
+                        "proposedQueries": null,
+                        "title": "No repositories found",
+                    },
+                    "approximateResultCount": "0",
+                    "dynamicFilters": [],
+                    "elapsedMilliseconds": 100,
+                    "limitHit": false,
+                    "matchCount": 0,
+                    "results": [],
+                    "timedout": [],
+                },
+            },
+        },
+    })
+}
+
+/// A named repository the server holds adds no fact: the search found none for
+/// another reason.
+#[test]
+fn a_named_repository_the_server_holds_adds_no_fact() {
+    let lookup = json!({
+        "data": {
+            "repository": {"name": "example.com/acme/widget"},
+            "repositories": {"nodes": [{"name": "example.com/acme/widget"}], "pageInfo": {"hasNextPage": false}},
+        },
+    });
+    let query = "repo:^example\\.com/acme/widget$@v9 foo";
+    assert_snapshot!(answered(&["search", query], [no_repositories(), lookup]));
+}
+
+/// A failed lookup of the named repository is a note beside the error.
+#[test]
+fn a_failed_repository_lookup_is_a_note() {
+    let query = "repo:^example\\.com/acme/widget$ foo";
+    let failed = ServerResponse::new(500, "text/plain", "upstream failed");
+    assert_snapshot!(answered(
+        &["search", query],
+        [ServerResponse::from(no_repositories()), failed]
+    ));
 }
 
 /// No repositories found with no proposals and no repo: filter is the bare error.

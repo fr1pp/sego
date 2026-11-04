@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-04",
+  "request": {
+    "operation": "Absence",
+    "query": "query Absence($name: String!, $text: String!, $first: Int!) {\n  repository(name: $name) { name }\n  repositories(query: $text, first: $first) { nodes { name } pageInfo { hasNextPage } }\n}\n",
+    "variables": {
+      "first": 3,
+      "name": "github.com/sego-nonexistent-0/nope",
+      "text": "nope"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "repositories": {
+          "nodes": [
+            {
+              "name": "github.com/ActiveVisionLab/nope-nerf"
+            },
+            {
+              "name": "github.com/AllInOpenSource/All-In"
+            },
+            {
+              "name": "github.com/anope/anope"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": true
+          }
+        },
+        "repository": null
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}

@@ -1,0 +1,10 @@
+---
+source: tests/it/search.rs
+expression: "sego(&[\"search\", \"repo:^github\\\\.com/torvalds/linuxv6.6 FS_ALLOW_IDMAP\"])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: No repositories found
+  query  timeout:60s repo:^github\.com/torvalds/linuxv6.6 FS_ALLOW_IDMAP
+----- end -----

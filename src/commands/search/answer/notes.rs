@@ -5,12 +5,11 @@ use crate::output::Notes;
 
 use super::text::tenths;
 use super::{Alert, Answer};
-use crate::sourcegraph::regexp_reason;
+use crate::sourcegraph::{Absence, NO_REPOSITORIES, regexp_reason};
 
 const FACTS: usize = 2;
 const PROCESS_FAILURE: &str = "Unable To Process Query";
 const REVISIONS: &str = "Some revisions could not be searched";
-const NO_REPOSITORIES: &str = "No repositories found";
 
 impl Answer {
     /// Writes the answer's notes, or the error it is: an alert that means
@@ -28,10 +27,10 @@ impl Answer {
                     return Err(revisions(alert));
                 }
                 if alert.title == NO_REPOSITORIES {
-                    return Err(proposals(
-                        alert,
-                        Error::not_found(&alert.title).fact(self.query.sent()),
-                    ));
+                    let error = Error::not_found(&alert.title)
+                        .fact(self.query.sent())
+                        .facts(self.absence_facts(notes));
+                    return Err(proposals(alert, error));
                 }
             }
         }
@@ -45,6 +44,37 @@ impl Answer {
         push_notes(self, notes);
         Ok(())
     }
+}
+
+impl Answer {
+    /// What the lookup of the one repository the query named found: that
+    /// the name isn't on the server, and what its repository search finds
+    /// for the name's last part. A failed lookup is a note (ADR 0013).
+    fn absence_facts(&self, notes: &mut Notes) -> Vec<String> {
+        match self.absence.as_deref() {
+            Some(Ok(absence)) if !absence.exists => missing(absence),
+            Some(Err(error)) => {
+                let name = self.query.exact_repository.as_deref().unwrap_or_default();
+                notes.push(format!("{name} not looked up: {error}"));
+                Vec::new()
+            }
+            _ => Vec::new(),
+        }
+    }
+}
+
+fn missing(absence: &Absence) -> Vec<String> {
+    let mut facts = vec![format!("{} is not on {}", absence.name, absence.host)];
+    if !absence.found.is_empty() {
+        let more = if absence.more { ", and more" } else { "" };
+        facts.push(format!(
+            "repositories {} finds for {}: {}{more}",
+            absence.host,
+            absence.text,
+            absence.found.join(", ")
+        ));
+    }
+    facts
 }
 
 fn description(alert: &Alert) -> Option<&str> {
