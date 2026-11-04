@@ -29,6 +29,7 @@ pub struct Answer {
     unshown: Vec<String>,
     groups: Vec<Group>,
     server: Server,
+    name_lookup: Option<Box<Result<sourcegraph::NameLookup, crate::error::Error>>>,
 }
 
 /// The server's own fields, untrusted.
@@ -537,6 +538,7 @@ impl Answer {
                 limit_hit: results.limit_hit,
                 timedout: results.timedout.into_iter().map(|n| n.name).collect(),
             },
+            name_lookup: results.name_lookup,
             query,
         }
     }

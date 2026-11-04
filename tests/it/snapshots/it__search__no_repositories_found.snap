@@ -7,4 +7,6 @@ exit: 1
 ----- stderr -----
 sego: error: No repositories found
   query  timeout:60s repo:^github\.com/sego-nonexistent-0/nope$ foo
+  github.com/sego-nonexistent-0/nope is not on sourcegraph.com
+  repositories sourcegraph.com finds for nope, most stars first: github.com/spmallick/learnopencv, github.com/JoeyDeVries/LearnOpenGL, github.com/NopeCHALLC/nopecha-extension, and more
 ----- end -----

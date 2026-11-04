@@ -3,10 +3,15 @@ use serde::de::{DeserializeOwned, Deserializer, Error as _, IgnoredAny};
 use serde_json::{Map, Value, json};
 
 use super::graphql::{Envelope, Request};
+use super::resolve::NameLookup;
 use crate::error::Error;
 
 /// The word that starts the index's placeholder for a file it skipped.
 pub const NOT_INDEXED: &str = "NOT-INDEXED";
+
+/// The title of the alert for a search whose `repo:` filters match no
+/// repository.
+pub const NO_REPOSITORIES: &str = "No repositories found";
 
 const DOCUMENT: &str = "\
 query Search($query: String!) {
@@ -82,6 +87,19 @@ pub struct Results {
     pub dynamic_filters: Vec<DynamicFilter>,
     #[serde(rename = "results")]
     pub items: Vec<Item>,
+    /// What sego looked up about the one repository the query named, when
+    /// the server found no repository; `Err` when the lookup failed.
+    #[serde(skip)]
+    pub name_lookup: Option<Box<Result<NameLookup, Error>>>,
+}
+
+impl Results {
+    /// Whether the server answered that no repository matched.
+    pub fn finds_no_repository(&self) -> bool {
+        self.match_count == 0
+            && self.items.is_empty()
+            && self.alert.as_ref().is_some_and(|alert| alert.title == NO_REPOSITORIES)
+    }
 }
 
 #[derive(Debug, Deserialize)]

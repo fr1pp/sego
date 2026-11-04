@@ -13,6 +13,16 @@ unless told otherwise, a misspelt filter returns a plain zero, and a capped `sel
 short with no sign. That knowledge belongs in the query reference and the search strategy. An answer
 that misstates what the server did is a bug; a poor query isn't.
 
+One reading of a query is allowed, because its facts don't depend on how the server read the query.
+When the server finds no repository, the query has no `or`, and its only `repo:` filter is `^NAME$`
+or `^NAME$@REV` with NAME a literal, host-qualified name, sego looks NAME up. It states that NAME
+isn't on the server, and the names the server's repository search finds for NAME's last part, most
+stars first, after any proposals of the server's own. Each is a lookup's answer, true whatever the
+server made of the query. The lookup ignores case, as `repo:` does, so a name the server holds in
+any case is never called missing. Only a pattern that matches exactly one repository name
+qualifies: `^owner/name$` names none the server holds, though `owner/name` names one as an address,
+and a shell that ate `$@` leaves `^github\.com/o/rv1.2`, which qualifies for nothing.
+
 ## Considered options
 
 - **Keep the local checks that look certain.** Each is cheap alone, but together they are the

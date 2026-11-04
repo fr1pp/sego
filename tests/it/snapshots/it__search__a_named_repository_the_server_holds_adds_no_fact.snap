@@ -1,0 +1,10 @@
+---
+source: tests/it/search.rs
+expression: "answered(&[\"search\", query], [no_repositories(), lookup])"
+---
+exit: 1
+----- stdout -----
+----- stderr -----
+sego: error: No repositories found
+  query  timeout:60s repo:^example\.com/acme/widget$@v9 foo
+----- end -----

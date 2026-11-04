@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-04",
+  "request": {
+    "operation": "NameLookup",
+    "query": "query NameLookup($name: String!, $text: String!, $first: Int!) {\n  repository(name: $name) { name }\n  repositories(query: $text, first: $first, orderBy: STARS, descending: true) {\n    nodes { name }\n    pageInfo { hasNextPage }\n  }\n}\n",
+    "variables": {
+      "first": 3,
+      "name": "github.com/nedbat/coveragepy",
+      "text": "coveragepy"
+    }
+  },
+  "response": {
+    "body": {
+      "data": {
+        "repositories": {
+          "nodes": [
+            {
+              "name": "github.com/coveragepy/coveragepy"
+            },
+            {
+              "name": "github.com/coveragepy/django_coverage_plugin"
+            },
+            {
+              "name": "src.fedoraproject.org/rpms/python-colcon-coveragepy-result"
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false
+          }
+        },
+        "repository": null
+      }
+    },
+    "content-type": "application/json",
+    "status": 200
+  }
+}
