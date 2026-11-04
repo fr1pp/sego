@@ -40,7 +40,7 @@ pub struct Args {
 
 pub fn run(args: &Args, client: Client, notes: &mut Notes) -> Result<Answer, Error> {
     let query = Query::new(&args.query);
-    let results = match client.search(&query.text)? {
+    let results = match client.search(&query.text, query.exact_repository.as_deref())? {
         Search::Results(results) => results,
         Search::BadRegexp { reason } => return Err(regexp_error(&reason, &query)),
     };
@@ -72,7 +72,7 @@ mod tests {
         let cache = Endpoint::default().cache(Some(OsStr::new("off")));
         let client =
             Client::new(crate::connect(Endpoint::default()), Endpoint::default(), &cache, deadline);
-        match client.search(&query.text) {
+        match client.search(&query.text, None) {
             Ok(Search::Results(results)) => Ok(results),
             Ok(Search::BadRegexp { reason }) => Err(format!("{}: {reason}", query.text)),
             Err(e) => Err(format!("{}: {}", query.text, report(&e))),

@@ -67,6 +67,9 @@ pub struct Query {
     /// A pattern names `NOT-INDEXED`, so the placeholders of unindexed
     /// files are results, not matches to drop.
     pub lists_placeholders: bool,
+    /// The one repository the query names exactly, which sego looks up when
+    /// the server finds no repository (ADR 0018).
+    pub exact_repository: Option<String>,
 }
 
 impl Query {
@@ -93,6 +96,7 @@ impl Query {
             unit: unit(written),
             by_results: stated_unit(written).is_none(),
             repo_scoped: repo_scoped(written),
+            exact_repository: exact_repository(written),
             lists_placeholders: written.iter().any(|item| {
                 matches!(item, Written::Pattern { text, negated: false, .. }
                     if text.to_ascii_uppercase().contains(NOT_INDEXED))
@@ -196,6 +200,48 @@ fn repo_select(value: &str) -> bool {
 /// `or` can sit beside no `repo:` filter at all.
 fn repo_scoped(written: &[Written]) -> bool {
     !written.contains(&Written::Or) && filters(written).any(|f| is_repo(f) && !f.negated)
+}
+
+/// The name the query's `repo:` filter matches and nothing else: the
+/// query's only `repo:` filter, not negated, in a query without `or`, is
+/// `^NAME$` or `^NAME$@REV`, and NAME is a literal name.
+fn exact_repository(written: &[Written]) -> Option<String> {
+    if written.contains(&Written::Or) {
+        return None;
+    }
+    let mut repos = filters(written).filter(|f| is_repo(f));
+    let only = repos.next()?;
+    if only.negated || repos.next().is_some() {
+        return None;
+    }
+    let (pattern, rest) = unquoted(&only.value).strip_prefix('^')?.split_once('$')?;
+    if !(rest.is_empty() || rest.starts_with('@')) {
+        return None;
+    }
+    literal_name(pattern)
+}
+
+/// The one repository name `pattern` matches: a host with its dots escaped
+/// as `\.`, then at least one more part, of letters, digits, `-`, `_` and
+/// `/`. Any other regular-expression syntax, an unescaped `.` included,
+/// matches more than one name, and a name without its host isn't one the
+/// server holds, though `owner/name` names one as an address.
+fn literal_name(pattern: &str) -> Option<String> {
+    let mut name = String::new();
+    let mut chars = pattern.chars();
+    while let Some(c) = chars.next() {
+        match c {
+            '\\' => match chars.next()? {
+                escaped @ ('.' | '/' | '-' | '_') => name.push(escaped),
+                _ => return None,
+            },
+            c if c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '/') => name.push(c),
+            _ => return None,
+        }
+    }
+    let parts: Vec<&str> = name.split('/').collect();
+    let host = parts[0].contains('.');
+    (host && parts.len() >= 2 && parts.iter().all(|part| !part.is_empty())).then_some(name)
 }
 
 fn filters(written: &[Written]) -> impl Iterator<Item = &Filter> {
@@ -499,6 +545,37 @@ mod tests {
         }
         for q in ["foo", "-repo:x foo", "file:x foo", "lang:go foo", "repo:x a or b"] {
             assert!(!Query::new(q).repo_scoped, "{q}");
+        }
+    }
+
+    #[test]
+    fn only_a_repo_filter_that_matches_one_name_names_an_exact_repository() {
+        let named = [
+            (r"repo:^github\.com/a/b$ foo", "github.com/a/b"),
+            (r"repo:^github\.com/a/b$@v1.2.3 foo", "github.com/a/b"),
+            (r#"repo:"^github\.com/a-b/c_d$" foo"#, "github.com/a-b/c_d"),
+            (r"r:^gitlab\.com/a/b/c$ foo", "gitlab.com/a/b/c"),
+        ];
+        for (q, name) in named {
+            assert_eq!(Query::new(q).exact_repository.as_deref(), Some(name), "{q}");
+        }
+        let unnamed = [
+            r"repo:^github\.com/a/bv6.6 foo",
+            r"repo:^github.com/a/b$ foo",
+            r"repo:github\.com/a/b$ foo",
+            r"repo:^github\.com/a/b$x foo",
+            r"-repo:^github\.com/a/b$ foo",
+            r"repo:^github\.com/a/b$ repo:^github\.com/c/d$ foo",
+            r"repo:^github\.com/a/b$ x or y",
+            r"repo:^github\.com/a/.*$ foo",
+            r"repo:^github\.com/(a|b)/c$ foo",
+            r"repo:^b$ foo",
+            r"repo:^torvalds/linux$ foo",
+            r"repo:^github/linux$ foo",
+            "foo",
+        ];
+        for q in unnamed {
+            assert_eq!(Query::new(q).exact_repository, None, "{q}");
         }
     }
 }

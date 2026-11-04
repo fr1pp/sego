@@ -28,9 +28,10 @@ pub use files::{Content, File, Submodule, Window};
 pub use graphql::regexp_reason;
 pub use http::Ureq;
 pub use refs::{RefList, Refs};
-pub use resolve::Resolved;
+pub use resolve::{NameLookup, Resolved, not_on};
 pub use search::{
-    Alert, CommitResult, FileMatch, Item, NOT_INDEXED, Range, Results, Search, Symbol,
+    Alert, CommitResult, FileMatch, Item, NO_REPOSITORIES, NOT_INDEXED, Range, Results, Search,
+    Symbol,
 };
 
 /// What a history covers: a revision, or the default branch for `None`; or
@@ -258,9 +259,21 @@ impl<'a> Client<'a> {
         resolve::read_range(&self.exchange(&request)?, repo, base, head)
     }
 
-    /// The results of `query`.
-    pub fn search(self, query: &str) -> Result<Search, Error> {
-        search::read(&self.exchange(&search::request(query))?)
+    /// The results of `query`. When the server finds no repository and the
+    /// query names exactly one, `repository`, the results also hold whether
+    /// that name is on the server and what its repository search finds.
+    pub fn search(self, query: &str, repository: Option<&str>) -> Result<Search, Error> {
+        let mut search = search::read(&self.exchange(&search::request(query))?)?;
+        if let (Search::Results(results), Some(name)) = (&mut search, repository)
+            && results.finds_no_repository()
+        {
+            let request = resolve::name_lookup_request(name);
+            results.name_lookup = Some(Box::new(
+                self.exchange_within(&request, NAME_LOOKUP_DEADLINE)
+                    .and_then(|envelope| resolve::read_name_lookup(&envelope, name)),
+            ));
+        }
+        Ok(search)
     }
 
     /// The branches and tags of `repo` that match `text`, at most `first` of
@@ -283,6 +296,9 @@ pub const DEADLINE: Duration = Duration::from_secs(90);
 
 /// The deadline of the request for the tags that hold a commit.
 const TAGS_DEADLINE: Duration = Duration::from_secs(10);
+
+/// The deadline of the lookup of a repository a search found missing.
+const NAME_LOOKUP_DEADLINE: Duration = Duration::from_secs(10);
 
 pub const GRAPHQL_PATH: &str = "/.api/graphql";
 

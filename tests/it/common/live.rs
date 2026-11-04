@@ -93,9 +93,11 @@ fn compare(recording: &Recording, response: &Response) -> Result<(), String> {
     difference(&recorded, &live, values).map_or(Ok(()), Err)
 }
 
-/// Whether the answer lists refs, which grow without any commit moving.
+/// Whether the answer lists refs, which grow without any commit moving, or
+/// what a repository search finds, a capped list whose members change.
 fn grows(request: &Request) -> bool {
-    matches!(request, Request::Graphql { operation, .. } if ["Refs", "CommitTags"].contains(&operation.as_str()))
+    matches!(request, Request::Graphql { operation, .. }
+        if ["Refs", "CommitTags", "NameLookup"].contains(&operation.as_str()))
 }
 
 /// Whether the search reached its cap, since which results fill it varies.

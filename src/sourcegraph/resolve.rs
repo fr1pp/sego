@@ -11,6 +11,79 @@ pub const SOURCEGRAPH_COM_MIRRORS: &str = "sourcegraph.com serves indexed reposi
     github.com, gitlab.com and a few other hosts; a renamed repository \
     appears only under its new name";
 
+/// How many names the repository search lists for a missing repository.
+const CANDIDATES: usize = 3;
+
+/// Whether a repository name is on the server, ignoring case as `repo:` does,
+/// and the names its repository search finds for the name's last part, most
+/// stars first, which shows a repository renamed or spelt otherwise.
+const NAME_LOOKUP: &str = "\
+query NameLookup($name: String!, $text: String!, $first: Int!) {
+  repository(name: $name) { name }
+  repositories(query: $text, first: $first, orderBy: STARS, descending: true) {
+    nodes { name }
+    pageInfo { hasNextPage }
+  }
+}
+";
+
+/// What the server holds for a repository name a search named.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NameLookup {
+    pub name: String,
+    pub host: String,
+    pub exists: bool,
+    /// The last part of `name`, which the repository search was given.
+    pub text: String,
+    pub found: Vec<String>,
+    /// Whether the repository search found more than `found`.
+    pub more: bool,
+}
+
+/// The fact that `name` is not a repository on `host`.
+pub fn not_on(name: &str, host: &str) -> String {
+    format!("{name} is not on {host}")
+}
+
+/// The last part of a repository name, which names the repository on its
+/// host.
+fn last_part(name: &str) -> &str {
+    name.rsplit('/').next().unwrap_or(name)
+}
+
+pub fn name_lookup_request(name: &str) -> Request {
+    let mut variables = Map::new();
+    variables.insert("name".to_owned(), json!(name));
+    variables.insert("text".to_owned(), json!(last_part(name)));
+    variables.insert("first".to_owned(), json!(CANDIDATES));
+    Request::new("NameLookup", NAME_LOOKUP.to_owned(), variables)
+}
+
+pub fn read_name_lookup(envelope: &Envelope, name: &str) -> Result<NameLookup, Error> {
+    let failed = || Error::failed("the repository lookup");
+    if envelope.error_beneath(&["repository"]).is_some() {
+        return Err(failed());
+    }
+    let nodes =
+        envelope.get(&["repositories", "nodes"]).and_then(Value::as_array).ok_or_else(failed)?;
+    let found = nodes
+        .iter()
+        .filter_map(|node| node.get("name").and_then(Value::as_str).map(str::to_owned))
+        .collect();
+    let more = envelope
+        .get(&["repositories", "pageInfo", "hasNextPage"])
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    Ok(NameLookup {
+        name: name.to_owned(),
+        host: envelope.host.clone(),
+        exists: envelope.get(&["repository", "name"]).is_some(),
+        text: last_part(name).to_owned(),
+        found,
+        more,
+    })
+}
+
 /// An address resolved to a commit.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Resolved {
@@ -231,7 +304,7 @@ pub fn repository(repo: &Repo, envelope: &Envelope, roots: &[&str]) -> Result<Re
     };
     match found[..] {
         [] if (0..roots.len()).any(failed) => Err(Error::failed("the repository lookup")),
-        [] => Err(Error::not_found(format!("{} is not on {}", repo.as_written(), envelope.host))
+        [] => Err(Error::not_found(not_on(repo.as_written(), &envelope.host))
             .fact(SOURCEGRAPH_COM_MIRRORS)),
         [i] => {
             let other = (0..roots.len()).find(|&j| j != i && failed(j));
